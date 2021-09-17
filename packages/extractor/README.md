@@ -1,6 +1,8 @@
 reads NFT data from covalent, stores them in ./data/<contract>/tokenId
 
-get a covalent api key first: https://www.covalenthq.com/platform/#/auth/register
+(if youd like to try with covalent, get a covalent api key first: https://www.covalenthq.com/platform/#/auth/register)
+
+using _real_ chain data, get an Infura key first: https://infura.io/
 
 `cp .env.sample .env`
 
