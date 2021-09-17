@@ -22,11 +22,13 @@ importers:
       ethers: 5.4.7
     devDependencies:
       '@types/dotenv-flow': 3.2.0
+      '@vercel/ncc': 0.31.1
       ts-node: 10.2.1_typescript@4.4.3
       ts-node-dev: 1.1.8_typescript@4.4.3
       typescript: 4.4.3
     specifiers:
       '@types/dotenv-flow': ^3.2.0
+      '@vercel/ncc': ^0.31.1
       axios: ^0.21.4
       commander: ^8.2.0
       dotenv-flow: ^3.2.0
@@ -789,6 +791,11 @@ packages:
     dev: true
     resolution:
       integrity: sha512-fhZ9DyvDYDwHZUp5/STa9XW2re0E8GxoioYJ4pEUZ13YHpApSagixj7IAdoYH5uAK+UalGq6Ml8LYzmgRA/q+A==
+  /@vercel/ncc/0.31.1:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-g0FAxwdViI6UzsiVz5HssIHqjcPa1EHL6h+2dcJD893SoCJaGdqqgUF09xnMW6goWnnhbLvgiKlgJWrJa+7qYA==
   /@yarnpkg/lockfile/1.1.0:
     dev: true
     resolution:
