@@ -1,0 +1,20 @@
+{
+  "name": "ethonline21",
+  "version": "1.0.0",
+  "description": "> \"Can you breed an Ape with a Cat and what would be the result?\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cod1ng-earth/ethonline21.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cod1ng-earth/ethonline21/issues"
+  },
+  "homepage": "https://github.com/cod1ng-earth/ethonline21#readme"
+}
