@@ -8,16 +8,17 @@ import fs from "fs";
  */
 export async function fetchNFTMetaData(
   contractAddress: string,
-  tokenId: number
+  tokenId: string
 ) {
   const directory = mkdir(contractAddress, tokenId);
 
   const covalentUrl = `https://api.covalenthq.com/v1/1/tokens/${contractAddress}/nft_metadata/${tokenId}/`;
+  const auth = process.env.COVALENT_AUTH as string;
 
   const response = await axios.get<CovalentNFTResponse>(covalentUrl, {
-    auth: {
-      username: process.env.COVALENT_AUTH as string,
-      password: "",
+    responseType: "json",
+    headers: {
+      Authorization: `Basic ${auth}:`,
     },
   });
 
