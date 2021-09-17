@@ -1,0 +1,6 @@
+@auth = {{$dotenv COVALENT_AUTH}}
+@account = 0x70631b7376f4956185dac1b9cb4e9f83ccbc2764
+@coolcats = 0x1a92f7381b9f03921564a437210bb9396471050c
+
+GET https://api.covalenthq.com/v1/1/tokens/{{coolcats}}/nft_metadata/3973/
+Authorization: Basic {{auth}}:
