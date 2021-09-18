@@ -6,8 +6,14 @@
     "node": "^12.20.0 || ^14.16.0 || >=16.0.0"
   },
   "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
-    "nft": "node --loader ts-node/esm index.ts",
+    "build": "tsc -p .",
+    "dev": "tsc -p . --watch",
+    "nft": "node dist",
     "dist": "ncc build index.ts -o dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

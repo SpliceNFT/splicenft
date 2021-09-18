@@ -1,6 +1,6 @@
 import axios from "axios";
 import fs from "fs";
-import { CovalentNFTResponse } from "../types/CovalentResponse";
+import { CovalentNFTResponse } from "../types/CovalentResponse.js";
 import spinner from "./cli/spinner.js";
 import { mkdir } from "./cli/mkdir.js";
 import fetch from "node-fetch";
@@ -18,7 +18,7 @@ export async function fetchNFTMetaData(
 
   try {
     const auth = process.env.COVALENT_AUTH as string;
-    console.log("AUTH", auth);
+
     spinner.start("fetching metadata from Covalent API");
 
     const response: CovalentNFTResponse = (await (
@@ -58,7 +58,6 @@ export async function fetchNFTMetaData(
     fs.writeFileSync(`${directory}/image.png`, imgBuffer);
     spinner.succeed();
   } catch (e: any) {
-    console.log(e);
     spinner.fail(e.toString());
     return;
   }
