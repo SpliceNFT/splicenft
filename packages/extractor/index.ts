@@ -5,6 +5,7 @@ import { Command } from "commander";
 import * as Covalent from "./lib/Covalent.js";
 import { FetchCommandOptions } from "./types/ProgramOptions.js";
 import fetchNFTMetaDataFromChain from "./lib/fetchNFTDataFromChain.js";
+import { extractColors } from "./lib/extractColors.js";
 
 dotenvConfig();
 
@@ -33,6 +34,19 @@ program
           await Covalent.fetchNFTMetaData(nftAddress, tokenId);
           break;
       }
+    }
+  );
+
+program
+  .command("colors <nftAddress> <tokenId>")
+  .action(
+    async (
+      nftAddress: string,
+      tokenId: string,
+      options: FetchCommandOptions
+    ) => {
+      const colors = await extractColors(nftAddress, tokenId);
+      console.log(colors);
     }
   );
 
