@@ -4,6 +4,19 @@ this project is based on [pnpm](https://pnpm.io) as a monorepo package manager. 
 
 ```bash
 pnpm install
+```
+
+all ts packages are built using TS / ESM: https://2ality.com/2021/06/typescript-esm-nodejs.html
+
+## extractor
+
+see its [README](./packages/extractor/README.md)
+
+## contracts
+
+get started
+
+```bash
 cd packages/contracts
 npx hardhat compile
 npx hardhat console

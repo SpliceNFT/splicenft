@@ -7,3 +7,5 @@ data
 .env
 .env.*
 !.env.sample
+
+!.vscode/settings.json
