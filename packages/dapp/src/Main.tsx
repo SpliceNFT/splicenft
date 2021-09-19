@@ -10,12 +10,17 @@ export default function Main() {
     activate(injected, (e) => {
       console.error(e);
     });
-  }
-  return <Container>
-    
-    <Heading>So it begins.</Heading>
-    <Text>some text</Text>
-    { !account && <Button onClick={connect} colorScheme="pink">connect!</Button> }
-    { account && <Text>Hello, {account}</Text>}
-  </Container>
+  };
+  return (
+    <Container>
+      <Heading>So it begins.</Heading>
+      <Text>some text</Text>
+      {!account && (
+        <Button onClick={connect} colorScheme="pink">
+          connect!
+        </Button>
+      )}
+      {account && <Text>Hello, {account}</Text>}
+    </Container>
+  );
 }
