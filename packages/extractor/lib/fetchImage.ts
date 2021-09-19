@@ -1,13 +1,10 @@
-import axios from "axios";
+import axios from 'axios';
 
-export async function fetchUrlOrIpfs(
-  uri: string,
-  responseType: "json" | "arraybuffer" = "json"
-): Promise<any> {
+export async function fetchUrlOrIpfs(uri: string, responseType: 'json' | 'arraybuffer' = 'json'): Promise<any> {
   let dataUrl: string;
 
-  if (uri.startsWith("ipfs://")) {
-    const ipfsResource = uri.replace("ipfs://", "");
+  if (uri.startsWith('ipfs://')) {
+    const ipfsResource = uri.replace('ipfs://', '');
     dataUrl = `https://ipfs.io/ipfs/${ipfsResource}`;
   } else {
     dataUrl = uri;
@@ -15,7 +12,7 @@ export async function fetchUrlOrIpfs(
 
   return await (
     await axios.get(dataUrl, {
-      responseType,
+      responseType
     })
   ).data;
 }

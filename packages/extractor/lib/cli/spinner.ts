@@ -1,8 +1,8 @@
-import ora from "ora";
+import ora from 'ora';
 
 const spinner = ora({
   discardStdin: false,
-  spinner: "monkey",
+  spinner: 'monkey'
 });
 
 export default spinner;

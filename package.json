@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "> \"Can you breed an Ape with a Cat and what would be the result?\"",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preinstall": "npx only-allow pnpm"
+  },
+  "engines": {
+    "node": ">=14",
+    "pnpm": ">=3"
   },
   "repository": {
     "type": "git",
@@ -15,5 +19,14 @@
   "bugs": {
     "url": "https://github.com/cod1ng-earth/ethonline21/issues"
   },
-  "homepage": "https://github.com/cod1ng-earth/ethonline21#readme"
+  "homepage": "https://github.com/cod1ng-earth/ethonline21#readme",
+  "devDependencies": {
+    "@types/node": "^12.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
+    "eslint": "^7.17.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.0"
+  }
 }

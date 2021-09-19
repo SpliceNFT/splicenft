@@ -1,0 +1,35 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint",
+        "prettier"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
+    ],
+    "env": {
+        "es6": true
+    },
+    "rules": {
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/indent": [
+            "error",
+            2
+        ],
+        "@typescript-eslint/no-non-null-assertion": "warn",
+        "react/jsx-filename-extension": [
+            1,
+            {
+                "extensions": [
+                    ".ts",
+                    ".tsx"
+                ]
+            }
+        ],
+        "prettier/prettier": 2
+    }
+}

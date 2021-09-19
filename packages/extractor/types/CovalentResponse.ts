@@ -1,4 +1,4 @@
-import { NFTTrait } from "./NFT";
+import { NFTTrait } from './NFT';
 
 export type NFTExternalData = {
   name: string;
@@ -28,7 +28,7 @@ export type NFTItem = {
   contract_address: string;
   supports_erc: string[];
   logo_url: string;
-  type: "nft";
+  type: 'nft';
   nft_data: NFTData[];
 };
 

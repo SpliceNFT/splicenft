@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 
 export function getProvider(): ethers.providers.InfuraWebSocketProvider {
   // const provider = ethers.getDefaultProvider(network, {

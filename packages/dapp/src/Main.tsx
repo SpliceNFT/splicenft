@@ -1,7 +1,7 @@
-import React from 'react'
-import {Container, Heading, Text, Button} from '@chakra-ui/react'
-import { injected } from './modules/connectors';
+import { Button, Container, Heading, Text } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
+import React from 'react';
+import { injected } from './modules/connectors';
 
 export default function Main() {
   const { activate, account } = useWeb3React();
@@ -12,6 +12,7 @@ export default function Main() {
     });
   }
   return <Container>
+    
     <Heading>So it begins.</Heading>
     <Text>some text</Text>
     { !account && <Button onClick={connect} colorScheme="pink">connect!</Button> }
