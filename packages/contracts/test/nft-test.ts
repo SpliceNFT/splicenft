@@ -1,9 +1,9 @@
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import { Signer } from "ethers";
-import { SampleNFT, SampleNFT__factory } from "../typechain";
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+import { Signer } from 'ethers';
+import { SampleNFT, SampleNFT__factory } from '../typechain';
 
-describe("Two NFTs", function () {
+describe('Two NFTs', function () {
   let nft1: SampleNFT;
   let nft2: SampleNFT;
 
@@ -13,25 +13,25 @@ describe("Two NFTs", function () {
     signers = await ethers.getSigners();
   });
 
-  it("deploys two greeting contracts", async function () {
+  it('deploys two greeting contracts', async function () {
     const SampleNFTFactory = (await ethers.getContractFactory(
-      "SampleNFT"
+      'SampleNFT'
     )) as SampleNFT__factory;
     nft1 = (await SampleNFTFactory.deploy(
-      "SampleNFT 1",
-      "SNFT1",
-      "https://sample.token.one/"
+      'SampleNFT 1',
+      'SNFT1',
+      'https://sample.token.one/'
     )) as SampleNFT;
     nft2 = await SampleNFTFactory.deploy(
-      "SampleNFT 2",
-      "SNFT2",
-      "https://two.token.sample/"
+      'SampleNFT 2',
+      'SNFT2',
+      'https://two.token.sample/'
     );
 
     expect(nft1.address).not.eq(nft2.address);
   });
 
-  it("can grant minter roles on contracts", async function () {
+  it('can grant minter roles on contracts', async function () {
     const me = await signers[0].getAddress();
     const MINTER_ROLE = await nft1.MINTER_ROLE();
     await nft1.grantRole(MINTER_ROLE, me);
@@ -39,7 +39,7 @@ describe("Two NFTs", function () {
     expect(hasRole).to.be.true;
   });
 
-  it("can mint tokens on both contracts", async function () {
+  it('can mint tokens on both contracts', async function () {
     const me = await signers[0].getAddress();
     const you = await signers[1].getAddress();
 
@@ -50,6 +50,6 @@ describe("Two NFTs", function () {
     expect(totalSupply).to.eq(2);
 
     const uri = await nft1.tokenURI(1);
-    expect(uri).to.eq("https://sample.token.one/1");
+    expect(uri).to.eq('https://sample.token.one/1');
   });
 });
