@@ -2,7 +2,10 @@ import fs from 'fs';
 import { mkdir } from './cli/mkdir';
 import getColors from 'get-image-colors';
 
-export async function extractColors(contractAddress: string, tokenId: string): Promise<chroma.Color[]> {
+export async function extractColors(
+  contractAddress: string,
+  tokenId: string
+): Promise<chroma.Color[]> {
   const directory = mkdir(contractAddress, tokenId);
   const filePath = `${directory}/image.png`;
   console.log(filePath);

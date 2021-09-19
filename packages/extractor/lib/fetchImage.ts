@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-export async function fetchUrlOrIpfs(uri: string, responseType: 'json' | 'arraybuffer' = 'json'): Promise<any> {
+export async function fetchUrlOrIpfs(
+  uri: string,
+  responseType: 'json' | 'arraybuffer' = 'json'
+): Promise<any> {
   let dataUrl: string;
 
   if (uri.startsWith('ipfs://')) {

@@ -1,8 +1,8 @@
-import axios from "axios";
-import fs from "fs";
-import { CovalentNFTResponse } from "../../types/CovalentResponse";
-import { mkdir } from "../cli/mkdir";
-import spinner from "../cli/spinner";
+import axios from 'axios';
+import fs from 'fs';
+import { CovalentNFTResponse } from '../../types/CovalentResponse';
+import { mkdir } from '../cli/mkdir';
+import spinner from '../cli/spinner';
 
 const BASE_URI = `https://api.covalenthq.com/v1`;
 
@@ -16,16 +16,16 @@ export default async function fetchNFTMetaData(
   const covalentUrl = `${BASE_URI}/1/tokens/${contractAddress}/nft_metadata/${tokenId}/`;
 
   try {
-    spinner.start("fetching metadata from Covalent API");
+    spinner.start('fetching metadata from Covalent API');
 
     const { data: response } = await axios.get<CovalentNFTResponse>(
       covalentUrl,
       {
-        responseType: "json",
+        responseType: 'json',
         auth: {
           username: process.env.COVALENT_AUTH as string,
-          password: "",
-        },
+          password: ''
+        }
       }
     );
 
@@ -45,7 +45,7 @@ export default async function fetchNFTMetaData(
     spinner.start(`fetching image from ${imageUrl}`);
     const imgBuffer = (
       await axios.get(imageUrl, {
-        responseType: "arraybuffer",
+        responseType: 'arraybuffer'
       })
     ).data;
     fs.writeFileSync(`${directory}/image.png`, imgBuffer);

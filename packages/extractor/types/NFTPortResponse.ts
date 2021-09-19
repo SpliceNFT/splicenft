@@ -28,6 +28,6 @@ export type NFTItem = {
 
 export type NftPortNFTResponse = {
   response: string;
-  error: any | null;
+  error: unknown | null;
   nft: NFTItem;
 };
