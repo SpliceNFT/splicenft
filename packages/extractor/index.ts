@@ -2,10 +2,10 @@
 
 import { config as dotenvConfig } from "dotenv-flow";
 import { Command } from "commander";
-import { FetchCommandOptions } from "./types/ProgramOptions.js";
-import { extractColors } from "./lib/extractColors.js";
-import * as Strategy from "./lib/strategies/index.js";
-import spinner from "./lib/cli/spinner.js";
+import { FetchCommandOptions } from "./types/ProgramOptions";
+import { extractColors } from "./lib/extractColors";
+import * as Strategy from "./lib/strategies/index";
+import spinner from "./lib/cli/spinner";
 
 dotenvConfig();
 

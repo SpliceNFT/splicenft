@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 import fs from "fs";
-import spinner from "../cli/spinner.js";
+import spinner from "../cli/spinner";
 //@ts-ignore
-import erc721abi from "../erc721abi.js";
-import { fetchUrlOrIpfs } from "../fetchImage.js";
-import { mkdir } from "../cli/mkdir.js";
-import { getProvider } from "../provider.js";
+import erc721abi from "../erc721abi";
+import { fetchUrlOrIpfs } from "../fetchImage";
+import { mkdir } from "../cli/mkdir";
+import { getProvider } from "../provider";
 
 export default async function fetchNFTMetaData(
   contractAddress: string,
@@ -27,7 +27,7 @@ export default async function fetchNFTMetaData(
     spinner.succeed();
 
     fs.writeFileSync(
-      `${directory}/metadata.json`,
+      `${directory}/metadataon`,
       JSON.stringify(metaData, null, 2)
     );
 

@@ -1,5 +1,5 @@
 {
-  "name": "dapp",
+  "name": "@nftfornft/dapp",
   "version": "0.1.0",
   "dependencies": {
     "@chakra-ui/react": "^1.6.7",

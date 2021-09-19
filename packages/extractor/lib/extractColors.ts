@@ -1,5 +1,5 @@
 import fs from "fs";
-import { mkdir } from "./cli/mkdir.js";
+import { mkdir } from "./cli/mkdir";
 import getColors from "get-image-colors";
 
 export async function extractColors(

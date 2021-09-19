@@ -1,4 +1,4 @@
-import { NFTTrait } from "./NFT.js";
+import { NFTTrait } from "./NFT";
 
 export type NFTMetaData = {
   attributes?: NFTTrait;

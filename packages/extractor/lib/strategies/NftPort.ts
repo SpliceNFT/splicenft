@@ -1,8 +1,8 @@
 import axios from "axios";
 import fs from "fs";
-import { NftPortNFTResponse } from "../../types/NFTPortResponse.js";
-import { mkdir } from "../cli/mkdir.js";
-import spinner from "../cli/spinner.js";
+import { NftPortNFTResponse } from "../../types/NFTPortResponse";
+import { mkdir } from "../cli/mkdir";
+import spinner from "../cli/spinner";
 
 const BASE_URI = `https://api.nftport.xyz`;
 
@@ -19,8 +19,6 @@ export default async function fetchNFTMetaData(
     const auth = process.env.NFTPORT_AUTH as string;
 
     spinner.start("fetching metadata from NFTPort API");
-
-    console.log(nftPortUrl);
     const _resp = await axios.get<NftPortNFTResponse>(nftPortUrl, {
       responseType: "json",
       params: {

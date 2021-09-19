@@ -1,8 +1,8 @@
 import axios from "axios";
 import fs from "fs";
-import { CovalentNFTResponse } from "../../types/CovalentResponse.js";
-import { mkdir } from "../cli/mkdir.js";
-import spinner from "../cli/spinner.js";
+import { CovalentNFTResponse } from "../../types/CovalentResponse";
+import { mkdir } from "../cli/mkdir";
+import spinner from "../cli/spinner";
 
 const BASE_URI = `https://api.covalenthq.com/v1`;
 
@@ -16,19 +16,14 @@ export default async function fetchNFTMetaData(
   const covalentUrl = `${BASE_URI}/1/tokens/${contractAddress}/nft_metadata/${tokenId}/`;
 
   try {
-    const auth = process.env.COVALENT_AUTH as string;
-    console.log(auth);
     spinner.start("fetching metadata from Covalent API");
 
     const { data: response } = await axios.get<CovalentNFTResponse>(
       covalentUrl,
       {
         responseType: "json",
-        // headers: {
-        //   Authorization: `Basic ${auth}:`,
-        // },
         auth: {
-          username: auth,
+          username: process.env.COVALENT_AUTH as string,
           password: "",
         },
       }
@@ -43,7 +38,7 @@ export default async function fetchNFTMetaData(
     const nftData = item.nft_data[0];
     const extData = nftData.external_data;
     fs.writeFileSync(
-      `${directory}/metadata.json`,
+      `${directory}/metadataon`,
       JSON.stringify(extData, null, 2)
     );
     const imageUrl = extData.image_1024;

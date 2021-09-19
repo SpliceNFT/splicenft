@@ -1,5 +1,5 @@
-import { default as Covalent } from "./Covalent.js";
-import { default as NftPort } from "./NftPort.js";
-import { default as Chain } from "./Chain.js";
+import { default as Covalent } from "./Covalent";
+import { default as NftPort } from "./NftPort";
+import { default as Chain } from "./Chain";
 
 export { Covalent, NftPort, Chain };
