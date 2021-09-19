@@ -2,10 +2,10 @@
 
 import { config as dotenvConfig } from "dotenv-flow";
 import { Command } from "commander";
-import * as Covalent from "./lib/Covalent.js";
 import { FetchCommandOptions } from "./types/ProgramOptions.js";
-import fetchNFTMetaDataFromChain from "./lib/fetchNFTDataFromChain.js";
 import { extractColors } from "./lib/extractColors.js";
+import * as Strategy from "./lib/strategies/index.js";
+import spinner from "./lib/cli/spinner.js";
 
 dotenvConfig();
 
@@ -15,23 +15,31 @@ program.version("0.0.1").name("nft");
 program
   .command("fetch <nftAddress> <tokenId>")
   .option(
-    "-s --strategy <strategy",
-    "the strategy to use (chain|covalent)",
+    "-s --strategy <strategy>",
+    "the strategy to use (chain|covalent|nftport)",
     "chain"
   )
-  .description("fetches nft meta data")
+  .description(
+    "fetches nft meta data. Make sure to set the respective authorization keys in your environment"
+  )
   .action(
     async (
       nftAddress: string,
       tokenId: string,
       options: FetchCommandOptions
     ) => {
+      spinner.info(
+        `using *${options.strategy}* to fetch #${tokenId} from ${nftAddress}`
+      );
       switch (options.strategy) {
         case "chain":
-          await fetchNFTMetaDataFromChain(nftAddress, tokenId);
+          await Strategy.Chain(nftAddress, tokenId);
           break;
         case "covalent":
-          await Covalent.fetchNFTMetaData(nftAddress, tokenId);
+          await Strategy.Covalent(nftAddress, tokenId);
+          break;
+        case "nftport":
+          await Strategy.NftPort(nftAddress, tokenId);
           break;
       }
     }

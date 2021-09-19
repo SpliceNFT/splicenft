@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 import fs from "fs";
-import spinner from "./cli/spinner.js";
+import spinner from "../cli/spinner.js";
 //@ts-ignore
-import erc721abi from "./erc721abi.js";
-import { fetchUrlOrIpfs } from "./fetchImage.js";
-import { mkdir } from "./cli/mkdir.js";
-import { getProvider } from "./provider.js";
+import erc721abi from "../erc721abi.js";
+import { fetchUrlOrIpfs } from "../fetchImage.js";
+import { mkdir } from "../cli/mkdir.js";
+import { getProvider } from "../provider.js";
 
-export default async function fetchNFTMetaDataFromChain(
+export default async function fetchNFTMetaData(
   contractAddress: string,
   tokenId: string
 ): Promise<void> {

@@ -1,13 +1,12 @@
 import axios from "axios";
 import fs from "fs";
-import { CovalentNFTResponse } from "../types/CovalentResponse.js";
-import spinner from "./cli/spinner.js";
-import { mkdir } from "./cli/mkdir.js";
-import fetch from "node-fetch";
+import { CovalentNFTResponse } from "../../types/CovalentResponse.js";
+import { mkdir } from "../cli/mkdir.js";
+import spinner from "../cli/spinner.js";
 
 const BASE_URI = `https://api.covalenthq.com/v1`;
 
-export async function fetchNFTMetaData(
+export default async function fetchNFTMetaData(
   contractAddress: string,
   tokenId: string
 ) {
@@ -18,23 +17,22 @@ export async function fetchNFTMetaData(
 
   try {
     const auth = process.env.COVALENT_AUTH as string;
-
+    console.log(auth);
     spinner.start("fetching metadata from Covalent API");
 
-    const response: CovalentNFTResponse = (await (
-      await fetch(covalentUrl, {
-        method: "get",
-        headers: {
-          Authorization: `Basic ${auth}:`,
+    const { data: response } = await axios.get<CovalentNFTResponse>(
+      covalentUrl,
+      {
+        responseType: "json",
+        // headers: {
+        //   Authorization: `Basic ${auth}:`,
+        // },
+        auth: {
+          username: auth,
+          password: "",
         },
-      })
-    ).json()) as CovalentNFTResponse;
-    // const response = await axios.get<CovalentNFTResponse>(covalentUrl, {
-    //   responseType: "json",
-    //   headers: {
-
-    //   },
-    // });
+      }
+    );
 
     if (response.error) {
       throw response.error_message;

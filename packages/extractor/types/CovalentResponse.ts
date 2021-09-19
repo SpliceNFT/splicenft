@@ -1,7 +1,4 @@
-export type NFTTrait = {
-  trait_type: string;
-  value: string;
-};
+import { NFTTrait } from "./NFT.js";
 
 export type NFTExternalData = {
   name: string;

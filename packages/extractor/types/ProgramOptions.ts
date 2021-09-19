@@ -1,3 +1,3 @@
 export type FetchCommandOptions = {
-  strategy: "chain" | "covalent";
+  strategy: "chain" | "covalent" | "nftport";
 };

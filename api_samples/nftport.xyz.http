@@ -1,5 +1,6 @@
 @auth = {{$dotenv NFTPORT_AUTH}}
 @account = 0x70631b7376f4956185dac1b9cb4e9f83ccbc2764
+# bored apes 0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d
 @coolcats = 0x1a92f7381b9f03921564a437210bb9396471050c
 POST https://api.nftport.xyz/visual_search_by_url
 Authorization: {{auth}}
@@ -42,7 +43,7 @@ Authorization: {{auth}}
 
 ###
 
-GET https://api.nftport.xyz/nfts/{{coolcats}}/3973?chain=ethereum
+GET https://api.nftport.xyz/nfts/{{coolcats}}/3974?chain=ethereum
 Authorization: {{auth}}
 
 ###
