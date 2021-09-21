@@ -27,7 +27,7 @@ Authorization: {{auth}}
 
 ###
 
-GET https://api.nftport.xyz/account/{{account}}/nfts?chain=ethereum&paget_size=10
+GET https://api.nftport.xyz/account/{{account}}/nfts?chain=ethereum&page_size=10
 Authorization: {{auth}}
 
 ###
@@ -43,7 +43,7 @@ Authorization: {{auth}}
 
 ###
 
-GET https://api.nftport.xyz/nfts/{{coolcats}}/3974?chain=ethereum
+GET https://api.nftport.xyz/nfts/{{coolcats}}/3973?chain=ethereum
 Authorization: {{auth}}
 
 ###
