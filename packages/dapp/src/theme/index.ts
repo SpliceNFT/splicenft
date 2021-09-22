@@ -7,7 +7,9 @@ export default extendTheme({
   useSystemColorMode: true,
   styles: {
     global: {
-      html: {}
+      body: {
+        bg: 'white'
+      }
     }
   },
   colors: {},

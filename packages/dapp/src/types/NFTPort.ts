@@ -3,15 +3,19 @@ export type NFTTrait = {
   value: string;
 };
 export type NFTMetaData = {
-  description: string;
-  external_url: null | string;
-  image: string;
   name: string;
-  attributes?: NFTTrait;
+  description: string;
+  attributes?: NFTTrait[];
+  properties?: NFTTrait[];
+  tags?: string[];
+  home_url?: string;
+  image_url?: string;
+  image?: string;
   google_image?: string;
   ipfs_image?: string;
-  points?: Record<string, string | number>;
+  external_url: null | string;
   animation_url?: string;
+  points?: Record<string, string | number>;
 };
 
 export type NFTItem = {
@@ -20,7 +24,7 @@ export type NFTItem = {
   name: string;
   description: string;
   asset_url: string;
-  metadata: NFTMetaData;
+  metadata: null | NFTMetaData;
 };
 
 export type NftPortAccountResponse = {

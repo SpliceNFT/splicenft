@@ -27,7 +27,7 @@ Authorization: {{auth}}
 
 ###
 
-GET https://api.nftport.xyz/account/{{account}}/nfts?chain=ethereum&page_size=10
+GET https://api.nftport.xyz/account/{{account}}/nfts?chain=ethereum&page_size=30&include=metadata
 Authorization: {{auth}}
 
 ###

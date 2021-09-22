@@ -1,17 +1,19 @@
 const Button = {
   baseStyle: {
-    borderRadius: 'base' // <-- border radius is same for all variants and sizes
+    borderRadius: '.8em',
+    paddingLeft: '2em',
+    paddingRight: '2em',
+    paddingTop: '1.5em',
+    paddingBottom: '1.5em',
+    color: 'white',
+    bg: 'black',
+    _hover: {
+      transform: 'translate(0,-2px)'
+    }
   },
   variants: {
     login: {
       borderRadius: '2em',
-
-      paddingLeft: '2em',
-      paddingRight: '2em',
-      paddingTop: '1.5em',
-      paddingBottom: '1.5em',
-      color: 'white',
-      bg: 'black',
       _hover: {
         boxShadow: 'xl'
       }
@@ -22,7 +24,8 @@ const Button = {
     },
     solid: {
       //bg: 'purple.500',
-      color: 'white'
+      bg: 'white',
+      color: 'black'
     },
     link: {}
   },
