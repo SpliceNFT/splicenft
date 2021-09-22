@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import axios from 'axios';
 import { getNFTs } from '../../modules/nftport';
+import { getNFTs as readNFTsFromChain } from '../../modules/chain';
 import { NFTItem } from '../../types/NFTPort';
 import { truncateAddress } from '../../modules/strings';
 
@@ -76,13 +77,21 @@ export const NFTList = ({ nfts }: { nfts: NFTItem[] }) => {
 };
 
 const MyAssets = () => {
-  const { account, library } = useWeb3React<providers.Web3Provider>();
+  const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
   const [nfts, setNFTs] = useState<NFTItem[]>();
 
   const fetchAssets = async () => {
-    if (!account) return;
-    const _nfts = await getNFTs({ address: account, chain: 'ethereum' });
-
+    if (!account || !library) return;
+    let _nfts: NFTItem[];
+    if (chainId === 4) {
+      _nfts = await readNFTsFromChain({
+        address: account,
+        provider: library,
+        chain: 'rinkeby'
+      });
+    } else {
+      _nfts = await getNFTs({ address: account, chain: 'ethereum' });
+    }
     setNFTs(_nfts.filter((n) => n.metadata !== null));
   };
 
