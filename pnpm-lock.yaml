@@ -84,9 +84,12 @@ importers:
       axios: ^0.21.4
       ethers: ^5.4.7
       framer-motion: ^4
+      get-rgba-palette: ^2.0.1
+      image-to-colors: ^1.0.2
       react: ^17.0.2
       react-dom: ^17.0.2
       react-scripts: 4.0.3
+      rgb-hex: ^4.0.0
       typescript: ^4.1.2
       web-vitals: ^1.0.1
     dependencies:
@@ -100,9 +103,12 @@ importers:
       axios: 0.21.4
       ethers: 5.4.7
       framer-motion: 4.1.17_react-dom@17.0.2+react@17.0.2
+      get-rgba-palette: 2.0.1
+      image-to-colors: 1.0.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
       react-scripts: 4.0.3_react@17.0.2+typescript@4.4.3
+      rgb-hex: 4.0.0
       web-vitals: 1.1.2
     devDependencies:
       '@testing-library/jest-dom': 5.14.1
@@ -9324,7 +9330,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.2
+      debug: 4.3.2_supports-color@6.1.0
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -10292,6 +10298,10 @@ packages:
   /ignore/5.1.8:
     resolution: {integrity: sha512-BMpfD7PpiETpBl/A6S498BaIJ6Y/ABT93ETbby2fP00v4EbvPBXWEoaR1UBPKs3iR53pJY7EtZk5KACI57i1Uw==}
     engines: {node: '>= 4'}
+
+  /image-to-colors/1.0.2:
+    resolution: {integrity: sha512-3Kdfn96di6Dc0efalD1wGTnKgvsohr3oIRknrQjt7pM2TJFsRef8zxnluybpylapRXytcsPx392wO5N4gYUaSA==}
+    dev: false
 
   /immediate/3.2.3:
     resolution: {integrity: sha1-0UD6j2FGWb1lQSMwl92qwlzdmRw=}
@@ -15230,6 +15240,11 @@ packages:
     dependencies:
       convert-source-map: 0.3.5
       css: 2.2.4
+    dev: false
+
+  /rgb-hex/4.0.0:
+    resolution: {integrity: sha512-Eg2ev5CiMBnQ9Gpflmqbwbso0CCdISqtVIow7OpYSLN1ULUv2jTB9YieS1DSSn/17AD7KkPWDPzSFzI4GSuu/Q==}
+    engines: {node: '>=12'}
     dev: false
 
   /rgb-regex/1.0.1:

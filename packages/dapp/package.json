@@ -12,9 +12,12 @@
     "axios": "^0.21.4",
     "ethers": "^5.4.7",
     "framer-motion": "^4",
+    "get-rgba-palette": "^2.0.1",
+    "image-to-colors": "^1.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
+    "rgb-hex": "^4.0.0",
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {
