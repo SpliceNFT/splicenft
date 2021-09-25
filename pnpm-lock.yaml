@@ -29,6 +29,8 @@ importers:
       '@nomiclabs/hardhat-etherscan': ^2.1.6
       '@nomiclabs/hardhat-waffle': ^2.0.1
       '@openzeppelin/contracts': ^4.3.2
+      '@openzeppelin/contracts-upgradeable': ^4.3.2
+      '@openzeppelin/hardhat-upgrades': ^1.10.0
       '@typechain/ethers-v5': ^7.1.0
       '@typechain/hardhat': ^2.3.0
       '@types/chai': ^4.2.21
@@ -47,6 +49,8 @@ importers:
     dependencies:
       '@ethersproject/providers': 5.4.5
       '@openzeppelin/contracts': 4.3.2
+      '@openzeppelin/contracts-upgradeable': 4.3.2
+      '@openzeppelin/hardhat-upgrades': 1.10.0_47fc40963be4c618e60eb210e0a285bd
       '@types/dotenv-flow': 3.2.0
       dotenv-flow: 3.2.0
     devDependencies:
@@ -3392,8 +3396,41 @@ packages:
       rimraf: 3.0.2
     dev: false
 
+  /@openzeppelin/contracts-upgradeable/4.3.2:
+    resolution: {integrity: sha512-i/pOaOtcqDk4UqsrOv735uYyTbn6dvfiuVu5hstsgV6c4ZKUtu88/31zT2BzkCg+3JfcwOfgg2TtRKVKKZIGkQ==}
+    dev: false
+
   /@openzeppelin/contracts/4.3.2:
     resolution: {integrity: sha512-AybF1cesONZStg5kWf6ao9OlqTZuPqddvprc0ky7lrUVOjXeKpmQ2Y9FK+6ygxasb+4aic4O5pneFBfwVsRRRg==}
+    dev: false
+
+  /@openzeppelin/hardhat-upgrades/1.10.0_47fc40963be4c618e60eb210e0a285bd:
+    resolution: {integrity: sha512-iGe058iV7Ba/g11RxlbqBG47nbqbZn1FRdg1FCQq7xPmvjRhXmFsoI/5gGw5el0aZlLDRtpFOBZbzMZvI/S7iw==}
+    hasBin: true
+    peerDependencies:
+      '@nomiclabs/hardhat-ethers': ^2.0.0
+      hardhat: ^2.0.2
+    dependencies:
+      '@nomiclabs/hardhat-ethers': 2.0.2_ethers@5.4.7+hardhat@2.6.4
+      '@openzeppelin/upgrades-core': 1.9.2
+      hardhat: 2.6.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@openzeppelin/upgrades-core/1.9.2:
+    resolution: {integrity: sha512-LU2NMvnz+6jXheh3Rnfql4UgtS7ViHWwcivS3JRI9DMCazmlyibwMYz5QMakrNNGAF7bY0t0Sw1UCfe5qTYxjA==}
+    dependencies:
+      bn.js: 5.2.0
+      cbor: 8.0.0
+      chalk: 4.1.2
+      compare-versions: 3.6.0
+      debug: 4.3.2
+      ethereumjs-util: 7.1.0
+      proper-lockfile: 4.1.2
+      solidity-ast: 0.4.26
+    transitivePeerDependencies:
+      - supports-color
     dev: false
 
   /@pmmmwh/react-refresh-webpack-plugin/0.4.3_9f0995138d24e525eb86c097d82409c0:
@@ -3926,7 +3963,6 @@ packages:
     resolution: {integrity: sha512-QSSVYj7pYFN49kW77o2s9xTCwZ8F2xLbjLLSEVh8D2F4JUhZtPAGOFLTD+ffqksBx/u4cE/KImFjyhqCjn/LIA==}
     dependencies:
       '@types/node': 16.9.2
-    dev: true
 
   /@types/chai/4.2.21:
     resolution: {integrity: sha512-yd+9qKmJxm496BOV9CMNaey8TWsikaZOwMRwPHQIjcOJM9oV+fi9ZMNw3JsVnbEEbo2gRTDnGEBv8pjyn67hNg==}
@@ -6491,6 +6527,13 @@ packages:
       nofilter: 1.0.4
     dev: true
 
+  /cbor/8.0.0:
+    resolution: {integrity: sha512-nMmaLWbj7+bC6MsApKRIig8h+yjgNLhPLXaCelq5+C7mpWsHgIcseZSdvgexSY5uE1Q3m2uPvIDZwSdxdo7qig==}
+    engines: {node: '>=12.19'}
+    dependencies:
+      nofilter: 3.0.3
+    dev: false
+
   /chai/4.3.4:
     resolution: {integrity: sha512-yS5H68VYOCtN1cjfwumDSuzn/9c+yza4f3reKXlE5rUg7SFcCEy90gJvydNgOYtblyf4Zi6jIWRnXOgErta0KA==}
     engines: {node: '>=4'}
@@ -6872,6 +6915,10 @@ packages:
 
   /commondir/1.0.1:
     resolution: {integrity: sha1-3dgA2gxmEnOTzKWVDqloo6rxJTs=}
+    dev: false
+
+  /compare-versions/3.6.0:
+    resolution: {integrity: sha512-W6Af2Iw1z4CB7q4uU4hv646dW9GQuBM+YpC0UvUCWSD8w90SJjp+ujJuXaEMtAXBtSqGfMPuFOVn4/+FlaqfBA==}
     dev: false
 
   /component-emitter/1.3.0:
@@ -8815,7 +8862,6 @@ packages:
       ethereum-cryptography: 0.1.3
       ethjs-util: 0.1.6
       rlp: 2.2.6
-    dev: true
 
   /ethereumjs-vm/2.6.0:
     resolution: {integrity: sha512-r/XIUik/ynGbxS3y+mvGnbOKnuLo40V5Mj1J25+HEO63aWYREIqvWeRO/hnROlMBE5WoniQmPmhiaN0ctiHaXw==}
@@ -12849,6 +12895,11 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /nofilter/3.0.3:
+    resolution: {integrity: sha512-TN/MCrQmXQk5DyUJ8TGUq1Il8rv4fTsjddLmMopV006QP8DMkglmGgYfQKD5620vXLRXfr8iGI6ZZ4/ZWld2cQ==}
+    engines: {node: '>=12.19'}
+    dev: false
+
   /normalize-package-data/2.5.0:
     resolution: {integrity: sha512-/5CMN3T0R4XTj4DcGaexo+roZSdSFW/0AOOTROrjxzCG1wrWXEsGbRKevjlIL+ZDE4sZlJr5ED4YW0yqmkK+eA==}
     dependencies:
@@ -14361,6 +14412,14 @@ packages:
       object-assign: 4.1.1
       react-is: 16.13.1
 
+  /proper-lockfile/4.1.2:
+    resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
+    dependencies:
+      graceful-fs: 4.2.8
+      retry: 0.12.0
+      signal-exit: 3.0.4
+    dev: false
+
   /proxy-addr/2.0.7:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
     engines: {node: '>= 0.10'}
@@ -15794,6 +15853,10 @@ packages:
     transitivePeerDependencies:
       - debug
     dev: true
+
+  /solidity-ast/0.4.26:
+    resolution: {integrity: sha512-UR9Ip3QoiEvNON5lOA28JNEzKT+1fLFA4xpIbZSEl4CEnYr/a4Pj0qMJh0652UQ51pKplI/nncZsDOMzdHdCcg==}
+    dev: false
 
   /sort-keys/1.1.2:
     resolution: {integrity: sha1-RBttTTRnmPG05J6JIK37oOVD+a0=}

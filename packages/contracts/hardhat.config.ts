@@ -5,6 +5,7 @@ import 'tsconfig-paths/register';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
+import '@openzeppelin/hardhat-upgrades';
 import { config as dotenv } from 'dotenv-flow';
 import { TestnetNFT__factory } from './typechain';
 dotenv();
