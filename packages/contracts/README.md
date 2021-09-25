@@ -21,3 +21,12 @@ await greeter.greet();
 await greeter.setGreeting("Foo");
 await greeter.greet();
 ```
+
+### hardhat tasks to (simple) mint NFTs
+
+There's a "test nft" contract that allows you to allow mint "arbitrary" nfts (simulates cool cats). To mint an NFT from the command line you can
+
+``` 
+pnpx hardhat --network localhost nft:mint --address <0xaddress>
+```
+

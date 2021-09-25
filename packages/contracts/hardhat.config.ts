@@ -6,6 +6,7 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
 import { config as dotenv } from 'dotenv-flow';
+import { TestnetNFT__factory } from './typechain';
 dotenv();
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -17,6 +18,23 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
+
+task('nft:mint', 'mints on ENV.TESTNETNFT_CONTRACT_ADDRESS to <address>')
+  .addParam('address')
+  .setAction(async (taskArgs, hre) => {
+    const { address } = taskArgs;
+
+    const TestnetNFT = (await hre.ethers.getContractFactory(
+      'TestnetNFT'
+    )) as TestnetNFT__factory;
+
+    const testnetNFT = await TestnetNFT.attach(
+      process.env.TESTNETNFT_CONTRACT_ADDRESS as string
+    );
+
+    const receipt = await testnetNFT.mint(address);
+    console.log(receipt);
+  });
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more

@@ -4,11 +4,18 @@ import { NFTItem, NFTMetaData, NftPortAccountResponse } from '../types/NFTPort';
 
 const BASE_URI = `https://api.nftport.xyz`;
 
-type ChainOpt = 'ethereum' | 'rinkeby';
+export const CHAINS: Record<number, ChainOpt> = {
+  1: 'ethereum',
+  4: 'rinkeby',
+  1337: 'localhost'
+};
+
+export type ChainOpt = 'ethereum' | 'rinkeby' | 'localhost';
 
 const knownContracts: Record<ChainOpt, string[]> = {
   ethereum: [],
-  rinkeby: ['0xF5aa8981E44a0F218B260C99F9C89Ff7C833D36e']
+  rinkeby: ['0xF5aa8981E44a0F218B260C99F9C89Ff7C833D36e'],
+  localhost: [process.env.REACT_APP_TESTNETNFT_CONTRACT_ADDRESS as string]
 };
 
 const ownerABI = [

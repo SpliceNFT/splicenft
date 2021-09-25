@@ -1,24 +1,23 @@
-import { useWeb3React } from '@web3-react/core';
-import React, { useState } from 'react';
-import { providers } from 'ethers';
 import {
   Box,
   Button,
-  Image,
-  SimpleGrid,
   Flex,
   Heading,
+  Image,
+  SimpleGrid,
   Spacer,
   Text
 } from '@chakra-ui/react';
-import axios from 'axios';
-import { getNFTs } from '../../modules/nftport';
-import { getNFTs as readNFTsFromChain } from '../../modules/chain';
-import { NFTItem } from '../../types/NFTPort';
-import { truncateAddress } from '../../modules/strings';
-import ImageToColors, { Color } from 'image-to-colors';
+import { useWeb3React } from '@web3-react/core';
+import { providers } from 'ethers';
 import palette from 'get-rgba-palette';
+import ImageToColors, { Color } from 'image-to-colors';
+import React, { useState } from 'react';
 import rgbHex from 'rgb-hex';
+import { CHAINS, getNFTs as readNFTsFromChain } from '../../modules/chain';
+import { getNFTs } from '../../modules/nftport';
+import { truncateAddress } from '../../modules/strings';
+import { NFTItem } from '../../types/NFTPort';
 
 enum MintingState {
   NOT_MINTED,
@@ -143,13 +142,13 @@ const MyAssets = () => {
   const [nfts, setNFTs] = useState<NFTItem[]>();
 
   const fetchAssets = async () => {
-    if (!account || !library) return;
+    if (!account || !library || !chainId) return;
     let _nfts: NFTItem[];
-    if (chainId === 4) {
+    if (chainId !== 1) {
       _nfts = await readNFTsFromChain({
         address: account,
         provider: library,
-        chain: 'rinkeby'
+        chain: CHAINS[chainId]
       });
     } else {
       _nfts = await getNFTs({ address: account, chain: 'ethereum' });
