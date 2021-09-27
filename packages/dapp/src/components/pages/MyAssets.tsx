@@ -18,7 +18,7 @@ import { CHAINS, getNFTs as readNFTsFromChain } from '../../modules/chain';
 import { getNFTs } from '../../modules/nftport';
 import { truncateAddress } from '../../modules/strings';
 import { NFTItem } from '../../types/NFTPort';
-import * as Derivatif from '../../modules/derivatif';
+import * as Splice from '../../modules/splice';
 
 enum MintingState {
   NOT_MINTED,
@@ -30,10 +30,10 @@ enum MintingState {
 
 export const NFTCard = ({
   nft,
-  derivatif
+  splice
 }: {
   nft: NFTItem;
-  derivatif: ethers.Contract;
+  splice: ethers.Contract;
 }) => {
   if (!nft.metadata) return <></>;
 
@@ -65,10 +65,10 @@ export const NFTCard = ({
 
   const startMinting = async () => {
     setMintingState(MintingState.MINTING);
-    if (!derivatif || !account) return;
+    if (!splice || !account) return;
     console.log('start minting', nft);
-    const receipt = await Derivatif.startMinting(
-      derivatif,
+    const receipt = await Splice.startMinting(
+      splice,
       nft.contract_address,
       account
     );
@@ -152,12 +152,12 @@ export const NFTCard = ({
 const MyAssets = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
 
-  const [derivatif, setDerivatif] = useState<ethers.Contract>();
+  const [splice, setSplice] = useState<ethers.Contract>();
   const [nfts, setNFTs] = useState<NFTItem[]>();
 
   useEffect(() => {
     if (!library) return;
-    setDerivatif(Derivatif.getInstance(library.getSigner()));
+    setSplice(Splice.getInstance(library.getSigner()));
   }, [library]);
 
   const fetchAssets = async () => {
@@ -177,13 +177,13 @@ const MyAssets = () => {
 
   return (
     <>
-      {derivatif && nfts ? (
+      {splice && nfts ? (
         <SimpleGrid columns={[2, null, 3]} spacingX="40px" spacingY="20px">
           {nfts.map((nft) => (
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}
               nft={nft}
-              derivatif={derivatif}
+              splice={splice}
             />
           ))}
         </SimpleGrid>

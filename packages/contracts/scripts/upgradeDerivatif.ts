@@ -2,12 +2,12 @@ import { ethers, upgrades } from 'hardhat';
 
 (async () => {
   await (async () => {
-    const Derivatif = await ethers.getContractFactory('Derivatif');
-    const derivatif = await upgrades.upgradeProxy(
-      process.env.DERIVATIF_CONTRACT_ADDRESS as string,
-      Derivatif
+    const Splice = await ethers.getContractFactory('Splice');
+    const splice = await upgrades.upgradeProxy(
+      process.env.SPLICE_CONTRACT_ADDRESS as string,
+      Splice
     );
 
-    console.log('upgraded derivatif', derivatif.address);
+    console.log('upgraded splice', splice.address);
   })();
 })();

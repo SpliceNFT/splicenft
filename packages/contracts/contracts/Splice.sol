@@ -11,7 +11,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
-contract Derivatif is ERC721EnumerableUpgradeable, OwnableUpgradeable {
+contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   using CountersUpgradeable for CountersUpgradeable.Counter;
 
   string private baseUri;

@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
-import derivatifArtefact from '../abis/Derivatif.json';
+import spliceArtefact from '../abis/Splice.json';
 
 export const getInstance = (signer: ethers.Signer): ethers.Contract => {
   return new ethers.Contract(
-    process.env.REACT_APP_DERIVATIF_CONTRACT_ADDRESS as string,
-    derivatifArtefact.abi,
+    process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string,
+    spliceArtefact.abi,
     signer
   );
 };
