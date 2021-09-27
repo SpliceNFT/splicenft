@@ -7,7 +7,7 @@ const BASE_URI = `https://api.nftport.xyz`;
 export const CHAINS: Record<number, ChainOpt> = {
   1: 'ethereum',
   4: 'rinkeby',
-  1337: 'localhost'
+  31337: 'localhost'
 };
 
 export type ChainOpt = 'ethereum' | 'rinkeby' | 'localhost';

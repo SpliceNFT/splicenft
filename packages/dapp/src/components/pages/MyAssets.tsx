@@ -9,30 +9,41 @@ import {
   Text
 } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
-import { providers } from 'ethers';
+import { ethers, providers } from 'ethers';
 import palette from 'get-rgba-palette';
 import ImageToColors, { Color } from 'image-to-colors';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import rgbHex from 'rgb-hex';
 import { CHAINS, getNFTs as readNFTsFromChain } from '../../modules/chain';
 import { getNFTs } from '../../modules/nftport';
 import { truncateAddress } from '../../modules/strings';
 import { NFTItem } from '../../types/NFTPort';
+import * as Derivatif from '../../modules/derivatif';
 
 enum MintingState {
   NOT_MINTED,
   GETTING_COLORS,
   GOT_COLORS,
   MINTING,
-  MINTED
+  MINTING_REQUESTED
 }
 
-export const NFTCard = ({ nft }: { nft: NFTItem }) => {
+export const NFTCard = ({
+  nft,
+  derivatif
+}: {
+  nft: NFTItem;
+  derivatif: ethers.Contract;
+}) => {
   if (!nft.metadata) return <></>;
+
   const [dominantColors, setDominantColors] = useState<Color[]>([]);
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.NOT_MINTED
   );
+
+  const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
+
   const { image, image_url } = nft.metadata;
 
   let imgSrc = image ? image : image_url;
@@ -52,10 +63,17 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
     setMintingState(MintingState.GOT_COLORS);
   };
 
-  const doMint = async () => {
+  const startMinting = async () => {
     setMintingState(MintingState.MINTING);
-
-    setMintingState(MintingState.MINTED);
+    if (!derivatif || !account) return;
+    console.log('start minting', nft);
+    const receipt = await Derivatif.startMinting(
+      derivatif,
+      nft.contract_address,
+      account
+    );
+    console.log(receipt);
+    setMintingState(MintingState.MINTING_REQUESTED);
   };
 
   const buzy = [MintingState.GETTING_COLORS, MintingState.MINTING].includes(
@@ -111,15 +129,19 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
           <Text color="white">{truncateAddress(nft.contract_address)}</Text>
         </Flex>
         <Spacer />
-        {mintingState != MintingState.MINTED && (
+        {mintingState != MintingState.MINTING_REQUESTED && (
           <Button
             variant="solid"
             onClick={
-              mintingState === MintingState.GOT_COLORS ? doMint : extractColors
+              mintingState === MintingState.GOT_COLORS
+                ? startMinting
+                : extractColors
             }
             disabled={buzy}
           >
-            {mintingState === MintingState.NOT_MINTED ? 'Get Colors' : 'Mint'}
+            {mintingState === MintingState.NOT_MINTED
+              ? 'Get Colors'
+              : 'Start Minting'}
           </Button>
         )}
       </Flex>
@@ -127,19 +149,16 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   );
 };
 
-export const NFTList = ({ nfts }: { nfts: NFTItem[] }) => {
-  return (
-    <SimpleGrid columns={[2, null, 3]} spacingX="40px" spacingY="20px">
-      {nfts.map((nft) => (
-        <NFTCard key={`${nft.contract_address}/${nft.token_id}`} nft={nft} />
-      ))}
-    </SimpleGrid>
-  );
-};
-
 const MyAssets = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
+
+  const [derivatif, setDerivatif] = useState<ethers.Contract>();
   const [nfts, setNFTs] = useState<NFTItem[]>();
+
+  useEffect(() => {
+    if (!library) return;
+    setDerivatif(Derivatif.getInstance(library.getSigner()));
+  }, [library]);
 
   const fetchAssets = async () => {
     if (!account || !library || !chainId) return;
@@ -158,8 +177,16 @@ const MyAssets = () => {
 
   return (
     <>
-      {nfts ? (
-        <NFTList nfts={nfts} />
+      {derivatif && nfts ? (
+        <SimpleGrid columns={[2, null, 3]} spacingX="40px" spacingY="20px">
+          {nfts.map((nft) => (
+            <NFTCard
+              key={`${nft.contract_address}/${nft.token_id}`}
+              nft={nft}
+              derivatif={derivatif}
+            />
+          ))}
+        </SimpleGrid>
       ) : (
         <Button onClick={fetchAssets}>get my assets</Button>
       )}
