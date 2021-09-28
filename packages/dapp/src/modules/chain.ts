@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
-import { NFTItem, NFTMetaData, NftPortAccountResponse } from '../types/NFTPort';
-
-const BASE_URI = `https://api.nftport.xyz`;
+import { NFTItem, NFTMetaData } from '../types/NFTPort';
 
 export const CHAINS: Record<number, ChainOpt> = {
   1: 'ethereum',
@@ -83,43 +81,47 @@ const ownerABI = [
   }
 ];
 
-const getAllAssets = async (
+const getAsset = async (c: ethers.Contract, tokenId: string) => {
+  const tokenUrl = await c.tokenURI(tokenId);
+  const metaData: NFTMetaData = (
+    await axios.get<NFTMetaData>(tokenUrl, {
+      responseType: 'json'
+    })
+  ).data;
+
+  return {
+    name: metaData.name,
+    description: metaData.description,
+    token_id: tokenId,
+    contract_address: c.address,
+    asset_url: tokenUrl,
+    metadata: metaData
+  };
+};
+
+const getNFTs = async (
   c: ethers.Contract,
-  address: string
+  ownerAddress: string
 ): Promise<NFTItem[]> => {
-  const bal = await c.balanceOf(address);
+  const bal = await c.balanceOf(ownerAddress);
   const promises = [];
   for (let i = 0; i < bal; i++) {
     promises.push(
       (async () => {
-        const tokenId = await c.tokenOfOwnerByIndex(address, i);
-        const tokenUrl = await c.tokenURI(tokenId);
-        const metaData: NFTMetaData = (
-          await axios.get<NFTMetaData>(tokenUrl, {
-            responseType: 'json'
-          })
-        ).data;
-
-        return {
-          name: metaData.name,
-          description: metaData.description,
-          token_id: tokenId,
-          contract_address: c.address,
-          asset_url: tokenUrl,
-          metadata: metaData
-        };
+        const tokenId = await c.tokenOfOwnerByIndex(ownerAddress, i);
+        return await getAsset(c, tokenId);
       })()
     );
   }
   return await Promise.all(promises);
 };
 
-export const getNFTs = async ({
-  address,
+export const getAllAssetsOfOwner = async ({
+  ownerAddress,
   provider,
   chain = 'ethereum'
 }: {
-  address: string;
+  ownerAddress: string;
   provider: ethers.providers.BaseProvider;
   chain: ChainOpt;
 }): Promise<NFTItem[]> => {
@@ -128,7 +130,23 @@ export const getNFTs = async ({
       new ethers.Contract(contractAddress, ownerABI, provider)
   );
   const items = await Promise.all(
-    contracts.map((c: ethers.Contract) => getAllAssets(c, address))
+    contracts.map((c: ethers.Contract) => getNFTs(c, ownerAddress))
   );
   return items.flatMap((i) => i);
+};
+
+export const getNFT = async ({
+  collection,
+  tokenId,
+  provider
+}: {
+  collection: string;
+  tokenId: string;
+  provider: ethers.providers.BaseProvider;
+}): Promise<NFTItem> => {
+  const contract = new ethers.Contract(collection, ownerABI, provider);
+
+  const item = await getAsset(contract, tokenId);
+
+  return item;
 };
