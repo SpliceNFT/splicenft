@@ -1,11 +1,21 @@
 import { Box, Image } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import spliceBox from '../../img/splice_box.svg';
+import splicePlain from '../../img/splice_plain.svg';
 
-import spliceSvg from '../../img/splice_logo.svg';
 const Logo = () => {
+  const [logo, setLogo] = useState(splicePlain);
+
   return (
-    <Box maxHeight="100px">
-      <Image src={spliceSvg} maxH={20} />
+    <Box
+      maxHeight="80px"
+      onMouseOver={() => setLogo(splicePlain)}
+      onMouseOut={() => setLogo(spliceBox)}
+    >
+      <Link to="/">
+        <Image src={logo} maxH={14} />
+      </Link>
     </Box>
   );
 };

@@ -5,8 +5,8 @@ import 'tsconfig-paths/register';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
+import '@openzeppelin/hardhat-upgrades';
 import { config as dotenv } from 'dotenv-flow';
-import { TestnetNFT__factory } from './typechain';
 dotenv();
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -24,9 +24,7 @@ task('nft:mint', 'mints on ENV.TESTNETNFT_CONTRACT_ADDRESS to <address>')
   .setAction(async (taskArgs, hre) => {
     const { address } = taskArgs;
 
-    const TestnetNFT = (await hre.ethers.getContractFactory(
-      'TestnetNFT'
-    )) as TestnetNFT__factory;
+    const TestnetNFT = await hre.ethers.getContractFactory('TestnetNFT');
 
     const testnetNFT = await TestnetNFT.attach(
       process.env.TESTNETNFT_CONTRACT_ADDRESS as string
