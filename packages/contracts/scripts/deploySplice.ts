@@ -5,7 +5,7 @@ import { ethers, upgrades } from 'hardhat';
     const Splice = await ethers.getContractFactory('Splice');
     const splice = await upgrades.deployProxy(Splice, [
       'Splice',
-      'DTF',
+      'SPLICE',
       'ipfs://',
       10000
     ]);
