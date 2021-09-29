@@ -1,9 +1,10 @@
 {
-  "name": "@nftfornft/contracts",
+  "name": "@splicenft/contracts",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "hardhat compile",
     "test": "hardhat test",
     "chain": "hardhat node",
     "typechain": "hardhat typechain"
