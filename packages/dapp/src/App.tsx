@@ -3,7 +3,7 @@ import { Web3ReactProvider } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';
 import theme from './theme';
-import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
+import { HashRouter as Router, Route, Switch, Link } from 'react-router-dom';
 import Header from './components/molecules/Header';
 
 import { NFTPage } from './components/pages/NFTPage';
