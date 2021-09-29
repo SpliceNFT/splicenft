@@ -44,6 +44,10 @@ const config: HardhatUserConfig = {
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [process.env.DEPLOYER_PRIVATEKEY as string]
+    },
+    kovan: {
+      url: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: [process.env.DEPLOYER_PRIVATEKEY as string]
     }
   },
   solidity: '0.8.4',

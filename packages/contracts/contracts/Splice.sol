@@ -27,17 +27,20 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     IERC721 nft;
     string ipfsMetadataHash;
     address recipient;
+    uint256 token_id;
+    MintJobStatus status;
   }
 
   CountersUpgradeable.Counter private _tokenIds;
   mapping(uint256 => MintJob) jobs;
   mapping(uint256 => uint256) jobIdToTokenId;
   uint256 numJobs;
+  uint16 public MAX_PER_COLLECTION;
+  mapping(address => uint16) mintedPerCollection;
 
-  event MintRequested(uint256 indexed jobIndex);
+  event MintRequested(uint256 indexed jobIndex, address indexed collection);
   event JobResultArrived(uint256 indexed jobIndex);
 
-  //todo shall the limit be per origin NFT?
   function initialize(
     string memory name_,
     string memory symbol_,
@@ -48,6 +51,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     __Ownable_init();
     baseUri = baseUri_;
     limit = limit_;
+    MAX_PER_COLLECTION = 10000;
   }
 
   function _baseURI() internal view override returns (string memory) {
@@ -56,6 +60,10 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
   function setBaseUri(string memory baseUri_) external onlyOwner {
     baseUri = baseUri_;
+  }
+
+  function updateMaxPerCollection(uint16 _max) external onlyOwner {
+    MAX_PER_COLLECTION = _max;
   }
 
   /**
@@ -77,11 +85,17 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     return tokenURI(tokenId);
   }
 
-  function requestMint(IERC721 nft, address recipient)
-    public
-    returns (uint256 jobID)
-  {
-    //check whether origin belongs to <to>
+  function collectionSupply(address nft) public view returns (uint16) {
+    return mintedPerCollection[nft];
+  }
+
+  function requestMint(
+    IERC721 nft,
+    uint256 token_id,
+    address recipient
+  ) public payable returns (uint256 jobID) {
+    //check whether token_id exists on nft and
+    //belongs to <sender>
     //check whether input data seems legit
     //check minting fee sufficient
     //request creation
@@ -89,8 +103,22 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     //mint nft to requestor
     //distribute minting fee with partners
     jobID = numJobs++;
-    jobs[jobID] = MintJob(msg.sender, nft, '', recipient);
-    emit MintRequested(jobID);
+    uint16 alreadyMintedOnCollection = mintedPerCollection[address(nft)];
+
+    require(
+      alreadyMintedOnCollection + 1 < MAX_PER_COLLECTION,
+      'collection is already fully minted'
+    );
+
+    jobs[jobID] = MintJob(
+      msg.sender,
+      nft,
+      '',
+      recipient,
+      token_id,
+      MintJobStatus.REQUESTED
+    );
+    emit MintRequested(jobID, address(nft));
     return jobID;
   }
 
@@ -119,6 +147,9 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     //require(newItemId < limit, 'exceeds max collection size');
     _safeMint(job.recipient, newItemId);
     jobIdToTokenId[jobID] = newItemId;
+    mintedPerCollection[address(job.nft)] =
+      mintedPerCollection[address(job.nft)] +
+      1;
     return newItemId;
   }
 }

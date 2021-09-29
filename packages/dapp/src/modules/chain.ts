@@ -5,14 +5,16 @@ import { NFTItem, NFTMetaData } from '../types/NFTPort';
 export const CHAINS: Record<number, ChainOpt> = {
   1: 'ethereum',
   4: 'rinkeby',
+  42: 'kovan',
   31337: 'localhost'
 };
 
-export type ChainOpt = 'ethereum' | 'rinkeby' | 'localhost';
+export type ChainOpt = 'ethereum' | 'rinkeby' | 'kovan' | 'localhost';
 
 const knownContracts: Record<ChainOpt, string[]> = {
   ethereum: [],
   rinkeby: ['0xF5aa8981E44a0F218B260C99F9C89Ff7C833D36e'],
+  kovan: ['0x6334d2cbC3294577BB9de58e8b1901d6e3b97681'],
   localhost: [process.env.REACT_APP_TESTNETNFT_CONTRACT_ADDRESS as string]
 };
 
