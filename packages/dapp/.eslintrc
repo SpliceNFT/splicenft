@@ -4,15 +4,15 @@
     "react"
   ],
   "rules": {
+    "no-debugger": "off",
     "react/jsx-filename-extension": [
       1,
       {
-          "extensions": [
-              ".ts",
-              ".tsx"
-          ]
+        "extensions": [
+          ".ts",
+          ".tsx"
+        ]
       }
     ]
   }
 }
-

@@ -1,77 +1,44 @@
 import {
   Button,
   Container,
-  Heading,
   Flex,
-  Text,
+  Heading,
   HStack,
   Image,
+  Text,
   useToast
 } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
-import { ethers, providers } from 'ethers';
+import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
 import { resolveImage } from '../../modules/img';
 import Splice, { ISplice, MintingState } from '../../modules/splice';
 import { NFTItem } from '../../types/NFTPort';
-
-import palette from 'get-rgba-palette';
-import ImageToColors, { Color } from 'image-to-colors';
-import rgbHex from 'rgb-hex';
-
-const DominantColors = ({ imgUrl }: { imgUrl: string }) => {
-  const [dominantColors, setDominantColors] = useState<Color[]>([]);
-
-  const extractColors = async () => {
-    const _pixels = await ImageToColors.getFromExternalSource(imgUrl, {
-      setImageCrossOriginToAnonymous: true
-    });
-    const flatPixels = _pixels.flatMap((p) => [...p, 255]);
-    const colors = palette(flatPixels, 10);
-    setDominantColors(colors);
-  };
-
-  useEffect(() => {
-    (async () => {
-      await extractColors();
-    })();
-  }, []);
-  return dominantColors.length > 0 ? (
-    <Flex direction="row" w="100%" justify="space-between" height="40px">
-      {dominantColors.map((color) => (
-        <Flex
-          flex="1 1 0px"
-          background={`#${rgbHex(color[0], color[1], color[2])}`}
-        >
-          &nbsp;
-        </Flex>
-      ))}
-    </Flex>
-  ) : (
-    <></>
-  );
-};
+import { CreativePanel } from '../organisms/CreativePanel';
+import { NFTStorage, File } from 'nft.storage';
 
 export const NFTPage = () => {
   const { account, library } = useWeb3React<providers.Web3Provider>();
+  const toast = useToast();
+
   const { collection, token_id } =
     useParams<{ collection: string; token_id: string }>();
 
   const [nft, setNFT] = useState<NFTItem>();
-
   const [splice, setSplice] = useState<ISplice>();
-  const toast = useToast();
+
+  const [creativePng, setCreativePng] = useState<Blob>();
+
+  const [mintingState, setMintingState] = useState<MintingState>(
+    MintingState.UNKNOWN
+  );
 
   useEffect(() => {
     if (!library) return;
     setSplice(Splice(library.getSigner()));
   }, [library]);
-
-  const [mintingState, setMintingState] = useState<MintingState>(
-    MintingState.UNKNOWN
-  );
 
   useEffect(() => {
     if (!library) return;
@@ -85,12 +52,15 @@ export const NFTPage = () => {
     })();
   }, [library]);
 
+  const nftStorageClient = new NFTStorage({
+    token: process.env.REACT_APP_NFTSTORAGE_APIKEY as string
+  });
+
   const startMinting = async () => {
     setMintingState(MintingState.MINTING);
     if (!splice || !account) return;
     try {
-      const receipt = await splice.startMinting(collection, account);
-      console.log(receipt);
+      //const receipt = await splice.startMinting(collection, account);
     } catch (e) {
       toast({
         title: 'Transaction failed',
@@ -101,21 +71,12 @@ export const NFTPage = () => {
     setMintingState(MintingState.MINTING_REQUESTED);
   };
 
-  // {mintingState != MintingState.MINTING_REQUESTED && (
-  //   <Button
-  //     variant="solid"
-  //     onClick={
-  //       mintingState === MintingState.GOT_COLORS
-  //         ? startMinting
-  //         : extractColors
-  //     }
-  //     disabled={buzy}
-  //   >
-  //     {mintingState === MintingState.NOT_MINTED
-  //       ? 'Get Colors'
-  //       : 'Start Minting'}
-  //   </Button>
-  // )}
+  const persistArtwork = async (blob: Blob) => {
+    setCreativePng(blob);
+    const cid = await nftStorageClient.storeBlob(blob);
+    console.log(cid);
+  };
+
   const imgUrl =
     resolveImage(nft?.metadata) || 'https://via.placeholder.com/800';
 
@@ -152,10 +113,12 @@ export const NFTPage = () => {
         </Flex>
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
-          {imgUrl && <DominantColors imgUrl={imgUrl} />}
-          <Button onClick={startMinting} variant="black">
-            start minting
-          </Button>
+          <CreativePanel imgUrl={imgUrl} onCreated={persistArtwork} />
+          {creativePng && (
+            <Button onClick={startMinting} variant="black">
+              start minting
+            </Button>
+          )}
         </Flex>
       </HStack>
     </Flex>
