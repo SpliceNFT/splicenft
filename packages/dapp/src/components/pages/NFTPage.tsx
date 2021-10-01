@@ -35,6 +35,10 @@ export const NFTPage = () => {
     MintingState.UNKNOWN
   );
 
+  const nftStorageClient = new NFTStorage({
+    token: process.env.REACT_APP_NFTSTORAGE_APIKEY as string
+  });
+
   useEffect(() => {
     if (!library) return;
     setSplice(Splice(library.getSigner()));
@@ -51,10 +55,6 @@ export const NFTPage = () => {
       setNFT(_nft);
     })();
   }, [library]);
-
-  const nftStorageClient = new NFTStorage({
-    token: process.env.REACT_APP_NFTSTORAGE_APIKEY as string
-  });
 
   const startMinting = async () => {
     setMintingState(MintingState.MINTING);

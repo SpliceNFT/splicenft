@@ -1,6 +1,6 @@
 import { NFTMetaData } from '../types/NFTPort';
 
-const IPFS_GATEWAY = 'https://ipfs.io/';
+const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
 export const resolveImage = (
   nftMetaData: NFTMetaData | null | undefined

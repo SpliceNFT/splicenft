@@ -30,14 +30,14 @@ export const DominantColors = ({
 
   return dominantColors.length > 0 ? (
     <Flex direction="row" w="100%" justify="space-between" height="40px">
-      {dominantColors.map((color) => (
-        <Flex
-          flex="1 1 0px"
-          background={`#${rgbHex(color[0], color[1], color[2])}`}
-        >
-          &nbsp;
-        </Flex>
-      ))}
+      {dominantColors.map((color) => {
+        const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
+        return (
+          <Flex key={colorHex} flex="1 1 0px" background={colorHex}>
+            &nbsp;
+          </Flex>
+        );
+      })}
     </Flex>
   ) : (
     <></>

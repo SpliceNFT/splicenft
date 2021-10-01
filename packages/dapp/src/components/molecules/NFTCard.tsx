@@ -41,7 +41,7 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
       boxShadow="rgba(0, 0, 0, 0.05) 0px 10px 20px 0px"
       justify="space-between"
     >
-      <Flex direction="row">
+      <Flex maxH={80}>
         <Image
           src={imgUrl}
           title={imgUrl}

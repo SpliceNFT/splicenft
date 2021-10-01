@@ -88,11 +88,26 @@ const ownerABI = [
 
 const getAsset = async (c: ethers.Contract, tokenId: string) => {
   const tokenUrl = await c.tokenURI(tokenId);
-  const metaData: NFTMetaData = (
-    await axios.get<NFTMetaData>(tokenUrl, {
-      responseType: 'json'
-    })
-  ).data;
+
+  let metaData: NFTMetaData;
+  try {
+    metaData = (
+      await axios.get<NFTMetaData>(tokenUrl, {
+        responseType: 'json'
+      })
+    ).data;
+  } catch (e) {
+    const res = await axios.get<NFTMetaData>(
+      process.env.REACT_APP_CORS_PROXY as string,
+      {
+        params: {
+          url: tokenUrl
+        },
+        responseType: 'json'
+      }
+    );
+    metaData = res.data;
+  }
 
   return {
     name: metaData.name,

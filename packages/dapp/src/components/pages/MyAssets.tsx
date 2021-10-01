@@ -54,7 +54,7 @@ export const MyAssetsPage = () => {
           it seems you don't have any assets on chain {chainId}{' '}
         </Alert>
       )}
-      <SimpleGrid columns={[2, null, 3]} spacingX="40px" spacingY="20px">
+      <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
         {nfts.map((nft) => (
           <NFTCard key={`${nft.contract_address}/${nft.token_id}`} nft={nft} />
         ))}
