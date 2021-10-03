@@ -23,7 +23,7 @@ export const MetaDataDisplay = ({
   tokenId: string;
 }) => {
   const { metadata } = nft;
-  console.log(metadata?.attributes);
+  //console.log(metadata?.attributes);
   return (
     <Flex direction="column" gridGap={3}>
       <MetaDataItem label="collection" value={collection} />

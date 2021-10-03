@@ -206,11 +206,18 @@ export default function ({ p5, colors, dim }: DrawProps) {
       if (row_counter < num_rows / 2) shift_dir = 1;
       //left side
       if (col_counter < num_columns / 2) {
-        // todo: this was a typo.
-        //  0,
-        //   shift_dir*(((num_columns/2)-col_counter)*horiz_shift_increment),quad_height,
-        //   shift_dir*(((num_columns/2)-col_counter)*horiz_shift_increment)+quad_width, quad_height,
-        //   quad_width, 0);
+        p5.quad(
+          0,
+          0,
+          shift_dir * ((num_columns / 2 - col_counter) * horiz_shift_increment),
+          quad_height,
+          shift_dir *
+            ((num_columns / 2 - col_counter) * horiz_shift_increment) +
+            quad_width,
+          quad_height,
+          quad_width,
+          0
+        );
         p5.translate(
           shift_dir * ((num_columns / 2 - col_counter) * horiz_shift_increment),
           quad_height + vert_space
@@ -240,5 +247,6 @@ export default function ({ p5, colors, dim }: DrawProps) {
       }
     }
     p5.pop();
+    p5.noLoop();
   }
 }

@@ -36,6 +36,7 @@ export const NFTPage = () => {
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [p5Canvas, setP5Canvas] = useState<p5Types>();
   const [creativePng, setCreativePng] = useState<Blob>();
+  const [cid, setCid] = useState<string>();
   const [dataUrl, setDataUrl] = useState<string>();
 
   const [mintingState, setMintingState] = useState<MintingState>(
@@ -78,9 +79,15 @@ export const NFTPage = () => {
     setMintingState(MintingState.SAVED);
   };
 
-  const startMinting = async () => {
-    setMintingState(MintingState.MINTING);
-    if (!splice || !account) return;
+  const requestMint = async ({
+    collection,
+    tokenId,
+    cid
+  }: {
+    collection: string;
+    tokenId: string;
+    cid: string;
+  }) => {
     try {
       //const receipt = await splice.startMinting(collection, account);
     } catch (e) {
@@ -94,9 +101,9 @@ export const NFTPage = () => {
   };
 
   const persistArtwork = async (blob: Blob) => {
-    setCreativePng(blob);
-    const cid = await nftStorageClient.storeBlob(blob);
-    console.log(cid);
+    const _cid = await nftStorageClient.storeBlob(blob);
+    setCid(_cid);
+    setMintingState(MintingState.SAVED_IPFS);
   };
 
   const imgUrl =
@@ -162,9 +169,24 @@ export const NFTPage = () => {
             </Button>
           )}
 
-          {mintingState == MintingState.SAVED && (
-            <Button onClick={startMinting} variant="black">
-              start minting
+          {mintingState == MintingState.SAVED && creativePng && (
+            <Button onClick={() => persistArtwork(creativePng)} variant="black">
+              persist on IPFS
+            </Button>
+          )}
+
+          {mintingState == MintingState.SAVED_IPFS && cid && (
+            <Button
+              onClick={() =>
+                requestMint({
+                  collection,
+                  tokenId: token_id,
+                  cid
+                })
+              }
+              variant="black"
+            >
+              request mint
             </Button>
           )}
         </Flex>
