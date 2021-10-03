@@ -23,6 +23,9 @@ import { ethers, upgrades } from 'hardhat';
     ]);
     console.log('Deployed splice contract:', splice.address);
 
+    await splice.allowCollection(coolcatNft.address);
+    console.log('allowed cool cats to mint splices');
+
     const p = [1, 2, 3, 4, 5].map((i) => coolcatNft.mint(lastAccount.address));
     await Promise.all(p);
     console.log('minted 5 NFTs to: ', lastAccount.address);

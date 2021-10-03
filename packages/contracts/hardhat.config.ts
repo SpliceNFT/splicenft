@@ -40,7 +40,11 @@ task('nft:mint', 'mints on ENV.TESTNETNFT_CONTRACT_ADDRESS to <address>')
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
-    hardhat: {},
+    // hardhat: {
+    //   gas: 12000000,
+    //   blockGasLimit: 0x1fffffffffffff,
+    //   allowUnlimitedContractSize: true
+    // },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [process.env.DEPLOYER_PRIVATEKEY as string]
@@ -50,7 +54,15 @@ const config: HardhatUserConfig = {
       accounts: [process.env.DEPLOYER_PRIVATEKEY as string]
     }
   },
-  solidity: '0.8.4',
+  solidity: {
+    version: '0.8.4',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   typechain: {
     outDir: 'typechain',
 
