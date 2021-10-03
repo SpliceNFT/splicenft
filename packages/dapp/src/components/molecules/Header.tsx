@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { Flex, Button, Spacer, Text } from '@chakra-ui/react';
+import { Button, Flex, Spacer } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
+import React, { useEffect } from 'react';
 import { injected } from '../../modules/connectors';
 import Account from '../atoms/Account';
 import Logo from '../atoms/Logo';

@@ -1,13 +1,12 @@
-import { ChakraProvider, extendTheme, Container } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { Web3ReactProvider } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';
-import theme from './theme';
-import { HashRouter as Router, Route, Switch, Link } from 'react-router-dom';
+import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import Header from './components/molecules/Header';
-
-import { NFTPage } from './components/pages/NFTPage';
 import { MyAssetsPage } from './components/pages/MyAssets';
+import { NFTPage } from './components/pages/NFTPage';
+import theme from './theme';
 
 function getLibrary(provider: any) {
   return new providers.Web3Provider(provider);

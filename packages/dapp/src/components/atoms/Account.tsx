@@ -8,7 +8,7 @@ export default ({ account }: { account: string }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
 
   const [balance, setBalance] = useState<string>();
-  const [network, setNetwork] = useState<string>();
+  //const [network, setNetwork] = useState<string>();
   const [accountDisplay, setAccountDisplay] = useState<string>();
 
   useEffect(() => {
