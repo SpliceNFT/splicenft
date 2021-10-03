@@ -1,3 +1,4 @@
+import p5 from 'p5';
 import { DrawProps } from '../../types/Renderers';
 
 /**
@@ -11,14 +12,13 @@ export default function ({ p5, colors, dim }: DrawProps) {
   /**
    * getColorForFlatGridRect() handles all color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1) and the tertiary color(s) if they exist (value=2).
    */
-  const getColorForFlatGridRect = (colors: any[], colorIndex: number) => {
-    let a_new_color;
+  const getColorForFlatGridRect = (colorIndex: number): p5.Color => {
     let num_tertiary_colors;
     let r;
     switch (colorIndex) {
       case 0:
         //possibly the background color
-        return colors[0];
+        return p5.color(colors[0]);
         break;
       case 1:
         //most common color, not background
@@ -27,20 +27,22 @@ export default function ({ p5, colors, dim }: DrawProps) {
           p5.red(colors[1]) == 0 &&
           p5.green(colors[1]) == 0 &&
           p5.blue(colors[1]) == 0
-        )
+        ) {
           return p5.color(75, 75, 75);
-        else return colors[1];
+        } else {
+          return p5.color(colors[1]);
+        }
         break;
       case 2:
         //the rest of the colors beyond the background and most common color
         //if there are just 2 colors then send back the second one
-        if (colors.length == 2) return colors[1];
+        if (colors.length == 2) return p5.color(colors[1]);
         num_tertiary_colors = colors.length - 2;
         r = p5.floor(p5.random(num_tertiary_colors));
-        return colors[2 + r];
+        return p5.color(colors[2 + r]);
         break;
     }
-    return a_new_color;
+    return p5.color(100, 100, 100); //some default
   };
 
   /**
@@ -105,7 +107,7 @@ export default function ({ p5, colors, dim }: DrawProps) {
   let flat_background_color_num_rows = 0; //the number of rows in a block of color
   let flat_background_color_num_rows_color; //the color of the block of color
 
-  let this_color;
+  let this_color: p5.Color = p5.color(100, 100, 100);
 
   //cycle through rows for the flat grid first, before the main grid
   for (let row_counter = 0; row_counter < flat_num_rows; row_counter++) {
@@ -135,10 +137,7 @@ export default function ({ p5, colors, dim }: DrawProps) {
           );
         }
         //get a tertiary color for that row
-        flat_background_color_num_rows_color = getColorForFlatGridRect(
-          colors,
-          2
-        );
+        flat_background_color_num_rows_color = getColorForFlatGridRect(2);
       }
       if (flat_background_color_col_flag == 1)
         //just a dummy transparent color to create gaps
@@ -147,10 +146,11 @@ export default function ({ p5, colors, dim }: DrawProps) {
       //it's a tertiarty color rect
       else if (flat_background_color_num_rows > 0) {
         flat_background_color_num_rows--;
-        this_color = flat_background_color_num_rows_color;
+        this_color =
+          flat_background_color_num_rows_color || p5.color(120, 120, 120);
       }
       //it's just a secondary color rect
-      else this_color = getColorForFlatGridRect(colors, 1);
+      else this_color = getColorForFlatGridRect(1);
       //that's the end of the mess that creates a HAL-like pattern
 
       p5.fill(this_color);
@@ -192,8 +192,9 @@ export default function ({ p5, colors, dim }: DrawProps) {
         this_color = p5.color(0, 0, 0, 0);
       else {
         //the rest of the rects get the most common color, usually the background color
-        this_color = getColorForFlatGridRect(colors, 0);
+        this_color = getColorForFlatGridRect(0);
         //get alpha fade-in for color
+
         this_color.setAlpha(getAlpha(row_counter / num_rows)); //STEFAN - SHOULD WE ADD P5. BEFORE this_color.setAlpha?
       }
 

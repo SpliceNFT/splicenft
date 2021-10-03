@@ -5,6 +5,7 @@ import p5Types from 'p5';
 import { RGB } from 'get-rgba-palette';
 import { Flex } from '@chakra-ui/react';
 import { default as flower } from '../renderers/flower';
+import { default as confidence } from '../renderers/ConfidenceInTheMission';
 
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
@@ -19,7 +20,7 @@ export const P5Sketch = (props: {
   };
 
   const draw = (p5: p5Types) => {
-    flower({ p5, colors, dim });
+    confidence({ p5, colors, dim });
   };
 
   return (

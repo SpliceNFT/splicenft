@@ -4,10 +4,12 @@ import spliceArtefact from '../abis/Splice.json';
 export enum MintingState {
   UNKNOWN,
   NOT_MINTED,
-  GETTING_COLORS,
-  GOT_COLORS,
+  GENERATING,
+  GENERATED,
+  SAVED,
+  MINTING_REQUESTED,
   MINTING,
-  MINTING_REQUESTED
+  MINTED
 }
 
 export interface ISplice {

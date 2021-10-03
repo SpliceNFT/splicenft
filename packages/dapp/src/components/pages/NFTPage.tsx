@@ -18,6 +18,9 @@ import Splice, { ISplice, MintingState } from '../../modules/splice';
 import { NFTItem } from '../../types/NFTPort';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { NFTStorage, File } from 'nft.storage';
+import { DominantColors } from '../molecules/DominantColors';
+import { RGB } from 'get-rgba-palette';
+import p5Types from 'p5';
 
 export const NFTPage = () => {
   const { account, library } = useWeb3React<providers.Web3Provider>();
@@ -29,7 +32,10 @@ export const NFTPage = () => {
   const [nft, setNFT] = useState<NFTItem>();
   const [splice, setSplice] = useState<ISplice>();
 
+  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
+  const [p5Canvas, setP5Canvas] = useState<p5Types>();
   const [creativePng, setCreativePng] = useState<Blob>();
+  const [dataUrl, setDataUrl] = useState<string>();
 
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
@@ -71,6 +77,21 @@ export const NFTPage = () => {
     setMintingState(MintingState.MINTING_REQUESTED);
   };
 
+  const save = async () => {
+    //todo this is very likely not the best idea, but... it sort of works
+    const canvas = (p5Canvas as any).canvas as HTMLCanvasElement;
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        setCreativePng(blob);
+      },
+      'image/png',
+      100
+    );
+    setDataUrl(canvas.toDataURL('image/png'));
+    setMintingState(MintingState.SAVED);
+  };
+
   const persistArtwork = async (blob: Blob) => {
     setCreativePng(blob);
     const cid = await nftStorageClient.storeBlob(blob);
@@ -82,20 +103,16 @@ export const NFTPage = () => {
 
   return nft && splice ? (
     <Flex direction="column">
-      <Container width="lg">
-        <Flex rounded="lg" minH="80">
-          <Image
-            py={20}
-            src={imgUrl}
-            title={imgUrl}
-            boxSize="fit-content"
-            objectFit="cover"
-            alt={imgUrl}
-            fallbackSrc="https://via.placeholder.com/800"
-            /*opacity={buzy ? 0.2 : 1}*/
-          />
-        </Flex>
-      </Container>
+      <CreativePanel
+        imgUrl={imgUrl}
+        dominantColors={dominantColors}
+        setP5Canvas={(canvas: p5Types) => {
+          setP5Canvas(canvas);
+          setMintingState(MintingState.GENERATED);
+        }}
+        dataUrl={dataUrl}
+        mintingState={mintingState}
+      />
 
       <HStack
         background="white"
@@ -113,8 +130,29 @@ export const NFTPage = () => {
         </Flex>
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
-          <CreativePanel imgUrl={imgUrl} onCreated={persistArtwork} />
-          {creativePng && (
+          {imgUrl && (
+            <DominantColors
+              imgUrl={imgUrl}
+              dominantColors={dominantColors}
+              setDominantColors={setDominantColors}
+            />
+          )}
+          {mintingState < MintingState.GENERATING && (
+            <Button
+              onClick={() => setMintingState(MintingState.GENERATING)}
+              variant="black"
+            >
+              generate
+            </Button>
+          )}
+
+          {mintingState == MintingState.GENERATED && (
+            <Button onClick={save} variant="black">
+              save
+            </Button>
+          )}
+
+          {mintingState == MintingState.SAVED && (
             <Button onClick={startMinting} variant="black">
               start minting
             </Button>
