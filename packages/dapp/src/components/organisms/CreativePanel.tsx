@@ -28,11 +28,13 @@ const Preview = ({
   dominantColors,
   imgUrl,
   dataUrl,
+  randomness,
   setP5Canvas
 }: {
   dominantColors?: RGB[];
   imgUrl: string;
   dataUrl?: string | undefined;
+  randomness: number;
   setP5Canvas?: (canvas: p5Types) => void;
 }) => {
   return (
@@ -40,6 +42,7 @@ const Preview = ({
       <Center width="100%" height="100%">
         {dominantColors && setP5Canvas && !dataUrl ? (
           <P5Sketch
+            randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
             onCanvasCreated={setP5Canvas}
@@ -69,13 +72,15 @@ export const CreativePanel = ({
   imgUrl,
   dominantColors,
   setP5Canvas,
+  randomness,
   dataUrl,
   mintingState
 }: {
   imgUrl: string;
   dominantColors: RGB[];
-  dataUrl: string | undefined;
   setP5Canvas: (canvas: p5Types) => void;
+  randomness: number;
+  dataUrl: string | undefined;
   mintingState: MintingState;
 }) => {
   if (
@@ -87,10 +92,13 @@ export const CreativePanel = ({
         imgUrl={imgUrl}
         dominantColors={dominantColors}
         setP5Canvas={setP5Canvas}
+        randomness={randomness}
       />
     );
   } else if (mintingState >= MintingState.SAVED && dataUrl) {
-    return <Preview imgUrl={imgUrl} dataUrl={dataUrl} />;
+    return (
+      <Preview imgUrl={imgUrl} dataUrl={dataUrl} randomness={randomness} />
+    );
   } else {
     return <PlainImage imgUrl={imgUrl} />;
   }

@@ -2,7 +2,13 @@ import React from 'react';
 import { NFTItem } from '../../types/NFTPort';
 import { Flex, Text } from '@chakra-ui/react';
 
-const MetaDataItem = ({ label, value }: { label: string; value: string }) => {
+const MetaDataItem = ({
+  label,
+  value
+}: {
+  label: string;
+  value: string | number;
+}) => {
   return (
     <Flex direction="row" justify="space-between" gridGap={5}>
       <Text fontWeight="bold">{label}</Text>
@@ -16,11 +22,13 @@ const MetaDataItem = ({ label, value }: { label: string; value: string }) => {
 export const MetaDataDisplay = ({
   nft,
   collection,
-  tokenId
+  tokenId,
+  randomness
 }: {
   nft: NFTItem;
   collection: string;
   tokenId: string;
+  randomness: number;
 }) => {
   const { metadata } = nft;
   //console.log(metadata?.attributes);
@@ -28,6 +36,7 @@ export const MetaDataDisplay = ({
     <Flex direction="column" gridGap={3}>
       <MetaDataItem label="collection" value={collection} />
       <MetaDataItem label="token id" value={tokenId} />
+      <MetaDataItem label="randomness" value={randomness} />
       {metadata?.attributes?.map((attr) => {
         return (
           <MetaDataItem

@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import Sketch from 'react-p5';
-import p5Types from 'p5';
-
-import { RGB } from 'get-rgba-palette';
 import { Flex } from '@chakra-ui/react';
-import { default as flower } from '../renderers/flower';
+import { RGB } from 'get-rgba-palette';
+import p5Types from 'p5';
+import React from 'react';
+import Sketch from 'react-p5';
 import { default as confidence } from '../renderers/ConfidenceInTheMission';
 
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
+  randomness: number;
   colors: RGB[];
   onCanvasCreated: (p5: p5Types) => void;
 }) => {
-  const { dim, colors, onCanvasCreated } = props;
+  const { dim, colors, onCanvasCreated, randomness } = props;
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     p5.createCanvas(dim.w, dim.h).parent(canvasParentRef);
+    p5.randomSeed(randomness);
     onCanvasCreated(p5);
   };
 

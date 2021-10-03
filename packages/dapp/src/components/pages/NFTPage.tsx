@@ -1,30 +1,28 @@
 import {
   Button,
-  Container,
   Flex,
   Heading,
   HStack,
-  Image,
   Text,
   useToast
 } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
-import { providers } from 'ethers';
+import { ethers, providers } from 'ethers';
+import { RGB } from 'get-rgba-palette';
+import { NFTStorage } from 'nft.storage';
+import p5Types from 'p5';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
 import { resolveImage } from '../../modules/img';
 import Splice, { ISplice, MintingState } from '../../modules/splice';
 import { NFTItem } from '../../types/NFTPort';
+import { DominantColors } from '../molecules/DominantColors';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
-import { NFTStorage, File } from 'nft.storage';
-import { DominantColors } from '../molecules/DominantColors';
-import { RGB } from 'get-rgba-palette';
-import p5Types from 'p5';
 
 export const NFTPage = () => {
-  const { account, library } = useWeb3React<providers.Web3Provider>();
+  const { library } = useWeb3React<providers.Web3Provider>();
   const toast = useToast();
 
   const { collection, token_id } =
@@ -38,6 +36,7 @@ export const NFTPage = () => {
   const [creativePng, setCreativePng] = useState<Blob>();
   const [cid, setCid] = useState<string>();
   const [dataUrl, setDataUrl] = useState<string>();
+  const [randomness, setRandomness] = useState<number>(0);
 
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
@@ -52,6 +51,17 @@ export const NFTPage = () => {
     setSplice(Splice(library.getSigner()));
   }, [library]);
 
+  useEffect(() => {
+    if (!collection || !token_id) return;
+    //todo: check behaviour between this and solidity (js max int)
+    //keccak256(abi.encodePacked(address(nft), token_id));
+    const bnToken = ethers.BigNumber.from(token_id);
+    const inp = `${collection}${bnToken.toHexString().slice(2)}`;
+    const kecc = ethers.utils.keccak256(inp);
+    const bytes = ethers.utils.arrayify(kecc);
+    const _randomness = new DataView(bytes.buffer).getUint32(0);
+    setRandomness(_randomness);
+  }, [collection, token_id]);
   useEffect(() => {
     if (!library) return;
     (async () => {
@@ -118,6 +128,7 @@ export const NFTPage = () => {
           setP5Canvas(canvas);
           setMintingState(MintingState.GENERATED);
         }}
+        randomness={randomness}
         dataUrl={dataUrl}
         mintingState={mintingState}
       />
@@ -150,6 +161,7 @@ export const NFTPage = () => {
               nft={nft}
               tokenId={token_id}
               collection={collection}
+              randomness={randomness}
             />
           )}
 
@@ -159,7 +171,7 @@ export const NFTPage = () => {
               variant="black"
               disabled={!dominantColors}
             >
-              generate
+              generate artwork
             </Button>
           )}
 
