@@ -138,7 +138,13 @@ export const NFTPage = () => {
               setDominantColors={setDominantColors}
             />
           )}
-          {nft && <MetaDataDisplay nft={nft} />}
+          {nft && (
+            <MetaDataDisplay
+              nft={nft}
+              tokenId={token_id}
+              collection={collection}
+            />
+          )}
 
           {mintingState < MintingState.GENERATING && (
             <Button
