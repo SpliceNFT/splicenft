@@ -33,6 +33,15 @@ importers:
     devDependencies:
       vercel: 23.1.2
 
+  packages/common:
+    specifiers:
+      ethers: ^5.4.7
+      typescript: ^4.4.3
+    dependencies:
+      ethers: 5.4.7
+    devDependencies:
+      typescript: 4.4.3
+
   packages/contracts:
     specifiers:
       '@ethersproject/providers': ^5.4.5
