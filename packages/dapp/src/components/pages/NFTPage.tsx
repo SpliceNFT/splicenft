@@ -17,6 +17,7 @@ import { resolveImage } from '../../modules/img';
 import Splice, { ISplice, MintingState } from '../../modules/splice';
 import { NFTItem } from '../../types/NFTPort';
 import { CreativePanel } from '../organisms/CreativePanel';
+import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
 import { NFTStorage, File } from 'nft.storage';
 import { DominantColors } from '../molecules/DominantColors';
 import { RGB } from 'get-rgba-palette';
@@ -62,21 +63,6 @@ export const NFTPage = () => {
     })();
   }, [library]);
 
-  const startMinting = async () => {
-    setMintingState(MintingState.MINTING);
-    if (!splice || !account) return;
-    try {
-      //const receipt = await splice.startMinting(collection, account);
-    } catch (e) {
-      toast({
-        title: 'Transaction failed',
-        status: 'error',
-        isClosable: true
-      });
-    }
-    setMintingState(MintingState.MINTING_REQUESTED);
-  };
-
   const save = async () => {
     //todo this is very likely not the best idea, but... it sort of works
     const canvas = (p5Canvas as any).canvas as HTMLCanvasElement;
@@ -90,6 +76,21 @@ export const NFTPage = () => {
     );
     setDataUrl(canvas.toDataURL('image/png'));
     setMintingState(MintingState.SAVED);
+  };
+
+  const startMinting = async () => {
+    setMintingState(MintingState.MINTING);
+    if (!splice || !account) return;
+    try {
+      //const receipt = await splice.startMinting(collection, account);
+    } catch (e) {
+      toast({
+        title: 'Transaction failed',
+        status: 'error',
+        isClosable: true
+      });
+    }
+    setMintingState(MintingState.MINTING_REQUESTED);
   };
 
   const persistArtwork = async (blob: Blob) => {
@@ -137,10 +138,13 @@ export const NFTPage = () => {
               setDominantColors={setDominantColors}
             />
           )}
+          {nft && <MetaDataDisplay nft={nft} />}
+
           {mintingState < MintingState.GENERATING && (
             <Button
               onClick={() => setMintingState(MintingState.GENERATING)}
               variant="black"
+              disabled={!dominantColors}
             >
               generate
             </Button>

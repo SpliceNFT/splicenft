@@ -7,6 +7,7 @@ export enum MintingState {
   GENERATING,
   GENERATED,
   SAVED,
+  SAVED_IPFS,
   MINTING_REQUESTED,
   MINTING,
   MINTED
