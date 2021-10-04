@@ -35,15 +35,20 @@ importers:
 
   packages/common:
     specifiers:
+      '@splicenft/contracts': workspace:*
       ethers: ^5.4.7
+      multiformats: ^9.4.8
       typescript: ^4.4.3
     dependencies:
+      '@splicenft/contracts': link:../contracts
       ethers: 5.4.7
+      multiformats: 9.4.8
     devDependencies:
       typescript: 4.4.3
 
   packages/contracts:
     specifiers:
+      '@ethersproject/abi': ^5.4.1
       '@ethersproject/providers': ^5.4.5
       '@nomiclabs/hardhat-ethers': ^2.0.2
       '@nomiclabs/hardhat-etherscan': ^2.1.6
@@ -51,7 +56,6 @@ importers:
       '@openzeppelin/contracts': ^4.3.2
       '@openzeppelin/contracts-upgradeable': ^4.3.2
       '@openzeppelin/hardhat-upgrades': ^1.10.0
-      '@splicenft/common': workspace:*
       '@typechain/ethers-v5': ^7.1.0
       '@typechain/hardhat': ^2.3.0
       '@types/chai': ^4.2.21
@@ -72,11 +76,11 @@ importers:
       typechain: ^5.1.2
       typescript: ^4.4.3
     dependencies:
+      '@ethersproject/abi': 5.4.1
       '@ethersproject/providers': 5.4.5
       '@openzeppelin/contracts': 4.3.2
       '@openzeppelin/contracts-upgradeable': 4.3.2
       '@openzeppelin/hardhat-upgrades': 1.10.0_47fc40963be4c618e60eb210e0a285bd
-      '@splicenft/common': link:../common
       '@types/dotenv-flow': 3.2.0
       dotenv-flow: 3.2.0
       ipfs-core: 0.11.1
@@ -87,7 +91,7 @@ importers:
       '@nomiclabs/hardhat-ethers': 2.0.2_ethers@5.4.7+hardhat@2.6.4
       '@nomiclabs/hardhat-etherscan': 2.1.6_hardhat@2.6.4
       '@nomiclabs/hardhat-waffle': 2.0.1_35fda074f8db48aeefc70d3518d02eba
-      '@typechain/ethers-v5': 7.1.0_c07e50f122b666d6d4e0003f0328eea5
+      '@typechain/ethers-v5': 7.1.0_74d1e8fba04eef2b620f5aee612eccd8
       '@typechain/hardhat': 2.3.0_hardhat@2.6.4+typechain@5.1.2
       '@types/chai': 4.2.21
       '@types/mocha': 9.0.0
@@ -107,6 +111,7 @@ importers:
       '@emotion/react': ^11
       '@emotion/styled': ^11
       '@ethersproject/providers': ^5.4.5
+      '@splicenft/common': workspace:*
       '@testing-library/jest-dom': ^5.11.4
       '@testing-library/react': ^11.1.0
       '@testing-library/user-event': ^12.1.10
@@ -143,6 +148,7 @@ importers:
       '@emotion/react': 11.4.1_ff4c499fe654e4edeee30199f4db039d
       '@emotion/styled': 11.3.0_aea42b1993894dd6b24ec4eb2c8dca6f
       '@ethersproject/providers': 5.4.5
+      '@splicenft/common': link:../common
       '@web3-react/core': 6.1.9_react@17.0.2
       '@web3-react/injected-connector': 6.0.7
       '@web3-react/walletconnect-connector': 6.2.4
@@ -4159,7 +4165,7 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@typechain/ethers-v5/7.1.0_c07e50f122b666d6d4e0003f0328eea5:
+  /@typechain/ethers-v5/7.1.0_74d1e8fba04eef2b620f5aee612eccd8:
     resolution: {integrity: sha512-zTRwNBtmO0BoOlNi5Q6PKg9OIH5rnJJGAoUC7AnHJpWvWHtlZ9jjbUcCWniKA2dm50zL1ykAh5GqeBp33ju3Qw==}
     peerDependencies:
       '@ethersproject/abi': ^5.0.0
@@ -4169,6 +4175,7 @@ packages:
       typechain: ^5.0.0
       typescript: '>=4.0.0'
     dependencies:
+      '@ethersproject/abi': 5.4.1
       '@ethersproject/providers': 5.4.5
       ethers: 5.4.7
       lodash: 4.17.21
@@ -10150,7 +10157,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.2_supports-color@6.1.0
+      debug: 4.3.2
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}

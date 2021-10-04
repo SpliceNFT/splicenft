@@ -52,6 +52,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   uint256 public constant PRICE = 0.079 ether;
 
   mapping(address => bool) allowedCollections;
+  mapping(bytes32 => uint256) collectionToJobId;
 
   event MintRequested(uint256 indexed jobIndex, address indexed collection);
   event JobResultArrived(uint256 indexed jobIndex);
@@ -170,6 +171,8 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     );
 
     uint32 rnd = randomness(nft, token_id);
+    bytes32 jobMap = keccak256(abi.encodePacked(address(nft), token_id));
+    collectionToJobId[jobMap] = jobID;
 
     jobs[jobID] = MintJob(
       msg.sender,

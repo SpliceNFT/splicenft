@@ -2,8 +2,8 @@ import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
-import { MintingState } from '../../modules/splice';
 import { P5Sketch } from '../molecules/P5Sketch';
+import { MintingState } from '@splicenft/common';
 
 const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
   return (

@@ -23,12 +23,14 @@ export const MetaDataDisplay = ({
   nft,
   collection,
   tokenId,
-  randomness
+  randomness,
+  cid
 }: {
   nft: NFTItem;
   collection: string;
   tokenId: string;
   randomness: number;
+  cid?: string;
 }) => {
   const { metadata } = nft;
   //console.log(metadata?.attributes);
@@ -37,6 +39,7 @@ export const MetaDataDisplay = ({
       <MetaDataItem label="collection" value={collection} />
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
+      {cid && <MetaDataItem label="CID" value={cid} />}
       {metadata?.attributes?.map((attr) => {
         return (
           <MetaDataItem

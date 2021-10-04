@@ -15,21 +15,24 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
 import { resolveImage } from '../../modules/img';
-import Splice, { ISplice, MintingState } from '../../modules/splice';
+
+//import Splice, { ISplice, MintingState } from '../../modules/splice';
+import { MintingState, Splice } from '@splicenft/common';
+
 import { NFTItem } from '../../types/NFTPort';
 import { DominantColors } from '../molecules/DominantColors';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
 
 export const NFTPage = () => {
-  const { library } = useWeb3React<providers.Web3Provider>();
+  const { library, account } = useWeb3React<providers.Web3Provider>();
   const toast = useToast();
 
   const { collection, token_id } =
     useParams<{ collection: string; token_id: string }>();
 
   const [nft, setNFT] = useState<NFTItem>();
-  const [splice, setSplice] = useState<ISplice>();
+  const [splice, setSplice] = useState<Splice>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [p5Canvas, setP5Canvas] = useState<p5Types>();
@@ -48,20 +51,19 @@ export const NFTPage = () => {
 
   useEffect(() => {
     if (!library) return;
-    setSplice(Splice(library.getSigner()));
+    const spl = Splice.from(
+      process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string,
+      library.getSigner()
+    );
+
+    setSplice(spl);
   }, [library]);
 
   useEffect(() => {
     if (!collection || !token_id) return;
-    //todo: check behaviour between this and solidity (js max int)
-    //keccak256(abi.encodePacked(address(nft), token_id));
-    const bnToken = ethers.BigNumber.from(token_id);
-    const inp = `${collection}${bnToken.toHexString().slice(2)}`;
-    const kecc = ethers.utils.keccak256(inp);
-    const bytes = ethers.utils.arrayify(kecc);
-    const _randomness = new DataView(bytes.buffer).getUint32(0);
-    setRandomness(_randomness);
-  }, [collection, token_id]);
+    setRandomness(Splice.computeRandomnessLocally(collection, token_id));
+  }, [collection, token_id, splice]);
+
   useEffect(() => {
     if (!library) return;
     (async () => {
@@ -98,9 +100,17 @@ export const NFTPage = () => {
     tokenId: string;
     cid: string;
   }) => {
+    if (!splice || !account) return;
     try {
-      //const receipt = await splice.startMinting(collection, account);
+      const receipt = await splice.startMinting(
+        collection,
+        tokenId,
+        cid,
+        account
+      );
+      console.log(receipt);
     } catch (e) {
+      console.log(e);
       toast({
         title: 'Transaction failed',
         status: 'error',
@@ -162,6 +172,7 @@ export const NFTPage = () => {
               tokenId={token_id}
               collection={collection}
               randomness={randomness}
+              cid={cid}
             />
           )}
 
