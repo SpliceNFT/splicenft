@@ -9,6 +9,7 @@ import {
   TestnetNFT,
   TestnetNFT__factory
 } from '../typechain';
+import { Splice as CSplice } from '@splicenft/common';
 import { TransferEvent } from '../typechain/ERC721';
 import { MintRequestedEvent } from '../typechain/Splice';
 
@@ -104,5 +105,12 @@ describe('Splice', function () {
     expect(jobTokenUrl).to.be.equal(
       'ipfs://QmfBAZkuu5DLDcPztFHzsaV3UDourKqqPsqm2x1KYFULSY'
     );
+  });
+
+  it('can compute randomness on and offchain', async () => {
+    const rnd = await splice.randomness(nft.address, 1);
+    const rndLocal = CSplice.computeRandomnessLocally(nft.address, 1);
+
+    expect(rnd).to.be.equal(rndLocal);
   });
 });

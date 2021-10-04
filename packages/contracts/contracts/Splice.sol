@@ -11,6 +11,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import './Base58.sol';
+import 'hardhat/console.sol';
 
 contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -28,7 +29,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     IERC721 nft;
     uint256 token_id;
     bytes32 cid;
-    bytes32 randomness;
+    uint32 randomness;
     MintJobStatus status;
     address recipient;
   }
@@ -130,6 +131,18 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     return string(b58);
   }
 
+  function randomness(IERC721 nft, uint256 token_id)
+    public
+    pure
+    returns (uint32)
+  {
+    bytes memory inp = abi.encodePacked(address(nft), token_id);
+    bytes32 rb = keccak256(inp);
+    bytes memory rm = abi.encodePacked(rb);
+    uint32 r = Base58.toUint32(rm, 0);
+    return r;
+  }
+
   function requestMint(
     IERC721 nft,
     uint256 token_id,
@@ -156,14 +169,14 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
       'collection is already fully minted'
     );
 
-    bytes32 randomness = keccak256(abi.encodePacked(address(nft), token_id));
+    uint32 rnd = randomness(nft, token_id);
 
     jobs[jobID] = MintJob(
       msg.sender,
       nft,
       token_id,
       cid,
-      randomness,
+      rnd,
       MintJobStatus.REQUESTED,
       recipient
     );
