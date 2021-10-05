@@ -15,15 +15,10 @@ import { ethers, upgrades } from 'hardhat';
     console.log('Deployed cool cats :', coolcatNft.address);
 
     const Splice = await ethers.getContractFactory('Splice');
-    const splice = await upgrades.deployProxy(Splice, [
-      'Splice',
-      'SPLICE',
-      'ipfs://',
-      10000
-    ]);
+    const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
     console.log('Deployed splice contract:', splice.address);
 
-    await splice.allowCollection(coolcatNft.address);
+    await splice.allowCollection(coolcatNft.address, 10000);
     console.log('allowed cool cats to mint splices');
 
     const p = [1, 2, 3, 4, 5].map((i) => coolcatNft.mint(lastAccount.address));

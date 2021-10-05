@@ -10,14 +10,11 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import './Base58.sol';
+import './BytesLib.sol';
 import 'hardhat/console.sol';
 
 contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   using CountersUpgradeable for CountersUpgradeable.Counter;
-
-  string private baseUri;
-  uint32 private limit;
 
   enum MintJobStatus {
     REQUESTED,
@@ -26,60 +23,86 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
   struct MintJob {
     address requestor;
-    IERC721 nft;
+    IERC721 collection;
+    //todo: this would be MUCH smaller when using bytes32 with base58 encoding,
+    //see file history & Base58 library
+    //not possible with nft.storage since it returns cidv1
+    //we're storing the dag-cbor base32 "folder" CID
+    //they're resolved as "ipfs://<metadataCID>/metadata.json
     uint256 token_id;
-    bytes32 cid;
+    string metadataCID;
     uint32 randomness;
     MintJobStatus status;
     address recipient;
   }
 
-  struct Multihash {
-    bytes32 hash;
-    uint8 hash_function;
-    uint8 size;
-  }
-
   CountersUpgradeable.Counter private _tokenIds;
-  mapping(uint256 => MintJob) jobs;
-  mapping(uint256 => uint256) jobIdToTokenId;
-  uint256 numJobs;
-  uint16 public MAX_PER_COLLECTION;
+
+  //uint256 public constant MAX_TOKENS_PER_ADDRESS = 222;
+  //uint256 private constant MINT_LIMIT = 22;
+
+  //how many tokens can be minted for this collection
+  mapping(address => uint16) collectionAllowance;
+
+  //how many tokens have been spliced on a collection
   mapping(address => uint16) mintedPerCollection;
-  uint256 public constant MAX_TOKENS_PER_ADDRESS = 222;
-  uint256 private constant MINT_LIMIT = 22;
+
+  //all jobs
+  mapping(uint256 => MintJob) jobs;
+
+  //needed for lookups
+  mapping(bytes32 => uint256) originToJobId;
+  mapping(uint256 => uint256) tokenIdToJobId;
+
+  uint256 numJobs;
+
   //todo make this dynamic, obviously
   uint256 public constant PRICE = 0.079 ether;
-
-  mapping(address => bool) allowedCollections;
-  mapping(bytes32 => uint256) collectionToJobId;
 
   event MintRequested(uint256 indexed jobIndex, address indexed collection);
   event JobResultArrived(uint256 indexed jobIndex);
 
-  function initialize(
-    string memory name_,
-    string memory symbol_,
-    string memory baseUri_,
-    uint32 limit_
-  ) public initializer {
+  function initialize(string memory name_, string memory symbol_)
+    public
+    initializer
+  {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
-    baseUri = baseUri_;
-    limit = limit_;
-    MAX_PER_COLLECTION = 10000;
   }
 
-  function _baseURI() internal view override returns (string memory) {
-    return baseUri;
+  function _metadataURI(string memory metadataCID)
+    private
+    pure
+    returns (string memory)
+  {
+    return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  function setBaseUri(string memory baseUri_) external onlyOwner {
-    baseUri = baseUri_;
+  function getJobMetadataURI(uint256 jobId)
+    public
+    view
+    returns (string memory)
+  {
+    MintJob memory job = jobs[jobId];
+    // bytes memory b58 = Base58.toBase58(
+    //   Base58.concat(Base58.sha256MultiHash, Base58.toBytes(job.cid))
+    // );
+    //return string(b58);
+    return _metadataURI(job.metadataCID);
   }
 
-  function updateMaxPerCollection(uint16 _max) external onlyOwner {
-    MAX_PER_COLLECTION = _max;
+  function tokenURI(uint256 tokenId)
+    public
+    view
+    override
+    returns (string memory)
+  {
+    require(
+      _exists(tokenId),
+      'ERC721Metadata: URI query for nonexistent token'
+    );
+    uint256 jobID = tokenIdToJobId[tokenId];
+    return getJobMetadataURI(jobID);
   }
 
   /**
@@ -96,40 +119,33 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     else return false;
   }
 
-  function tokenURIByJobId(uint256 jobID) public view returns (string memory) {
-    uint256 tokenId = jobIdToTokenId[jobID];
-    return tokenURI(tokenId);
+  function collectionSupply(address collection) public view returns (uint16) {
+    return mintedPerCollection[collection];
   }
 
-  function collectionSupply(address nft) public view returns (uint16) {
-    return mintedPerCollection[nft];
-  }
-
-  function allowCollection(address nft) external onlyOwner {
+  function allowCollection(address collection, uint16 tokenLimit)
+    external
+    onlyOwner
+  {
     //todo check whether nft supports ERC721 interface (ERC165)
-    allowedCollections[nft] = true;
+    collectionAllowance[collection] = tokenLimit;
   }
 
-  function isCollectionAllowed(address nft) public view returns (bool) {
-    return allowedCollections[nft];
+  function isCollectionAllowed(address collection) public view returns (bool) {
+    return collectionAllowance[collection] > 0;
   }
 
   function getMintJob(uint256 jobId) public view returns (MintJob memory) {
     return jobs[jobId];
   }
 
-  //that will become the new "tokenUrl" function, yields an ipfs link
-  function getJobTokenUrl(uint256 jobId) public view returns (string memory) {
-    bytes memory b58 = abi.encodePacked('ipfs://', getJobCidB58(jobId));
-    return string(b58);
-  }
-
-  function getJobCidB58(uint256 jobId) public view returns (string memory) {
-    MintJob memory job = jobs[jobId];
-    bytes memory b58 = Base58.toBase58(
-      Base58.concat(Base58.sha256MultiHash, Base58.toBytes(job.cid))
-    );
-    return string(b58);
+  function getTokenOrigin(uint256 token_id)
+    public
+    view
+    returns (address collection, uint256 originalTokenId)
+  {
+    MintJob memory job = jobs[tokenIdToJobId[token_id]];
+    return (address(job.collection), job.token_id);
   }
 
   function randomness(IERC721 nft, uint256 token_id)
@@ -140,14 +156,14 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     bytes memory inp = abi.encodePacked(address(nft), token_id);
     bytes32 rb = keccak256(inp);
     bytes memory rm = abi.encodePacked(rb);
-    uint32 r = Base58.toUint32(rm, 0);
+    uint32 r = BytesLib.toUint32(rm, 0);
     return r;
   }
 
   function requestMint(
     IERC721 nft,
     uint256 token_id,
-    bytes32 cid,
+    string memory metadataCID,
     address recipient
   ) public payable returns (uint256 jobID) {
     //check whether token_id exists on nft and
@@ -158,27 +174,29 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     //wait for creation disputes
     //mint nft to requestor
     //distribute minting fee with partners
-    jobID = numJobs++;
+    require(
+      isCollectionAllowed(address(nft)),
+      'splicing this collection is not allowed'
+    );
+    uint16 collectionLimit = collectionAllowance[address(nft)];
     uint16 alreadyMintedOnCollection = mintedPerCollection[address(nft)];
 
     require(
-      isCollectionAllowed(address(nft)) == true,
-      'splicing for this collection is not supported'
-    );
-    require(
-      alreadyMintedOnCollection + 1 < MAX_PER_COLLECTION,
+      alreadyMintedOnCollection + 1 < collectionLimit,
       'collection is already fully minted'
     );
 
     uint32 rnd = randomness(nft, token_id);
+
+    jobID = numJobs++;
     bytes32 jobMap = keccak256(abi.encodePacked(address(nft), token_id));
-    collectionToJobId[jobMap] = jobID;
+    originToJobId[jobMap] = jobID;
 
     jobs[jobID] = MintJob(
       msg.sender,
       nft,
       token_id,
-      cid,
+      metadataCID,
       rnd,
       MintJobStatus.REQUESTED,
       recipient
@@ -192,9 +210,9 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
    * called by a verified job runner
    * todo shouldn't be a string ;)
    */
-  function publishJobResult(uint256 jobID, bytes32 cid) public {
+  function publishJobResult(uint256 jobID, string memory metadataCID) public {
     MintJob storage job = jobs[jobID];
-    job.cid = cid;
+    job.metadataCID = metadataCID;
     emit JobResultArrived(jobID);
     //todo verify the imageURL referenced in that hash's metadata doc is correct.
     //todo evaluate ways how to deliver metadata from chain
@@ -209,9 +227,11 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     uint256 newItemId = _tokenIds.current();
     //require(newItemId < limit, 'exceeds max collection size');
     _safeMint(job.recipient, newItemId);
-    jobIdToTokenId[jobID] = newItemId;
-    mintedPerCollection[address(job.nft)] =
-      mintedPerCollection[address(job.nft)] +
+    tokenIdToJobId[newItemId] = jobID;
+
+    //jobIdToTokenId[jobID] = newItemId;
+    mintedPerCollection[address(job.collection)] =
+      mintedPerCollection[address(job.collection)] +
       1;
     return newItemId;
   }
