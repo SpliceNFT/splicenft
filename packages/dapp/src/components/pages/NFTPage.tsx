@@ -16,13 +16,13 @@ import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
 import { resolveImage } from '../../modules/img';
 
-//import Splice, { ISplice, MintingState } from '../../modules/splice';
 import { MintingState, Splice } from '@splicenft/common';
 
 import { NFTItem } from '../../types/NFTPort';
 import { DominantColors } from '../molecules/DominantColors';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
+import { SpliceToken } from '../../types/SpliceToken';
 
 export const NFTPage = () => {
   const { library, account } = useWeb3React<providers.Web3Provider>();
@@ -37,13 +37,17 @@ export const NFTPage = () => {
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [p5Canvas, setP5Canvas] = useState<p5Types>();
   const [creativePng, setCreativePng] = useState<Blob>();
-  const [cid, setCid] = useState<string>();
+
+  const [spliceMetadata, setSpliceMetadata] = useState<SpliceToken>();
+
   const [dataUrl, setDataUrl] = useState<string>();
   const [randomness, setRandomness] = useState<number>(0);
 
+  const [mintJobId, setMintJobId] = useState<number>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
   );
+  const [buzy, setBuzy] = useState<boolean>(false);
 
   const nftStorageClient = new NFTStorage({
     token: process.env.REACT_APP_NFTSTORAGE_APIKEY as string
@@ -91,6 +95,22 @@ export const NFTPage = () => {
     setMintingState(MintingState.SAVED);
   };
 
+  const persistArtwork = async (blob: Blob) => {
+    setBuzy(true);
+    const metadata = await nftStorageClient.store({
+      name: `Splice from ${collection}/${token_id}`,
+      description: `Splice from ${collection}/${token_id}`,
+      image: blob,
+      properties: {
+        colors: dominantColors
+      }
+    });
+
+    setBuzy(false);
+    setSpliceMetadata(metadata);
+    setMintingState(MintingState.SAVED_IPFS);
+  };
+
   const requestMint = async ({
     collection,
     tokenId,
@@ -102,13 +122,14 @@ export const NFTPage = () => {
   }) => {
     if (!splice || !account) return;
     try {
-      const receipt = await splice.startMinting(
+      const jobId = await splice.startMinting(
         collection,
         tokenId,
         cid,
         account
       );
-      console.log(receipt);
+      console.log('job created', jobId);
+      setMintJobId(jobId);
     } catch (e) {
       console.log(e);
       toast({
@@ -117,13 +138,7 @@ export const NFTPage = () => {
         isClosable: true
       });
     }
-    setMintingState(MintingState.MINTING_REQUESTED);
-  };
-
-  const persistArtwork = async (blob: Blob) => {
-    const _cid = await nftStorageClient.storeBlob(blob);
-    setCid(_cid);
-    setMintingState(MintingState.SAVED_IPFS);
+    //setMintingState(MintingState.MINTING_REQUESTED);
   };
 
   const imgUrl =
@@ -172,7 +187,7 @@ export const NFTPage = () => {
               tokenId={token_id}
               collection={collection}
               randomness={randomness}
-              cid={cid}
+              spliceMetadata={spliceMetadata}
             />
           )}
 
@@ -193,21 +208,28 @@ export const NFTPage = () => {
           )}
 
           {mintingState == MintingState.SAVED && creativePng && (
-            <Button onClick={() => persistArtwork(creativePng)} variant="black">
+            <Button
+              onClick={() => persistArtwork(creativePng)}
+              variant="black"
+              isLoading={buzy}
+              loadingText="persisting on IPFS"
+            >
               persist on IPFS
             </Button>
           )}
 
-          {mintingState == MintingState.SAVED_IPFS && cid && (
+          {mintingState == MintingState.SAVED_IPFS && spliceMetadata && (
             <Button
               onClick={() =>
                 requestMint({
                   collection,
                   tokenId: token_id,
-                  cid
+                  cid: spliceMetadata.ipnft
                 })
               }
               variant="black"
+              isLoading={buzy}
+              loadingText="creating mint job"
             >
               request mint
             </Button>

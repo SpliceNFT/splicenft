@@ -33,19 +33,15 @@ export class Splice {
   public async startMinting(
     collectionAddress: string,
     tokenId: string | number,
-    cid: string,
+    cidString: string,
     recipient: string
   ): Promise<number> {
-    // create image
-    // create image cid
-    const bcid = CID.parse(cid);
-    const cidBytes = Buffer.from(bcid.bytes.slice(2));
-    const cidHex = `0x${cidBytes.slice(2).toString('hex')}`;
+    //console.log('orig', cidString);
 
     const tx = await this.contract.requestMint(
       collectionAddress,
       tokenId,
-      cidHex,
+      cidString,
       recipient
     );
 
