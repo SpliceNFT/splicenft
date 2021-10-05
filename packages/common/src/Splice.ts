@@ -1,4 +1,4 @@
-import { utils, BigNumber, Contract, Signer } from 'ethers';
+import { utils, BigNumber, Contract, Signer, constants, ethers } from 'ethers';
 import { abi as SpliceABI } from './abi/Splice.json';
 import {
   MintRequestedEvent,
@@ -17,6 +17,21 @@ export enum MintingState {
   MINTING,
   MINTED
 }
+
+export enum MintJobStatus {
+  REQUESTED,
+  DONE
+}
+
+export type MintJob = {
+  requestor: string;
+  collection: string;
+  metadataCID: string;
+  randomness: number;
+  recipient: string;
+  token_id: BigNumber;
+  status: MintJobStatus;
+};
 
 export class Splice {
   private contract: SpliceContract;
@@ -88,5 +103,21 @@ export class Splice {
   //   token_id: number
   // ): number {}
 
-  public async getJob(jobId: number) {}
+  public async findJobFor(
+    collectionAddress: string,
+    tokenId: string | number
+  ): Promise<MintJob | null> {
+    const mintJob = await this.contract.findMintJob(collectionAddress, tokenId);
+    if (mintJob.collection === constants.AddressZero) {
+      return null;
+    }
+    return mintJob;
+  }
+  public async getMintJob(jobId: number): Promise<MintJob | null> {
+    const mintJob = await this.contract.getMintJob(jobId);
+    if (mintJob.collection === constants.AddressZero) {
+      return null;
+    }
+    return mintJob;
+  }
 }

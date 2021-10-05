@@ -68,6 +68,8 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
+
+    numJobs = 1;
   }
 
   function _metadataURI(string memory metadataCID)
@@ -136,6 +138,16 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   }
 
   function getMintJob(uint256 jobId) public view returns (MintJob memory) {
+    return jobs[jobId];
+  }
+
+  function findMintJob(IERC721 nft, uint256 token_id)
+    public
+    view
+    returns (MintJob memory job)
+  {
+    bytes32 jobMap = keccak256(abi.encodePacked(address(nft), token_id));
+    uint256 jobId = originToJobId[jobMap];
     return jobs[jobId];
   }
 

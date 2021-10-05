@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
 import { resolveImage } from '../../modules/img';
 
-import { MintingState, Splice } from '@splicenft/common';
+import { MintingState, MintJob, Splice } from '@splicenft/common';
 
 import { NFTItem } from '../../types/NFTPort';
 import { DominantColors } from '../molecules/DominantColors';
@@ -43,7 +43,7 @@ export const NFTPage = () => {
   const [dataUrl, setDataUrl] = useState<string>();
   const [randomness, setRandomness] = useState<number>(0);
 
-  const [mintJobId, setMintJobId] = useState<number>();
+  const [mintJob, setMintJob] = useState<MintJob>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
   );
@@ -66,6 +66,11 @@ export const NFTPage = () => {
   useEffect(() => {
     if (!collection || !token_id) return;
     setRandomness(Splice.computeRandomnessLocally(collection, token_id));
+    if (!splice) return;
+    (async () => {
+      const job = await splice.findJobFor(collection, token_id);
+      if (job != null) setMintJob(job);
+    })();
   }, [collection, token_id, splice]);
 
   useEffect(() => {
@@ -129,7 +134,13 @@ export const NFTPage = () => {
         account
       );
       console.log('job created', jobId);
-      setMintJobId(jobId);
+      //setMintJobId(jobId);
+      const mintJob = await splice.getMintJob(jobId);
+      if (!mintJob) {
+        console.error('this job should exist', jobId);
+      } else {
+        setMintJob(mintJob);
+      }
     } catch (e) {
       console.log(e);
       toast({
@@ -167,6 +178,12 @@ export const NFTPage = () => {
         gridGap={10}
       >
         <Flex direction="column" maxW="50%">
+          {mintJob && (
+            <Text color="red.600">
+              We're minting a splice for this token. Job requested by:{' '}
+              {mintJob.requestor}
+            </Text>
+          )}
           <Heading size="xl" mb={7}>
             {nft.name}
           </Heading>
