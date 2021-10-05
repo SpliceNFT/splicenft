@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "> \"Can you breed an Ape with a Cat and what would be the result?\"",
   "scripts": {
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "build": "pnpm run -r build"
   },
   "engines": {
     "node": ">=14",

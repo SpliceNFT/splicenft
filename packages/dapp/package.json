@@ -2,6 +2,7 @@
   "name": "@splicenft/dapp",
   "version": "0.1.0",
   "dependencies": {
+    "@splicenft/common": "workspace:*",
     "@chakra-ui/react": "^1.6.7",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",

@@ -1,19 +1,28 @@
 import React from 'react';
 import { NFTItem } from '../../types/NFTPort';
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex, Text, Link } from '@chakra-ui/react';
+import { SpliceToken } from '../../types/SpliceToken';
 
 const MetaDataItem = ({
   label,
-  value
+  value,
+  link
 }: {
   label: string;
   value: string | number;
+  link?: string | undefined;
 }) => {
   return (
     <Flex direction="row" justify="space-between" gridGap={5}>
       <Text fontWeight="bold">{label}</Text>
       <Text fontWeight="normal" isTruncated>
-        {value}
+        {link ? (
+          <Link href={link} isExternal>
+            {value}
+          </Link>
+        ) : (
+          value
+        )}
       </Text>
     </Flex>
   );
@@ -23,12 +32,14 @@ export const MetaDataDisplay = ({
   nft,
   collection,
   tokenId,
-  randomness
+  randomness,
+  spliceMetadata
 }: {
   nft: NFTItem;
   collection: string;
   tokenId: string;
   randomness: number;
+  spliceMetadata?: SpliceToken;
 }) => {
   const { metadata } = nft;
   //console.log(metadata?.attributes);
@@ -37,6 +48,13 @@ export const MetaDataDisplay = ({
       <MetaDataItem label="collection" value={collection} />
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
+      {spliceMetadata && (
+        <MetaDataItem
+          label="CID"
+          value={spliceMetadata.ipnft}
+          link={spliceMetadata.url}
+        />
+      )}
       {metadata?.attributes?.map((attr) => {
         return (
           <MetaDataItem
