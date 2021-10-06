@@ -21,10 +21,10 @@ export default function ({ p5, colors, dim }) {
         still_growing = 1;
         //render it
         p5.push();
-        p5.translate(fractalObjects[j].y_point, dim.height);
+        p5.translate(fractalObjects[j].y_point, dim.h);
         p5.rotate(-Math.PI / 2);
         fractalObjects[j].turtle.render();
-        p5.translate(fractalObjects[j].y_point, dim.height);
+        p5.translate(fractalObjects[j].y_point, dim.h);
         p5.pop();
 
         //grow it
@@ -57,11 +57,11 @@ export default function ({ p5, colors, dim }) {
     if (fractalObjects.length < halfway_max_seeds) {
       //middle to right
       this_index = halfway_max_seeds - fractalObjects.length;
-      x_point = dim.width - this_index * (dim.width / 2 / halfway_max_seeds);
+      x_point = dim.w - this_index * (dim.w / 2 / halfway_max_seeds);
     } else {
       this_index =
         halfway_max_seeds - (fractalObjects.length - halfway_max_seeds);
-      x_point = this_index * (dim.width / 2 / halfway_max_seeds);
+      x_point = this_index * (dim.w / 2 / halfway_max_seeds);
     }
 
     //seed with more wires than towers
@@ -290,7 +290,7 @@ export default function ({ p5, colors, dim }) {
     //adjust height, so that plants get bigger towards the middle of the canvas
     //let max_height = 8;//lower number means taller plant objects
     //scale for size of canvas
-    const max_height = p5.int((6 * dim.height) / 250);
+    const max_height = p5.int((6 * dim.h) / 250);
     const line_height_divisor = p5.int(
       ((max_seeds - seed_index) * max_height) / max_seeds
     );
@@ -298,7 +298,7 @@ export default function ({ p5, colors, dim }) {
     //setting the starting x point for the plant and the length of its initial stem
     const turtle = new Turtle(
       lsys.getSentence(),
-      dim.height / line_height_divisor,
+      dim.h / line_height_divisor,
       p5.radians(num_radians),
       seed_index,
       colors,
@@ -333,6 +333,7 @@ export default function ({ p5, colors, dim }) {
     p5.vertex(w, h - p5.random(h / 4, h / 2));
     p5.vertex(w, h);
     p5.endShape(p5.CLOSE);
+    console.log('horizon');
   }
 
   /**
@@ -449,7 +450,7 @@ export default function ({ p5, colors, dim }) {
       this.seed_index = _seed_index;
       //this.color = getColor(this.seed_index);
       this.color = getColor(colors, 2);
-      this.thickness = 0.004 * dim.width; //3
+      this.thickness = 0.004 * dim.w; //3
     }
 
     render() {
@@ -500,8 +501,10 @@ export default function ({ p5, colors, dim }) {
     //get most common color and draw that onto the background
     p5.background(getColor(colors, 0));
 
+    p5.stroke(p5.color(colors[1]));
+    p5.ellipse(0, 0, 50, 100);
     //get darkest color and use that for the horizon line
-    drawHorizon(dim.width, dim.height, getColor(colors, 3));
+    drawHorizon(dim.w, dim.h, getColor(colors, 3));
   }
 
   while (fractalObjects.length < max_seeds)
@@ -514,6 +517,6 @@ export default function ({ p5, colors, dim }) {
   //if planted all the seeds, go ahead and stop looping through this function and draw the triptych frame overlay
   if (fractalObjects.length >= max_seeds) {
     //draw triptych frames on top of everything
-    drawTripTychFrames(dim.width, dim.height);
+    drawTripTychFrames(dim.w, dim.h);
   }
 }

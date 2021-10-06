@@ -5,6 +5,7 @@ import React from 'react';
 import Sketch from 'react-p5';
 import { default as Confidence } from '../renderers/ConfidenceInTheMission';
 import { default as Garden } from '../renderers/TheGardenOfEarthlyDelights';
+import { default as Flower } from '../renderers/Flower';
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
