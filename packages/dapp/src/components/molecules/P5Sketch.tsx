@@ -3,8 +3,8 @@ import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
 import Sketch from 'react-p5';
-import { default as confidence } from '../renderers/ConfidenceInTheMission';
-
+import { default as Confidence } from '../renderers/ConfidenceInTheMission';
+import { default as Garden } from '../renderers/TheGardenOfEarthlyDelights';
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
@@ -20,7 +20,7 @@ export const P5Sketch = (props: {
   };
 
   const draw = (p5: p5Types) => {
-    confidence({ p5, colors, dim });
+    Garden({ p5, colors, dim });
   };
 
   return (
