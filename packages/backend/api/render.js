@@ -10,6 +10,7 @@ module.exports = (req, res) => {
       p.background(0);
       p.fill(80);
       p.rect(10, 10, 50, 50);
+      p.noLoop();
       res.writeHead(200, { 'Content-Type': 'image/png' });
       res.end(p.canvas.toBuffer());
     };
