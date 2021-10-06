@@ -15,4 +15,5 @@ export default function ({ p5, colors, dim }: DrawProps) {
     p5.ellipse(0, 0, 50, dim.w / 1.2);
     p5.rotate(p5.PI / 10);
   }
+  p5.noLoop();
 }

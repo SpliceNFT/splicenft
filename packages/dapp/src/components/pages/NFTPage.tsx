@@ -6,8 +6,9 @@ import {
   Text,
   useToast
 } from '@chakra-ui/react';
+import { MintingState, MintJob, Splice } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { ethers, providers } from 'ethers';
+import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import { NFTStorage } from 'nft.storage';
 import p5Types from 'p5';
@@ -15,14 +16,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
 import { resolveImage } from '../../modules/img';
-
-import { MintingState, MintJob, Splice } from '@splicenft/common';
-
 import { NFTItem } from '../../types/NFTPort';
+import { SpliceToken } from '../../types/SpliceToken';
+import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
-import { SpliceToken } from '../../types/SpliceToken';
 
 export const NFTPage = () => {
   const { library, account } = useWeb3React<providers.Web3Provider>();
@@ -36,6 +35,8 @@ export const NFTPage = () => {
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [p5Canvas, setP5Canvas] = useState<p5Types>();
+  const [selectedRenderer, setSelectedRenderer] = useState<string>();
+
   const [creativePng, setCreativePng] = useState<Blob>();
 
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceToken>();
@@ -164,6 +165,7 @@ export const NFTPage = () => {
           setP5Canvas(canvas);
           setMintingState(MintingState.GENERATED);
         }}
+        rendererName={selectedRenderer}
         randomness={randomness}
         dataUrl={dataUrl}
         mintingState={mintingState}
@@ -209,13 +211,13 @@ export const NFTPage = () => {
           )}
 
           {mintingState < MintingState.GENERATING && (
-            <Button
-              onClick={() => setMintingState(MintingState.GENERATING)}
-              variant="black"
-              disabled={!dominantColors}
-            >
-              generate artwork
-            </Button>
+            <ArtworkStyleChooser
+              selectedRenderer={selectedRenderer}
+              onRendererChanged={(name) => {
+                setSelectedRenderer(name);
+                setMintingState(MintingState.GENERATING);
+              }}
+            />
           )}
 
           {mintingState == MintingState.GENERATED && (

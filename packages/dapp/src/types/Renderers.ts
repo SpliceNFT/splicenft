@@ -6,3 +6,5 @@ export interface DrawProps {
   colors: RGB[];
   dim: { w: number; h: number };
 }
+
+export type Renderer = (props: DrawProps) => void;

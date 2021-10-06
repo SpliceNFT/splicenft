@@ -3,16 +3,16 @@ import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
 import Sketch from 'react-p5';
-import { default as Confidence } from '../renderers/ConfidenceInTheMission';
-import { default as Garden } from '../renderers/TheGardenOfEarthlyDelights';
-import { default as Flower } from '../renderers/Flower';
+import { default as renderers } from '../renderers';
+
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
   colors: RGB[];
+  rendererName: string;
   onCanvasCreated: (p5: p5Types) => void;
 }) => {
-  const { dim, colors, onCanvasCreated, randomness } = props;
+  const { dim, colors, onCanvasCreated, randomness, rendererName } = props;
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     p5.createCanvas(dim.w, dim.h).parent(canvasParentRef);
@@ -21,7 +21,8 @@ export const P5Sketch = (props: {
   };
 
   const draw = (p5: p5Types) => {
-    Garden({ p5, colors, dim });
+    const renderer = renderers[rendererName];
+    renderer({ p5, colors, dim });
   };
 
   return (

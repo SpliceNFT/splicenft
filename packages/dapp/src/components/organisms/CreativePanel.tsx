@@ -29,23 +29,26 @@ const Preview = ({
   imgUrl,
   dataUrl,
   randomness,
+  rendererName,
   setP5Canvas
 }: {
   dominantColors?: RGB[];
   imgUrl: string;
   dataUrl?: string | undefined;
   randomness: number;
+  rendererName?: string;
   setP5Canvas?: (canvas: p5Types) => void;
 }) => {
   return (
     <Flex position="relative">
       <Center width="100%" height="100%">
-        {dominantColors && setP5Canvas && !dataUrl ? (
+        {dominantColors && setP5Canvas && !dataUrl && rendererName ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
             onCanvasCreated={setP5Canvas}
+            rendererName={rendererName}
           />
         ) : (
           <Image src={dataUrl} />
@@ -74,6 +77,7 @@ export const CreativePanel = ({
   setP5Canvas,
   randomness,
   dataUrl,
+  rendererName,
   mintingState
 }: {
   imgUrl: string;
@@ -81,11 +85,13 @@ export const CreativePanel = ({
   setP5Canvas: (canvas: p5Types) => void;
   randomness: number;
   dataUrl: string | undefined;
+  rendererName?: string;
   mintingState: MintingState;
 }) => {
   if (
     mintingState >= MintingState.GENERATING &&
-    mintingState < MintingState.SAVED
+    mintingState < MintingState.SAVED &&
+    rendererName
   ) {
     return (
       <Preview
@@ -93,6 +99,7 @@ export const CreativePanel = ({
         dominantColors={dominantColors}
         setP5Canvas={setP5Canvas}
         randomness={randomness}
+        rendererName={rendererName}
       />
     );
   } else if (mintingState >= MintingState.SAVED && dataUrl) {

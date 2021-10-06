@@ -333,7 +333,6 @@ export default function ({ p5, colors, dim }) {
     p5.vertex(w, h - p5.random(h / 4, h / 2));
     p5.vertex(w, h);
     p5.endShape(p5.CLOSE);
-    console.log('horizon');
   }
 
   /**
