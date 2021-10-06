@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "micro": "micro -l tcp://0.0.0.0:5999 api/render.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,6 +15,8 @@
   },
   "dependencies": {
     "axios": "^0.21.4",
+    "micro": "^9.3.4",
+    "p5js-node": "^1.3.4",
     "request": "^2.88.2"
   }
 }
