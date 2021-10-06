@@ -324,6 +324,7 @@ export default function ({ p5, colors, dim }) {
    */
   function drawHorizon(w, h, this_color) {
     p5.fill(this_color);
+    p5.noStroke();
     //shape sits on the bottom half of screen
     p5.beginShape();
     p5.vertex(0, h);
