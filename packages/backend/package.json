@@ -17,6 +17,8 @@
   "dependencies": {
     "@splicenft/common": "workspace:*",
     "axios": "^0.21.4",
+    "dotenv-flow": "^3.2.0",
+    "ethers": "^5.4.7",
     "express": "^4.17.1",
     "micro": "^9.3.4",
     "p5js-node": "^1.3.4",
