@@ -105,10 +105,14 @@ export const NFTPage = () => {
     setBuzy(true);
     const metadata = await nftStorageClient.store({
       name: `Splice from ${collection}/${token_id}`,
-      description: `Splice from ${collection}/${token_id}`,
+      description: `This Splice has been generated from ${collection}/${token_id}`,
       image: blob,
       properties: {
-        colors: dominantColors
+        origin_collection: collection,
+        origin_token_id: token_id,
+        randomness: randomness,
+        colors: dominantColors,
+        style: selectedRenderer
       }
     });
 
