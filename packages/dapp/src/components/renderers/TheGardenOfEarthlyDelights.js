@@ -325,7 +325,7 @@ export default function ({ p5, colors, dim }) {
   function drawHorizon(w, h, this_color) {
     p5.fill(this_color);
     p5.noStroke();
-    p5.rect(0,h/2,w,h);
+    p5.rect(0, h / 2, w, h);
   }
 
   /**
