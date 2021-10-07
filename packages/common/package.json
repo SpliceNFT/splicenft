@@ -33,6 +33,7 @@
   "dependencies": {
     "@splicenft/contracts": "workspace:*",
     "ethers": "^5.4.7",
-    "multiformats": "^9.4.8"
+    "multiformats": "^9.4.8",
+    "p5": "1.1.9"
   }
 }

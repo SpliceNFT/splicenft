@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 
 import React from 'react';
-import { RendererNames } from '../renderers';
+import { RendererNames } from '@splicenft/common';
 
 export const ArtworkStyleChooser = ({
   selectedRenderer,
