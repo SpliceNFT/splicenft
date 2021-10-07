@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "micro": "micro -l tcp://0.0.0.0:5999 api/render.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,6 +17,7 @@
   "dependencies": {
     "@splicenft/common": "workspace:*",
     "axios": "^0.21.4",
+    "express": "^4.17.1",
     "micro": "^9.3.4",
     "p5js-node": "^1.3.4",
     "request": "^2.88.2"
