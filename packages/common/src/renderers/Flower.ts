@@ -1,4 +1,4 @@
-import { DrawProps } from '../../types/Renderers';
+import { DrawProps } from '../types/Renderers';
 
 export default function ({ p5, colors, dim }: DrawProps) {
   const primaryColor = colors[0];

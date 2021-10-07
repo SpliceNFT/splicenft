@@ -3,7 +3,7 @@ import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
 import Sketch from 'react-p5';
-import { default as renderers } from '../renderers';
+import { Renderers } from '@splicenft/common';
 
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
@@ -21,7 +21,7 @@ export const P5Sketch = (props: {
   };
 
   const draw = (p5: p5Types) => {
-    const renderer = renderers[rendererName];
+    const renderer = Renderers[rendererName];
     renderer({ p5, colors, dim });
   };
 

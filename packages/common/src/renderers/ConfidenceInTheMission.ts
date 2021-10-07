@@ -1,5 +1,5 @@
 import p5 from 'p5';
-import { DrawProps } from '../../types/Renderers';
+import { DrawProps } from '../types/Renderers';
 
 /**
  * ConfidenceInTheMission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.
