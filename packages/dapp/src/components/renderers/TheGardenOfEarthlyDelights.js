@@ -290,7 +290,7 @@ export default function ({ p5, colors, dim }) {
     //adjust height, so that plants get bigger towards the middle of the canvas
     //let max_height = 8;//lower number means taller plant objects
     //scale for size of canvas
-    const max_height = p5.int((6 * dim.h) / 250);
+    const max_height = p5.int((4 * dim.h) / 250);
     const line_height_divisor = p5.int(
       ((max_seeds - seed_index) * max_height) / max_seeds
     );
@@ -325,15 +325,7 @@ export default function ({ p5, colors, dim }) {
   function drawHorizon(w, h, this_color) {
     p5.fill(this_color);
     p5.noStroke();
-    //shape sits on the bottom half of screen
-    p5.beginShape();
-    p5.vertex(0, h);
-    p5.vertex(0, h - p5.random(h / 4, h / 2));
-    p5.vertex(p5.random(w / 4, w / 2), h - p5.random(h / 2, (3 * h) / 4));
-    p5.vertex(p5.random(w / 2, (3 * w) / 4), h - p5.random(h / 2, (3 * h) / 4));
-    p5.vertex(w, h - p5.random(h / 4, h / 2));
-    p5.vertex(w, h);
-    p5.endShape(p5.CLOSE);
+    p5.rect(0, h / 2, w, h);
   }
 
   /**
@@ -352,13 +344,10 @@ export default function ({ p5, colors, dim }) {
     p5.rect((w * 3) / 4, 0, w / 4, h);
 
     //now round the edges
-    //strokeWeight(9);
-    //scale strokeWeight
-    p5.strokeWeight(p5.int((9 / 750) * w));
     const curvature = p5.int((30 / 750) * w);
-    p5.rect(0, 0, w / 4, h + 50, curvature);
-    p5.rect(w / 4, 0, w / 2, h + 50, curvature);
-    p5.rect((w * 3) / 4, 0, w / 4, h + 50, curvature);
+    p5.rect(0, 0, w / 4, h, curvature);
+    p5.rect(w / 4, 0, w / 2, h, curvature);
+    p5.rect((w * 3) / 4, 0, w / 4, h, curvature);
   }
 
   /**
