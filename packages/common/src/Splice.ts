@@ -1,4 +1,12 @@
-import { utils, BigNumber, Contract, Signer, constants, ethers } from 'ethers';
+import {
+  utils,
+  BigNumber,
+  Contract,
+  Signer,
+  constants,
+  ethers,
+  providers
+} from 'ethers';
 import { abi as SpliceABI } from './abi/Splice.json';
 import {
   MintRequestedEvent,
@@ -40,7 +48,7 @@ export class Splice {
     this.contract = splice;
   }
 
-  static from(address: string, signer: Signer) {
+  static from(address: string, signer: Signer | providers.Provider) {
     const contract = new Contract(address, SpliceABI, signer) as SpliceContract;
     return new Splice(contract);
   }

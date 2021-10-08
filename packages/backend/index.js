@@ -1,64 +1,59 @@
+require('dotenv-flow').config();
+
 const express = require('express');
 const Render = require('./lib/render');
-const { ethers, providers, BigNumber } = require('ethers');
-const { Renderers, Splice } = require('@splicenft/common');
-const axios = require('axios').default;
-
-require('dotenv-flow').config();
+const Validate = require('./lib/validate');
+const { Renderers, Splice, getProvider } = require('@splicenft/common');
 
 const app = express();
 const port = process.env.PORT || 5999;
 
-const provider = new providers.JsonRpcProvider('http://localhost:8545');
-const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATEKEY, provider);
-const splice = Splice.from(process.env.SPLICE_CONTRACT_ADDRESS, wallet);
-
+const GRAYSCALE_COLORS = [
+  [20, 30, 40],
+  [80, 80, 80],
+  [100, 100, 100],
+  [150, 150, 150],
+  [175, 175, 175],
+  [200, 200, 200],
+  [220, 220, 220],
+  [250, 250, 250]
+];
 app.get('/render/:algo', (req, res) => {
   const renderer = Renderers[req.params.algo];
   if (!renderer) return res.status(404).send('algorithm not found');
   try {
-    Render(renderer, res);
+    Render(
+      renderer,
+      {
+        colors: GRAYSCALE_COLORS,
+        dim: { w: 1500, h: 500 }
+      },
+      (err, buffer) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).end();
+        }
+        res.set('Content-Type', 'image/png');
+        res.status(200);
+        res.send(buffer);
+      }
+    );
   } catch (e) {
-    res.status(500).send(`rendering failed ${e.message}`);
+    console.error(e);
+    res.status(500).end();
   }
 });
 
 app.get('/validate/:mintjob', async (req, res) => {
   const mintJobId = req.params.mintjob;
-  // const provider = new ethers.providers.InfuraWebSocketProvider(
-  //   process.env.ETH_NETWORK as string,
-  //   process.env.INFURA_KEY as string
-  // );
+  const { provider, signer } = getProvider('http://localhost:8545', {
+    infuraKey: process.env.INFURA_KEY,
+    privateKey: process.env.DEPLOYER_PRIVATEKEY
+  });
 
-  const _job = await splice.getMintJob(mintJobId);
-  const token_id = _job['token_id'];
-  const collection = _job['collection'];
-  const randomness = _job['randomness'];
-  const status = _job['status'];
-  const metadataCID = _job['metadataCID'];
-
-  const job = {
-    token_id: token_id.toNumber(),
-    collection,
-    randomness,
-    status,
-    metadataCID
-  };
-
-  const _metadata = await axios.get(
-    `https://ipfs.io/ipfs/${metadataCID}/metadata.json`
-  );
-
-  job.metadata = await _metadata.data;
-  let imageLocation = job.metadata.image;
-  imageLocation = imageLocation.replace('ipfs://', 'https://ipfs.io/ipfs/');
-
-  console.log(imageLocation);
-  const _blob = await axios.get(imageLocation);
-  const blob = await _blob.data;
-  console.log(blob.length);
-  job.blobSize = blob.length;
-  res.send(job);
+  const splice = Splice.from(process.env.SPLICE_CONTRACT_ADDRESS, signer);
+  const job = await Validate(mintJobId, splice);
+  await res.send(job);
 });
 
 app.listen(port, () => {
