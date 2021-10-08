@@ -26,6 +26,7 @@ import { getNFT } from '../../modules/chain';
 import { SpliceToken } from '../../types/SpliceToken';
 import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
+import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
 
@@ -86,10 +87,21 @@ export const NFTPage = () => {
       const metadata = await splice.fetchMetadata(res.job);
 
       setRandomness(res.job.randomness);
-      setMintingState(MintingState.MINTING_REQUESTED);
       const imageUrl = resolveImage(metadata);
       setDataUrl(imageUrl);
       setSpliceMetadata(metadata);
+
+      switch (res.job.status) {
+        case 0:
+          setMintingState(MintingState.MINTING_REQUESTED);
+          break;
+        case 1:
+          setMintingState(MintingState.MINTING_ALLOWED);
+          break;
+        case 2:
+          setMintingState(MintingState.MINTED);
+          break;
+      }
     })();
   }, [collection, token_id, splice]);
 
@@ -151,7 +163,7 @@ export const NFTPage = () => {
   }) => {
     if (!splice || !account) return;
     try {
-      const jobId = await splice.startMinting(
+      const jobId = await splice.requestMinting(
         collection,
         tokenId,
         cid,
@@ -176,6 +188,11 @@ export const NFTPage = () => {
     //setMintingState(MintingState.MINTING_REQUESTED);
   };
 
+  const startMinting = async (jobId: number) => {
+    const spliceNftId = await splice?.mint(jobId);
+    console.log(spliceNftId);
+    setMintingState(MintingState.MINTED);
+  };
   const imgUrl =
     resolveImage(nft?.metadata) || 'https://via.placeholder.com/800';
 
@@ -203,12 +220,6 @@ export const NFTPage = () => {
         gridGap={10}
       >
         <Flex direction="column" maxW="50%">
-          {mintJob && (
-            <Text color="red.600">
-              We're minting a splice for this token. Job #{mintJob.jobId}{' '}
-              requested by: {mintJob.job.requestor}
-            </Text>
-          )}
           <Heading size="xl" mb={7}>
             {nft.name}
           </Heading>
@@ -223,6 +234,7 @@ export const NFTPage = () => {
               setDominantColors={setDominantColors}
             />
           )}
+          {mintJob && <MintJobState mintJob={mintJob} />}
           {nft && (
             <MetaDataDisplay
               nft={nft}
@@ -275,6 +287,17 @@ export const NFTPage = () => {
               loadingText="creating mint job"
             >
               request mint
+            </Button>
+          )}
+
+          {mintJob && mintingState == MintingState.MINTING_ALLOWED && (
+            <Button
+              onClick={() => startMinting(mintJob.jobId)}
+              variant="black"
+              isLoading={buzy}
+              loadingText="minting your splice"
+            >
+              mint your splice!
             </Button>
           )}
         </Flex>

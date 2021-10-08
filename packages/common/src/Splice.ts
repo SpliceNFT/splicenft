@@ -10,7 +10,8 @@ import {
 import { abi as SpliceABI } from './abi/Splice.json';
 import {
   MintRequestedEvent,
-  Splice as SpliceContract
+  Splice as SpliceContract,
+  TransferEvent
 } from '@splicenft/contracts';
 import axios from 'axios';
 import { NFTMetaData } from '.';
@@ -29,13 +30,8 @@ export enum MintingState {
   SAVED,
   SAVED_IPFS,
   MINTING_REQUESTED,
-  MINTING,
+  MINTING_ALLOWED,
   MINTED
-}
-
-export enum MintJobStatus {
-  REQUESTED,
-  DONE
 }
 
 export type MintJob = {
@@ -45,7 +41,7 @@ export type MintJob = {
   randomness: number;
   recipient: string;
   token_id: BigNumber;
-  status: MintJobStatus;
+  status: number;
 };
 
 export class Splice {
@@ -60,7 +56,7 @@ export class Splice {
     return new Splice(contract);
   }
 
-  public async startMinting(
+  public async requestMinting(
     collectionAddress: string,
     tokenId: string | number,
     cidString: string,
@@ -81,15 +77,18 @@ export class Splice {
       result.events![0] as MintRequestedEvent;
     const jobId = requestedEvent.args.jobIndex;
     return jobId.toNumber();
-    // create metadata with image cid
-    // create metadata cid
-    // create minting request job
 
-    // const receipt = await this.contract.requestMint(
-    //   originNftAddress,
-    //   recipient
-    // );
     //console.log(receipt);
+  }
+
+  public async mint(jobId: number) {
+    const tx = await this.contract.finalizeMint(jobId);
+    const result = await tx.wait();
+    const transferEvent: TransferEvent =
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      result.events![0] as TransferEvent;
+    const tokenId = transferEvent.args.tokenId;
+    return tokenId.toNumber();
   }
 
   public static computeRandomnessLocally(
