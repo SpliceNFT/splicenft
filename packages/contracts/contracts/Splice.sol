@@ -10,11 +10,17 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
 import './BytesLib.sol';
 import 'hardhat/console.sol';
 
-contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
+contract Splice is
+  ERC721EnumerableUpgradeable,
+  OwnableUpgradeable,
+  ChainlinkClient
+{
   using CountersUpgradeable for CountersUpgradeable.Counter;
+  using Chainlink for Chainlink.Request;
 
   enum MintJobStatus {
     REQUESTED,
@@ -60,17 +66,32 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   //todo make this dynamic, obviously
   uint256 public constant PRICE = 0.079 ether;
 
+  address private oracle;
+  bytes32 private linkJobId;
+  uint256 private linkFee;
+
   event MintRequested(uint256 indexed jobIndex, address indexed collection);
   event JobResultArrived(uint256 indexed jobIndex, bool result);
 
+  /**
+   * Network: Kovan
+   * Oracle: 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8 (Chainlink Devrel
+   * Node)
+   * Job ID: d5270d1c311941d0b08bead21fea7747
+   * Fee: 0.1 LINK
+   */
   function initialize(string memory name_, string memory symbol_)
     public
     initializer
   {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
+    setPublicChainlinkToken();
 
     numJobs = 1;
+    oracle = 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8;
+    linkJobId = 'd5270d1c311941d0b08bead21fea7747';
+    linkFee = 0.1 * 10**18; // (Varies by network and job)
   }
 
   function _metadataURI(string memory metadataCID)
@@ -171,6 +192,38 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     bytes memory rm = abi.encodePacked(rb);
     uint32 r = BytesLib.toUint32(rm, 0);
     return r;
+  }
+
+  function requestValidatorData(uint256 mintJobId)
+    public
+    returns (bytes32 requestId)
+  {
+    Chainlink.Request memory request = buildChainlinkRequest(
+      linkJobId,
+      address(this),
+      this.fulfill.selector
+    );
+
+    request.add(
+      'get',
+      abi.encodePacked(
+        'https://validate.getsplice.io/validate/',
+        mintJobId,
+        '?network=42'
+      )
+    );
+
+    request.add('path', 'valid');
+
+    // Sends the request
+    return sendChainlinkRequestTo(oracle, request, linkFee);
+  }
+
+  function fulfill(bytes32 _requestId, uint256 _volume)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+    volume = _volume;
   }
 
   function requestMint(
