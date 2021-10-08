@@ -15,10 +15,10 @@ import {
 import axios from 'axios';
 import { NFTMetaData } from '.';
 
-export const SPLICE_ADDRESSES = {
-  rinkeby: '0x0',
-  kovan: '0x6334d2cbc3294577bb9de58e8b1901d6e3b97681',
-  mainnet: '0x0'
+export const SPLICE_ADDRESSES: Record<number, string> = {
+  4: '0x0',
+  42: '0x5D99611802b8f1B2174F2fa957Ec208cb0450225',
+  1: '0x0'
 };
 
 export enum MintingState {

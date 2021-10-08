@@ -12,7 +12,8 @@ import {
   Splice,
   resolveImage,
   NFTItem,
-  NFTMetaData
+  NFTMetaData,
+  SPLICE_ADDRESSES
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
@@ -29,7 +30,7 @@ import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
 
 export const NFTPage = () => {
-  const { library, account } = useWeb3React<providers.Web3Provider>();
+  const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
   const toast = useToast();
 
   const { collection, token_id } =
@@ -61,11 +62,13 @@ export const NFTPage = () => {
   });
 
   useEffect(() => {
-    if (!library) return;
-    const spl = Splice.from(
-      process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string,
-      library.getSigner()
-    );
+    if (!library || !chainId) return;
+    const splAddress =
+      chainId === 31337
+        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
+        : SPLICE_ADDRESSES[chainId];
+
+    const spl = Splice.from(splAddress, library.getSigner());
 
     setSplice(spl);
   }, [library]);
