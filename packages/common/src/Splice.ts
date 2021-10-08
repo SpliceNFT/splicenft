@@ -14,6 +14,12 @@ import {
 } from '@splicenft/contracts';
 import { CID } from 'multiformats/cid';
 
+export const SPLICE_ADDRESSES = {
+  rinkeby: '0x0',
+  kovan: '0x6334d2cbc3294577bb9de58e8b1901d6e3b97681',
+  mainnet: '0x0'
+};
+
 export enum MintingState {
   UNKNOWN,
   NOT_MINTED,

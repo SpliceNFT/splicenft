@@ -3,7 +3,12 @@ require('dotenv-flow').config();
 const express = require('express');
 const Render = require('./lib/render');
 const Validate = require('./lib/validate');
-const { Renderers, Splice, getProvider } = require('@splicenft/common');
+const {
+  Renderers,
+  Splice,
+  getProvider,
+  SPLICE_ADDRESSES
+} = require('@splicenft/common');
 
 const app = express();
 const port = process.env.PORT || 5999;
@@ -46,12 +51,17 @@ app.get('/render/:algo', (req, res) => {
 
 app.get('/validate/:mintjob', async (req, res) => {
   const mintJobId = req.params.mintjob;
-  const { provider, signer } = getProvider('http://localhost:8545', {
+
+  const network = req.query.network || 'http://localhost:8545';
+
+  const { provider, signer } = getProvider(network, {
     infuraKey: process.env.INFURA_KEY,
     privateKey: process.env.DEPLOYER_PRIVATEKEY
   });
 
-  const splice = Splice.from(process.env.SPLICE_CONTRACT_ADDRESS, signer);
+  const spliceAddress =
+    SPLICE_ADDRESSES[req.query.network] || process.env.SPLICE_CONTRACT_ADDRESS;
+  const splice = Splice.from(spliceAddress, provider);
   await Validate(mintJobId, splice, (err, result) => {
     if (err) {
       return res.status(400).send({

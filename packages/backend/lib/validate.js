@@ -8,6 +8,9 @@ const TOLERATED_DIFF_PERC = 2;
 
 module.exports = async function (mintJobId, splice, callback) {
   const _job = await splice.getMintJob(mintJobId);
+  if (!_job) {
+    return callback(`job ${mintJobId} doesnt exist`);
+  }
   const token_id = _job['token_id'];
   const collection = _job['collection'];
   const randomness = _job['randomness'];
