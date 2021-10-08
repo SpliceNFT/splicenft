@@ -18,7 +18,8 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
   enum MintJobStatus {
     REQUESTED,
-    DONE
+    ALLOWED,
+    MINTED
   }
 
   struct MintJob {
@@ -60,7 +61,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   uint256 public constant PRICE = 0.079 ether;
 
   event MintRequested(uint256 indexed jobIndex, address indexed collection);
-  event JobResultArrived(uint256 indexed jobIndex);
+  event JobResultArrived(uint256 indexed jobIndex, bool result);
 
   function initialize(string memory name_, string memory symbol_)
     public
@@ -178,14 +179,13 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     string memory metadataCID,
     address recipient
   ) public payable returns (uint256 jobID) {
-    //check whether token_id exists on nft and
-    //belongs to <sender>
+    //todo check whether token_id exists on nft and
+    //todo check nft belongs to <sender>
     //check whether input data seems legit
-    //check minting fee sufficient
-    //request creation
+    //todo check that requestor has sent some minting fee (PRICE (per collection))
+    //todo oracle request creation
     //wait for creation disputes
-    //mint nft to requestor
-    //distribute minting fee with partners
+
     require(
       isCollectionAllowed(address(nft)),
       'splicing this collection is not allowed'
@@ -217,31 +217,41 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     return jobID;
   }
 
-  /**
-   * the hash points to a metadata document
-   * called by a verified job runner
-   * todo shouldn't be a string ;)
-   */
-  function publishJobResult(uint256 jobID, string memory metadataCID) public {
-    MintJob storage job = jobs[jobID];
-    job.metadataCID = metadataCID;
-    emit JobResultArrived(jobID);
-    //todo verify the imageURL referenced in that hash's metadata doc is correct.
-    //todo evaluate ways how to deliver metadata from chain
+  function greenlightMintByOwner(uint256 jobID, bool result)
+    external
+    onlyOwner
+  {
+    publishJobResult(jobID, result);
   }
 
-  /* only requestor */
+  /**
+   * called by a verified job runner / oracle
+   * todo: restrict to oracle calls :D
+   */
+  function publishJobResult(uint256 jobID, bool result) public {
+    MintJob storage job = jobs[jobID];
+    job.status = MintJobStatus.ALLOWED;
+    emit JobResultArrived(jobID, result);
+  }
+
+  /*
+   * todo only requestor
+   * todo check that new item id is below the collection allowance
+   * todo distribute minting fee with partners
+   */
   function finalizeMint(uint256 jobID) public returns (uint256 tokenId) {
-    //todo only when job is "ripe" to be minted
-    MintJob memory job = jobs[jobID];
+    MintJob storage job = jobs[jobID];
+    require(
+      job.status == MintJobStatus.ALLOWED,
+      'minting is not allowed (yet)'
+    );
     _tokenIds.increment();
 
     uint256 newItemId = _tokenIds.current();
     //require(newItemId < limit, 'exceeds max collection size');
     _safeMint(job.recipient, newItemId);
     tokenIdToJobId[newItemId] = jobID;
-
-    //jobIdToTokenId[jobID] = newItemId;
+    job.status = MintJobStatus.MINTED;
     mintedPerCollection[address(job.collection)] =
       mintedPerCollection[address(job.collection)] +
       1;
