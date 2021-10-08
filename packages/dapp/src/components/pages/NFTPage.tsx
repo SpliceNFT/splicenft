@@ -134,22 +134,28 @@ export const NFTPage = () => {
 
   const persistArtwork = async (blob: Blob) => {
     setBuzy(true);
-    const spliceToken = await nftStorageClient.store({
-      name: `Splice from ${collection}/${token_id}`,
-      description: `This Splice has been generated from ${collection}/${token_id}`,
-      image: blob,
-      properties: {
-        origin_collection: collection,
-        origin_token_id: token_id,
-        randomness: randomness,
-        colors: dominantColors,
-        style: selectedRenderer
-      }
-    });
-    console.log(JSON.stringify(spliceToken, null, 2));
+    try {
+      const spliceToken = await nftStorageClient.store({
+        name: `Splice from ${collection}/${token_id}`,
+        description: `This Splice has been generated from ${collection}/${token_id}`,
+        image: blob,
+        properties: {
+          origin_collection: collection,
+          origin_token_id: token_id,
+          randomness: randomness,
+          colors: dominantColors,
+          style: selectedRenderer
+        }
+      });
+      setSpliceToken(spliceToken);
+      setMintingState(MintingState.SAVED_IPFS);
+    } catch (e) {
+      toast({
+        status: 'error',
+        title: 'storing on nft.storage failed. Try again'
+      });
+    }
     setBuzy(false);
-    setSpliceToken(spliceToken);
-    setMintingState(MintingState.SAVED_IPFS);
   };
 
   const requestMint = async ({
@@ -190,7 +196,10 @@ export const NFTPage = () => {
 
   const startMinting = async (jobId: number) => {
     const spliceNftId = await splice?.mint(jobId);
-    console.log(spliceNftId);
+    toast({
+      status: 'success',
+      title: `Hooray, Splice #${spliceNftId} is yours now!`
+    });
     setMintingState(MintingState.MINTED);
   };
   const imgUrl =
@@ -227,14 +236,17 @@ export const NFTPage = () => {
         </Flex>
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
-          {imgUrl && (
+          {mintJob && (
+            <MintJobState mintJob={mintJob} mintingState={mintingState} />
+          )}
+          {imgUrl && mintingState < MintingState.MINTING_REQUESTED && (
             <DominantColors
               imgUrl={imgUrl}
               dominantColors={dominantColors}
               setDominantColors={setDominantColors}
             />
           )}
-          {mintJob && <MintJobState mintJob={mintJob} />}
+
           {nft && (
             <MetaDataDisplay
               nft={nft}

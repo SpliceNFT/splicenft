@@ -1,4 +1,13 @@
-import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
+import {
+  Box,
+  Center,
+  Circle,
+  Container,
+  Flex,
+  Image,
+  Link,
+  Button
+} from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
@@ -7,15 +16,15 @@ import { MintingState } from '@splicenft/common';
 
 const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
   return (
-    <Container width="lg">
+    <Container width="lg" py={20}>
       <Flex rounded="lg" minH="80">
         <Image
-          py={20}
           src={imgUrl}
           title={imgUrl}
           boxSize="fit-content"
           objectFit="cover"
           alt={imgUrl}
+          boxShadow="lg"
           fallbackSrc="https://via.placeholder.com/800"
           /*opacity={buzy ? 0.2 : 1}*/
         />
@@ -30,7 +39,8 @@ const Preview = ({
   dataUrl,
   randomness,
   rendererName,
-  setP5Canvas
+  setP5Canvas,
+  mintingState
 }: {
   dominantColors?: RGB[];
   imgUrl: string;
@@ -38,6 +48,7 @@ const Preview = ({
   randomness: number;
   rendererName?: string;
   setP5Canvas?: (canvas: p5Types) => void;
+  mintingState: MintingState;
 }) => {
   return (
     <Flex position="relative">
@@ -67,6 +78,13 @@ const Preview = ({
           />
         </Circle>
       </Center>
+      {mintingState === MintingState.MINTED && (
+        <Box position="absolute" right="10px" bottom="10px">
+          <Button as={Link} href={dataUrl} isExternal variant="black">
+            download
+          </Button>
+        </Box>
+      )}
     </Flex>
   );
 };
@@ -100,11 +118,17 @@ export const CreativePanel = ({
         setP5Canvas={setP5Canvas}
         randomness={randomness}
         rendererName={rendererName}
+        mintingState={mintingState}
       />
     );
   } else if (mintingState >= MintingState.SAVED && dataUrl) {
     return (
-      <Preview imgUrl={imgUrl} dataUrl={dataUrl} randomness={randomness} />
+      <Preview
+        imgUrl={imgUrl}
+        dataUrl={dataUrl}
+        randomness={randomness}
+        mintingState={mintingState}
+      />
     );
   } else {
     return <PlainImage imgUrl={imgUrl} />;

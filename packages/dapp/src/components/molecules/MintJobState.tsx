@@ -1,4 +1,4 @@
-import { MintJob } from '@splicenft/common';
+import { MintingState, MintJob } from '@splicenft/common';
 import React from 'react';
 import {
   Alert,
@@ -8,15 +8,17 @@ import {
 } from '@chakra-ui/react';
 
 export const MintJobState = ({
-  mintJob
+  mintJob,
+  mintingState
 }: {
   mintJob: {
     jobId: number;
     job: MintJob;
   };
+  mintingState: MintingState;
 }) => {
-  switch (mintJob.job.status) {
-    case 0:
+  switch (mintingState) {
+    case MintingState.MINTING_REQUESTED:
       return (
         <Alert status="info">
           <AlertIcon />
@@ -28,7 +30,7 @@ export const MintJobState = ({
           </AlertDescription>
         </Alert>
       );
-    case 1:
+    case MintingState.MINTING_ALLOWED:
       return (
         <Alert status="warning">
           <AlertIcon />
@@ -41,7 +43,7 @@ export const MintJobState = ({
           </AlertDescription>
         </Alert>
       );
-    case 2:
+    case MintingState.MINTED:
       return (
         <Alert status="success">
           <AlertIcon />
