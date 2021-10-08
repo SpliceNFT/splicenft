@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { CHAINS, getAllAssetsOfOwner } from '../../modules/chain';
 import { getNFTs } from '../../modules/nftport';
 
-import { NFTItem } from '../../types/NFTPort';
+import { NFTItem } from '@splicenft/common';
 import { NFTCard } from '../molecules/NFTCard';
 
 export const MyAssetsPage = () => {

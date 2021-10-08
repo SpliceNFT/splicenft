@@ -1,5 +1,5 @@
 import React from 'react';
-import { NFTItem } from '../../types/NFTPort';
+import { NFTItem } from '@splicenft/common';
 import { Flex, Text, Link } from '@chakra-ui/react';
 import { SpliceToken } from '../../types/SpliceToken';
 

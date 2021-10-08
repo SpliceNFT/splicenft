@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
-import { NFTItem, NFTMetaData } from '../types/NFTPort';
+
+import { NFTItem, NFTMetaData } from '@splicenft/common';
 
 export const CHAINS: Record<number, ChainOpt> = {
   1: 'ethereum',

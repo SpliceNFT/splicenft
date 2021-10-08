@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { NFTItem, NftPortAccountResponse } from '../types/NFTPort';
+import { NFTItem, NftPortAccountResponse } from '@splicenft/common';
 
 const BASE_URI = `https://api.nftport.xyz`;
 
