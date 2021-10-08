@@ -22,9 +22,9 @@ module.exports = (renderer, drawProps, callback) => {
           colors: drawProps.colors
         });
 
-        setTimeout(() => {
-          callback(null, p5.canvas.toBuffer('image/png'));
-        }, 250);
+        //setTimeout(() => {
+        callback(null, p5.canvas.toBuffer('image/png'));
+        //}, 250);
       } catch (e) {
         callback(e, null);
       }

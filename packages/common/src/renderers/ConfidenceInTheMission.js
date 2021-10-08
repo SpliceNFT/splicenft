@@ -1,5 +1,4 @@
 import p5 from 'p5';
-import { DrawProps } from '../types/Renderers';
 
 /**
  * ConfidenceInTheMission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.
@@ -8,11 +7,12 @@ import { DrawProps } from '../types/Renderers';
  * and fades in towards the vertical middle of the canvas and
  * 2. a grid that's flat, fully saturated, and displays blocks of rects of various colors.
  */
-export default function ({ p5, colors, dim }: DrawProps) {
+export default function ({ p5, colors, dim }) {
+  p5.noLoop();
   /**
    * getColorForFlatGridRect() handles all color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1) and the tertiary color(s) if they exist (value=2).
    */
-  const getColorForFlatGridRect = (colorIndex: number): p5.Color => {
+  const getColorForFlatGridRect = (colorIndex) => {
     let num_tertiary_colors;
     let r;
     switch (colorIndex) {
@@ -48,7 +48,7 @@ export default function ({ p5, colors, dim }: DrawProps) {
   /**
    * getAlpha() calculates the alpha level of colors for the main grid index that fades into the vertical middle of the field
    */
-  const getAlpha = (grid_index: number) => {
+  const getAlpha = (grid_index) => {
     let alpha;
     const max_alpha = 255;
     const min_alpha = 50;
@@ -107,7 +107,7 @@ export default function ({ p5, colors, dim }: DrawProps) {
   let flat_background_color_num_rows = 0; //the number of rows in a block of color
   let flat_background_color_num_rows_color; //the color of the block of color
 
-  let this_color: p5.Color = p5.color(100, 100, 100);
+  let this_color = p5.color(100, 100, 100);
 
   //cycle through rows for the flat grid first, before the main grid
   for (let row_counter = 0; row_counter < flat_num_rows; row_counter++) {
@@ -247,6 +247,5 @@ export default function ({ p5, colors, dim }: DrawProps) {
       }
     }
     p5.pop();
-    p5.noLoop();
   }
 }
