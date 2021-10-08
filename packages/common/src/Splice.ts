@@ -12,7 +12,8 @@ import {
   MintRequestedEvent,
   Splice as SpliceContract
 } from '@splicenft/contracts';
-import { CID } from 'multiformats/cid';
+import axios from 'axios';
+import { NFTMetaData } from '.';
 
 export const SPLICE_ADDRESSES = {
   rinkeby: '0x0',
@@ -130,11 +131,20 @@ export class Splice {
     }
     return { jobId: jobId.toNumber(), job };
   }
+
   public async getMintJob(jobId: number): Promise<MintJob | null> {
     const mintJob = await this.contract.getMintJob(jobId);
     if (mintJob.collection === constants.AddressZero) {
       return null;
     }
     return mintJob;
+  }
+
+  public async fetchMetadata(job: MintJob): Promise<NFTMetaData> {
+    //todo: get directly from ipfs
+    const metadataUrl = `https://ipfs.io/ipfs/${job.metadataCID}/metadata.json`;
+    const _metadata = await axios.get(metadataUrl);
+    const metadata = (await _metadata.data) as NFTMetaData;
+    return metadata;
   }
 }

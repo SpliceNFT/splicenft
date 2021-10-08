@@ -53,15 +53,19 @@ importers:
     specifiers:
       '@splicenft/contracts': workspace:*
       '@types/p5': 0.9.1
+      axios: ^0.21.4
       ethers: ^5.4.7
       multiformats: ^9.4.8
+      nft.storage: ^3.3.0
       p5: 1.1.9
       typescript: ^4.4.3
     dependencies:
       '@splicenft/contracts': link:../contracts
       '@types/p5': 0.9.1
+      axios: 0.21.4
       ethers: 5.4.7
       multiformats: 9.4.8
+      nft.storage: 3.3.0
       p5: 1.1.9
     devDependencies:
       typescript: 4.4.3
@@ -4460,7 +4464,6 @@ packages:
 
   /@types/node/16.10.3:
     resolution: {integrity: sha512-ho3Ruq+fFnBrZhUYI46n/bV2GjwzSkwuT4dTf0GkuNFmnb8nq4ny2z9JEVemFi6bdEJanHLlYfy9c6FN9B9McQ==}
-    dev: true
 
   /@types/node/16.9.2:
     resolution: {integrity: sha512-ZHty/hKoOLZvSz6BtP1g7tc7nUeJhoCf3flLjh8ZEv1vFKBWHXcnMbJMyN/pftSljNyy0kNW/UqI3DccnBnZ8w==}
@@ -4597,7 +4600,7 @@ packages:
   /@types/varint/6.0.0:
     resolution: {integrity: sha512-2jBazyxGl4644tvu3VAez8UA/AtrcEetT9HOeAbqZ/vAcRVL/ZDFQjSS7rkWusU5cyONQVUz+nwwrNZdMva4ow==}
     dependencies:
-      '@types/node': 16.9.2
+      '@types/node': 16.10.3
     dev: false
 
   /@types/warning/3.0.0:
