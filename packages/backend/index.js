@@ -52,8 +52,14 @@ app.get('/validate/:mintjob', async (req, res) => {
   });
 
   const splice = Splice.from(process.env.SPLICE_CONTRACT_ADDRESS, signer);
-  const job = await Validate(mintJobId, splice);
-  await res.send(job);
+  await Validate(mintJobId, splice, (err, result) => {
+    if (err) {
+      return res.status(400).send({
+        error: err
+      });
+    }
+    res.send(result);
+  });
 });
 
 app.listen(port, () => {

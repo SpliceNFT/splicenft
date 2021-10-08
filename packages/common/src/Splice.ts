@@ -114,12 +114,15 @@ export class Splice {
   public async findJobFor(
     collectionAddress: string,
     tokenId: string | number
-  ): Promise<MintJob | null> {
-    const mintJob = await this.contract.findMintJob(collectionAddress, tokenId);
-    if (mintJob.collection === constants.AddressZero) {
+  ): Promise<{ jobId: number; job: MintJob } | null> {
+    const { jobId, job } = await this.contract.findMintJob(
+      collectionAddress,
+      tokenId
+    );
+    if (job.collection === constants.AddressZero) {
       return null;
     }
-    return mintJob;
+    return { jobId: jobId.toNumber(), job };
   }
   public async getMintJob(jobId: number): Promise<MintJob | null> {
     const mintJob = await this.contract.getMintJob(jobId);

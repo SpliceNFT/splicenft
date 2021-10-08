@@ -44,7 +44,7 @@ export const NFTPage = () => {
   const [dataUrl, setDataUrl] = useState<string>();
   const [randomness, setRandomness] = useState<number>(0);
 
-  const [mintJob, setMintJob] = useState<MintJob>();
+  const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
   );
@@ -69,8 +69,10 @@ export const NFTPage = () => {
     setRandomness(Splice.computeRandomnessLocally(collection, token_id));
     if (!splice) return;
     (async () => {
-      const job = await splice.findJobFor(collection, token_id);
-      if (job != null) setMintJob(job);
+      const res = await splice.findJobFor(collection, token_id);
+      if (res === null) return;
+      console.log(res);
+      setMintJob(res);
     })();
   }, [collection, token_id, splice]);
 
@@ -144,7 +146,7 @@ export const NFTPage = () => {
       if (!mintJob) {
         console.error('this job should exist', jobId);
       } else {
-        setMintJob(mintJob);
+        setMintJob({ jobId, job: mintJob });
       }
     } catch (e) {
       console.log(e);
@@ -186,8 +188,8 @@ export const NFTPage = () => {
         <Flex direction="column" maxW="50%">
           {mintJob && (
             <Text color="red.600">
-              We're minting a splice for this token. Job requested by:{' '}
-              {mintJob.requestor}
+              We're minting a splice for this token. Job #{mintJob.jobId}{' '}
+              requested by: {mintJob.job.requestor}
             </Text>
           )}
           <Heading size="xl" mb={7}>

@@ -144,11 +144,11 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   function findMintJob(IERC721 nft, uint256 token_id)
     public
     view
-    returns (MintJob memory job)
+    returns (uint256 jobId, MintJob memory job)
   {
     bytes32 jobMap = keccak256(abi.encodePacked(address(nft), token_id));
-    uint256 jobId = originToJobId[jobMap];
-    return jobs[jobId];
+    uint256 _jobId = originToJobId[jobMap];
+    return (_jobId, jobs[_jobId]);
   }
 
   function getTokenOrigin(uint256 token_id)
