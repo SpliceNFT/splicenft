@@ -9,9 +9,9 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { resolveImage } from '../../modules/img';
+import { resolveImage } from '@splicenft/common';
+import { NFTItem } from '@splicenft/common';
 import { truncateAddress } from '../../modules/strings';
-import { NFTItem } from '../../types/NFTPort';
 
 export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   if (!nft.metadata) return <></>;

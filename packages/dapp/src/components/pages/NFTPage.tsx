@@ -6,7 +6,15 @@ import {
   Text,
   useToast
 } from '@chakra-ui/react';
-import { MintingState, MintJob, Splice } from '@splicenft/common';
+import {
+  MintingState,
+  MintJob,
+  Splice,
+  resolveImage,
+  NFTItem,
+  NFTMetaData,
+  SPLICE_ADDRESSES
+} from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
@@ -15,8 +23,6 @@ import p5Types from 'p5';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getNFT } from '../../modules/chain';
-import { resolveImage } from '../../modules/img';
-import { NFTItem } from '../../types/NFTPort';
 import { SpliceToken } from '../../types/SpliceToken';
 import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
@@ -24,7 +30,7 @@ import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
 
 export const NFTPage = () => {
-  const { library, account } = useWeb3React<providers.Web3Provider>();
+  const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
   const toast = useToast();
 
   const { collection, token_id } =
@@ -39,12 +45,13 @@ export const NFTPage = () => {
 
   const [creativePng, setCreativePng] = useState<Blob>();
 
-  const [spliceMetadata, setSpliceMetadata] = useState<SpliceToken>();
-
+  const [spliceToken, setSpliceToken] = useState<SpliceToken>();
+  const [spliceMetadata, setSpliceMetadata] = useState<NFTMetaData>();
+  //image data url (confusing ;) )
   const [dataUrl, setDataUrl] = useState<string>();
   const [randomness, setRandomness] = useState<number>(0);
 
-  const [mintJob, setMintJob] = useState<MintJob>();
+  const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
   );
@@ -55,22 +62,34 @@ export const NFTPage = () => {
   });
 
   useEffect(() => {
-    if (!library) return;
-    const spl = Splice.from(
-      process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string,
-      library.getSigner()
-    );
+    if (!library || !chainId) return;
+    const splAddress =
+      chainId === 31337
+        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
+        : SPLICE_ADDRESSES[chainId];
+
+    const spl = Splice.from(splAddress, library.getSigner());
 
     setSplice(spl);
   }, [library]);
 
+  //find an existing job
   useEffect(() => {
     if (!collection || !token_id) return;
     setRandomness(Splice.computeRandomnessLocally(collection, token_id));
     if (!splice) return;
     (async () => {
-      const job = await splice.findJobFor(collection, token_id);
-      if (job != null) setMintJob(job);
+      const res = await splice.findJobFor(collection, token_id);
+      if (res === null) return;
+
+      setMintJob(res);
+      const metadata = await splice.fetchMetadata(res.job);
+
+      setRandomness(res.job.randomness);
+      setMintingState(MintingState.MINTING_REQUESTED);
+      const imageUrl = resolveImage(metadata);
+      setDataUrl(imageUrl);
+      setSpliceMetadata(metadata);
     })();
   }, [collection, token_id, splice]);
 
@@ -103,17 +122,21 @@ export const NFTPage = () => {
 
   const persistArtwork = async (blob: Blob) => {
     setBuzy(true);
-    const metadata = await nftStorageClient.store({
+    const spliceToken = await nftStorageClient.store({
       name: `Splice from ${collection}/${token_id}`,
-      description: `Splice from ${collection}/${token_id}`,
+      description: `This Splice has been generated from ${collection}/${token_id}`,
       image: blob,
       properties: {
-        colors: dominantColors
+        origin_collection: collection,
+        origin_token_id: token_id,
+        randomness: randomness,
+        colors: dominantColors,
+        style: selectedRenderer
       }
     });
-
+    console.log(JSON.stringify(spliceToken, null, 2));
     setBuzy(false);
-    setSpliceMetadata(metadata);
+    setSpliceToken(spliceToken);
     setMintingState(MintingState.SAVED_IPFS);
   };
 
@@ -140,7 +163,7 @@ export const NFTPage = () => {
       if (!mintJob) {
         console.error('this job should exist', jobId);
       } else {
-        setMintJob(mintJob);
+        setMintJob({ jobId, job: mintJob });
       }
     } catch (e) {
       console.log(e);
@@ -182,8 +205,8 @@ export const NFTPage = () => {
         <Flex direction="column" maxW="50%">
           {mintJob && (
             <Text color="red.600">
-              We're minting a splice for this token. Job requested by:{' '}
-              {mintJob.requestor}
+              We're minting a splice for this token. Job #{mintJob.jobId}{' '}
+              requested by: {mintJob.job.requestor}
             </Text>
           )}
           <Heading size="xl" mb={7}>
@@ -206,6 +229,7 @@ export const NFTPage = () => {
               tokenId={token_id}
               collection={collection}
               randomness={randomness}
+              spliceToken={spliceToken}
               spliceMetadata={spliceMetadata}
             />
           )}
@@ -237,13 +261,13 @@ export const NFTPage = () => {
             </Button>
           )}
 
-          {mintingState == MintingState.SAVED_IPFS && spliceMetadata && (
+          {mintingState == MintingState.SAVED_IPFS && spliceToken && (
             <Button
               onClick={() =>
                 requestMint({
                   collection,
                   tokenId: token_id,
-                  cid: spliceMetadata.ipnft
+                  cid: spliceToken.ipnft
                 })
               }
               variant="black"

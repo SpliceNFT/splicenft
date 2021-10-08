@@ -9,6 +9,13 @@
     "declaration": true,
     "declarationMap": true,
   },
-  "include": ["./scripts", "./test", "./typechain", "./types"],
-  "files": ["./hardhat.config.ts"]
+  "include": [
+    "./scripts",
+    "./test",
+    "./typechain",
+    "./types"
+  ],
+  "files": [
+    "./hardhat.config.ts"
+  ]
 }

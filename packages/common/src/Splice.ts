@@ -1,10 +1,25 @@
-import { utils, BigNumber, Contract, Signer, constants, ethers } from 'ethers';
+import {
+  utils,
+  BigNumber,
+  Contract,
+  Signer,
+  constants,
+  ethers,
+  providers
+} from 'ethers';
 import { abi as SpliceABI } from './abi/Splice.json';
 import {
   MintRequestedEvent,
   Splice as SpliceContract
 } from '@splicenft/contracts';
-import { CID } from 'multiformats/cid';
+import axios from 'axios';
+import { NFTMetaData } from '.';
+
+export const SPLICE_ADDRESSES: Record<number, string> = {
+  4: '0x0',
+  42: '0x5D99611802b8f1B2174F2fa957Ec208cb0450225',
+  1: '0x0'
+};
 
 export enum MintingState {
   UNKNOWN,
@@ -40,7 +55,7 @@ export class Splice {
     this.contract = splice;
   }
 
-  static from(address: string, signer: Signer) {
+  static from(address: string, signer: Signer | providers.Provider) {
     const contract = new Contract(address, SpliceABI, signer) as SpliceContract;
     return new Splice(contract);
   }
@@ -106,18 +121,30 @@ export class Splice {
   public async findJobFor(
     collectionAddress: string,
     tokenId: string | number
-  ): Promise<MintJob | null> {
-    const mintJob = await this.contract.findMintJob(collectionAddress, tokenId);
-    if (mintJob.collection === constants.AddressZero) {
+  ): Promise<{ jobId: number; job: MintJob } | null> {
+    const { jobId, job } = await this.contract.findMintJob(
+      collectionAddress,
+      tokenId
+    );
+    if (job.collection === constants.AddressZero) {
       return null;
     }
-    return mintJob;
+    return { jobId: jobId.toNumber(), job };
   }
+
   public async getMintJob(jobId: number): Promise<MintJob | null> {
     const mintJob = await this.contract.getMintJob(jobId);
     if (mintJob.collection === constants.AddressZero) {
       return null;
     }
     return mintJob;
+  }
+
+  public async fetchMetadata(job: MintJob): Promise<NFTMetaData> {
+    //todo: get directly from ipfs
+    const metadataUrl = `https://ipfs.io/ipfs/${job.metadataCID}/metadata.json`;
+    const _metadata = await axios.get(metadataUrl);
+    const metadata = (await _metadata.data) as NFTMetaData;
+    return metadata;
   }
 }

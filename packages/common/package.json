@@ -32,9 +32,11 @@
   },
   "dependencies": {
     "@splicenft/contracts": "workspace:*",
+    "@types/p5": "0.9.1",
+    "axios": "^0.21.4",
     "ethers": "^5.4.7",
     "multiformats": "^9.4.8",
-    "p5": "1.1.9",
-    "@types/p5": "0.9.1"
+    "nft.storage": "^3.3.0",
+    "p5": "1.1.9"
   }
 }
