@@ -489,7 +489,7 @@ export default function ({ p5, colors, dim }) {
     p5.noLoop();
     //get most common color and draw that onto the background
     p5.background(getColor(colors, 0));
-
+    p5.smooth();
     p5.stroke(p5.color(colors[1]));
     p5.ellipse(0, 0, 50, 100);
     //get darkest color and use that for the horizon line
