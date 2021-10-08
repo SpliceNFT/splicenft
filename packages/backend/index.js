@@ -51,8 +51,22 @@ app.get('/render/:algo', (req, res) => {
 
 app.get('/validate/:mintjob', async (req, res) => {
   const mintJobId = req.params.mintjob;
-
-  const network = req.query.network || 'http://localhost:8545';
+  let network;
+  if (req.query.network) {
+    switch (req.query.network) {
+      case '4':
+        network = 'rinkeby';
+        break;
+      case '42':
+        network = 'kovan';
+        break;
+      case '1':
+        network = 'homestead';
+        break;
+    }
+  } else {
+    network = 'http://localhost:8545';
+  }
 
   const { provider, signer } = getProvider(network, {
     infuraKey: process.env.INFURA_KEY,
