@@ -6,16 +6,18 @@ import { SpliceToken } from '../../types/SpliceToken';
 const MetaDataItem = ({
   label,
   value,
-  link
+  link,
+  color
 }: {
   label: string;
   value: string | number;
   link?: string | undefined;
+  color?: string | undefined;
 }) => {
   return (
     <Flex direction="row" justify="space-between" gridGap={5}>
       <Text fontWeight="bold">{label}</Text>
-      <Text fontWeight="normal" isTruncated>
+      <Text fontWeight="normal" textColor={color} isTruncated>
         {link ? (
           <Link href={link} isExternal>
             {value}
@@ -31,6 +33,7 @@ const MetaDataItem = ({
 export const MetaDataDisplay = ({
   nft,
   collection,
+  isCollectionAllowed,
   tokenId,
   randomness,
   spliceToken,
@@ -38,6 +41,7 @@ export const MetaDataDisplay = ({
 }: {
   nft: NFTItem;
   collection: string;
+  isCollectionAllowed?: boolean;
   tokenId: string;
   randomness: number;
   spliceToken?: SpliceToken;
@@ -51,7 +55,11 @@ export const MetaDataDisplay = ({
 
   return (
     <Flex direction="column" gridGap={3}>
-      <MetaDataItem label="collection" value={collection} />
+      <MetaDataItem
+        label="collection"
+        value={collection}
+        color={isCollectionAllowed === false ? 'red' : undefined}
+      />
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
       {spliceToken && (

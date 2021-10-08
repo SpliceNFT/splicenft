@@ -56,6 +56,12 @@ export class Splice {
     return new Splice(contract);
   }
 
+  public async isCollectionAllowed(
+    collectionAddress: string
+  ): Promise<boolean> {
+    return this.contract.isCollectionAllowed(collectionAddress);
+  }
+
   public async requestMinting(
     collectionAddress: string,
     tokenId: string | number,

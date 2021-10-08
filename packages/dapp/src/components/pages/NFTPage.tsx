@@ -37,6 +37,8 @@ export const NFTPage = () => {
   const { collection, token_id } =
     useParams<{ collection: string; token_id: string }>();
 
+  const [isCollectionAllowed, setIsCollectionAllowed] =
+    useState<boolean>(false);
   const [nft, setNFT] = useState<NFTItem>();
   const [splice, setSplice] = useState<Splice>();
 
@@ -79,6 +81,10 @@ export const NFTPage = () => {
     if (!collection || !token_id) return;
     setRandomness(Splice.computeRandomnessLocally(collection, token_id));
     if (!splice) return;
+    (async () => {
+      const _all = await splice.isCollectionAllowed(collection);
+      setIsCollectionAllowed(_all);
+    })();
     (async () => {
       const res = await splice.findJobFor(collection, token_id);
       if (res === null) return;
@@ -252,6 +258,7 @@ export const NFTPage = () => {
               nft={nft}
               tokenId={token_id}
               collection={collection}
+              isCollectionAllowed={isCollectionAllowed}
               randomness={randomness}
               spliceToken={spliceToken}
               spliceMetadata={spliceMetadata}
@@ -268,7 +275,7 @@ export const NFTPage = () => {
             />
           )}
 
-          {mintingState == MintingState.GENERATED && (
+          {mintingState == MintingState.GENERATED && isCollectionAllowed && (
             <Button onClick={save} variant="black">
               save
             </Button>

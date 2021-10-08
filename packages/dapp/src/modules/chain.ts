@@ -19,7 +19,9 @@ const knownContracts: Record<ChainOpt, string[]> = {
     '0xe85C716577A58d637ddA647caf42Bc5a6cBA2e95' //SSS
   ],
   kovan: ['0x6334d2cbC3294577BB9de58e8b1901d6e3b97681'],
-  localhost: [process.env.REACT_APP_TESTNETNFT_CONTRACT_ADDRESS as string]
+  localhost: (
+    process.env.REACT_APP_TESTNETNFT_CONTRACT_ADDRESS as string
+  ).split(',')
 };
 
 const ownerABI = [
@@ -88,8 +90,10 @@ const ownerABI = [
 ];
 
 const getAsset = async (c: ethers.Contract, tokenId: string) => {
-  const tokenUrl = await c.tokenURI(tokenId);
-
+  let tokenUrl: string = await c.tokenURI(tokenId);
+  if (tokenUrl.startsWith('ipfs://')) {
+    tokenUrl = tokenUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+  }
   let metaData: NFTMetaData;
   try {
     metaData = (
