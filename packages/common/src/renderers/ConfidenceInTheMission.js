@@ -63,7 +63,7 @@ export default function ({ p5, colors, dim }) {
 
   //lay out the basics
   p5.background(0); //background is always black
-  p5.smooth();
+
   const stroke_size = p5.floor(dim.w / 187);
   p5.strokeWeight(stroke_size);
   p5.stroke(0);
@@ -195,7 +195,14 @@ export default function ({ p5, colors, dim }) {
         this_color = getColorForFlatGridRect(0);
         //get alpha fade-in for color
 
-        this_color.setAlpha(getAlpha(row_counter / num_rows)); //STEFAN - SHOULD WE ADD P5. BEFORE this_color.setAlpha?
+        this_color = p5.color(
+          p5.red(this_color),
+          p5.green(this_color),
+          p5.blue(this_color),
+          getAlpha(row_counter / num_rows)
+        );
+
+        //this_color.setAlpha(getAlpha(row_counter / num_rows)); //STEFAN - SHOULD WE ADD P5. BEFORE this_color.setAlpha?
       }
 
       p5.fill(this_color);
