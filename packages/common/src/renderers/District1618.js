@@ -284,6 +284,7 @@ export default function ({ p5, colors, dim }) {
   }
 
   p5.noStroke();
+  p5.smooth();
   customized_order_of_drawing = [0, 2, 1]; //here I want to draw the middle third grid last, so it sits on top
 
   //cycle through the array of grids and send each away to be drawn
