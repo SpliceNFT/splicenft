@@ -156,4 +156,13 @@ export class Splice {
     const metadata = (await _metadata.data) as NFTMetaData;
     return metadata;
   }
+
+  public async greenlight(
+    jobId: number,
+    result: boolean
+  ): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.greenlightMintByOwner(jobId, result);
+    const receipt = await tx.wait();
+    return receipt;
+  }
 }

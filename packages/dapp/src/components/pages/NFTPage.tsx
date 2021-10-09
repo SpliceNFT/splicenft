@@ -16,6 +16,7 @@ import {
   SPLICE_ADDRESSES
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
+import axios from 'axios';
 import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import { NFTStorage } from 'nft.storage';
@@ -94,9 +95,10 @@ export const NFTPage = () => {
 
       setRandomness(res.job.randomness);
       const imageUrl = resolveImage(metadata);
+
       setDataUrl(imageUrl);
       setSpliceMetadata(metadata);
-
+      console.log(res.job.status);
       switch (res.job.status) {
         case 0:
           setMintingState(MintingState.MINTING_REQUESTED);
@@ -107,6 +109,8 @@ export const NFTPage = () => {
         case 2:
           setMintingState(MintingState.MINTED);
           break;
+        case 3:
+          setMintingState(MintingState.FAILED);
       }
     })();
   }, [collection, token_id, splice]);
@@ -174,6 +178,7 @@ export const NFTPage = () => {
     cid: string;
   }) => {
     if (!splice || !account) return;
+    setBuzy(true);
     try {
       const jobId = await splice.requestMinting(
         collection,
@@ -189,6 +194,7 @@ export const NFTPage = () => {
       } else {
         setMintJob({ jobId, job: mintJob });
       }
+      setMintingState(MintingState.MINTING_REQUESTED);
     } catch (e) {
       console.log(e);
       toast({
@@ -197,7 +203,40 @@ export const NFTPage = () => {
         isClosable: true
       });
     }
-    //setMintingState(MintingState.MINTING_REQUESTED);
+    setBuzy(false);
+  };
+
+  const executeValidator = async (splice: Splice, jobId: number) => {
+    setBuzy(true);
+
+    try {
+      const validatorBaseUrl = process.env
+        .REACT_APP_VALIDATOR_BASEURL as string;
+      const url = `${validatorBaseUrl}/${chainId}/${jobId}`;
+      const res: { valid: boolean } = await axios.get(url, {
+        responseType: 'json'
+      });
+      console.log(res);
+      if (res.valid === true) {
+        const mintJob = await splice.getMintJob(jobId);
+        if (mintJob) {
+          console.log(mintJob);
+          setMintJob({ jobId, job: mintJob });
+          if (mintJob.status == 1) {
+            setMintingState(MintingState.MINTING_ALLOWED);
+          }
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      toast({
+        title: 'validation process failed',
+        status: 'error',
+        isClosable: true
+      });
+    }
+
+    setBuzy(false);
   };
 
   const startMinting = async (jobId: number) => {
@@ -305,10 +344,20 @@ export const NFTPage = () => {
               isLoading={buzy}
               loadingText="creating mint job"
             >
-              request mint
+              request to mint
             </Button>
           )}
-
+          {splice && mintJob && mintingState == MintingState.MINTING_REQUESTED && (
+            <Button
+              onClick={() => executeValidator(splice, mintJob.jobId)}
+              disabled={buzy}
+              variant="black"
+              isLoading={buzy}
+              loadingText="waiting for validation"
+            >
+              request validation
+            </Button>
+          )}
           {mintJob && mintingState == MintingState.MINTING_ALLOWED && (
             <Button
               onClick={() => startMinting(mintJob.jobId)}

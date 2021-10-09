@@ -5,14 +5,28 @@ import React, { useEffect, useState } from 'react';
 import { CHAINS, getAllAssetsOfOwner } from '../../modules/chain';
 import { getNFTs } from '../../modules/nftport';
 
-import { NFTItem } from '@splicenft/common';
+import { NFTItem, Splice, SPLICE_ADDRESSES } from '@splicenft/common';
 import { NFTCard } from '../molecules/NFTCard';
 
 export const MyAssetsPage = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
+  const [splice, setSplice] = useState<Splice>();
 
   const [nfts, setNFTs] = useState<NFTItem[]>();
   const toast = useToast();
+
+  useEffect(() => {
+    if (!library || !chainId) return;
+    const splAddress =
+      chainId === 31337
+        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
+        : SPLICE_ADDRESSES[chainId];
+
+    const spl = Splice.from(splAddress, library.getSigner());
+
+    setSplice(spl);
+  }, [library]);
+
   const fetchAssets = async () => {
     //todo: either use global state or cache the assets somehow.
 
@@ -55,9 +69,14 @@ export const MyAssetsPage = () => {
         </Alert>
       )}
       <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
-        {nfts.map((nft) => (
-          <NFTCard key={`${nft.contract_address}/${nft.token_id}`} nft={nft} />
-        ))}
+        {splice &&
+          nfts.map((nft) => (
+            <NFTCard
+              key={`${nft.contract_address}/${nft.token_id}`}
+              nft={nft}
+              splice={splice}
+            />
+          ))}
       </SimpleGrid>
     </Container>
   ) : (

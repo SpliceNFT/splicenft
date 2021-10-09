@@ -7,14 +7,18 @@ import {
   Spacer,
   Text
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { resolveImage } from '@splicenft/common';
+import { MintingState, MintJob, resolveImage, Splice } from '@splicenft/common';
 import { NFTItem } from '@splicenft/common';
 import { truncateAddress } from '../../modules/strings';
 
-export const NFTCard = ({ nft }: { nft: NFTItem }) => {
+export const NFTCard = ({ nft, splice }: { nft: NFTItem; splice: Splice }) => {
   if (!nft.metadata) return <></>;
+
+  const [isCollectionAllowed, setIsCollectionAllowed] = useState<boolean>();
+  const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
+  const [mintingState, setMintingState] = useState<MintingState>();
 
   /*
   setMintingState(MintingState.GETTING_COLORS);
@@ -25,6 +29,49 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   // );
 
   const imgUrl = resolveImage(nft.metadata);
+
+  const MStatusText = (status: MintingState) => {
+    switch (status) {
+      case MintingState.MINTING_REQUESTED:
+        return 'Minting Requested';
+      case MintingState.MINTING_ALLOWED:
+        return 'Minting Allowed';
+      case MintingState.MINTED:
+        return 'Minted';
+      default:
+        return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!splice) return;
+    (async () => {
+      const allowed = await splice.isCollectionAllowed(nft.contract_address);
+      if (allowed) {
+        const _mintJob = await splice.findJobFor(
+          nft.contract_address,
+          nft.token_id
+        );
+        if (_mintJob) {
+          setMintJob(_mintJob);
+          switch (_mintJob.job.status) {
+            case 0:
+              setMintingState(MintingState.MINTING_REQUESTED);
+              break;
+            case 1:
+              setMintingState(MintingState.MINTING_ALLOWED);
+              break;
+            case 2:
+              setMintingState(MintingState.MINTED);
+              break;
+            case 3:
+              setMintingState(MintingState.FAILED);
+          }
+        }
+      }
+      setIsCollectionAllowed(allowed);
+    })();
+  }, [splice]);
 
   return (
     <LinkBox
@@ -63,11 +110,24 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
       </LinkOverlay>
 
       <Flex background="black" direction="row" p={6}>
-        <Flex direction="column">
-          <Text color="gray.200" fontWeight="bold">
-            contract
-          </Text>
-          <Text color="white">{truncateAddress(nft.contract_address)}</Text>
+        <Flex
+          direction="row"
+          align="center"
+          justify="space-between"
+          width="100%"
+        >
+          <Flex direction="column">
+            <Text color="gray.200" fontWeight="bold">
+              contract
+            </Text>
+            <Text color="white">{truncateAddress(nft.contract_address)}</Text>
+          </Flex>
+
+          {mintJob && mintingState && (
+            <Flex direction="column">
+              <Text color="white">{MStatusText(mintingState)}</Text>
+            </Flex>
+          )}
         </Flex>
         <Spacer />
       </Flex>

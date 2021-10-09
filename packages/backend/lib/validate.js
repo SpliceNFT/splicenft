@@ -104,9 +104,16 @@ module.exports = async function (mintJobId, splice, callback) {
       let b32retVal = uint32ToUint8Array(mintJobId);
       //the last byte contains the result
       b32retVal[31] = 1;
-      return callback(null, {
-        valid: true,
-        bytes32: utils.hexlify(b32retVal)
+
+      //FOR DEMO REASONS WE'RE CALLING SPLICE BACK ON OUR OWN.
+      splice.greenlight(mintJobId, true).then((receipt) => {
+        console.log('sent a greenlight transaction', receipt.transactionHash);
+
+        callback(null, {
+          valid: true,
+          bytes32: utils.hexlify(b32retVal),
+          txhash: receipt.transactionHash
+        });
       });
     }
   );

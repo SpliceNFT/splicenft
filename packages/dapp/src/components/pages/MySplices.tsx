@@ -75,9 +75,14 @@ export const MySplicesPage = () => {
         </Alert>
       )}
       <VStack>
-        {splices.map((nft) => (
-          <NFTCard key={`${nft.contract_address}/${nft.token_id}`} nft={nft} />
-        ))}
+        {splice &&
+          splices.map((nft) => (
+            <NFTCard
+              key={`${nft.contract_address}/${nft.token_id}`}
+              nft={nft}
+              splice={splice}
+            />
+          ))}
       </VStack>
     </Container>
   ) : (

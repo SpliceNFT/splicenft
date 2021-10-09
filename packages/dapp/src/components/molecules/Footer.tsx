@@ -19,7 +19,8 @@ export const Footer = () => {
     setSplice(spl);
   }, [library]);
   return (
-    <Flex bg="gray.800" p={12} color="white">
+    <Flex bg="gray.800" p={12} color="white" direction="column">
+      <Text>Chain: {chainId}</Text>
       {splice && <Text>Splice contract: {splice.address} </Text>}
     </Flex>
   );

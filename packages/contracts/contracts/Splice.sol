@@ -244,7 +244,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
    */
   function publishJobResult(uint32 jobID, bool valid) public {
     MintJob storage job = jobs[jobID];
-    if (valid) {
+    if (valid == true) {
       job.status = MintJobStatus.ALLOWED;
     } else {
       job.status = MintJobStatus.VERIFICATION_FAILED;

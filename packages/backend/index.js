@@ -1,6 +1,7 @@
 require('dotenv-flow').config();
 
 const express = require('express');
+const cors = require('cors');
 const Render = require('./lib/render');
 const Validate = require('./lib/validate');
 const {
@@ -11,6 +12,7 @@ const {
 } = require('@splicenft/common');
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 5999;
 
 const GRAYSCALE_COLORS = [
@@ -76,7 +78,7 @@ app.get('/validate/:network/:mintjob', async (req, res) => {
 
   const spliceAddress =
     SPLICE_ADDRESSES[networkId] || process.env.SPLICE_CONTRACT_ADDRESS;
-  const splice = Splice.from(spliceAddress, provider);
+  const splice = Splice.from(spliceAddress, signer);
   await Validate(mintJobId, splice, (err, result) => {
     if (err) {
       return res.status(400).send({
