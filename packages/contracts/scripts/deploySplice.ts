@@ -1,6 +1,10 @@
 import { ethers, upgrades } from 'hardhat';
 
 (async () => {
+  const Validator = await ethers.getContractFactory('SpliceValidator');
+  const validator = await Validator.deploy();
+  console.log('Deployed validator:', validator.address);
+
   const Splice = await ethers.getContractFactory('Splice', {
     // we might need to deploy that separately because of size
     // libraries: {
@@ -8,8 +12,11 @@ import { ethers, upgrades } from 'hardhat';
     // }
   });
   const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
+  console.log('Deployed splice contract:', splice.address);
 
   //await splice.deployed();
 
-  console.log('Deployed splice contracts:', splice.address);
+  validator.setSplice(splice.address);
+  splice.setValidator(validator.address);
+  console.log('connected both instances');
 })();
