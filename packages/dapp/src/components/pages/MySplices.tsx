@@ -1,4 +1,11 @@
-import { Container, SimpleGrid, Box, useToast, Alert } from '@chakra-ui/react';
+import {
+  Container,
+  SimpleGrid,
+  Box,
+  useToast,
+  VStack,
+  Alert
+} from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -8,11 +15,10 @@ import { getNFTs } from '../../modules/nftport';
 import { NFTItem, Splice, SPLICE_ADDRESSES } from '@splicenft/common';
 import { NFTCard } from '../molecules/NFTCard';
 
-export const MyAssetsPage = () => {
+export const MySplicesPage = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
-
-  const [nfts, setNFTs] = useState<NFTItem[]>();
+  const [splices, setSplices] = useState<NFTItem[]>();
   const toast = useToast();
 
   useEffect(() => {
@@ -41,7 +47,7 @@ export const MyAssetsPage = () => {
     } else {
       _nfts = await getNFTs({ address: account, chain: 'ethereum' });
     }
-    setNFTs(_nfts.filter((n) => n.metadata !== null));
+    setSplices(_nfts.filter((n) => n.metadata !== null));
   };
 
   useEffect(() => {
@@ -61,23 +67,23 @@ export const MyAssetsPage = () => {
     })();
   }, [account, chainId]);
 
-  return nfts ? (
+  return splices ? (
     <Container maxW="container.xl">
-      {nfts.length === 0 && (
+      {splices.length === 0 && (
         <Alert status="info">
-          it seems you don't have any assets on chain {chainId}{' '}
+          You don't have any Splices on chain {chainId}
         </Alert>
       )}
-      <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
+      <VStack>
         {splice &&
-          nfts.map((nft) => (
+          splices.map((nft) => (
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}
               nft={nft}
               splice={splice}
             />
           ))}
-      </SimpleGrid>
+      </VStack>
     </Container>
   ) : (
     <Box>loading</Box>

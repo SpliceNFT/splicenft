@@ -2,9 +2,25 @@ const axios = require('axios').default;
 const { Renderers, resolveImage } = require('@splicenft/common');
 const Render = require('./render');
 const PNG = require('pngjs').PNG;
+const { utils } = require('ethers');
 
 const DIFF_THRESHOLD = 10;
 const TOLERATED_DIFF_PERC = 2;
+
+const uint32ToUint8Array = (num) => {
+  let ret = new Uint8Array(32);
+
+  let arr = new ArrayBuffer(4); // an Uint32 takes 4 bytes
+  let view = new DataView(arr);
+  view.setUint32(0, num, false); // byteOffset = 0; litteEndian = false
+  const _arr = new Uint8Array(arr);
+
+  ret[0] = _arr[0];
+  ret[1] = _arr[1];
+  ret[2] = _arr[2];
+  ret[3] = _arr[3];
+  return ret;
+};
 
 module.exports = async function (mintJobId, splice, callback) {
   const _job = await splice.getMintJob(mintJobId);
@@ -35,6 +51,7 @@ module.exports = async function (mintJobId, splice, callback) {
 
   let imageLocation = resolveImage(job.metadata);
   console.debug('user image location', imageLocation);
+
   const _blob = await axios.get(imageLocation, {
     responseType: 'arraybuffer'
   });
@@ -83,8 +100,20 @@ module.exports = async function (mintJobId, splice, callback) {
 
       console.debug(`images only differ to ${relativeDiffcount}%. Thats ok.`);
 
-      return callback(null, {
-        valid: true
+      //build bytes32 return val
+      let b32retVal = uint32ToUint8Array(mintJobId);
+      //the last byte contains the result
+      b32retVal[31] = 1;
+
+      //FOR DEMO REASONS WE'RE CALLING SPLICE BACK ON OUR OWN.
+      splice.greenlight(mintJobId, true).then((receipt) => {
+        console.log('sent a greenlight transaction', receipt.transactionHash);
+
+        callback(null, {
+          valid: true,
+          bytes32: utils.hexlify(b32retVal),
+          txhash: receipt.transactionHash
+        });
       });
     }
   );

@@ -1,6 +1,7 @@
 require('dotenv-flow').config();
 
 const express = require('express');
+const cors = require('cors');
 const Render = require('./lib/render');
 const Validate = require('./lib/validate');
 const {
@@ -11,6 +12,7 @@ const {
 } = require('@splicenft/common');
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 5999;
 
 const GRAYSCALE_COLORS = [
@@ -49,23 +51,24 @@ app.get('/render/:algo', (req, res) => {
   }
 });
 
-app.get('/validate/:mintjob', async (req, res) => {
-  const mintJobId = req.params.mintjob;
+app.get('/validate/:network/:mintjob', async (req, res) => {
+  const networkId = parseInt(req.params.network);
+  console.log(req.params.mintjob);
+
+  const mintJobId = parseInt(req.params.mintjob);
   let network;
-  if (req.query.network) {
-    switch (req.query.network) {
-      case '4':
-        network = 'rinkeby';
-        break;
-      case '42':
-        network = 'kovan';
-        break;
-      case '1':
-        network = 'homestead';
-        break;
-    }
-  } else {
-    network = 'http://localhost:8545';
+  switch (networkId) {
+    case 4:
+      network = 'rinkeby';
+      break;
+    case 42:
+      network = 'kovan';
+      break;
+    case 1:
+      network = 'homestead';
+      break;
+    case 31337:
+      network = 'http://localhost:8545';
   }
 
   const { provider, signer } = getProvider(network, {
@@ -74,8 +77,8 @@ app.get('/validate/:mintjob', async (req, res) => {
   });
 
   const spliceAddress =
-    SPLICE_ADDRESSES[req.query.network] || process.env.SPLICE_CONTRACT_ADDRESS;
-  const splice = Splice.from(spliceAddress, provider);
+    SPLICE_ADDRESSES[networkId] || process.env.SPLICE_CONTRACT_ADDRESS;
+  const splice = Splice.from(spliceAddress, signer);
   await Validate(mintJobId, splice, (err, result) => {
     if (err) {
       return res.status(400).send({

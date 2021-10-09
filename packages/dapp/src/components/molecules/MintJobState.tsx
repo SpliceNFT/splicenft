@@ -25,8 +25,8 @@ export const MintJobState = ({
           <AlertTitle mr={2}>
             This Splice has been requested for minting
           </AlertTitle>
-          <AlertDescription>
-            Job Id: {mintJob.jobId}, requested by {mintJob.job.requestor}{' '}
+          <AlertDescription isTruncated>
+            Job Id: {mintJob.jobId} <br /> by {mintJob.job.requestor}{' '}
           </AlertDescription>
         </Alert>
       );

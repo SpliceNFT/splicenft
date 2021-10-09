@@ -11,6 +11,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import './BytesLib.sol';
+import './SpliceValidator.sol';
 import 'hardhat/console.sol';
 
 contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
@@ -19,7 +20,8 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   enum MintJobStatus {
     REQUESTED,
     ALLOWED,
-    MINTED
+    MINTED,
+    VERIFICATION_FAILED
   }
 
   struct MintJob {
@@ -49,20 +51,29 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   mapping(address => uint16) mintedPerCollection;
 
   //all jobs
-  mapping(uint256 => MintJob) jobs;
+  //todo make enumerable (by user ;) )
+  mapping(uint32 => MintJob) jobs;
 
   //needed for lookups
-  mapping(bytes32 => uint256) originToJobId;
-  mapping(uint256 => uint256) tokenIdToJobId;
+  mapping(bytes32 => uint32) originToJobId;
+  mapping(uint256 => uint32) tokenIdToJobId;
 
-  uint256 numJobs;
+  uint32 numJobs;
 
   //todo make this dynamic, obviously
   uint256 public constant PRICE = 0.079 ether;
 
-  event MintRequested(uint256 indexed jobIndex, address indexed collection);
-  event JobResultArrived(uint256 indexed jobIndex, bool result);
+  SpliceValidator private validator;
+  event MintRequested(uint32 indexed jobId, address indexed collection);
+  event JobResultArrived(uint32 indexed jobId, bool result);
 
+  /**
+   * Network: Kovan
+   * Oracle: 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8 (Chainlink Devrel
+   * Node)
+   * Job ID: d5270d1c311941d0b08bead21fea7747
+   * Fee: 0.1 LINK
+   */
   function initialize(string memory name_, string memory symbol_)
     public
     initializer
@@ -73,6 +84,14 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     numJobs = 1;
   }
 
+  function setValidator(SpliceValidator _validator) public onlyOwner {
+    validator = _validator;
+  }
+
+  function getValidator() public view returns (address) {
+    return address(validator);
+  }
+
   function _metadataURI(string memory metadataCID)
     private
     pure
@@ -81,11 +100,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  function getJobMetadataURI(uint256 jobId)
-    public
-    view
-    returns (string memory)
-  {
+  function getJobMetadataURI(uint32 jobId) public view returns (string memory) {
     MintJob memory job = jobs[jobId];
     // bytes memory b58 = Base58.toBase58(
     //   Base58.concat(Base58.sha256MultiHash, Base58.toBytes(job.cid))
@@ -104,8 +119,8 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
       _exists(tokenId),
       'ERC721Metadata: URI query for nonexistent token'
     );
-    uint256 jobID = tokenIdToJobId[tokenId];
-    return getJobMetadataURI(jobID);
+    uint32 jobId = tokenIdToJobId[tokenId];
+    return getJobMetadataURI(jobId);
   }
 
   /**
@@ -138,18 +153,18 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     return collectionAllowance[collection] > 0;
   }
 
-  function getMintJob(uint256 jobId) public view returns (MintJob memory) {
+  function getMintJob(uint32 jobId) public view returns (MintJob memory) {
     return jobs[jobId];
   }
 
   function findMintJob(IERC721 nft, uint256 token_id)
     public
     view
-    returns (uint256 jobId, MintJob memory job)
+    returns (uint32 jobId, MintJob memory job)
   {
     bytes32 jobMap = keccak256(abi.encodePacked(address(nft), token_id));
-    uint256 _jobId = originToJobId[jobMap];
-    return (_jobId, jobs[_jobId]);
+    uint32 jobId_ = originToJobId[jobMap];
+    return (jobId_, jobs[jobId_]);
   }
 
   function getTokenOrigin(uint256 token_id)
@@ -178,7 +193,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     uint256 token_id,
     string memory metadataCID,
     address recipient
-  ) public payable returns (uint256 jobID) {
+  ) public payable returns (uint32 jobID) {
     //todo check whether token_id exists on nft and
     //todo check nft belongs to <sender>
     //check whether input data seems legit
@@ -217,21 +232,24 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     return jobID;
   }
 
-  function greenlightMintByOwner(uint256 jobID, bool result)
-    external
-    onlyOwner
-  {
+  function greenlightMintByOwner(uint32 jobID, bool result) external onlyOwner {
     publishJobResult(jobID, result);
   }
 
   /**
    * called by a verified job runner / oracle
-   * todo: restrict to oracle calls :D
+   *
+   * important!
+   * todo: restrict to oracle calls :D This is only public for demo fixing
    */
-  function publishJobResult(uint256 jobID, bool result) public {
+  function publishJobResult(uint32 jobID, bool valid) public {
     MintJob storage job = jobs[jobID];
-    job.status = MintJobStatus.ALLOWED;
-    emit JobResultArrived(jobID, result);
+    if (valid == true) {
+      job.status = MintJobStatus.ALLOWED;
+    } else {
+      job.status = MintJobStatus.VERIFICATION_FAILED;
+    }
+    emit JobResultArrived(jobID, valid);
   }
 
   /*
@@ -239,7 +257,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
    * todo check that new item id is below the collection allowance
    * todo distribute minting fee with partners
    */
-  function finalizeMint(uint256 jobID) public returns (uint256 tokenId) {
+  function finalizeMint(uint32 jobID) public returns (uint256 tokenId) {
     MintJob storage job = jobs[jobID];
     require(
       job.status == MintJobStatus.ALLOWED,

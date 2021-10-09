@@ -18,7 +18,7 @@ import { NFTMetaData } from '.';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
   4: '0x0',
-  42: '0x5D99611802b8f1B2174F2fa957Ec208cb0450225',
+  42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036',
   1: '0x0'
 };
 
@@ -46,6 +46,10 @@ export type MintJob = {
 
 export class Splice {
   private contract: SpliceContract;
+
+  get address() {
+    return this.contract.address;
+  }
 
   constructor(splice: SpliceContract) {
     this.contract = splice;
@@ -81,8 +85,8 @@ export class Splice {
     const requestedEvent: MintRequestedEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       result.events![0] as MintRequestedEvent;
-    const jobId = requestedEvent.args.jobIndex;
-    return jobId.toNumber();
+    const jobId = requestedEvent.args.jobId;
+    return jobId;
 
     //console.log(receipt);
   }
@@ -134,7 +138,7 @@ export class Splice {
     if (job.collection === constants.AddressZero) {
       return null;
     }
-    return { jobId: jobId.toNumber(), job };
+    return { jobId, job };
   }
 
   public async getMintJob(jobId: number): Promise<MintJob | null> {
@@ -151,5 +155,14 @@ export class Splice {
     const _metadata = await axios.get(metadataUrl);
     const metadata = (await _metadata.data) as NFTMetaData;
     return metadata;
+  }
+
+  public async greenlight(
+    jobId: number,
+    result: boolean
+  ): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.greenlightMintByOwner(jobId, result);
+    const receipt = await tx.wait();
+    return receipt;
   }
 }

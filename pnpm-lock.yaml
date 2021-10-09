@@ -27,6 +27,7 @@ importers:
       '@splicenft/common': workspace:*
       '@types/node': ^16.10.3
       axios: ^0.21.4
+      cors: ^2.8.5
       dotenv-flow: ^3.2.0
       ethers: ^5.4.7
       express: ^4.17.1
@@ -38,6 +39,7 @@ importers:
     dependencies:
       '@splicenft/common': link:../common
       axios: 0.21.4
+      cors: 2.8.5
       dotenv-flow: 3.2.0
       ethers: 5.4.7
       express: 4.17.1
@@ -72,6 +74,7 @@ importers:
 
   packages/contracts:
     specifiers:
+      '@chainlink/contracts': ^0.2.2
       '@ethersproject/abi': ^5.4.1
       '@ethersproject/providers': ^5.4.5
       '@nomiclabs/hardhat-ethers': ^2.0.2
@@ -100,6 +103,7 @@ importers:
       typechain: ^5.1.2
       typescript: ^4.4.3
     dependencies:
+      '@chainlink/contracts': 0.2.2
       '@ethersproject/abi': 5.4.1
       '@ethersproject/providers': 5.4.5
       '@openzeppelin/contracts': 4.3.2
@@ -1749,6 +1753,10 @@ packages:
 
   /@bcoe/v8-coverage/0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+    dev: false
+
+  /@chainlink/contracts/0.2.2:
+    resolution: {integrity: sha512-wxXPbt7O3aZaUSG34ufFASC5amRSL6eeYCqsa+2gpqbB8Hk7B7FydEDCI5dqvAC444TlFskPHcVbizCZkRHPpw==}
     dev: false
 
   /@chainsafe/libp2p-noise/4.1.1:
@@ -7737,8 +7745,6 @@ packages:
     dependencies:
       object-assign: 4.1.1
       vary: 1.1.2
-    dev: true
-    optional: true
 
   /cosmiconfig/5.2.1:
     resolution: {integrity: sha512-H65gsXo1SKjf8zmrJ67eJk8aIRKV5ff2D4uKZIBZShbhGSpEmsQOPW/SKMKYhSTrqR7ufy6RP69rPogdaPh/kA==}
