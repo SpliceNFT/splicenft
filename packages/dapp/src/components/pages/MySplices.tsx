@@ -33,27 +33,14 @@ export const MySplicesPage = () => {
     setSplice(spl);
   }, [library]);
 
-  const fetchAssets = async () => {
-    //todo: either use global state or cache the assets somehow.
-
-    if (!account || !library || !chainId) return;
-    let _nfts: NFTItem[];
-    if (chainId !== 1) {
-      _nfts = await getAllAssetsOfOwner({
-        ownerAddress: account,
-        provider: library,
-        chain: CHAINS[chainId]
-      });
-    } else {
-      _nfts = await getNFTs({ address: account, chain: 'ethereum' });
-    }
-    setSplices(_nfts.filter((n) => n.metadata !== null));
-  };
+  // const fetchAssets = async (splice: Splice, _account: string) => {
+  //   splice.getAllSplices(_account);
+  // };
 
   useEffect(() => {
     (async () => {
       try {
-        await fetchAssets();
+        //await fetchAssets(account);
         toast({
           status: 'success',
           title: 'fetched all assets'
@@ -65,7 +52,7 @@ export const MySplicesPage = () => {
         });
       }
     })();
-  }, [account, chainId]);
+  }, [splice, account]);
 
   return splices ? (
     <Container maxW="container.xl">

@@ -166,4 +166,27 @@ export class Splice {
     const receipt = await tx.wait();
     return receipt;
   }
+
+  public async getAllSplices(
+    address: string
+  ): Promise<{ tokenId: number; metadataUrl: string }[]> {
+    const balance = await this.contract.balanceOf(address);
+
+    if (balance.isZero()) return [];
+    const promises = [];
+    for (let i = 0; i < Math.max(10, balance.toNumber()); i++) {
+      promises.push(
+        (async () => {
+          const tokenId = await this.contract.tokenOfOwnerByIndex(
+            address,
+            BigNumber.from(i)
+          );
+          const metadataUrl = await this.contract.tokenURI(tokenId);
+          return { tokenId: tokenId.toNumber(), metadataUrl };
+        })()
+      );
+    }
+    const tokens = await Promise.all(promises);
+    return tokens;
+  }
 }
