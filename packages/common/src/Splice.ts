@@ -31,7 +31,8 @@ export enum MintingState {
   SAVED_IPFS,
   MINTING_REQUESTED,
   MINTING_ALLOWED,
-  MINTED
+  MINTED,
+  FAILED
 }
 
 export type MintJob = {
