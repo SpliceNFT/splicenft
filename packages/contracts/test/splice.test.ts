@@ -89,7 +89,7 @@ describe('Splice', function () {
     const result = await tx.wait();
     const requestedEvent: MintRequestedEvent =
       result.events![0] as MintRequestedEvent;
-    const jobId = requestedEvent.args.jobIndex;
+    const jobId = requestedEvent.args.jobId;
 
     expect(jobId).to.equal(0);
   });

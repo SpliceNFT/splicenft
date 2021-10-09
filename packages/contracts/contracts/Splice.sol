@@ -25,7 +25,8 @@ contract Splice is
   enum MintJobStatus {
     REQUESTED,
     ALLOWED,
-    MINTED
+    MINTED,
+    VERIFICATION_FAILED
   }
 
   struct MintJob {
@@ -55,13 +56,13 @@ contract Splice is
   mapping(address => uint16) mintedPerCollection;
 
   //all jobs
-  mapping(uint256 => MintJob) jobs;
+  mapping(uint32 => MintJob) jobs;
 
   //needed for lookups
-  mapping(bytes32 => uint256) originToJobId;
-  mapping(uint256 => uint256) tokenIdToJobId;
+  mapping(bytes32 => uint32) originToJobId;
+  mapping(uint256 => uint32) tokenIdToJobId;
 
-  uint256 numJobs;
+  uint32 numJobs;
 
   //todo make this dynamic, obviously
   uint256 public constant PRICE = 0.079 ether;
@@ -70,8 +71,8 @@ contract Splice is
   bytes32 private linkJobId;
   uint256 private linkFee;
 
-  event MintRequested(uint256 indexed jobIndex, address indexed collection);
-  event JobResultArrived(uint256 indexed jobIndex, bool result);
+  event MintRequested(uint32 indexed jobId, address indexed collection);
+  event JobResultArrived(uint32 indexed jobId, bool result);
 
   /**
    * Network: Kovan
@@ -86,12 +87,27 @@ contract Splice is
   {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
+
     setPublicChainlinkToken();
 
     numJobs = 1;
+    //https://docs.chain.link/docs/decentralized-oracles-ethereum-mainnet/#kovan
     oracle = 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8;
-    linkJobId = 'd5270d1c311941d0b08bead21fea7747';
+
+    // GET > Uint32
+    linkJobId = '7401f318127148a894c00c292e486ffd'; // official chainlink job https://docs.chain.link/docs/decentralized-oracles-ethereum-mainnet/#kovan
+    //linkJobId = 'e7fbe2c2bde643788f4a76b7b09db8ff'; // anyblock https://market.link/jobs/18b93cde-ac46-4316-9c7b-b9b1f36f3ead
+
+    // GET > Bool
+    //linkJobId = '1bc99b4b57034ae4bcc3a6b6f6daaede'; //anyblock https://market.link/jobs/e02a699c-c20f-44b2-a1ca-e4d6427b8d39
+    //linkJobId = '4ff328c1870548bfb5f9a27cfcad0a12' //https://market.link/jobs/5c79a99d-fd4e-49d8-9562-728230c4345b
+    //linkJobId = '79a5fdd469c24d18acccc80e180ecc72'; //https://market.link/jobs/653bb064-f6a3-4465-853a-f2635e6db2c3
+    //find more https://market.link/jobs/a0d7fe49-9fb2-4d7a-a53b-6f2b75d68ad8/similar
     linkFee = 0.1 * 10**18; // (Varies by network and job)
+  }
+
+  function setLinkJobId(bytes32 _linkJobId) public onlyOwner {
+    linkJobId = _linkJobId;
   }
 
   function _metadataURI(string memory metadataCID)
@@ -102,11 +118,7 @@ contract Splice is
     return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  function getJobMetadataURI(uint256 jobId)
-    public
-    view
-    returns (string memory)
-  {
+  function getJobMetadataURI(uint32 jobId) public view returns (string memory) {
     MintJob memory job = jobs[jobId];
     // bytes memory b58 = Base58.toBase58(
     //   Base58.concat(Base58.sha256MultiHash, Base58.toBytes(job.cid))
@@ -125,8 +137,8 @@ contract Splice is
       _exists(tokenId),
       'ERC721Metadata: URI query for nonexistent token'
     );
-    uint256 jobID = tokenIdToJobId[tokenId];
-    return getJobMetadataURI(jobID);
+    uint32 jobId = tokenIdToJobId[tokenId];
+    return getJobMetadataURI(jobId);
   }
 
   /**
@@ -159,18 +171,18 @@ contract Splice is
     return collectionAllowance[collection] > 0;
   }
 
-  function getMintJob(uint256 jobId) public view returns (MintJob memory) {
+  function getMintJob(uint32 jobId) public view returns (MintJob memory) {
     return jobs[jobId];
   }
 
   function findMintJob(IERC721 nft, uint256 token_id)
     public
     view
-    returns (uint256 jobId, MintJob memory job)
+    returns (uint32 jobId, MintJob memory job)
   {
     bytes32 jobMap = keccak256(abi.encodePacked(address(nft), token_id));
-    uint256 _jobId = originToJobId[jobMap];
-    return (_jobId, jobs[_jobId]);
+    uint32 jobId_ = originToJobId[jobMap];
+    return (jobId_, jobs[jobId_]);
   }
 
   function getTokenOrigin(uint256 token_id)
@@ -194,7 +206,20 @@ contract Splice is
     return r;
   }
 
-  function requestValidatorData(uint256 mintJobId)
+  function interpretOracleResponse(bytes32 response)
+    internal
+    pure
+    returns (uint32 mintJobId, bool validation)
+  {
+    bytes memory mintJobBytes = abi.encodePacked(response);
+    uint32 mintJobId_ = BytesLib.toUint32(mintJobBytes, 0);
+
+    uint8 lastByte = uint8(response[31]);
+    bool valid = lastByte >= 1;
+    return (mintJobId_, valid);
+  }
+
+  function requestValidatorData(uint32 mintJobId)
     public
     returns (bytes32 requestId)
   {
@@ -206,24 +231,25 @@ contract Splice is
 
     request.add(
       'get',
-      abi.encodePacked(
-        'https://validate.getsplice.io/validate/',
-        mintJobId,
-        '?network=42'
+      string(
+        abi.encodePacked(
+          'https://validate.getsplice.io/validate/42/',
+          mintJobId
+        )
       )
     );
 
-    request.add('path', 'valid');
-
+    request.add('path', 'bytes32');
     // Sends the request
     return sendChainlinkRequestTo(oracle, request, linkFee);
   }
 
-  function fulfill(bytes32 _requestId, uint256 _volume)
+  function fulfill(bytes32 _requestId, bytes32 _result)
     public
     recordChainlinkFulfillment(_requestId)
   {
-    volume = _volume;
+    (uint32 jobId, bool valid) = interpretOracleResponse(_result);
+    publishJobResult(jobId, valid);
   }
 
   function requestMint(
@@ -231,7 +257,7 @@ contract Splice is
     uint256 token_id,
     string memory metadataCID,
     address recipient
-  ) public payable returns (uint256 jobID) {
+  ) public payable returns (uint32 jobID) {
     //todo check whether token_id exists on nft and
     //todo check nft belongs to <sender>
     //check whether input data seems legit
@@ -270,21 +296,24 @@ contract Splice is
     return jobID;
   }
 
-  function greenlightMintByOwner(uint256 jobID, bool result)
-    external
-    onlyOwner
-  {
+  function greenlightMintByOwner(uint32 jobID, bool result) external onlyOwner {
     publishJobResult(jobID, result);
   }
 
   /**
    * called by a verified job runner / oracle
-   * todo: restrict to oracle calls :D
+   *
+   * important!
+   * todo: restrict to oracle calls :D This is only public for demo fixing
    */
-  function publishJobResult(uint256 jobID, bool result) public {
+  function publishJobResult(uint32 jobID, bool valid) public {
     MintJob storage job = jobs[jobID];
-    job.status = MintJobStatus.ALLOWED;
-    emit JobResultArrived(jobID, result);
+    if (valid) {
+      job.status = MintJobStatus.ALLOWED;
+    } else {
+      job.status = MintJobStatus.VERIFICATION_FAILED;
+    }
+    emit JobResultArrived(jobID, valid);
   }
 
   /*
@@ -292,7 +321,7 @@ contract Splice is
    * todo check that new item id is below the collection allowance
    * todo distribute minting fee with partners
    */
-  function finalizeMint(uint256 jobID) public returns (uint256 tokenId) {
+  function finalizeMint(uint32 jobID) public returns (uint256 tokenId) {
     MintJob storage job = jobs[jobID];
     require(
       job.status == MintJobStatus.ALLOWED,

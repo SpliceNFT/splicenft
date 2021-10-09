@@ -81,8 +81,8 @@ export class Splice {
     const requestedEvent: MintRequestedEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       result.events![0] as MintRequestedEvent;
-    const jobId = requestedEvent.args.jobIndex;
-    return jobId.toNumber();
+    const jobId = requestedEvent.args.jobId;
+    return jobId;
 
     //console.log(receipt);
   }
@@ -134,7 +134,7 @@ export class Splice {
     if (job.collection === constants.AddressZero) {
       return null;
     }
-    return { jobId: jobId.toNumber(), job };
+    return { jobId, job };
   }
 
   public async getMintJob(jobId: number): Promise<MintJob | null> {
