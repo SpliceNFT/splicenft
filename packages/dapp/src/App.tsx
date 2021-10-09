@@ -3,6 +3,7 @@ import { Web3ReactProvider } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { NFTPage } from './components/pages/NFTPage';
@@ -29,6 +30,7 @@ function App() {
             </Route>
           </Switch>
         </Router>
+        <Footer />
       </Web3ReactProvider>
     </ChakraProvider>
   );

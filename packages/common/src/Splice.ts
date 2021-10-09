@@ -47,6 +47,10 @@ export type MintJob = {
 export class Splice {
   private contract: SpliceContract;
 
+  get address() {
+    return this.contract.address;
+  }
+
   constructor(splice: SpliceContract) {
     this.contract = splice;
   }

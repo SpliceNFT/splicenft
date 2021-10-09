@@ -51,6 +51,7 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   mapping(address => uint16) mintedPerCollection;
 
   //all jobs
+  //todo make enumerable (by user ;) )
   mapping(uint32 => MintJob) jobs;
 
   //needed for lookups
