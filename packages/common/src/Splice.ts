@@ -18,7 +18,7 @@ import { NFTMetaData } from '.';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
   4: '0x0',
-  42: '0x5D99611802b8f1B2174F2fa957Ec208cb0450225',
+  42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036',
   1: '0x0'
 };
 
