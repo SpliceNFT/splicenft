@@ -8,4 +8,3 @@ export { default as getProvider } from './provider';
 export { default as resolveImage } from './img';
 
 export * as NFTPort from './chainapis/nftport';
-export * as Covalent from './chainapis/covalent';

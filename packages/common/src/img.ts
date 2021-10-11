@@ -1,4 +1,4 @@
-import { NFTMetaData } from './types/NFTPort';
+import { NFTMetaData } from './types/NFT';
 
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 

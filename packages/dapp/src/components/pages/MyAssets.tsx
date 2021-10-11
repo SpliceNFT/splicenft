@@ -17,13 +17,14 @@ import {
 } from '../../modules/chain';
 //import { getNFTs } from '@splicenft/common/src/extractors/nftport';
 
-import { NFTItem, Splice, SPLICE_ADDRESSES } from '@splicenft/common';
+import { NFTItem, Splice, SPLICE_ADDRESSES, NFTPort } from '@splicenft/common';
 import { NFTCard } from '../molecules/NFTCard';
 import { MintButton } from '../molecules/MintButton';
 
 export const MyAssetsPage = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [nfts, setNFTs] = useState<NFTItem[]>([]);
   const toast = useToast();
@@ -59,12 +60,12 @@ export const MyAssetsPage = () => {
   ) => {
     let _nfts: NFTItem[];
     switch (chain) {
+      //I would use Covalent here but it's SO unreliable
+      //that I'm not doing that.
       case 'ethereum':
         _nfts = await NFTPort.getNFTs({ address, chain });
         break;
-      case 'kovan':
-        _nfts = await Covalent.getNFTs({ address, chain });
-        break;
+
       default:
         _nfts = await getAllAssetsOfOwner({
           ownerAddress: address,
@@ -83,7 +84,7 @@ export const MyAssetsPage = () => {
       try {
         const chain = CHAINS[chainId];
         if (!chain) throw `chain ${chainId} unsupported`;
-
+        setLoading(true);
         await fetchAssets(account, chain, library);
         toast({
           status: 'success',
@@ -95,12 +96,15 @@ export const MyAssetsPage = () => {
           title: `couldn't fetch assets ${e}`
         });
       }
+      setLoading(false);
     })();
   }, [account, chainId]);
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      {nfts.length === 0 ? (
+      {loading ? (
+        'loading'
+      ) : nfts.length === 0 ? (
         <Alert status="info">
           <Flex
             align="center"
