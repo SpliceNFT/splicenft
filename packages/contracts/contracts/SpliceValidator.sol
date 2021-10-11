@@ -21,7 +21,7 @@ contract SpliceValidator is ChainlinkClient, Ownable {
    * Network: Kovan
    * Oracle: 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8 (Chainlink Devrel
    * Node)
-   * Job ID: d5270d1c311941d0b08bead21fea7747
+   * Job ID: 7401f318127148a894c00c292e486ffd
    * Fee: 0.1 LINK
    */
   constructor() Ownable() {

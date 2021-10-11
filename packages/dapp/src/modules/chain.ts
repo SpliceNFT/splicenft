@@ -12,6 +12,9 @@ export const CHAINS: Record<number, ChainOpt> = {
 
 export type ChainOpt = 'ethereum' | 'rinkeby' | 'kovan' | 'localhost';
 
+const localContracts = process.env
+  .REACT_APP_TESTNETNFT_CONTRACT_ADDRESS as string;
+
 const knownContracts: Record<ChainOpt, string[]> = {
   ethereum: [],
   rinkeby: [
@@ -20,11 +23,10 @@ const knownContracts: Record<ChainOpt, string[]> = {
   ],
   kovan: [
     '0x6334d2cbC3294577BB9de58e8b1901d6e3b97681', //CC
-    '0x6d96aAE79399C6f2630d585BBb0FCF31cCa88fa9' //BAYC
+    '0x6d96aAE79399C6f2630d585BBb0FCF31cCa88fa9', //BAYC
+    '0xbC7708B459CAF31DA418f7F07AF89671CdB8c12C' //DEADFELLAZ
   ],
-  localhost: (
-    process.env.REACT_APP_TESTNETNFT_CONTRACT_ADDRESS as string
-  ).split(',')
+  localhost: localContracts.split(',')
 };
 
 const ownerABI = [
@@ -89,6 +91,50 @@ const ownerABI = [
     ],
     stateMutability: 'view',
     type: 'function'
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'to',
+        type: 'address'
+      }
+    ],
+    name: 'mint',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      }
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'from',
+        type: 'address'
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'to',
+        type: 'address'
+      },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256'
+      }
+    ],
+    name: 'Transfer',
+    type: 'event'
   }
 ];
 
@@ -186,4 +232,20 @@ export const getNFT = async ({
   const item = await getAsset(contract, tokenId);
 
   return item;
+};
+
+export const mintAsset = async ({
+  collection,
+  signer
+}: {
+  collection: string;
+  signer: ethers.Signer;
+}): Promise<number> => {
+  const contract = new ethers.Contract(collection, ownerABI, signer);
+  const address = await signer.getAddress();
+  const tx = await contract.mint(address);
+  const receipt = await tx.wait();
+  const transferEvent = await receipt.events[0].decode();
+  const tokenId = transferEvent.tokenId;
+  return tokenId.toNumber();
 };

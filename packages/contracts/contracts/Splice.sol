@@ -67,13 +67,6 @@ contract Splice is ERC721EnumerableUpgradeable, OwnableUpgradeable {
   event MintRequested(uint32 indexed jobId, address indexed collection);
   event JobResultArrived(uint32 indexed jobId, bool result);
 
-  /**
-   * Network: Kovan
-   * Oracle: 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8 (Chainlink Devrel
-   * Node)
-   * Job ID: d5270d1c311941d0b08bead21fea7747
-   * Fee: 0.1 LINK
-   */
   function initialize(string memory name_, string memory symbol_)
     public
     initializer
