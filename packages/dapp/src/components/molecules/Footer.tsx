@@ -5,7 +5,7 @@ import { providers } from 'ethers';
 import { Splice, SPLICE_ADDRESSES } from '@splicenft/common';
 
 export const Footer = () => {
-  const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
+  const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
   useEffect(() => {
     if (!library || !chainId) return;

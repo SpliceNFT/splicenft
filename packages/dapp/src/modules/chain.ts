@@ -29,6 +29,10 @@ const knownContracts: Record<ChainOpt, string[]> = {
   localhost: localContracts.split(',')
 };
 
+export const getKnownNFTs = (chain: ChainOpt) => {
+  return knownContracts[chain];
+};
+
 const ownerABI = [
   {
     inputs: [
@@ -234,7 +238,7 @@ export const getNFT = async ({
   return item;
 };
 
-export const mintAsset = async ({
+export const mintNFT = async ({
   collection,
   signer
 }: {
@@ -245,7 +249,10 @@ export const mintAsset = async ({
   const address = await signer.getAddress();
   const tx = await contract.mint(address);
   const receipt = await tx.wait();
-  const transferEvent = await receipt.events[0].decode();
-  const tokenId = transferEvent.tokenId;
+  console.log(receipt.events);
+  //todo use typechain here
+  // console.log(transferEvent);
+  // const tokenId = transferEvent.tokenId;
+  const tokenId: ethers.BigNumber = await receipt.events[0].args['tokenId'];
   return tokenId.toNumber();
 };
