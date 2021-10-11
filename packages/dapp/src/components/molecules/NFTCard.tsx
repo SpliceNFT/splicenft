@@ -13,7 +13,13 @@ import { MintingState, MintJob, resolveImage, Splice } from '@splicenft/common';
 import { NFTItem } from '@splicenft/common';
 import { truncateAddress } from '../../modules/strings';
 
-export const NFTCard = ({ nft, splice }: { nft: NFTItem; splice: Splice }) => {
+export const NFTCard = ({
+  nft,
+  splice
+}: {
+  nft: NFTItem;
+  splice?: Splice | undefined;
+}) => {
   if (!nft.metadata) return <></>;
 
   const [isCollectionAllowed, setIsCollectionAllowed] = useState<boolean>();

@@ -9,8 +9,13 @@ import {
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { CHAINS, getAllAssetsOfOwner, getNFT } from '../../modules/chain';
-import { getNFTs } from '../../modules/nftport';
+import {
+  CHAINS,
+  getAllAssetsOfOwner,
+  getNFT,
+  ChainOpt
+} from '../../modules/chain';
+//import { getNFTs } from '@splicenft/common/src/extractors/nftport';
 
 import { NFTItem, Splice, SPLICE_ADDRESSES } from '@splicenft/common';
 import { NFTCard } from '../molecules/NFTCard';
@@ -30,10 +35,11 @@ export const MyAssetsPage = () => {
         ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
         : SPLICE_ADDRESSES[chainId];
 
-    const spl = Splice.from(splAddress, library.getSigner());
-
-    setSplice(spl);
-  }, [library]);
+    if (splAddress) {
+      const spl = Splice.from(splAddress, library.getSigner());
+      setSplice(spl);
+    }
+  }, [library, chainId]);
 
   const onNFTMinted = async (collection: string, tokenId: string) => {
     if (!library) return;
@@ -45,27 +51,40 @@ export const MyAssetsPage = () => {
     setNFTs([...nfts, nftItem]);
   };
 
-  const fetchAssets = async () => {
-    //todo: either use global state or cache the assets somehow.
-
-    if (!account || !library || !chainId) return;
+  //todo: either use global state or cache the assets somehow.
+  const fetchAssets = async (
+    address: string,
+    chain: ChainOpt,
+    library: providers.BaseProvider
+  ) => {
     let _nfts: NFTItem[];
-    if (chainId !== 1) {
-      _nfts = await getAllAssetsOfOwner({
-        ownerAddress: account,
-        provider: library,
-        chain: CHAINS[chainId]
-      });
-    } else {
-      _nfts = await getNFTs({ address: account, chain: 'ethereum' });
+    switch (chain) {
+      case 'ethereum':
+        _nfts = await NFTPort.getNFTs({ address, chain });
+        break;
+      case 'kovan':
+        _nfts = await Covalent.getNFTs({ address, chain });
+        break;
+      default:
+        _nfts = await getAllAssetsOfOwner({
+          ownerAddress: address,
+          provider: library,
+          chain
+        });
     }
+
     setNFTs(_nfts.filter((n) => n.metadata !== null));
   };
 
   useEffect(() => {
+    if (!account || !library || !chainId) return;
+
     (async () => {
       try {
-        await fetchAssets();
+        const chain = CHAINS[chainId];
+        if (!chain) throw `chain ${chainId} unsupported`;
+
+        await fetchAssets(account, chain, library);
         toast({
           status: 'success',
           title: 'fetched all assets'
@@ -73,7 +92,7 @@ export const MyAssetsPage = () => {
       } catch (e) {
         toast({
           status: 'error',
-          title: "couldn't fetch assets"
+          title: `couldn't fetch assets ${e}`
         });
       }
     })();
@@ -98,17 +117,17 @@ export const MyAssetsPage = () => {
         </Alert>
       ) : (
         <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
-          {splice &&
-            nfts.map((nft) => (
-              <NFTCard
-                key={`${nft.contract_address}/${nft.token_id}`}
-                nft={nft}
-                splice={splice}
-              />
-            ))}
+          {nfts.map((nft) => (
+            <NFTCard
+              key={`${nft.contract_address}/${nft.token_id}`}
+              nft={nft}
+              splice={splice}
+            />
+          ))}
           <Flex
             background="gray.200"
             width="100%"
+            minH="80"
             rounded="lg"
             align="center"
             justify="center"

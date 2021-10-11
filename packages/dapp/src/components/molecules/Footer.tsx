@@ -6,7 +6,7 @@ import { Splice, SPLICE_ADDRESSES } from '@splicenft/common';
 
 export const Footer = () => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
-  const [splice, setSplice] = useState<Splice>();
+  const [spliceAddress, setSpliceAddress] = useState<string>();
   useEffect(() => {
     if (!library || !chainId) return;
     const splAddress =
@@ -14,14 +14,12 @@ export const Footer = () => {
         ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
         : SPLICE_ADDRESSES[chainId];
 
-    const spl = Splice.from(splAddress, library.getSigner());
-
-    setSplice(spl);
+    setSpliceAddress(splAddress);
   }, [library]);
   return (
     <Flex bg="gray.800" p={12} color="white" direction="column">
       <Text>Chain: {chainId}</Text>
-      {splice && <Text>Splice contract: {splice.address} </Text>}
+      {spliceAddress && <Text>Splice contract: {spliceAddress} </Text>}
     </Flex>
   );
 };

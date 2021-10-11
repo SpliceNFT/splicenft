@@ -28,7 +28,11 @@ export const MintButton = ({
   };
 
   return (
-    <Button variant="black" onClick={mintTestnetNFT}>
+    <Button
+      variant="black"
+      onClick={mintTestnetNFT}
+      disabled={mintableNFTs.length == 0}
+    >
       mint a testnet NFT
     </Button>
   );
