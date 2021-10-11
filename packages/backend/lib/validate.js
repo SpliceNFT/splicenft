@@ -25,7 +25,7 @@ const uint32ToUint8Array = (num) => {
 module.exports = async function (mintJobId, splice, callback) {
   const _job = await splice.getMintJob(mintJobId);
   if (!_job) {
-    return callback(`job ${mintJobId} doesnt exist`);
+    return callback(`job ${mintJobId} doesnt exist on contract`);
   }
   const token_id = _job['token_id'];
   const collection = _job['collection'];
@@ -41,6 +41,7 @@ module.exports = async function (mintJobId, splice, callback) {
     metadataCID
   };
 
+  console.log('retrieving metadata');
   //todo: get directly from ipfs
   const _metadata = await axios.get(
     `https://ipfs.io/ipfs/${metadataCID}/metadata.json`
