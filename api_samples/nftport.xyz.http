@@ -25,26 +25,25 @@ Content-Type: application/json
 GET https://api.nftport.xyz/text_search?chain=ethereum&text=cool+cats&page_size=10
 Authorization: {{auth}}
 
+
+
 ###
 
-GET https://api.nftport.xyz/account/{{account}}/nfts?chain=ethereum&page_size=30&include=metadata
+GET https://api.nftport.xyz/v0/nfts?chain=ethereum&page_size=10
 Authorization: {{auth}}
 
 ###
 
-GET https://api.nftport.xyz/nfts?chain=ethereum&page_size=10
+GET https://api.nftport.xyz/v0/accounts/{{account}}?chain=ethereum&include=metadata
+Authorization: {{auth}}
+
+###
+
+GET https://api.nftport.xyz/v0/nfts/{{coolcats}}/3973?chain=ethereum
 Authorization: {{auth}}
 
 ###
 
 
-GET https://api.nftport.xyz/nfts/{{coolcats}}?chain=ethereum&account_address={{account}}&page_size=10
+GET https://api.nftport.xyz/v0/nfts/{{coolcats}}?chain=ethereum&page_size=30
 Authorization: {{auth}}
-
-###
-
-GET https://api.nftport.xyz/nfts/{{coolcats}}/3973?chain=ethereum
-Authorization: {{auth}}
-
-###
-

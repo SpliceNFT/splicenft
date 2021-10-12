@@ -23,25 +23,27 @@ import { NFTStorage } from 'nft.storage';
 import p5Types from 'p5';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getNFT } from '../../modules/chain';
+import {} from '@splicenft/common';
 import { SpliceToken } from '../../types/SpliceToken';
 import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
 import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
+import { useSplice } from '../../context/SpliceContext';
 
 export const NFTPage = () => {
-  const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
+  const { collection, token_id: tokenId } =
+    useParams<{ collection: string; token_id: string }>();
+
   const toast = useToast();
 
-  const { collection, token_id } =
-    useParams<{ collection: string; token_id: string }>();
+  const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
+  const { splice, indexer } = useSplice();
 
   const [isCollectionAllowed, setIsCollectionAllowed] =
     useState<boolean>(false);
   const [nft, setNFT] = useState<NFTItem>();
-  const [splice, setSplice] = useState<Splice>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [p5Canvas, setP5Canvas] = useState<p5Types>();
@@ -65,29 +67,17 @@ export const NFTPage = () => {
     token: process.env.REACT_APP_NFTSTORAGE_APIKEY as string
   });
 
-  useEffect(() => {
-    if (!library || !chainId) return;
-    const splAddress =
-      chainId === 31337
-        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
-        : SPLICE_ADDRESSES[chainId];
-
-    const spl = Splice.from(splAddress, library.getSigner());
-
-    setSplice(spl);
-  }, [library]);
-
   //find an existing job
   useEffect(() => {
-    if (!collection || !token_id) return;
-    setRandomness(Splice.computeRandomnessLocally(collection, token_id));
-    if (!splice) return;
+    if (!collection || !tokenId || !splice) return;
+    setRandomness(Splice.computeRandomnessLocally(collection, tokenId));
+
     (async () => {
       const _all = await splice.isCollectionAllowed(collection);
       setIsCollectionAllowed(_all);
     })();
     (async () => {
-      const res = await splice.findJobFor(collection, token_id);
+      const res = await splice.findJobFor(collection, tokenId);
       if (res === null) return;
 
       setMintJob(res);
@@ -113,16 +103,12 @@ export const NFTPage = () => {
           setMintingState(MintingState.FAILED);
       }
     })();
-  }, [collection, token_id, splice]);
+  }, [collection, tokenId, splice]);
 
   useEffect(() => {
     if (!library) return;
     (async () => {
-      const _nft = await getNFT({
-        collection,
-        tokenId: token_id,
-        provider: library
-      });
+      const _nft = await indexer?.getAssetMetadata(collection, tokenId);
       setNFT(_nft);
     })();
   }, [library]);
@@ -146,12 +132,12 @@ export const NFTPage = () => {
     setBuzy(true);
     try {
       const spliceToken = await nftStorageClient.store({
-        name: `Splice from ${collection}/${token_id}`,
-        description: `This Splice has been generated from ${collection}/${token_id}`,
+        name: `Splice from ${collection}/${tokenId}`,
+        description: `This Splice has been generated from ${collection}/${tokenId}`,
         image: blob,
         properties: {
           origin_collection: collection,
-          origin_token_id: token_id,
+          origin_token_id: tokenId,
           randomness: randomness,
           colors: dominantColors,
           style: selectedRenderer
@@ -295,7 +281,7 @@ export const NFTPage = () => {
           {nft && (
             <MetaDataDisplay
               nft={nft}
-              tokenId={token_id}
+              tokenId={tokenId}
               collection={collection}
               isCollectionAllowed={isCollectionAllowed}
               randomness={randomness}
@@ -336,7 +322,7 @@ export const NFTPage = () => {
               onClick={() =>
                 requestMint({
                   collection,
-                  tokenId: token_id,
+                  tokenId,
                   cid: spliceToken.ipnft
                 })
               }

@@ -17,7 +17,6 @@ export type NFTMetaData = {
   ipfs_image?: string;
   external_url: null | string;
   animation_url?: string;
-  points?: Record<string, string | number>;
 };
 
 export type NFTItem = {
@@ -25,6 +24,5 @@ export type NFTItem = {
   token_id: string;
   name: string;
   description: string;
-  asset_url: string;
   metadata: null | NFTMetaData;
 };

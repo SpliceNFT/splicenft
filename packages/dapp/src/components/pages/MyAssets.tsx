@@ -1,91 +1,36 @@
 import {
-  Container,
-  SimpleGrid,
-  Flex,
-  useToast,
   Alert,
-  AlertTitle
+  AlertTitle,
+  Container,
+  Flex,
+  SimpleGrid,
+  useToast
 } from '@chakra-ui/react';
+import { NFTItem } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import {
-  CHAINS,
-  getAllAssetsOfOwner,
-  getNFT,
-  ChainOpt
-} from '../../modules/chain';
-//import { getNFTs } from '@splicenft/common/src/extractors/nftport';
-
-import { NFTItem, Splice, SPLICE_ADDRESSES, NFTPort } from '@splicenft/common';
-import { NFTCard } from '../molecules/NFTCard';
+import { useSplice } from '../../context/SpliceContext';
 import { MintButton } from '../molecules/MintButton';
+import { NFTCard } from '../molecules/NFTCard';
 
 export const MyAssetsPage = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
-  const [splice, setSplice] = useState<Splice>();
+  const { indexer } = useSplice();
+
   const [loading, setLoading] = useState<boolean>(false);
 
   const [nfts, setNFTs] = useState<NFTItem[]>([]);
   const toast = useToast();
 
   useEffect(() => {
-    if (!library || !chainId) return;
-    const splAddress =
-      chainId === 31337
-        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
-        : SPLICE_ADDRESSES[chainId];
-
-    if (splAddress) {
-      const spl = Splice.from(splAddress, library.getSigner());
-      setSplice(spl);
-    }
-  }, [library, chainId]);
-
-  const onNFTMinted = async (collection: string, tokenId: string) => {
-    if (!library) return;
-    const nftItem = await getNFT({
-      collection,
-      tokenId,
-      provider: library
-    });
-    setNFTs([...nfts, nftItem]);
-  };
-
-  //todo: either use global state or cache the assets somehow.
-  const fetchAssets = async (
-    address: string,
-    chain: ChainOpt,
-    library: providers.BaseProvider
-  ) => {
-    let _nfts: NFTItem[];
-    switch (chain) {
-      //I would use Covalent here but it's SO unreliable
-      //that I'm not doing that.
-      case 'ethereum':
-        _nfts = await NFTPort.getNFTs({ address, chain });
-        break;
-
-      default:
-        _nfts = await getAllAssetsOfOwner({
-          ownerAddress: address,
-          provider: library,
-          chain
-        });
-    }
-
-    setNFTs(_nfts.filter((n) => n.metadata !== null));
-  };
-
-  useEffect(() => {
-    if (!account || !library || !chainId) return;
+    if (!account || !indexer) return;
 
     (async () => {
       try {
-        const chain = CHAINS[chainId];
-        if (!chain) throw `chain ${chainId} unsupported`;
         setLoading(true);
-        await fetchAssets(account, chain, library);
+        //todo: either use global state or cache the assets somehow.
+        setNFTs(await indexer.getAllAssetsOfOwner(account));
         toast({
           status: 'success',
           title: 'fetched all assets'
@@ -98,7 +43,15 @@ export const MyAssetsPage = () => {
       }
       setLoading(false);
     })();
-  }, [account, chainId]);
+  }, [account, indexer]);
+
+  const onNFTMinted = async (collection: string, tokenId: string) => {
+    if (!library) return;
+    const newItem = await indexer?.getAssetMetadata(collection, tokenId);
+    if (newItem) {
+      setNFTs([...nfts, newItem]);
+    }
+  };
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
@@ -125,7 +78,6 @@ export const MyAssetsPage = () => {
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}
               nft={nft}
-              splice={splice}
             />
           ))}
           <Flex

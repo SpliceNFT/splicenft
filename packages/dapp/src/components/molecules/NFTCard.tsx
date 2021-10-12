@@ -12,19 +12,15 @@ import { Link } from 'react-router-dom';
 import { MintingState, MintJob, resolveImage, Splice } from '@splicenft/common';
 import { NFTItem } from '@splicenft/common';
 import { truncateAddress } from '../../modules/strings';
+import { useSplice } from '../../context/SpliceContext';
 
-export const NFTCard = ({
-  nft,
-  splice
-}: {
-  nft: NFTItem;
-  splice?: Splice | undefined;
-}) => {
+export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   if (!nft.metadata) return <></>;
 
   const [isCollectionAllowed, setIsCollectionAllowed] = useState<boolean>();
   const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
   const [mintingState, setMintingState] = useState<MintingState>();
+  const { splice } = useSplice();
 
   /*
   setMintingState(MintingState.GETTING_COLORS);

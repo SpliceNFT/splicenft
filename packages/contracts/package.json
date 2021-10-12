@@ -5,7 +5,6 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "postinstall": "hardhat clean --global",
     "build": "hardhat compile",
     "test": "hardhat test",
     "chain": "hardhat node",

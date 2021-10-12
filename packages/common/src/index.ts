@@ -1,10 +1,12 @@
 export * from './Splice';
 export * from './renderers';
 export * from './types/NFT';
-export * from './types/NFTPort';
-export * from './types/Covalent';
 
 export { default as getProvider } from './provider';
 export { default as resolveImage } from './img';
+export { CHAINS, ChainOpt } from './types/Chains';
 
-export * as NFTPort from './chainapis/nftport';
+export { NFTIndexer } from './types/NFTIndexer';
+
+export { NFTPort } from './indexers/NFTPort';
+export { OnChain, KnownCollections } from './indexers/OnChain';

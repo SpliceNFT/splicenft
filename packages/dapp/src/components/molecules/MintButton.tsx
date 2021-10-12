@@ -1,8 +1,58 @@
-import { Button } from '@chakra-ui/react';
+import { Button, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { CHAINS, getKnownNFTs, mintNFT } from '../../modules/chain';
+import { CHAINS } from '@splicenft/common';
+import { knownCollections } from '../../modules/chains';
+import { Contract, BigNumber } from 'ethers';
+
+const MintingABI = [
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'to',
+        type: 'address'
+      }
+    ],
+    name: 'mint',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      }
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'from',
+        type: 'address'
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'to',
+        type: 'address'
+      },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256'
+      }
+    ],
+    name: 'Transfer',
+    type: 'event'
+  }
+];
 
 export const MintButton = ({
   onMinted
@@ -14,26 +64,36 @@ export const MintButton = ({
 
   useEffect(() => {
     if (!chainId) return;
-    setMintableNFTs(getKnownNFTs(CHAINS[chainId]));
+    setMintableNFTs(knownCollections[CHAINS[chainId]]);
   }, [chainId]);
 
-  const mintTestnetNFT = async () => {
+  const mintTestnetNFT = async (collection: string) => {
     if (!library) return;
+    const signer = library?.getSigner();
+    const contract = new Contract(collection, MintingABI, signer);
+    const tx = await contract.mint(account);
+    const receipt = await tx.wait();
+    console.log(receipt.events);
+    //todo use typechain here
+    // console.log(transferEvent);
+    // const tokenId = transferEvent.tokenId;
+    const tokenId: BigNumber = await receipt.events[0].args['tokenId'];
 
-    const tokenId = await mintNFT({
-      collection: mintableNFTs[0],
-      signer: library.getSigner()
-    });
-    onMinted(mintableNFTs[0], `${tokenId}`);
+    onMinted(collection, `${tokenId.toNumber()}`);
   };
 
   return (
-    <Button
-      variant="black"
-      onClick={mintTestnetNFT}
-      disabled={mintableNFTs.length == 0}
-    >
-      mint a testnet NFT
-    </Button>
+    <Menu enabled={mintableNFTs.length > 0}>
+      <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant="black">
+        mint a testnet NFT
+      </MenuButton>
+      <MenuList>
+        {mintableNFTs.map((addr) => (
+          <MenuItem key={`mint-${addr}`} onClick={() => mintTestnetNFT(addr)}>
+            {addr}
+          </MenuItem>
+        ))}
+      </MenuList>
+    </Menu>
   );
 };

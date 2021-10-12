@@ -22,6 +22,14 @@ import { ethers, upgrades } from 'hardhat';
     );
     console.log('Deployed DeadFellaz :', deadFellazNft.address);
 
+    const flyFrogs = await TestnetNFT.deploy(
+      'FlyFrogs Testnet',
+      'FLYFROGS',
+      'ipfs://QmRdNB3Q6Q5gVWnduBmxNZb4p9zKFmM3Qx3tohBb8B2KRK/',
+      10000
+    );
+    console.log('Deployed FlyFrogs:', flyFrogs.address);
+
     const Splice = await ethers.getContractFactory('Splice');
     const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
     console.log('Deployed splice contract:', splice.address);
@@ -34,10 +42,8 @@ import { ethers, upgrades } from 'hardhat';
     await Promise.all(p);
     console.log('minted 5 cool cat NFTs to: ', lastAccount.address);
 
-    const q = [1, 2, 3, 4, 5].map((i) =>
-      deadFellazNft.mint(lastAccount.address)
-    );
+    const q = [1, 2, 3].map((i) => deadFellazNft.mint(lastAccount.address));
     await Promise.all(q);
-    console.log('minted 5 dead fellaz NFTs to: ', lastAccount.address);
+    console.log('minted 3 dead fellaz NFTs to: ', lastAccount.address);
   })();
 })();
