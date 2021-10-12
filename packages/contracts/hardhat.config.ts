@@ -34,6 +34,19 @@ task('nft:mint', 'mints on ENV.TESTNETNFT_CONTRACT_ADDRESS to <address>')
     console.log(receipt);
   });
 
+task('splice:allow', 'allows a collection')
+  .addPositionalParam('collection')
+  .setAction(async (taskArgs, hre) => {
+    const { collection } = taskArgs;
+
+    const Splice = await hre.ethers.getContractFactory('Splice');
+
+    const splice = await Splice.attach(
+      process.env.SPLICE_CONTRACT_ADDRESS as string
+    );
+    const receipt = await splice.allowCollection(collection, 1000);
+    console.log(receipt);
+  });
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 

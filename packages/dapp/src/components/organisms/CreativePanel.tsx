@@ -1,20 +1,20 @@
 import {
   Box,
+  Button,
   Center,
   Circle,
   Container,
   Flex,
   Image,
-  Link,
-  Button
+  Link
 } from '@chakra-ui/react';
+import { MintingState } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
-import { MintingState } from '@splicenft/common';
 
-const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
+export const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
   return (
     <Container width="lg" py={20}>
       <Flex rounded="lg" minH="80">
@@ -35,16 +35,16 @@ const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
 
 const Preview = ({
   dominantColors,
-  imgUrl,
-  dataUrl,
+  nftImageUrl,
+  spliceDataUrl,
   randomness,
   rendererName,
   setP5Canvas,
   mintingState
 }: {
   dominantColors?: RGB[];
-  imgUrl: string;
-  dataUrl?: string | undefined;
+  nftImageUrl: string;
+  spliceDataUrl?: string | undefined;
   randomness: number;
   rendererName?: string;
   setP5Canvas?: (canvas: p5Types) => void;
@@ -53,7 +53,7 @@ const Preview = ({
   return (
     <Flex position="relative">
       <Center width="100%" height="100%">
-        {dominantColors && setP5Canvas && !dataUrl && rendererName ? (
+        {dominantColors && setP5Canvas && !spliceDataUrl && rendererName ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
@@ -62,7 +62,7 @@ const Preview = ({
             rendererName={rendererName}
           />
         ) : (
-          <Image src={dataUrl} />
+          <Image src={spliceDataUrl} />
         )}
       </Center>
       <Center position="absolute" width="100%" height="100%">
@@ -70,9 +70,9 @@ const Preview = ({
           <Image
             border="4px solid white"
             rounded="full"
-            src={imgUrl}
-            title={imgUrl}
-            alt={imgUrl}
+            src={nftImageUrl}
+            title={nftImageUrl}
+            alt={nftImageUrl}
             fallbackSrc="https://via.placeholder.com/800"
             /*opacity={buzy ? 0.2 : 1}*/
           />
@@ -80,7 +80,7 @@ const Preview = ({
       </Center>
       {mintingState === MintingState.MINTED && (
         <Box position="absolute" right="10px" bottom="10px">
-          <Button as={Link} href={dataUrl} isExternal variant="black">
+          <Button as={Link} href={spliceDataUrl} isExternal variant="black">
             download
           </Button>
         </Box>
@@ -90,19 +90,19 @@ const Preview = ({
 };
 
 export const CreativePanel = ({
-  imgUrl,
+  nftImageUrl,
   dominantColors,
   setP5Canvas,
   randomness,
-  dataUrl,
+  spliceDataUrl,
   rendererName,
   mintingState
 }: {
-  imgUrl: string;
+  nftImageUrl: string;
   dominantColors: RGB[];
   setP5Canvas: (canvas: p5Types) => void;
   randomness: number;
-  dataUrl: string | undefined;
+  spliceDataUrl?: string;
   rendererName?: string;
   mintingState: MintingState;
 }) => {
@@ -113,7 +113,7 @@ export const CreativePanel = ({
   ) {
     return (
       <Preview
-        imgUrl={imgUrl}
+        nftImageUrl={nftImageUrl}
         dominantColors={dominantColors}
         setP5Canvas={setP5Canvas}
         randomness={randomness}
@@ -121,16 +121,16 @@ export const CreativePanel = ({
         mintingState={mintingState}
       />
     );
-  } else if (mintingState >= MintingState.SAVED && dataUrl) {
+  } else if (mintingState >= MintingState.SAVED && spliceDataUrl) {
     return (
       <Preview
-        imgUrl={imgUrl}
-        dataUrl={dataUrl}
+        nftImageUrl={nftImageUrl}
+        spliceDataUrl={spliceDataUrl}
         randomness={randomness}
         mintingState={mintingState}
       />
     );
   } else {
-    return <PlainImage imgUrl={imgUrl} />;
+    return <PlainImage imgUrl={nftImageUrl} />;
   }
 };

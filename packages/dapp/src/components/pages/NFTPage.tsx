@@ -12,8 +12,7 @@ import {
   Splice,
   resolveImage,
   NFTItem,
-  NFTMetaData,
-  SPLICE_ADDRESSES
+  NFTMetaData
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
@@ -31,6 +30,7 @@ import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
 import { useSplice } from '../../context/SpliceContext';
+import { NFTDescription } from '../atoms/NFTDescription';
 
 export const NFTPage = () => {
   const { collection, token_id: tokenId } =
@@ -44,6 +44,7 @@ export const NFTPage = () => {
   const [isCollectionAllowed, setIsCollectionAllowed] =
     useState<boolean>(false);
   const [nft, setNFT] = useState<NFTItem>();
+  const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [p5Canvas, setP5Canvas] = useState<p5Types>();
@@ -106,12 +107,13 @@ export const NFTPage = () => {
   }, [collection, tokenId, splice]);
 
   useEffect(() => {
-    if (!library) return;
+    if (!indexer) return;
     (async () => {
-      const _nft = await indexer?.getAssetMetadata(collection, tokenId);
+      const _nft = await indexer.getAssetMetadata(collection, tokenId);
       setNFT(_nft);
+      if (_nft.metadata) setNFTImageUrl(resolveImage(_nft.metadata));
     })();
-  }, [library]);
+  }, [indexer]);
 
   const save = async () => {
     //todo this is very likely not the best idea, but... it sort of works
@@ -233,23 +235,23 @@ export const NFTPage = () => {
     });
     setMintingState(MintingState.MINTED);
   };
-  const imgUrl =
-    resolveImage(nft?.metadata) || 'https://via.placeholder.com/800';
 
-  return nft && splice ? (
+  return (
     <Flex direction="column">
-      <CreativePanel
-        imgUrl={imgUrl}
-        dominantColors={dominantColors}
-        setP5Canvas={(canvas: p5Types) => {
-          setP5Canvas(canvas);
-          setMintingState(MintingState.GENERATED);
-        }}
-        rendererName={selectedRenderer}
-        randomness={randomness}
-        dataUrl={dataUrl}
-        mintingState={mintingState}
-      />
+      {nftImageUrl && (
+        <CreativePanel
+          nftImageUrl={nftImageUrl}
+          dominantColors={dominantColors}
+          setP5Canvas={(canvas: p5Types) => {
+            setP5Canvas(canvas);
+            setMintingState(MintingState.GENERATED);
+          }}
+          rendererName={selectedRenderer}
+          randomness={randomness}
+          spliceDataUrl={dataUrl}
+          mintingState={mintingState}
+        />
+      )}
 
       <HStack
         background="white"
@@ -259,24 +261,18 @@ export const NFTPage = () => {
         align="flex-start"
         gridGap={10}
       >
-        <Flex direction="column" maxW="50%">
-          <Heading size="xl" mb={7}>
-            {nft.name}
-          </Heading>
-          <Text>{nft.metadata?.description}</Text>
-        </Flex>
+        <NFTDescription nft={nft} />
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
           {mintJob && (
             <MintJobState mintJob={mintJob} mintingState={mintingState} />
           )}
-          {imgUrl && mintingState < MintingState.MINTING_REQUESTED && (
-            <DominantColors
-              imgUrl={imgUrl}
-              dominantColors={dominantColors}
-              setDominantColors={setDominantColors}
-            />
-          )}
+
+          <DominantColors
+            imageUrl={nftImageUrl}
+            dominantColors={dominantColors}
+            setDominantColors={setDominantColors}
+          />
 
           {nft && (
             <MetaDataDisplay
@@ -290,8 +286,9 @@ export const NFTPage = () => {
             />
           )}
 
-          {mintingState < MintingState.GENERATING && (
+          {mintingState < MintingState.GENERATING && dominantColors && (
             <ArtworkStyleChooser
+              disabled={dominantColors.length == 0}
               selectedRenderer={selectedRenderer}
               onRendererChanged={(name) => {
                 setSelectedRenderer(name);
@@ -357,7 +354,5 @@ export const NFTPage = () => {
         </Flex>
       </HStack>
     </Flex>
-  ) : (
-    <div>loading</div>
   );
 };

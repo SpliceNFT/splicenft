@@ -1,19 +1,20 @@
 import { Flex } from '@chakra-ui/react';
+import { NFTItem, resolveImage } from '@splicenft/common';
 import palette, { RGB } from 'get-rgba-palette';
 import ImageToColors from 'image-to-colors';
 import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
 
 export const DominantColors = ({
-  imgUrl,
+  imageUrl,
   dominantColors,
   setDominantColors
 }: {
-  imgUrl: string;
+  imageUrl?: string;
   dominantColors: RGB[];
   setDominantColors: (c: RGB[]) => void;
 }) => {
-  const extractColors = async () => {
+  const extractColors = async (imgUrl: string) => {
     const _pixels = await ImageToColors.getFromExternalSource(imgUrl, {
       setImageCrossOriginToAnonymous: true
     });
@@ -25,8 +26,9 @@ export const DominantColors = ({
   };
 
   useEffect(() => {
-    extractColors();
-  }, []);
+    if (!imageUrl) return;
+    extractColors(imageUrl);
+  }, [imageUrl]);
 
   return dominantColors.length > 0 ? (
     <Flex direction="row" w="100%" justify="space-between" height="40px">
