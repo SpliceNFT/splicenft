@@ -11,6 +11,10 @@ Authorization: Basic {{auth}}:
 ###
 
 #GET https://api.covalenthq.com/v1/1/address/0x70631b7376f4956185dac1b9cb4e9f83ccbc2764/balances_v2/?nft=true&no-nft-fetch=true
-GET https://api.covalenthq.com/v1/42/address/0xE231B4e55fE1D0Afb3e746e64E78eEffB5b599d1/balances_v2/?nft=true
+GET https://api.covalenthq.com/v1/42/address/0xE231B4e55fE1D0Afb3e746e64E78eEffB5b599d1/balances_v2/?limit=100&nft=true
 Authorization: Basic {{auth}}:
 #Authorization: token {{auth}}
+
+###
+
+GET http://localhost:3000/api/nfts?chain=42&address=0xE231B4e55fE1D0Afb3e746e64E78eEffB5b599d1

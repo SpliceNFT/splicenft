@@ -53,8 +53,6 @@ app.get('/render/:algo', (req, res) => {
 
 app.get('/validate/:network/:mintjob', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  console.log(req.params.mintjob);
-
   const mintJobId = parseInt(req.params.mintjob);
   let network;
   switch (networkId) {
@@ -70,6 +68,11 @@ app.get('/validate/:network/:mintjob', async (req, res) => {
     case 31337:
       network = 'http://localhost:8545';
   }
+  console.log(
+    'starting validation for splice job %s on chain %s',
+    mintJobId,
+    networkId
+  );
 
   const { provider, signer } = getProvider(network, {
     infuraKey: process.env.INFURA_KEY,

@@ -7,18 +7,24 @@ import {
   Spacer,
   Text
 } from '@chakra-ui/react';
+import {
+  MintingState,
+  MintJob,
+  NFTItem,
+  resolveImage
+} from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MintingState, MintJob, resolveImage, Splice } from '@splicenft/common';
-import { NFTItem } from '@splicenft/common';
+import { useSplice } from '../../context/SpliceContext';
 import { truncateAddress } from '../../modules/strings';
 
-export const NFTCard = ({ nft, splice }: { nft: NFTItem; splice: Splice }) => {
+export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   if (!nft.metadata) return <></>;
 
   const [isCollectionAllowed, setIsCollectionAllowed] = useState<boolean>();
   const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
   const [mintingState, setMintingState] = useState<MintingState>();
+  const { splice } = useSplice();
 
   /*
   setMintingState(MintingState.GETTING_COLORS);

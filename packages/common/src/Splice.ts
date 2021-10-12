@@ -17,9 +17,9 @@ import axios from 'axios';
 import { NFTMetaData } from '.';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
-  4: '0x0',
-  42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036',
-  1: '0x0'
+  //4: '0x0',
+  42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
+  //1: '0x0'
 };
 
 export enum MintingState {
@@ -165,5 +165,34 @@ export class Splice {
     const tx = await this.contract.greenlightMintByOwner(jobId, result);
     const receipt = await tx.wait();
     return receipt;
+  }
+
+  public async getAllSplices(
+    address: string
+  ): Promise<{ tokenId: number; metadataUrl: string }[]> {
+    const balance = await this.contract.balanceOf(address);
+
+    if (balance.isZero()) return [];
+    const promises = [];
+    for (let i = 0; i < Math.max(10, balance.toNumber()); i++) {
+      promises.push(
+        (async () => {
+          const tokenId = await this.contract.tokenOfOwnerByIndex(
+            address,
+            BigNumber.from(i)
+          );
+          const metadataUrl = await this.contract.tokenURI(tokenId);
+          return { tokenId: tokenId.toNumber(), metadataUrl };
+        })()
+      );
+    }
+    const tokens = await Promise.all(promises);
+    return tokens;
+  }
+
+  public async listenForJobResults(jobId: number) {
+    this.contract.on(this.contract.filters.JobResultArrived(), (jobResult) => {
+      console.log(jobResult);
+    });
   }
 }

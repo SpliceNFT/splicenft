@@ -1,53 +1,36 @@
-import { Container, SimpleGrid, Box, useToast, Alert } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertTitle,
+  Container,
+  Flex,
+  SimpleGrid,
+  useToast
+} from '@chakra-ui/react';
+import { NFTItem } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { CHAINS, getAllAssetsOfOwner } from '../../modules/chain';
-import { getNFTs } from '../../modules/nftport';
-
-import { NFTItem, Splice, SPLICE_ADDRESSES } from '@splicenft/common';
+import { useSplice } from '../../context/SpliceContext';
+import { MintButton } from '../molecules/MintButton';
 import { NFTCard } from '../molecules/NFTCard';
 
 export const MyAssetsPage = () => {
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
-  const [splice, setSplice] = useState<Splice>();
+  const { indexer } = useSplice();
 
-  const [nfts, setNFTs] = useState<NFTItem[]>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [nfts, setNFTs] = useState<NFTItem[]>([]);
   const toast = useToast();
 
   useEffect(() => {
-    if (!library || !chainId) return;
-    const splAddress =
-      chainId === 31337
-        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
-        : SPLICE_ADDRESSES[chainId];
+    if (!account || !indexer) return;
 
-    const spl = Splice.from(splAddress, library.getSigner());
-
-    setSplice(spl);
-  }, [library]);
-
-  const fetchAssets = async () => {
-    //todo: either use global state or cache the assets somehow.
-
-    if (!account || !library || !chainId) return;
-    let _nfts: NFTItem[];
-    if (chainId !== 1) {
-      _nfts = await getAllAssetsOfOwner({
-        ownerAddress: account,
-        provider: library,
-        chain: CHAINS[chainId]
-      });
-    } else {
-      _nfts = await getNFTs({ address: account, chain: 'ethereum' });
-    }
-    setNFTs(_nfts.filter((n) => n.metadata !== null));
-  };
-
-  useEffect(() => {
     (async () => {
       try {
-        await fetchAssets();
+        setLoading(true);
+        //todo: either use global state or cache the assets somehow.
+        setNFTs(await indexer.getAllAssetsOfOwner(account));
         toast({
           status: 'success',
           title: 'fetched all assets'
@@ -55,31 +38,60 @@ export const MyAssetsPage = () => {
       } catch (e) {
         toast({
           status: 'error',
-          title: "couldn't fetch assets"
+          title: `couldn't fetch assets ${e}`
         });
       }
+      setLoading(false);
     })();
-  }, [account, chainId]);
+  }, [account, indexer]);
 
-  return nfts ? (
-    <Container maxW="container.xl">
-      {nfts.length === 0 && (
+  const onNFTMinted = async (collection: string, tokenId: string) => {
+    if (!library) return;
+    const newItem = await indexer?.getAssetMetadata(collection, tokenId);
+    if (newItem) {
+      setNFTs([...nfts, newItem]);
+    }
+  };
+
+  return (
+    <Container maxW="container.xl" minHeight="70vh" pb={12}>
+      {loading ? (
+        'loading'
+      ) : nfts.length === 0 ? (
         <Alert status="info">
-          it seems you don't have any assets on chain {chainId}{' '}
+          <Flex
+            align="center"
+            direction="row"
+            justify="space-between"
+            width="100%"
+          >
+            <AlertTitle>
+              it seems you don't have any assets on chain {chainId}{' '}
+            </AlertTitle>
+
+            <MintButton onMinted={onNFTMinted} />
+          </Flex>
         </Alert>
-      )}
-      <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
-        {splice &&
-          nfts.map((nft) => (
+      ) : (
+        <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
+          {nfts.map((nft) => (
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}
               nft={nft}
-              splice={splice}
             />
           ))}
-      </SimpleGrid>
+          <Flex
+            background="gray.200"
+            width="100%"
+            minH="80"
+            rounded="lg"
+            align="center"
+            justify="center"
+          >
+            <MintButton onMinted={onNFTMinted} />
+          </Flex>
+        </SimpleGrid>
+      )}
     </Container>
-  ) : (
-    <Box>loading</Box>
   );
 };

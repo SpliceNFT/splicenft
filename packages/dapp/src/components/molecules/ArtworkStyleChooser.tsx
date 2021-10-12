@@ -13,14 +13,21 @@ import { RendererNames } from '@splicenft/common';
 
 export const ArtworkStyleChooser = ({
   selectedRenderer,
-  onRendererChanged
+  onRendererChanged,
+  disabled = false
 }: {
   selectedRenderer?: string;
   onRendererChanged: (rendererName: string) => void;
+  disabled?: boolean;
 }) => (
   <Flex direction="row">
     <Menu>
-      <MenuButton as={Button} variant="black" rightIcon={<ChevronDownIcon />}>
+      <MenuButton
+        as={Button}
+        variant="black"
+        disabled={disabled}
+        rightIcon={<ChevronDownIcon />}
+      >
         {selectedRenderer ? selectedRenderer : 'choose a style'}
       </MenuButton>
       <MenuList>

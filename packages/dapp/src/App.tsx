@@ -7,6 +7,7 @@ import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { NFTPage } from './components/pages/NFTPage';
+import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
 
 function getLibrary(provider: any) {
@@ -17,19 +18,21 @@ function App() {
   return (
     <ChakraProvider theme={theme}>
       <Web3ReactProvider getLibrary={getLibrary}>
-        <Router>
-          <Header />
+        <SpliceProvider>
+          <Router>
+            <Header />
 
-          <Switch>
-            <Route path="/nft/:collection/:token_id">
-              <NFTPage />
-            </Route>
+            <Switch>
+              <Route path="/nft/:collection/:token_id">
+                <NFTPage />
+              </Route>
 
-            <Route path="/">
-              <MyAssetsPage />
-            </Route>
-          </Switch>
-        </Router>
+              <Route path="/">
+                <MyAssetsPage />
+              </Route>
+            </Switch>
+          </Router>
+        </SpliceProvider>
         <Footer />
       </Web3ReactProvider>
     </ChakraProvider>
