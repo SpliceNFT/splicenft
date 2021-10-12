@@ -73,7 +73,7 @@ export const MintButton = ({
     const contract = new Contract(collection, MintingABI, signer);
     const tx = await contract.mint(account);
     const receipt = await tx.wait();
-    console.log(receipt.events);
+
     //todo use typechain here
     // console.log(transferEvent);
     // const tokenId = transferEvent.tokenId;

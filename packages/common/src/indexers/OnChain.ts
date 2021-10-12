@@ -212,7 +212,6 @@ export class OnChain implements NFTIndexer {
       if (!this.proxyAddress) {
         throw e;
       } else {
-        console.log('using proxy', this.proxyAddress);
         const res = await axios.get<NFTMetaData>(this.proxyAddress, {
           params: {
             url: tokenUrl

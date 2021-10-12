@@ -1,18 +1,11 @@
-import {
-  Button,
-  Flex,
-  Heading,
-  HStack,
-  Text,
-  useToast
-} from '@chakra-ui/react';
+import { Button, Flex, HStack, useToast } from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
-  Splice,
-  resolveImage,
   NFTItem,
-  NFTMetaData
+  NFTMetaData,
+  resolveImage,
+  Splice
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
@@ -22,15 +15,14 @@ import { NFTStorage } from 'nft.storage';
 import p5Types from 'p5';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {} from '@splicenft/common';
+import { useSplice } from '../../context/SpliceContext';
 import { SpliceToken } from '../../types/SpliceToken';
+import { NFTDescription } from '../atoms/NFTDescription';
 import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
 import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';
 import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
-import { useSplice } from '../../context/SpliceContext';
-import { NFTDescription } from '../atoms/NFTDescription';
 
 export const NFTPage = () => {
   const { collection, token_id: tokenId } =
@@ -38,7 +30,7 @@ export const NFTPage = () => {
 
   const toast = useToast();
 
-  const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
+  const { account, chainId } = useWeb3React<providers.Web3Provider>();
   const { splice, indexer } = useSplice();
 
   const [isCollectionAllowed, setIsCollectionAllowed] =
@@ -196,6 +188,7 @@ export const NFTPage = () => {
 
   const executeValidator = async (splice: Splice, jobId: number) => {
     setBuzy(true);
+    splice.listenForJobResults(jobId);
 
     try {
       const validatorBaseUrl = process.env

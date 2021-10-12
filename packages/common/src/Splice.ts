@@ -189,4 +189,10 @@ export class Splice {
     const tokens = await Promise.all(promises);
     return tokens;
   }
+
+  public async listenForJobResults(jobId: number) {
+    this.contract.on(this.contract.filters.JobResultArrived(), (jobResult) => {
+      console.log(jobResult);
+    });
+  }
 }

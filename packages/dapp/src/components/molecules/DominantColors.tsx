@@ -1,5 +1,4 @@
 import { Flex } from '@chakra-ui/react';
-import { NFTItem, resolveImage } from '@splicenft/common';
 import palette, { RGB } from 'get-rgba-palette';
 import ImageToColors from 'image-to-colors';
 import React, { useEffect } from 'react';
