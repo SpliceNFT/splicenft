@@ -32,8 +32,8 @@ function App() {
               </Route>
             </Switch>
           </Router>
+          <Footer />
         </SpliceProvider>
-        <Footer />
       </Web3ReactProvider>
     </ChakraProvider>
   );
