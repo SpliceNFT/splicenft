@@ -4,6 +4,18 @@ import ImageToColors from 'image-to-colors';
 import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
 
+export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
+  <Flex direction="row" w="100%" justify="space-between" height="40px">
+    {colors.map((color) => {
+      const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
+      return (
+        <Flex key={colorHex} flex="1 1 0px" background={colorHex}>
+          &nbsp;
+        </Flex>
+      );
+    })}
+  </Flex>
+);
 export const DominantColors = ({
   imageUrl,
   dominantColors,
@@ -30,16 +42,7 @@ export const DominantColors = ({
   }, [imageUrl]);
 
   return dominantColors.length > 0 ? (
-    <Flex direction="row" w="100%" justify="space-between" height="40px">
-      {dominantColors.map((color) => {
-        const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
-        return (
-          <Flex key={colorHex} flex="1 1 0px" background={colorHex}>
-            &nbsp;
-          </Flex>
-        );
-      })}
-    </Flex>
+    <DominantColorsDisplay colors={dominantColors} />
   ) : (
     <></>
   );

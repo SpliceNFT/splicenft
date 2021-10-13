@@ -13,8 +13,9 @@ import {
   Splice as SpliceContract,
   TransferEvent
 } from '@splicenft/contracts';
+import { SpliceNFT } from './types/SpliceMetadata';
 import axios from 'axios';
-import { NFTMetaData } from '.';
+import { ipfsGW, NFTMetaData } from '.';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
   //4: '0x0',
@@ -169,12 +170,12 @@ export class Splice {
 
   public async getAllSplices(
     address: string
-  ): Promise<{ tokenId: number; metadataUrl: string }[]> {
+  ): Promise<{ tokenId: number; metadata: SpliceNFT }[]> {
     const balance = await this.contract.balanceOf(address);
 
     if (balance.isZero()) return [];
     const promises = [];
-    for (let i = 0; i < Math.max(10, balance.toNumber()); i++) {
+    for (let i = 0; i < Math.min(10, balance.toNumber()); i++) {
       promises.push(
         (async () => {
           const tokenId = await this.contract.tokenOfOwnerByIndex(
@@ -182,7 +183,12 @@ export class Splice {
             BigNumber.from(i)
           );
           const metadataUrl = await this.contract.tokenURI(tokenId);
-          return { tokenId: tokenId.toNumber(), metadataUrl };
+          const metadata = await (
+            await axios.get(ipfsGW(metadataUrl), {
+              responseType: 'json'
+            })
+          ).data;
+          return { tokenId: tokenId.toNumber(), metadata };
         })()
       );
     }

@@ -2,13 +2,15 @@ import { NFTMetaData } from './types/NFT';
 
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
-const resolveImage = (nftMetaData: NFTMetaData): string => {
+export const resolveImage = (nftMetaData: NFTMetaData): string => {
   const imgUrl = nftMetaData.image ? nftMetaData.image : nftMetaData.image_url;
-  if (imgUrl?.startsWith('ipfs://')) {
-    return imgUrl.replace('ipfs://', IPFS_GATEWAY);
-  } else {
-    return imgUrl || '';
-  }
+  return ipfsGW(imgUrl || '');
 };
 
-export default resolveImage;
+export const ipfsGW = (url: string) => {
+  if (url.startsWith('ipfs://')) {
+    return url.replace('ipfs://', IPFS_GATEWAY);
+  } else {
+    return url;
+  }
+};

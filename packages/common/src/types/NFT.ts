@@ -4,11 +4,12 @@ export type NFTTrait = {
   trait_type: string;
   value: string;
 };
+
 export type NFTMetaData = {
   name: string;
   description: string;
   attributes?: NFTTrait[];
-  properties?: NFTTrait[];
+  properties?: Record<string, any>;
   tags?: string[];
   home_url?: string;
   image_url?: string;

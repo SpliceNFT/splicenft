@@ -1,7 +1,7 @@
-import { Button, Flex, Spacer } from '@chakra-ui/react';
+import { Button, Flex, Spacer, Link } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink as ReactLink } from 'react-router-dom';
 import { injected } from '../../modules/connectors';
 import Account from '../atoms/Account';
 import Logo from '../atoms/Logo';
@@ -22,7 +22,20 @@ const Header = () => {
       <Logo />
       <Spacer />
       <Flex direction="row" align="center" gridGap={8}>
-        {active && <Link to="/my-splices">My splices</Link>}
+        {active && (
+          <Flex direction="row" gridGap={10}>
+            <Link as={ReactLink} to="/" exact activeStyle={{ fontWeight: 800 }}>
+              My NFTs
+            </Link>
+            <Link
+              as={ReactLink}
+              to="/my-splices"
+              activeStyle={{ fontWeight: 800 }}
+            >
+              My splices
+            </Link>
+          </Flex>
+        )}
         {!active && (
           <Button variant="black" onClick={connect}>
             Connect Wallet

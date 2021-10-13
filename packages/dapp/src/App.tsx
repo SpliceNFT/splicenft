@@ -6,6 +6,7 @@ import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
 import { MyAssetsPage } from './components/pages/MyAssets';
+import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
@@ -26,7 +27,9 @@ function App() {
               <Route path="/nft/:collection/:token_id">
                 <NFTPage />
               </Route>
-
+              <Route path="/my-splices">
+                <MySplicesPage />
+              </Route>
               <Route path="/">
                 <MyAssetsPage />
               </Route>
