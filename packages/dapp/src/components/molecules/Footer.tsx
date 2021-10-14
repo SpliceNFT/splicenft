@@ -13,7 +13,7 @@ import { providers } from 'ethers';
 import React from 'react';
 import { useSplice } from '../../context/SpliceContext';
 import spliceWhite from '../../img/splice_plain_white.svg';
-import { FaTwitter, FaGithub } from 'react-icons/fa';
+import { FaTwitter, FaGithub, FaDiscord } from 'react-icons/fa';
 
 export const Footer = () => {
   const { chainId, account } = useWeb3React<providers.Web3Provider>();
@@ -46,6 +46,9 @@ export const Footer = () => {
             <Link href="https://twitter.com/TimothyCDB" isExternal>
               @TimothyCDB
             </Link>
+            <Link href="https://twitter.com/BiggyTava" isExternal>
+              @BiggyTava
+            </Link>
           </Flex>
           <Flex gridGap={8} mt={3}>
             <Link
@@ -53,14 +56,24 @@ export const Footer = () => {
               isExternal
               fontStyle="bold"
             >
-              <Icon as={FaGithub} boxSize="8" />
+              <Icon as={FaGithub} boxSize="6" />
             </Link>
             <Link
               href="https://twitter.com/splicenft"
               isExternal
               fontStyle="bold"
             >
-              <Icon as={FaTwitter} boxSize="8" />
+              <Flex direction="row" align="center" gridGap={2}>
+                <Icon as={FaTwitter} boxSize="6" />
+                <Text>@splicenft</Text>
+              </Flex>
+            </Link>
+            <Link
+              href="https://discord.gg/JhtT87y2BA"
+              isExternal
+              fontStyle="bold"
+            >
+              <Icon as={FaDiscord} boxSize="6" />
             </Link>
           </Flex>
         </Flex>
