@@ -5,6 +5,7 @@ import React from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
+import { SubFooter } from './components/molecules/SubFooter';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
@@ -36,6 +37,7 @@ function App() {
             </Switch>
           </Router>
           <Footer />
+          <SubFooter />
         </SpliceProvider>
       </Web3ReactProvider>
     </ChakraProvider>
