@@ -68,8 +68,7 @@ export const MyAssetsPage = () => {
             <AlertTitle>
               it seems you don't have any assets on chain {chainId}{' '}
             </AlertTitle>
-
-            <MintButton onMinted={onNFTMinted} />
+            {chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
           </Flex>
         </Alert>
       ) : (
@@ -80,16 +79,18 @@ export const MyAssetsPage = () => {
               nft={nft}
             />
           ))}
-          <Flex
-            background="gray.200"
-            width="100%"
-            minH="80"
-            rounded="lg"
-            align="center"
-            justify="center"
-          >
-            <MintButton onMinted={onNFTMinted} />
-          </Flex>
+          {chainId !== 1 && (
+            <Flex
+              background="gray.200"
+              width="100%"
+              minH="80"
+              rounded="lg"
+              align="center"
+              justify="center"
+            >
+              <MintButton onMinted={onNFTMinted} />
+            </Flex>
+          )}
         </SimpleGrid>
       )}
     </Container>
