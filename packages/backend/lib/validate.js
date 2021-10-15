@@ -1,4 +1,5 @@
 const axios = require('axios').default;
+const chalk = require('chalk');
 const { Renderers, resolveImage } = require('@splicenft/common');
 const Render = require('./render');
 const PNG = require('pngjs').PNG;
@@ -41,17 +42,20 @@ module.exports = async function (mintJobId, splice, callback) {
     metadataCID
   };
 
-  console.log('retrieving metadata');
+  console.log(chalk.blue('retrieving metadata %s ...'), metadataCID);
   //todo: get directly from ipfs
   const _metadata = await axios.get(
     `https://ipfs.io/ipfs/${metadataCID}/metadata.json`
   );
 
   job.metadata = await _metadata.data;
-  console.debug('checking job', job);
+  //console.log(chalk.blue.bold('checking job %s'), job);
 
   let imageLocation = resolveImage(job.metadata);
-  console.debug('user image location', imageLocation);
+  console.log(
+    chalk.blue('retrieving user generated splice image %s ...'),
+    imageLocation
+  );
 
   const _blob = await axios.get(imageLocation, {
     responseType: 'arraybuffer'
@@ -60,6 +64,11 @@ module.exports = async function (mintJobId, splice, callback) {
   const style = job.metadata.properties.style;
   const renderer = Renderers[style];
   if (!renderer) throw `style ${style} unknown`;
+
+  console.log(
+    chalk.blue.bold('validating splice image generated with style "%s"'),
+    style
+  );
 
   Render(
     renderer,
@@ -99,16 +108,26 @@ module.exports = async function (mintJobId, splice, callback) {
         );
       }
 
-      console.debug(`images only differ to ${relativeDiffcount}%. Thats ok.`);
+      console.log(
+        chalk.green.bold("images only differ by %s %. That's ok."),
+        relativeDiffcount.toFixed(2)
+      );
 
       //build bytes32 return val
       let b32retVal = uint32ToUint8Array(mintJobId);
       //the last byte contains the result
       b32retVal[31] = 1;
 
+      console.log(chalk.blue.bold('sending greenlight transaction...'));
+
       //FOR DEMO REASONS WE'RE CALLING SPLICE BACK ON OUR OWN.
       splice.greenlight(mintJobId, true).then((receipt) => {
-        console.log('sent a greenlight transaction', receipt.transactionHash);
+        console.log(
+          chalk.green.bold(
+            'greenlight transaction confirmed. Job %s is ready for minting.'
+          ),
+          mintJobId
+        );
 
         callback(null, {
           valid: true,

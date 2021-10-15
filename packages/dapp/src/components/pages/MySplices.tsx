@@ -62,16 +62,17 @@ const SpliceArtwork = ({ metadata }: { metadata: SpliceNFT }) => {
 export const MySplicesPage = () => {
   const { account, chainId } = useWeb3React<providers.Web3Provider>();
   const { splice } = useSplice();
+  const [buzy, setBuzy] = useState<boolean>(false);
 
   const [splices, setSplices] = useState<MySplice[]>([]);
   const toast = useToast();
 
   const fetchAssets = async () => {
     if (!splice || !account) return;
-
+    setBuzy(true);
     const _spl = await splice.getAllSplices(account);
-
     setSplices(_spl);
+    setBuzy(false);
   };
 
   useEffect(() => {
@@ -94,10 +95,13 @@ export const MySplicesPage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      {splices.length === 0 && (
+      {!buzy && splices.length === 0 && (
         <Alert status="info">
           You don't have any Splices on chain {chainId}
         </Alert>
+      )}
+      {buzy && (
+        <Alert status="info">We're loading your splices, standby.</Alert>
       )}
       <VStack gridGap={10}>
         {splices.map((spliceResult) => (

@@ -18,6 +18,7 @@
   "dependencies": {
     "@splicenft/common": "workspace:*",
     "axios": "^0.21.4",
+    "chalk": "^4.1.2",
     "cors": "^2.8.5",
     "dotenv-flow": "^3.2.0",
     "ethers": "^5.4.7",

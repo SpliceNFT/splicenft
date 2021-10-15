@@ -74,14 +74,8 @@ export const NFTPage = () => {
       if (res === null) return;
 
       setMintJob(res);
-      const metadata = await splice.fetchMetadata(res.job);
-
       setRandomness(res.job.randomness);
-      const imageUrl = resolveImage(metadata);
 
-      setDataUrl(imageUrl);
-      setSpliceMetadata(metadata);
-      console.log(res.job.status);
       switch (res.job.status) {
         case 0:
           setMintingState(MintingState.MINTING_REQUESTED);
@@ -95,6 +89,14 @@ export const NFTPage = () => {
         case 3:
           setMintingState(MintingState.FAILED);
       }
+
+      const metadata = await splice.fetchMetadata(res.job);
+      setSpliceMetadata(metadata);
+
+      const imageUrl = resolveImage(metadata);
+      setDataUrl(imageUrl);
+
+      console.log('job status', res.job.status);
     })();
   }, [collection, tokenId, splice]);
 

@@ -2,6 +2,7 @@ require('dotenv-flow').config();
 
 const express = require('express');
 const cors = require('cors');
+const chalk = require('chalk');
 const Render = require('./lib/render');
 const Validate = require('./lib/validate');
 const {
@@ -25,6 +26,7 @@ const GRAYSCALE_COLORS = [
   [220, 220, 220],
   [250, 250, 250]
 ];
+
 app.get('/render/:algo', (req, res) => {
   const renderer = Renderers[req.params.algo];
   if (!renderer) return res.status(404).send('algorithm not found');
@@ -68,10 +70,11 @@ app.get('/validate/:network/:mintjob', async (req, res) => {
     case 31337:
       network = 'http://localhost:8545';
   }
+
   console.log(
-    'starting validation for splice job %s on chain %s',
+    chalk.blue.bold('starting validation for splice job %s on chain %s'),
     mintJobId,
-    networkId
+    network
   );
 
   const { provider, signer } = getProvider(network, {
@@ -84,6 +87,7 @@ app.get('/validate/:network/:mintjob', async (req, res) => {
   const splice = Splice.from(spliceAddress, signer);
   await Validate(mintJobId, splice, (err, result) => {
     if (err) {
+      console.log(chalk.red.bold(err));
       return res.status(400).send({
         error: err
       });
