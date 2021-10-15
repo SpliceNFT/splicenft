@@ -1,6 +1,7 @@
 import {
   Alert,
   AlertTitle,
+  AlertDescription,
   Container,
   Flex,
   SimpleGrid,
@@ -58,7 +59,7 @@ export const MyAssetsPage = () => {
       {loading ? (
         'loading'
       ) : nfts.length === 0 ? (
-        <Alert status="info">
+        <Alert status="info" overflow="visible">
           <Flex
             align="center"
             direction="row"
@@ -68,7 +69,9 @@ export const MyAssetsPage = () => {
             <AlertTitle>
               it seems you don't have any assets on chain {chainId}{' '}
             </AlertTitle>
-            {chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
+            <AlertDescription>
+              {chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
+            </AlertDescription>
           </Flex>
         </Alert>
       ) : (
