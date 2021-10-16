@@ -1,4 +1,4 @@
-import { Button, Flex, HStack, useToast } from '@chakra-ui/react';
+import { Button, Flex, HStack, useToast, Text } from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
@@ -65,30 +65,15 @@ export const NFTPage = () => {
     if (!collection || !tokenId || !splice) return;
     setRandomness(Splice.computeRandomnessLocally(collection, tokenId));
 
-    (async () => {
-      const _all = await splice.isCollectionAllowed(collection);
-      setIsCollectionAllowed(_all);
-    })();
+    splice.isCollectionAllowed(collection).then(setIsCollectionAllowed);
+
     (async () => {
       const res = await splice.findJobFor(collection, tokenId);
       if (res === null) return;
 
       setMintJob(res);
       setRandomness(res.job.randomness);
-
-      switch (res.job.status) {
-        case 0:
-          setMintingState(MintingState.MINTING_REQUESTED);
-          break;
-        case 1:
-          setMintingState(MintingState.MINTING_ALLOWED);
-          break;
-        case 2:
-          setMintingState(MintingState.MINTED);
-          break;
-        case 3:
-          setMintingState(MintingState.FAILED);
-      }
+      setMintingState(Splice.translateJobStatus(res.job));
 
       const metadata = await splice.fetchMetadata(res.job);
       setSpliceMetadata(metadata);
@@ -236,15 +221,16 @@ export const NFTPage = () => {
       {nftImageUrl && (
         <CreativePanel
           nftImageUrl={nftImageUrl}
-          dominantColors={dominantColors}
+          rendererName={selectedRenderer}
+          nftExtractedProps={{
+            randomness,
+            dominantColors
+          }}
           setP5Canvas={(canvas: p5Types) => {
             setP5Canvas(canvas);
             setMintingState(MintingState.GENERATED);
           }}
-          rendererName={selectedRenderer}
-          randomness={randomness}
           spliceDataUrl={dataUrl}
-          mintingState={mintingState}
         />
       )}
 
@@ -259,9 +245,7 @@ export const NFTPage = () => {
         <NFTDescription nft={nft} />
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
-          {mintJob && (
-            <MintJobState mintJob={mintJob} mintingState={mintingState} />
-          )}
+          {mintJob && <MintJobState mintJob={mintJob} />}
 
           <DominantColors
             imageUrl={nftImageUrl}
@@ -281,7 +265,7 @@ export const NFTPage = () => {
             />
           )}
 
-          {mintingState < MintingState.GENERATING && dominantColors && (
+          {mintingState < MintingState.GENERATED && dominantColors && (
             <ArtworkStyleChooser
               disabled={dominantColors.length == 0}
               selectedRenderer={selectedRenderer}

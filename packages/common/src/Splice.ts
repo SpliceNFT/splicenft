@@ -24,7 +24,6 @@ export const SPLICE_ADDRESSES: Record<number, string> = {
 
 export enum MintingState {
   UNKNOWN,
-  NOT_MINTED,
   GENERATING,
   GENERATED,
   SAVED,
@@ -192,6 +191,21 @@ export class Splice {
     return tokens;
   }
 
+  /**
+   * since the status enum on chain doesn't contain all states
+   * of our MintingState enum, we must translate it here:
+   * @param job
+   */
+  public static translateJobStatus(job: MintJob) {
+    return (
+      {
+        0: MintingState.MINTING_REQUESTED,
+        1: MintingState.MINTING_ALLOWED,
+        2: MintingState.MINTED,
+        3: MintingState.FAILED
+      }[job.status] || MintingState.UNKNOWN
+    );
+  }
   public async listenForJobResults(jobId: number) {
     this.contract.on(this.contract.filters.JobResultArrived(), (jobResult) => {
       console.log(jobResult);

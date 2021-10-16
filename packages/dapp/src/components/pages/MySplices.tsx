@@ -74,7 +74,13 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
         )}
         <Box width="100%" height="100%">
           <Circle size="120px" bottom="10px" position="absolute" left="10px">
-            {origin?.imageUrl && <FallbackImage imgUrl={origin.imageUrl} />}
+            {origin?.imageUrl && (
+              <FallbackImage
+                imgUrl={origin.imageUrl}
+                rounded="full"
+                border="4px solid white"
+              />
+            )}
           </Circle>
         </Box>
       </Flex>

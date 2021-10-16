@@ -4,11 +4,11 @@ import {
   Center,
   Circle,
   Container,
+  Text,
   Flex,
   Image,
   Link
 } from '@chakra-ui/react';
-import { MintingState } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
 import p5Types from 'p5';
 import React from 'react';
@@ -34,22 +34,24 @@ export const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
 };
 
 const Preview = ({
-  dominantColors,
   nftImageUrl,
   spliceDataUrl,
-  randomness,
+  nftExtractedProps,
   rendererName,
-  setP5Canvas,
-  mintingState
+  setP5Canvas
 }: {
   dominantColors?: RGB[];
   nftImageUrl: string;
   spliceDataUrl?: string | undefined;
-  randomness: number;
+  nftExtractedProps: {
+    randomness: number;
+    dominantColors: RGB[];
+  };
   rendererName?: string;
   setP5Canvas?: (canvas: p5Types) => void;
-  mintingState: MintingState;
 }) => {
+  const { dominantColors, randomness } = nftExtractedProps;
+
   return (
     <Flex position="relative">
       <Center width="100%" height="100%">
@@ -78,59 +80,54 @@ const Preview = ({
           />
         </Circle>
       </Center>
-      {mintingState === MintingState.MINTED && (
-        <Box position="absolute" right="10px" bottom="10px">
-          <Button as={Link} href={spliceDataUrl} isExternal variant="black">
-            download
-          </Button>
-        </Box>
-      )}
     </Flex>
   );
 };
 
 export const CreativePanel = ({
   nftImageUrl,
-  dominantColors,
   setP5Canvas,
-  randomness,
+  nftExtractedProps,
   spliceDataUrl,
-  rendererName,
-  mintingState
+  rendererName
 }: {
   nftImageUrl: string;
-  dominantColors: RGB[];
   setP5Canvas: (canvas: p5Types) => void;
-  randomness: number;
+  nftExtractedProps: {
+    randomness: number;
+    dominantColors: RGB[];
+  };
   spliceDataUrl?: string;
   rendererName?: string;
-  mintingState: MintingState;
 }) => {
-  if (
-    mintingState >= MintingState.GENERATING &&
-    mintingState < MintingState.SAVED &&
-    rendererName
-  ) {
+  if (rendererName && !spliceDataUrl) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
-        dominantColors={dominantColors}
         setP5Canvas={setP5Canvas}
-        randomness={randomness}
+        nftExtractedProps={nftExtractedProps}
         rendererName={rendererName}
-        mintingState={mintingState}
       />
     );
-  } else if (mintingState >= MintingState.SAVED && spliceDataUrl) {
+  } else if (spliceDataUrl) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
         spliceDataUrl={spliceDataUrl}
-        randomness={randomness}
-        mintingState={mintingState}
+        nftExtractedProps={nftExtractedProps}
       />
     );
   } else {
     return <PlainImage imgUrl={nftImageUrl} />;
   }
 };
+
+/*
+ {mintingState === MintingState.MINTED && (
+        <Box position="absolute" right="10px" bottom="10px">
+          <Button as={Link} href={spliceDataUrl} isExternal variant="black">
+            download
+          </Button>
+        </Box>
+      )}
+      */

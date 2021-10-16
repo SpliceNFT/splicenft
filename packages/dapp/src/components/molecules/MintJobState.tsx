@@ -1,4 +1,4 @@
-import { MintingState, MintJob } from '@splicenft/common';
+import { MintingState, MintJob, Splice } from '@splicenft/common';
 import React from 'react';
 import {
   Alert,
@@ -8,15 +8,15 @@ import {
 } from '@chakra-ui/react';
 
 export const MintJobState = ({
-  mintJob,
-  mintingState
+  mintJob
 }: {
   mintJob: {
     jobId: number;
     job: MintJob;
   };
-  mintingState: MintingState;
 }) => {
+  const mintingState = Splice.translateJobStatus(mintJob.job);
+
   switch (mintingState) {
     case MintingState.MINTING_REQUESTED:
       return (
