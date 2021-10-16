@@ -14,17 +14,17 @@ import {
   ipfsGW,
   NFTItem,
   resolveImage,
-  SpliceNFT,
-  Splice
+  Splice,
+  SpliceNFT
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useSplice } from '../../context/SpliceContext';
-import { DominantColorsDisplay } from '../molecules/DominantColors';
-import SplicePFPLogo from '../../img/SpliceLogoPFP.png';
+import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
+import { DominantColorsDisplay } from '../molecules/DominantColors';
 
 type MySplice = {
   tokenId: number;
@@ -74,14 +74,7 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
         )}
         <Box width="100%" height="100%">
           <Circle size="120px" bottom="10px" position="absolute" left="10px">
-            {origin?.imageUrl && (
-              <Image
-                src={origin.imageUrl}
-                placeholder={SplicePFPLogo}
-                rounded="full"
-                border="4px solid white"
-              />
-            )}
+            {origin?.imageUrl && <FallbackImage imgUrl={origin.imageUrl} />}
           </Circle>
         </Box>
       </Flex>

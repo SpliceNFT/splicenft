@@ -1,12 +1,4 @@
-import {
-  Flex,
-  Heading,
-  Image,
-  LinkBox,
-  LinkOverlay,
-  Spacer,
-  Text
-} from '@chakra-ui/react';
+import { Flex, Heading, LinkOverlay, Spacer, Text } from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
@@ -17,6 +9,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { truncateAddress } from '../../modules/strings';
+import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItem }) => {
@@ -83,15 +76,7 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   return (
     <SpliceCard direction="column">
       <Flex maxH={80}>
-        <Image
-          src={imgUrl}
-          title={imgUrl}
-          boxSize="fit-content"
-          objectFit="cover"
-          alt={imgUrl}
-          fallbackSrc="https://via.placeholder.com/800"
-          /*opacity={buzy ? 0.2 : 1}*/
-        />
+        <FallbackImage imgUrl={imgUrl} />
       </Flex>
 
       <LinkOverlay
