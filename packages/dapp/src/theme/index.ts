@@ -3,6 +3,10 @@ import { extendTheme } from '@chakra-ui/react';
 import Button from './Button';
 
 export default extendTheme({
+  fonts: {
+    heading: 'Barlow',
+    body: 'Barlow'
+  },
   initialColorMode: 'light',
   useSystemColorMode: true,
   styles: {
@@ -13,10 +17,6 @@ export default extendTheme({
     }
   },
   colors: {},
-  fonts: {
-    // body: 'Roboto',
-    // heading: 'Roboto'
-  },
   components: {
     Button,
     Input: {

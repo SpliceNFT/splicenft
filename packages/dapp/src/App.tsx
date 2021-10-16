@@ -11,6 +11,7 @@ import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
+import '@fontsource/barlow';
 
 function getLibrary(provider: any) {
   return new providers.Web3Provider(provider);

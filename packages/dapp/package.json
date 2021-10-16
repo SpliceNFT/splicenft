@@ -7,6 +7,7 @@
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
     "@ethersproject/providers": "^5.4.5",
+    "@fontsource/barlow": "^4.5.0",
     "@splicenft/common": "workspace:*",
     "@types/p5": "0.9.1",
     "@web3-react/core": "^6.1.9",
