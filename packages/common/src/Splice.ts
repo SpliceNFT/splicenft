@@ -1,21 +1,20 @@
 import {
-  utils,
-  BigNumber,
-  Contract,
-  Signer,
-  constants,
-  ethers,
-  providers
-} from 'ethers';
-import { abi as SpliceABI } from './abi/Splice.json';
-import {
   MintRequestedEvent,
   Splice as SpliceContract,
   TransferEvent
 } from '@splicenft/contracts';
-import { SpliceNFT } from './types/SpliceMetadata';
 import axios from 'axios';
-import { ipfsGW, NFTMetaData } from '.';
+import {
+  BigNumber,
+  constants,
+  Contract,
+  ethers,
+  providers,
+  Signer,
+  utils
+} from 'ethers';
+import { NFTMetaData } from '.';
+import { abi as SpliceABI } from './abi/Splice.json';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
   //4: '0x0',
@@ -168,9 +167,10 @@ export class Splice {
     return receipt;
   }
 
+  //todo: this also could be provided by an API or NFTPort
   public async getAllSplices(
     address: string
-  ): Promise<{ tokenId: number; metadata: SpliceNFT }[]> {
+  ): Promise<{ tokenId: number; metadataUrl: string }[]> {
     const balance = await this.contract.balanceOf(address);
 
     if (balance.isZero()) return [];
@@ -183,12 +183,8 @@ export class Splice {
             BigNumber.from(i)
           );
           const metadataUrl = await this.contract.tokenURI(tokenId);
-          const metadata = await (
-            await axios.get(ipfsGW(metadataUrl), {
-              responseType: 'json'
-            })
-          ).data;
-          return { tokenId: tokenId.toNumber(), metadata };
+
+          return { tokenId: tokenId.toNumber(), metadataUrl };
         })()
       );
     }

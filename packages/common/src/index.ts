@@ -1,7 +1,7 @@
 export * from './Splice';
 export * from './renderers';
 export * from './types/NFT';
-export * from './types/SpliceMetadata';
+export * from './types/SpliceNFT';
 
 export { default as getProvider } from './provider';
 export { resolveImage, ipfsGW } from './img';

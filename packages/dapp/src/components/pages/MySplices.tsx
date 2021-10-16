@@ -10,51 +10,93 @@ import {
   useToast,
   VStack
 } from '@chakra-ui/react';
-import { NFTItem, resolveImage, SpliceNFT } from '@splicenft/common';
+import { ipfsGW, NFTItem, resolveImage, SpliceNFT } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
+import axios from 'axios';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useSplice } from '../../context/SpliceContext';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
+import SplicePFPLogo from '../../img/SpliceLogoPFP.png';
 
 type MySplice = {
   tokenId: number;
-  metadata: SpliceNFT;
+  metadataUrl: string; //SpliceNFT;
 };
 
-const SpliceArtwork = ({ metadata }: { metadata: SpliceNFT }) => {
+const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
   const { indexer } = useSplice();
   const [origin, setOrigin] =
     useState<{ nftItem: NFTItem; imageUrl: string }>();
+  const [metadata, setMetadata] = useState<SpliceNFT>();
+
   useEffect(() => {
     if (!indexer) return;
     (async () => {
+      const metadata = await (
+        await axios.get(ipfsGW(splice.metadataUrl), {
+          responseType: 'json'
+        })
+      ).data;
+      setMetadata(metadata);
+    })();
+  }, [indexer]);
+
+  useEffect(() => {
+    if (!indexer || !metadata) return;
+    (async () => {
       const { origin_collection, origin_token_id } = metadata.properties;
+      console.log('triggered ', indexer, metadata);
       const nftItem = await indexer.getAssetMetadata(
         origin_collection,
         origin_token_id
       );
+      console.log(nftItem);
       setOrigin({
         nftItem,
         imageUrl: nftItem.metadata ? resolveImage(nftItem.metadata) : ''
       });
     })();
-  }, [indexer]);
-  return (
-    <Flex position="relative">
-      <Image src={resolveImage(metadata)} />
+  }, [indexer, metadata]);
 
-      {origin?.imageUrl && (
+  return (
+    <Flex>
+      <Flex w="75%" position="relative">
+        {metadata ? (
+          <Image src={resolveImage(metadata)} />
+        ) : (
+          <Box bg="grey.200" />
+        )}
         <Box position="absolute" width="100%" height="100%">
-          <Circle size="150px" bottom="-10%" position="absolute" left="10px">
-            <Image
-              src={origin.imageUrl}
-              rounded="full"
-              border="4px solid white"
-            />
+          <Circle size="120px" bottom="-30px" position="absolute" left="20px">
+            {origin?.imageUrl && (
+              <Image
+                src={origin.imageUrl}
+                placeholder={SplicePFPLogo}
+                rounded="full"
+                border="4px solid white"
+              />
+            )}
           </Circle>
         </Box>
-      )}
+      </Flex>
+      <Flex p={3} direction="column" gridGap={3}>
+        {metadata ? (
+          <>
+            <Heading size="sm">{metadata.name}</Heading>
+            <Text>
+              <b>Randomness</b> {metadata.properties.randomness}
+            </Text>
+            <Text>
+              <b>Style</b> {metadata.properties.style}
+            </Text>
+            <Text fontWeight="bold">Colors</Text>
+            <DominantColorsDisplay colors={metadata.properties.colors} />
+          </>
+        ) : (
+          <Text>not metadata yet</Text>
+        )}
+      </Flex>
     </Flex>
   );
 };
@@ -111,24 +153,7 @@ export const MySplicesPage = () => {
             direction="row"
             key={`splice-${spliceResult.tokenId}`}
           >
-            <Flex w="75%">
-              <SpliceArtwork metadata={spliceResult.metadata} />
-            </Flex>
-            <Flex p={3} direction="column" gridGap={3}>
-              <Heading size="sm">{spliceResult.metadata.name}</Heading>
-              <Text>
-                <b>Randomness</b> {spliceResult.metadata.properties.randomness}
-              </Text>
-              <Text>
-                <b>Style</b> {spliceResult.metadata.properties.style}
-              </Text>
-              <Flex gridGap={2} align="center">
-                <b>Colors</b>
-                <DominantColorsDisplay
-                  colors={spliceResult.metadata.properties.colors}
-                />
-              </Flex>
-            </Flex>
+            <SpliceArtwork splice={spliceResult} />
           </Flex>
         ))}
       </VStack>

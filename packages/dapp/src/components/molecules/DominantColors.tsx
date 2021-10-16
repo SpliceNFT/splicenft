@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
 
 export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
-  <Flex direction="row" w="100%" justify="space-between" height="40px">
+  <Flex direction="row" w="100%" align="center" height="10px" gridGap={1}>
     {colors.map((color) => {
       const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
       return (
