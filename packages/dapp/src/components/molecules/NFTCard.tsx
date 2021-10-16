@@ -17,6 +17,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { truncateAddress } from '../../modules/strings';
+import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   if (!nft.metadata) return <></>;
@@ -80,20 +81,7 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   }, [splice]);
 
   return (
-    <LinkBox
-      as={Flex}
-      rounded="lg"
-      minH="80"
-      direction="column"
-      overflow="hidden"
-      _hover={{
-        transform: 'translate(0, -3px)',
-        boxShadow: 'rgba(0, 0, 0, 0.05) 0px 10px 20px 10px'
-      }}
-      style={{ transition: 'all ease .3s' }}
-      boxShadow="rgba(0, 0, 0, 0.05) 0px 10px 20px 0px"
-      justify="space-between"
-    >
+    <SpliceCard direction="column">
       <Flex maxH={80}>
         <Image
           src={imgUrl}
@@ -137,6 +125,6 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
         </Flex>
         <Spacer />
       </Flex>
-    </LinkBox>
+    </SpliceCard>
   );
 };

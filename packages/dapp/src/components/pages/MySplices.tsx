@@ -10,7 +10,13 @@ import {
   useToast,
   VStack
 } from '@chakra-ui/react';
-import { ipfsGW, NFTItem, resolveImage, SpliceNFT } from '@splicenft/common';
+import {
+  ipfsGW,
+  NFTItem,
+  resolveImage,
+  SpliceNFT,
+  Splice
+} from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
 import { providers } from 'ethers';
@@ -18,6 +24,7 @@ import React, { useEffect, useState } from 'react';
 import { useSplice } from '../../context/SpliceContext';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import SplicePFPLogo from '../../img/SpliceLogoPFP.png';
+import { SpliceCard } from '../atoms/SpliceCard';
 
 type MySplice = {
   tokenId: number;
@@ -46,12 +53,10 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
     if (!indexer || !metadata) return;
     (async () => {
       const { origin_collection, origin_token_id } = metadata.properties;
-      console.log('triggered ', indexer, metadata);
       const nftItem = await indexer.getAssetMetadata(
         origin_collection,
         origin_token_id
       );
-      console.log(nftItem);
       setOrigin({
         nftItem,
         imageUrl: nftItem.metadata ? resolveImage(nftItem.metadata) : ''
@@ -60,15 +65,15 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
   }, [indexer, metadata]);
 
   return (
-    <Flex>
-      <Flex w="75%" position="relative">
+    <SpliceCard direction="row">
+      <Flex w="75%" position="relative" bg="transparent">
         {metadata ? (
           <Image src={resolveImage(metadata)} />
         ) : (
           <Box bg="grey.200" />
         )}
-        <Box position="absolute" width="100%" height="100%">
-          <Circle size="120px" bottom="-30px" position="absolute" left="20px">
+        <Box width="100%" height="100%">
+          <Circle size="120px" bottom="10px" position="absolute" left="10px">
             {origin?.imageUrl && (
               <Image
                 src={origin.imageUrl}
@@ -97,7 +102,7 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
           <Text>not metadata yet</Text>
         )}
       </Flex>
-    </Flex>
+    </SpliceCard>
   );
 };
 
@@ -109,8 +114,7 @@ export const MySplicesPage = () => {
   const [splices, setSplices] = useState<MySplice[]>([]);
   const toast = useToast();
 
-  const fetchAssets = async () => {
-    if (!splice || !account) return;
+  const fetchAssets = async (splice: Splice, account: string) => {
     setBuzy(true);
     const _spl = await splice.getAllSplices(account);
     setSplices(_spl);
@@ -121,7 +125,7 @@ export const MySplicesPage = () => {
     if (!account || !splice) return;
     (async () => {
       try {
-        await fetchAssets();
+        await fetchAssets(splice, account);
         toast({
           status: 'success',
           title: 'fetched all splices'
