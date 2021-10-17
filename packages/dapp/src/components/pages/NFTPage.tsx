@@ -12,8 +12,8 @@ import axios from 'axios';
 import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import { NFTStorage } from 'nft.storage';
-import p5Types from 'p5';
-import React, { useEffect, useState } from 'react';
+import { P5Instance } from 'react-p5-wrapper';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { SpliceToken } from '../../types/SpliceToken';
@@ -39,7 +39,7 @@ export const NFTPage = () => {
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
-  const [p5Canvas, setP5Canvas] = useState<p5Types>();
+  const [p5Canvas, setP5Canvas] = useState<P5Instance>();
   const [selectedRenderer, setSelectedRenderer] = useState<string>();
 
   const [creativePng, setCreativePng] = useState<Blob>();
@@ -107,6 +107,12 @@ export const NFTPage = () => {
     );
     setDataUrl(canvas.toDataURL('image/png'));
     setMintingState(MintingState.SAVED);
+  };
+
+  const onCanvasCreated = (canvas: P5Instance) => {
+    //console.log('OCC');
+    setP5Canvas(canvas);
+    //setMintingState(MintingState.GENERATED);
   };
 
   const persistArtwork = async (blob: Blob) => {
@@ -226,10 +232,7 @@ export const NFTPage = () => {
             randomness,
             dominantColors
           }}
-          setP5Canvas={(canvas: p5Types) => {
-            setP5Canvas(canvas);
-            setMintingState(MintingState.GENERATED);
-          }}
+          onCanvasCreated={onCanvasCreated}
           spliceDataUrl={dataUrl}
         />
       )}

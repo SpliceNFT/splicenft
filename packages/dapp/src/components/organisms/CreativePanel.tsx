@@ -10,7 +10,7 @@ import {
   Link
 } from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
-import p5Types from 'p5';
+import { P5Instance } from 'react-p5-wrapper';
 import React from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 
@@ -38,7 +38,7 @@ const Preview = ({
   spliceDataUrl,
   nftExtractedProps,
   rendererName,
-  setP5Canvas
+  onCanvasCreated
 }: {
   dominantColors?: RGB[];
   nftImageUrl: string;
@@ -48,19 +48,19 @@ const Preview = ({
     dominantColors: RGB[];
   };
   rendererName?: string;
-  setP5Canvas?: (canvas: p5Types) => void;
+  onCanvasCreated?: (canvas: P5Instance) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
 
   return (
     <Flex position="relative">
       <Center width="100%" height="100%">
-        {dominantColors && setP5Canvas && !spliceDataUrl && rendererName ? (
+        {dominantColors && onCanvasCreated && !spliceDataUrl && rendererName ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
-            onCanvasCreated={setP5Canvas}
+            onCanvasCreated={onCanvasCreated}
             rendererName={rendererName}
           />
         ) : (
@@ -86,13 +86,13 @@ const Preview = ({
 
 export const CreativePanel = ({
   nftImageUrl,
-  setP5Canvas,
+  onCanvasCreated,
   nftExtractedProps,
   spliceDataUrl,
   rendererName
 }: {
   nftImageUrl: string;
-  setP5Canvas: (canvas: p5Types) => void;
+  onCanvasCreated: (canvas: P5Instance) => void;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
@@ -104,7 +104,7 @@ export const CreativePanel = ({
     return (
       <Preview
         nftImageUrl={nftImageUrl}
-        setP5Canvas={setP5Canvas}
+        onCanvasCreated={onCanvasCreated}
         nftExtractedProps={nftExtractedProps}
         rendererName={rendererName}
       />
