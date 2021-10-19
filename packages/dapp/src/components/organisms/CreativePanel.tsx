@@ -42,7 +42,13 @@ const Preview = ({
   const { dominantColors, randomness } = nftExtractedProps;
 
   return (
-    <Flex position="relative">
+    <Flex
+      position="relative"
+      minHeight="20vw"
+      borderBottomWidth="1px"
+      borderBottomStyle="solid"
+      borderBottomColor="gray.200"
+    >
       <Center width="100%" height="100%">
         {dominantColors && onSketched && !spliceDataUrl && rendererName ? (
           <P5Sketch

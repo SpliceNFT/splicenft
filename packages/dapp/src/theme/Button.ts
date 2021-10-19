@@ -1,15 +1,22 @@
 const Button = {
   baseStyle: {
-    rounded: 'lg',
-    color: 'white',
-    bg: 'black',
+    rounded: 'full',
+
     py: '1.5em',
     _hover: {
       transform: 'translateY(-2px)',
-      boxShadow: 'xl'
+      boxShadow: 'lg'
     }
   },
   variants: {
+    black: {
+      color: 'white',
+      bg: 'black'
+    },
+    white: {
+      color: 'black',
+      bg: 'white'
+    },
     outline: {
       border: '2px solid'
     },

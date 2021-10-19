@@ -1,4 +1,4 @@
-import { Button, Flex, HStack, useToast, Text } from '@chakra-ui/react';
+import { Button, Container, Flex, HStack, useToast } from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
@@ -12,8 +12,7 @@ import axios from 'axios';
 import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import { NFTStorage } from 'nft.storage';
-import { P5Instance } from 'react-p5-wrapper';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { SpliceToken } from '../../types/SpliceToken';
@@ -207,24 +206,40 @@ export const NFTPage = () => {
   };
 
   return (
-    <Flex direction="column">
+    <Container maxW="container.xl">
       {nftImageUrl && (
-        <CreativePanel
-          nftImageUrl={nftImageUrl}
-          rendererName={selectedRenderer}
-          nftExtractedProps={{
-            randomness,
-            dominantColors
-          }}
-          onSketched={onSketched}
-          spliceDataUrl={sketch?.dataUrl}
-        />
+        <Flex position="relative" justify="center">
+          <CreativePanel
+            nftImageUrl={nftImageUrl}
+            rendererName={selectedRenderer}
+            nftExtractedProps={{
+              randomness,
+              dominantColors
+            }}
+            onSketched={onSketched}
+            spliceDataUrl={sketch?.dataUrl}
+          />
+          {mintingState < MintingState.GENERATED && dominantColors && (
+            <Flex position="absolute" right="1.5em" bottom="-1.5em">
+              <ArtworkStyleChooser
+                disabled={dominantColors.length == 0}
+                selectedRenderer={selectedRenderer}
+                onRendererChanged={(name) => {
+                  setSelectedRenderer(name);
+                  setSketch(undefined);
+                  setMintingState(MintingState.GENERATING);
+                }}
+              />
+            </Flex>
+          )}
+        </Flex>
       )}
 
       <HStack
         background="white"
         minH="100vh"
         p={5}
+        pt={10}
         justify="space-between"
         align="flex-start"
         gridGap={10}
@@ -249,18 +264,6 @@ export const NFTPage = () => {
               randomness={randomness}
               spliceToken={spliceToken}
               spliceMetadata={spliceMetadata}
-            />
-          )}
-
-          {mintingState < MintingState.GENERATED && dominantColors && (
-            <ArtworkStyleChooser
-              disabled={dominantColors.length == 0}
-              selectedRenderer={selectedRenderer}
-              onRendererChanged={(name) => {
-                setSelectedRenderer(name);
-                setSketch(undefined);
-                setMintingState(MintingState.GENERATING);
-              }}
             />
           )}
 
@@ -297,17 +300,20 @@ export const NFTPage = () => {
               request to mint
             </Button>
           )}
-          {splice && mintJob && mintingState == MintingState.MINTING_REQUESTED && (
-            <Button
-              onClick={() => executeValidator(splice, mintJob.jobId)}
-              disabled={buzy}
-              variant="black"
-              isLoading={buzy}
-              loadingText="waiting for validation"
-            >
-              request validation
-            </Button>
-          )}
+
+          {/*splice &&
+              mintJob &&
+              mintingState === MintingState.MINTING_REQUESTED && (
+              <Button
+                onClick={() => executeValidator(splice, mintJob.jobId)}
+                isLoading={buzy}
+                disabled={buzy}
+                variant="black"
+                loadingText="waiting for validation"
+              >
+                  request validation
+              </Button>
+              )*/}
           {mintJob && mintingState == MintingState.MINTING_ALLOWED && (
             <Button
               onClick={() => startMinting(mintJob.jobId)}
@@ -320,6 +326,6 @@ export const NFTPage = () => {
           )}
         </Flex>
       </HStack>
-    </Flex>
+    </Container>
   );
 };
