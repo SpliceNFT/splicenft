@@ -1,16 +1,5 @@
-import {
-  Box,
-  Button,
-  Center,
-  Circle,
-  Container,
-  Text,
-  Flex,
-  Image,
-  Link
-} from '@chakra-ui/react';
+import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
-import { P5Instance } from 'react-p5-wrapper';
 import React from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 
@@ -38,7 +27,7 @@ const Preview = ({
   spliceDataUrl,
   nftExtractedProps,
   rendererName,
-  onCanvasCreated
+  onSketched
 }: {
   dominantColors?: RGB[];
   nftImageUrl: string;
@@ -48,19 +37,19 @@ const Preview = ({
     dominantColors: RGB[];
   };
   rendererName?: string;
-  onCanvasCreated?: (canvas: P5Instance) => void;
+  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
 
   return (
     <Flex position="relative">
       <Center width="100%" height="100%">
-        {dominantColors && onCanvasCreated && !spliceDataUrl && rendererName ? (
+        {dominantColors && onSketched && !spliceDataUrl && rendererName ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
-            onCanvasCreated={onCanvasCreated}
+            onSketched={onSketched}
             rendererName={rendererName}
           />
         ) : (
@@ -86,13 +75,13 @@ const Preview = ({
 
 export const CreativePanel = ({
   nftImageUrl,
-  onCanvasCreated,
+  onSketched,
   nftExtractedProps,
   spliceDataUrl,
   rendererName
 }: {
   nftImageUrl: string;
-  onCanvasCreated: (canvas: P5Instance) => void;
+  onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
@@ -104,7 +93,7 @@ export const CreativePanel = ({
     return (
       <Preview
         nftImageUrl={nftImageUrl}
-        onCanvasCreated={onCanvasCreated}
+        onSketched={onSketched}
         nftExtractedProps={nftExtractedProps}
         rendererName={rendererName}
       />

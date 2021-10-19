@@ -39,15 +39,14 @@ export const NFTPage = () => {
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
-  const [p5Canvas, setP5Canvas] = useState<P5Instance>();
   const [selectedRenderer, setSelectedRenderer] = useState<string>();
-
-  const [creativePng, setCreativePng] = useState<Blob>();
 
   const [spliceToken, setSpliceToken] = useState<SpliceToken>();
   const [spliceMetadata, setSpliceMetadata] = useState<NFTMetaData>();
-  //image data url (confusing ;) )
-  const [dataUrl, setDataUrl] = useState<string>();
+
+  const [creativePng, setCreativePng] = useState<Blob>();
+  const [sketch, setSketch] = useState<{ dataUrl: string; blob?: Blob }>();
+
   const [randomness, setRandomness] = useState<number>(0);
 
   const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
@@ -78,8 +77,9 @@ export const NFTPage = () => {
       const metadata = await splice.fetchMetadata(res.job);
       setSpliceMetadata(metadata);
 
-      const imageUrl = resolveImage(metadata);
-      setDataUrl(imageUrl);
+      setSketch({
+        dataUrl: resolveImage(metadata)
+      });
 
       console.log('job status', res.job.status);
     })();
@@ -94,24 +94,8 @@ export const NFTPage = () => {
     })();
   }, [indexer]);
 
-  const save = async () => {
-    //todo this is very likely not the best idea, but... it sort of works
-    const canvas = (p5Canvas as any).canvas as HTMLCanvasElement;
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        setCreativePng(blob);
-      },
-      'image/png',
-      100
-    );
-    setDataUrl(canvas.toDataURL('image/png'));
-    setMintingState(MintingState.SAVED);
-  };
-
-  const onCanvasCreated = (canvas: P5Instance) => {
-    //console.log('OCC');
-    setP5Canvas(canvas);
+  const onSketched = (sketch: { dataUrl: string; blob?: Blob }) => {
+    setSketch(sketch);
     //setMintingState(MintingState.GENERATED);
   };
 
@@ -232,8 +216,8 @@ export const NFTPage = () => {
             randomness,
             dominantColors
           }}
-          onCanvasCreated={onCanvasCreated}
-          spliceDataUrl={dataUrl}
+          onSketched={onSketched}
+          spliceDataUrl={sketch?.dataUrl}
         />
       )}
 
@@ -274,16 +258,17 @@ export const NFTPage = () => {
               selectedRenderer={selectedRenderer}
               onRendererChanged={(name) => {
                 setSelectedRenderer(name);
+                setSketch(undefined);
                 setMintingState(MintingState.GENERATING);
               }}
             />
           )}
 
-          {mintingState == MintingState.GENERATED && isCollectionAllowed && (
+          {/*mintingState == MintingState.GENERATED && isCollectionAllowed && (
             <Button onClick={save} variant="black">
               save
             </Button>
-          )}
+          )*/}
 
           {mintingState == MintingState.SAVED && creativePng && (
             <Button
