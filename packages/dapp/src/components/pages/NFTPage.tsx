@@ -4,6 +4,7 @@ import {
   Link,
   Flex,
   HStack,
+  Text,
   useToast,
   Divider
 } from '@chakra-ui/react';
@@ -162,8 +163,6 @@ export const NFTPage = () => {
         cid,
         account
       );
-      console.log('job created', jobId);
-      //setMintJobId(jobId);
       const mintJob = await splice.getMintJob(jobId);
       if (!mintJob) {
         console.error('this job should exist', jobId);
@@ -192,15 +191,18 @@ export const NFTPage = () => {
       const validatorBaseUrl = process.env
         .REACT_APP_VALIDATOR_BASEURL as string;
       const url = `${validatorBaseUrl}/${chainId}/${jobId}`;
-      const res: { valid: boolean } = await axios.get(url, {
-        responseType: 'json'
-      });
-      console.log(res);
+      const res: { valid: boolean; txHash: string; bytes32: string } = (
+        await axios.get(url, {
+          responseType: 'json'
+        })
+      ).data;
+
       if (res.valid === true) {
         const mintJob = await splice.getMintJob(jobId);
         if (mintJob) {
           console.log(mintJob);
           setMintJob({ jobId, job: mintJob });
+          //TODO listen to chain events.
           if (mintJob.status == 1) {
             setMintingState(MintingState.MINTING_ALLOWED);
           }
@@ -219,12 +221,20 @@ export const NFTPage = () => {
   };
 
   const startMinting = async (jobId: number) => {
-    const spliceNftId = await splice?.mint(jobId);
-    toast({
-      status: 'success',
-      title: `Hooray, Splice #${spliceNftId} is yours now!`
-    });
-    setMintingState(MintingState.MINTED);
+    try {
+      const spliceNftId = await splice?.mint(jobId);
+      setMintingState(MintingState.MINTED);
+      toast({
+        status: 'success',
+        title: `Hooray, Splice #${spliceNftId} is yours now!`
+      });
+    } catch (e: any) {
+      console.error(e);
+      toast({
+        status: 'error',
+        title: e.message || `Minting went wrong :()`
+      });
+    }
   };
 
   return (
@@ -245,7 +255,7 @@ export const NFTPage = () => {
           <Flex position="absolute" right="1.5em" bottom="-1.5em">
             {mintingState < MintingState.PERSISTED && dominantColors && (
               <ArtworkStyleChooser
-                disabled={dominantColors.length == 0}
+                disabled={dominantColors.length == 0 || buzy}
                 selectedRenderer={selectedRenderer}
                 onRendererChanged={(name) => {
                   setSelectedRenderer(name);
@@ -255,7 +265,12 @@ export const NFTPage = () => {
             )}
 
             {mintingState === MintingState.MINTED && (
-              <Button as={Link} href="/download" isExternal variant="black">
+              <Button
+                as={Link}
+                href={sketch?.dataUrl}
+                isExternal
+                variant="white"
+              >
                 download
               </Button>
             )}
@@ -303,34 +318,51 @@ export const NFTPage = () => {
           )}
 
           {mintingState == MintingState.GENERATED && sketch?.blob && (
-            <Button
-              disabled={!sketch.blob || buzy}
-              onClick={() => {
-                if (sketch.blob) persistArtwork(sketch.blob);
-              }}
-              variant="black"
-              isLoading={buzy}
-              loadingText="persisting on IPFS"
-            >
-              persist on IPFS
-            </Button>
+            <Flex direction="column" align="center">
+              <Button
+                width="full"
+                disabled={!sketch.blob || buzy || !isCollectionAllowed}
+                onClick={() => {
+                  if (sketch.blob) persistArtwork(sketch.blob);
+                }}
+                variant="black"
+                isLoading={buzy}
+                loadingText="persisting on IPFS"
+              >
+                persist on IPFS
+              </Button>
+              {!isCollectionAllowed && (
+                <Text color="red.500">
+                  minting NFTs of this collection is not allowed right now
+                </Text>
+              )}
+            </Flex>
           )}
 
           {mintingState == MintingState.PERSISTED && spliceMetadataCID && (
-            <Button
-              onClick={() =>
-                requestMint({
-                  collection,
-                  tokenId,
-                  cid: spliceMetadataCID
-                })
-              }
-              variant="black"
-              isLoading={buzy}
-              loadingText="creating mint job"
-            >
-              request to mint
-            </Button>
+            <Flex align="center" direction="column">
+              <Button
+                width="full"
+                onClick={() =>
+                  requestMint({
+                    collection,
+                    tokenId,
+                    cid: spliceMetadataCID
+                  })
+                }
+                variant="black"
+                disabled={!isCollectionAllowed}
+                isLoading={buzy}
+                loadingText="creating mint job"
+              >
+                request to mint
+              </Button>
+              {!isCollectionAllowed && (
+                <Text color="red.500">
+                  minting NFTs of this collection is not allowed right now
+                </Text>
+              )}
+            </Flex>
           )}
 
           {mintingState === MintingState.MINTING_REQUESTED && (

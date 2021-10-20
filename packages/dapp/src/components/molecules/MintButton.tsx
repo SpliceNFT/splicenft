@@ -1,4 +1,11 @@
-import { Button, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
+import {
+  Button,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  useToast
+} from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
@@ -61,7 +68,7 @@ export const MintButton = ({
 }) => {
   const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
   const [mintableNFTs, setMintableNFTs] = useState<string[]>([]);
-
+  const toast = useToast();
   useEffect(() => {
     if (!chainId) return;
     setMintableNFTs(knownCollections[CHAINS[chainId]]);
@@ -69,17 +76,24 @@ export const MintButton = ({
 
   const mintTestnetNFT = async (collection: string) => {
     if (!library) return;
-    const signer = library?.getSigner();
-    const contract = new Contract(collection, MintingABI, signer);
-    const tx = await contract.mint(account);
-    const receipt = await tx.wait();
+    try {
+      const signer = library?.getSigner();
+      const contract = new Contract(collection, MintingABI, signer);
+      const tx = await contract.mint(account);
+      const receipt = await tx.wait();
 
-    //todo use typechain here
-    // console.log(transferEvent);
-    // const tokenId = transferEvent.tokenId;
-    const tokenId: BigNumber = await receipt.events[0].args['tokenId'];
+      //todo use typechain here
+      // console.log(transferEvent);
+      // const tokenId = transferEvent.tokenId;
+      const tokenId: BigNumber = await receipt.events[0].args['tokenId'];
 
-    onMinted(collection, `${tokenId.toNumber()}`);
+      onMinted(collection, `${tokenId.toNumber()}`);
+    } catch (e: any) {
+      toast({
+        status: 'error',
+        title: e.message || 'minting failed'
+      });
+    }
   };
 
   return (
