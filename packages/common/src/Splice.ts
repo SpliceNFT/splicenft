@@ -13,7 +13,7 @@ import {
   Signer,
   utils
 } from 'ethers';
-import { NFTMetaData } from '.';
+import { ipfsGW, NFTMetaData, resolveImage } from '.';
 import { abi as SpliceABI } from './abi/Splice.json';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
@@ -24,10 +24,8 @@ export const SPLICE_ADDRESSES: Record<number, string> = {
 
 export enum MintingState {
   UNKNOWN,
-  GENERATING,
   GENERATED,
-  SAVED,
-  SAVED_IPFS,
+  PERSISTED,
   MINTING_REQUESTED,
   MINTING_ALLOWED,
   MINTED,
@@ -149,10 +147,13 @@ export class Splice {
     return mintJob;
   }
 
+  public getMetadataUrl(job: MintJob) {
+    return `ipfs://${job.metadataCID}/metadata.json`;
+  }
   public async fetchMetadata(job: MintJob): Promise<NFTMetaData> {
     //todo: get directly from ipfs
-    const metadataUrl = `https://ipfs.io/ipfs/${job.metadataCID}/metadata.json`;
-    const _metadata = await axios.get(metadataUrl);
+    const url = ipfsGW(this.getMetadataUrl(job));
+    const _metadata = await axios.get(url);
     const metadata = (await _metadata.data) as NFTMetaData;
     return metadata;
   }

@@ -9,3 +9,5 @@ data
 !.env.sample
 
 !.vscode/settings.json
+
+.todo

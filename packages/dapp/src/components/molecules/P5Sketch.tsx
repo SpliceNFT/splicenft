@@ -22,7 +22,6 @@ export const P5Sketch = (props: {
     };
 
     p5.updateWithProps = (props) => {
-      console.log(props);
       if (props.rendererName) {
         renderer = Renderers[rendererName];
       }
