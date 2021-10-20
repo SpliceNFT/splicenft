@@ -1,6 +1,6 @@
-import { Flex, SkeletonText, Skeleton } from '@chakra-ui/react';
+import { Flex, Skeleton } from '@chakra-ui/react';
 import palette, { RGB } from 'get-rgba-palette';
-import ImageToColors from 'image-to-colors';
+import ImageToColors, { Color } from 'image-to-colors';
 import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
 
@@ -26,10 +26,21 @@ export const DominantColors = ({
   setDominantColors: (c: RGB[]) => void;
 }) => {
   const extractColors = async (imgUrl: string) => {
-    const _pixels = await ImageToColors.getFromExternalSource(imgUrl, {
-      setImageCrossOriginToAnonymous: true
-    });
-    const flatPixels = _pixels.flatMap((p) => [...p, 255]);
+    let pixels: Color[] = [];
+    try {
+      pixels = await ImageToColors.getFromExternalSource(imgUrl, {
+        setImageCrossOriginToAnonymous: true
+      });
+    } catch (e: any) {
+      pixels = await ImageToColors.getFromExternalSource(
+        `${process.env.REACT_APP_CORS_PROXY}?url=${imgUrl}`,
+        {
+          setImageCrossOriginToAnonymous: true
+        }
+      );
+    }
+    if (!pixels) return;
+    const flatPixels = pixels.flatMap((p) => [...p, 255]);
 
     const colors = palette(flatPixels, 10);
 
