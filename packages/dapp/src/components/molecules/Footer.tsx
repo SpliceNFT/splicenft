@@ -26,31 +26,36 @@ export const Footer = () => {
           <Image src={spliceWhite} />
         </Flex>
         <Flex align="center" direction="column" width="50%">
-          <Text>
-            Made with ⧫ during{'  '}{' '}
-            <Link
-              href="https://showcase.ethglobal.com/ethonline2021/splice"
-              isExternal
-            >
-              EthOnline21
-            </Link>{' '}
-            by
-          </Text>
-          <Flex gridGap={2}>
-            <Link href="https://twitter.com/stadolf" isExternal>
-              @stadolf
-            </Link>
-            <Link href="https://twitter.com/emilyaweil" isExternal>
-              @emilyaweil
-            </Link>
-            <Link href="https://twitter.com/TimothyCDB" isExternal>
-              @TimothyCDB
-            </Link>
+          <Flex direction="column" align="center" mb={1}>
+            <Text fontSize="xl">
+              Started at{' '}
+              <Link
+                href="https://showcase.ethglobal.com/ethonline2021/splice"
+                isExternal
+              >
+                EthOnline21
+              </Link>{' '}
+              by
+            </Text>
+            <Flex gridGap={2} fontSize="lg">
+              <Link href="https://twitter.com/stadolf" isExternal>
+                @stadolf
+              </Link>
+              <Link href="https://twitter.com/emilyaweil" isExternal>
+                @emilyaweil
+              </Link>
+              <Link href="https://twitter.com/TimothyCDB" isExternal>
+                @TimothyCDB
+              </Link>
+            </Flex>
+          </Flex>
+          <Flex fontSize="sm">
+            Honorable Mentions:{' '}
             <Link href="https://twitter.com/BiggyTava" isExternal>
               @BiggyTava
             </Link>
           </Flex>
-          <Flex gridGap={8} mt={3}>
+          <Flex gridGap={8} mt={10} align="flex-end" justify="space-between">
             <Link
               href="https://github.com/cod1ng-earth/splicenft"
               isExternal
@@ -64,8 +69,7 @@ export const Footer = () => {
               fontStyle="bold"
             >
               <Flex direction="row" align="center" gridGap={2}>
-                <Icon as={FaTwitter} boxSize="6" />
-                <Text>@splicenft</Text>
+                <Icon as={FaTwitter} boxSize="6" title="@splicenft" />
               </Flex>
             </Link>
             <Link
