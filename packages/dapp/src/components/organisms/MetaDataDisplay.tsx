@@ -1,6 +1,6 @@
 import { Flex, Link, Text } from '@chakra-ui/react';
 import { ipfsGW, NFTItem, NFTMetaData } from '@splicenft/common';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const MetaDataItem = ({
   label,
@@ -58,21 +58,23 @@ export const SpliceMetadataDisplay = ({
 };
 
 export const MetaDataDisplay = ({
-  nft,
+  nftMetadata,
+  contractAddress,
+  tokenId,
   randomness
 }: {
-  nft: NFTItem;
+  nftMetadata: NFTMetaData;
   randomness: number;
+  contractAddress: string;
+  tokenId: string | number;
 }) => {
-  const { metadata } = nft;
-
   return (
     <Flex direction="column" gridGap={3}>
-      <MetaDataItem label="collection" value={nft.contract_address} />
-      <MetaDataItem label="token id" value={nft.token_id} />
+      <MetaDataItem label="collection" value={contractAddress} />
+      <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
 
-      {metadata?.attributes?.map((attr) => {
+      {nftMetadata.attributes?.map((attr) => {
         return (
           <MetaDataItem
             key={`attr-${attr.trait_type}`}

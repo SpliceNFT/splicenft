@@ -116,13 +116,3 @@ export const CreativePanel = ({
     return <PlainImage imgUrl={nftImageUrl} />;
   }
 };
-
-/*
- {mintingState === MintingState.MINTED && (
-        <Box position="absolute" right="10px" bottom="10px">
-          <Button as={Link} href={spliceDataUrl} isExternal variant="black">
-            download
-          </Button>
-        </Box>
-      )}
-      */

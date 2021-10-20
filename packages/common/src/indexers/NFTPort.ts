@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ChainOpt } from '../types/Chains';
-import { NFTItem } from '../types/NFT';
+import { NFTItem, NFTMetaData } from '../types/NFT';
 import { NFTIndexer } from '../types/NFTIndexer';
 
 type NftPortAccountResponse = {
@@ -55,7 +55,7 @@ export class NFTPort implements NFTIndexer {
   public async getAssetMetadata(
     collection: string,
     tokenId: string
-  ): Promise<NFTItem> {
+  ): Promise<NFTMetaData | null> {
     const url = `${BASE_URI}/nfts/${collection}/${tokenId}`;
     const _resp = await axios.get<NftPortNftMetadataResponse>(url, {
       params: {
@@ -65,7 +65,7 @@ export class NFTPort implements NFTIndexer {
         Authorization: this.nftPortAuth
       }
     });
-    return _resp.data.nft;
+    return _resp.data.nft.metadata;
   }
 }
 

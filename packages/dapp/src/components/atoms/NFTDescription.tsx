@@ -1,19 +1,20 @@
-import { NFTItem } from '@splicenft/common';
+import { NFTMetaData } from '@splicenft/common';
 import React from 'react';
 import { Flex, Heading, Text, Skeleton } from '@chakra-ui/react';
-export const NFTDescription = ({ nft }: { nft?: NFTItem }) => {
+
+export const NFTDescription = ({
+  nftMetadata
+}: {
+  nftMetadata: NFTMetaData;
+}) => {
   return (
     <Flex direction="column" maxW="50%">
-      {nft ? (
-        <>
-          <Heading size="xl" mb={7}>
-            {nft.name}
-          </Heading>
-          <Text>{nft.metadata?.description}</Text>
-        </>
-      ) : (
-        <Skeleton height="20px" />
-      )}
+      <>
+        <Heading size="xl" mb={7}>
+          {nftMetadata.name}
+        </Heading>
+        <Text>{nftMetadata.description}</Text>
+      </>
     </Flex>
   );
 };

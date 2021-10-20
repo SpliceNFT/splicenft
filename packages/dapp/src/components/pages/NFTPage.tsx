@@ -1,6 +1,7 @@
 import {
   Button,
   Container,
+  Link,
   Flex,
   HStack,
   useToast,
@@ -44,7 +45,7 @@ export const NFTPage = () => {
 
   const [isCollectionAllowed, setIsCollectionAllowed] =
     useState<boolean>(false);
-  const [nft, setNFT] = useState<NFTItem>();
+  const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
@@ -81,10 +82,10 @@ export const NFTPage = () => {
       setMintJob(res);
       setRandomness(res.job.randomness);
       setMintingState(Splice.translateJobStatus(res.job));
-      //const metadataUrl = splice.getMetadataUrl(res.job);
       const metadata = await splice.fetchMetadata(res.job);
+      metadata.external_url = splice.getMetadataUrl(res.job);
       setSpliceMetadata(metadata);
-
+      setSpliceMetadataCID(res.job.metadataCID);
       setSketch({
         dataUrl: resolveImage(metadata)
       });
@@ -96,9 +97,11 @@ export const NFTPage = () => {
   useEffect(() => {
     if (!indexer) return;
     (async () => {
-      const _nft = await indexer.getAssetMetadata(collection, tokenId);
-      setNFT(_nft);
-      if (_nft.metadata) setNFTImageUrl(resolveImage(_nft.metadata));
+      const _nftMetadata = await indexer.getAssetMetadata(collection, tokenId);
+      if (_nftMetadata) {
+        setNFTMetadata(_nftMetadata);
+        setNFTImageUrl(resolveImage(_nftMetadata));
+      }
     })();
   }, [indexer]);
 
@@ -238,8 +241,9 @@ export const NFTPage = () => {
             onSketched={onSketched}
             spliceDataUrl={sketch?.dataUrl}
           />
-          {mintingState < MintingState.PERSISTED && dominantColors && (
-            <Flex position="absolute" right="1.5em" bottom="-1.5em">
+
+          <Flex position="absolute" right="1.5em" bottom="-1.5em">
+            {mintingState < MintingState.PERSISTED && dominantColors && (
               <ArtworkStyleChooser
                 disabled={dominantColors.length == 0}
                 selectedRenderer={selectedRenderer}
@@ -248,8 +252,14 @@ export const NFTPage = () => {
                   setSketch(undefined);
                 }}
               />
-            </Flex>
-          )}
+            )}
+
+            {mintingState === MintingState.MINTED && (
+              <Button as={Link} href="/download" isExternal variant="black">
+                download
+              </Button>
+            )}
+          </Flex>
         </Flex>
       )}
 
@@ -262,7 +272,7 @@ export const NFTPage = () => {
         align="flex-start"
         gridGap={10}
       >
-        <NFTDescription nft={nft} />
+        {nftMetadata && <NFTDescription nftMetadata={nftMetadata} />}
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
           {mintJob && <MintJobState mintJob={mintJob} />}
@@ -273,7 +283,14 @@ export const NFTPage = () => {
             setDominantColors={setDominantColors}
           />
 
-          {nft && <MetaDataDisplay nft={nft} randomness={randomness} />}
+          {nftMetadata && (
+            <MetaDataDisplay
+              contractAddress={collection}
+              tokenId={tokenId}
+              nftMetadata={nftMetadata}
+              randomness={randomness}
+            />
+          )}
 
           {spliceMetadata && (
             <>
@@ -287,7 +304,7 @@ export const NFTPage = () => {
 
           {mintingState == MintingState.GENERATED && sketch?.blob && (
             <Button
-              disabled={!sketch.blob}
+              disabled={!sketch.blob || buzy}
               onClick={() => {
                 if (sketch.blob) persistArtwork(sketch.blob);
               }}

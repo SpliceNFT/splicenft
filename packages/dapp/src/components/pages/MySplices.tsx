@@ -7,12 +7,13 @@ import {
   Heading,
   Image,
   Text,
+  Skeleton,
   useToast,
   VStack
 } from '@chakra-ui/react';
 import {
   ipfsGW,
-  NFTItem,
+  NFTMetaData,
   resolveImage,
   Splice,
   SpliceNFT
@@ -34,7 +35,7 @@ type MySplice = {
 const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
   const { indexer } = useSplice();
   const [origin, setOrigin] =
-    useState<{ nftItem: NFTItem; imageUrl: string }>();
+    useState<{ nftMetadata: NFTMetaData; imageUrl: string }>();
   const [metadata, setMetadata] = useState<SpliceNFT>();
 
   useEffect(() => {
@@ -53,14 +54,16 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
     if (!indexer || !metadata) return;
     (async () => {
       const { origin_collection, origin_token_id } = metadata.properties;
-      const nftItem = await indexer.getAssetMetadata(
+      const nftMetadata = await indexer.getAssetMetadata(
         origin_collection,
         origin_token_id
       );
-      setOrigin({
-        nftItem,
-        imageUrl: nftItem.metadata ? resolveImage(nftItem.metadata) : ''
-      });
+      if (nftMetadata) {
+        setOrigin({
+          nftMetadata,
+          imageUrl: resolveImage(nftMetadata)
+        });
+      }
     })();
   }, [indexer, metadata]);
 
@@ -98,7 +101,7 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
             <DominantColorsDisplay colors={metadata.properties.colors} />
           </>
         ) : (
-          <Text>not metadata yet</Text>
+          <Skeleton h="20px">no metadata yet</Skeleton>
         )}
       </Flex>
     </SpliceCard>

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
+import { ipfsGW } from '..';
 import { ChainOpt } from '../types/Chains';
 
 import { NFTItem, NFTMetaData } from '../types/NFT';
@@ -179,26 +180,23 @@ export class OnChain implements NFTIndexer {
       promises.push(
         (async () => {
           const tokenId = await contract.tokenOfOwnerByIndex(ownerAddress, i);
-          try {
-            return await this._getAssetMetadata(contract, tokenId);
-          } catch (e) {
-            console.log(`failed loading asset ${collection}/${tokenId}`);
-            return null;
-          }
+          const metaData = this._getAssetMetadata(contract, tokenId);
+          return {
+            contract_address: contract.address,
+            token_id: tokenId,
+            metadata: metaData
+          };
         })()
       );
     }
     return await Promise.all(promises);
   }
 
-  private async _getAssetMetadata(
+  public async _getAssetMetadata(
     c: ethers.Contract,
     tokenId: string
-  ): Promise<MetadataResponse> {
-    let tokenUrl: string = await c.tokenURI(tokenId);
-    if (tokenUrl.startsWith('ipfs://')) {
-      tokenUrl = tokenUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
-    }
+  ): Promise<NFTMetaData> {
+    const tokenUrl: string = ipfsGW(await c.tokenURI(tokenId));
 
     let metaData: NFTMetaData;
 
@@ -221,21 +219,13 @@ export class OnChain implements NFTIndexer {
         metaData = res.data;
       }
     }
-
-    return {
-      name: metaData.name,
-      description: metaData.description,
-      contract_address: c.address,
-      token_id: tokenId,
-      asset_url: tokenUrl,
-      metadata: metaData
-    };
+    return metaData;
   }
 
   public async getAssetMetadata(
     collection: string,
     tokenId: string
-  ): Promise<NFTItem> {
+  ): Promise<NFTMetaData> {
     const contract =
       this.collections[collection] ||
       new ethers.Contract(collection, ERC721ABI, this.provider);
