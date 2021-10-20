@@ -23,7 +23,7 @@ export type NFTMetaData = {
 export type NFTItem = {
   contract_address: string;
   token_id: string;
-  name: string;
-  description: string;
-  metadata: null | NFTMetaData;
+  metadata: null | NFTMetaData | Promise<NFTMetaData | null>;
+  name?: string;
+  description?: string;
 };

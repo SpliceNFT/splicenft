@@ -1,4 +1,13 @@
-import { Button, Flex, HStack, useToast, Text } from '@chakra-ui/react';
+import {
+  Button,
+  Container,
+  Link,
+  Flex,
+  HStack,
+  Text,
+  useToast,
+  Divider
+} from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
@@ -12,17 +21,19 @@ import axios from 'axios';
 import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import { NFTStorage } from 'nft.storage';
-import p5Types from 'p5';
+import { CIDString } from 'nft.storage/dist/src/lib/interface';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
-import { SpliceToken } from '../../types/SpliceToken';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
 import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';
-import { MetaDataDisplay } from '../organisms/MetaDataDisplay';
+import {
+  MetaDataDisplay,
+  SpliceMetadataDisplay
+} from '../organisms/MetaDataDisplay';
 
 export const NFTPage = () => {
   const { collection, token_id: tokenId } =
@@ -35,25 +46,23 @@ export const NFTPage = () => {
 
   const [isCollectionAllowed, setIsCollectionAllowed] =
     useState<boolean>(false);
-  const [nft, setNFT] = useState<NFTItem>();
+  const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
-  const [p5Canvas, setP5Canvas] = useState<p5Types>();
-  const [selectedRenderer, setSelectedRenderer] = useState<string>();
-
-  const [creativePng, setCreativePng] = useState<Blob>();
-
-  const [spliceToken, setSpliceToken] = useState<SpliceToken>();
-  const [spliceMetadata, setSpliceMetadata] = useState<NFTMetaData>();
-  //image data url (confusing ;) )
-  const [dataUrl, setDataUrl] = useState<string>();
   const [randomness, setRandomness] = useState<number>(0);
 
+  const [selectedRenderer, setSelectedRenderer] = useState<string>();
+
   const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
+  const [spliceMetadata, setSpliceMetadata] = useState<NFTMetaData>();
+  const [spliceMetadataCID, setSpliceMetadataCID] = useState<CIDString>();
+
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
   );
+
+  const [sketch, setSketch] = useState<{ dataUrl: string; blob?: Blob }>();
   const [buzy, setBuzy] = useState<boolean>(false);
 
   const nftStorageClient = new NFTStorage({
@@ -74,12 +83,13 @@ export const NFTPage = () => {
       setMintJob(res);
       setRandomness(res.job.randomness);
       setMintingState(Splice.translateJobStatus(res.job));
-
       const metadata = await splice.fetchMetadata(res.job);
+      metadata.external_url = splice.getMetadataUrl(res.job);
       setSpliceMetadata(metadata);
-
-      const imageUrl = resolveImage(metadata);
-      setDataUrl(imageUrl);
+      setSpliceMetadataCID(res.job.metadataCID);
+      setSketch({
+        dataUrl: resolveImage(metadata)
+      });
 
       console.log('job status', res.job.status);
     })();
@@ -88,34 +98,25 @@ export const NFTPage = () => {
   useEffect(() => {
     if (!indexer) return;
     (async () => {
-      const _nft = await indexer.getAssetMetadata(collection, tokenId);
-      setNFT(_nft);
-      if (_nft.metadata) setNFTImageUrl(resolveImage(_nft.metadata));
+      const _nftMetadata = await indexer.getAssetMetadata(collection, tokenId);
+      if (_nftMetadata) {
+        setNFTMetadata(_nftMetadata);
+        setNFTImageUrl(resolveImage(_nftMetadata));
+      }
     })();
   }, [indexer]);
 
-  const save = async () => {
-    //todo this is very likely not the best idea, but... it sort of works
-    const canvas = (p5Canvas as any).canvas as HTMLCanvasElement;
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        setCreativePng(blob);
-      },
-      'image/png',
-      100
-    );
-    setDataUrl(canvas.toDataURL('image/png'));
-    setMintingState(MintingState.SAVED);
+  const onSketched = (sketch: { dataUrl: string; blob?: Blob }) => {
+    setSketch(sketch);
+    setMintingState(MintingState.GENERATED);
   };
 
   const persistArtwork = async (blob: Blob) => {
     setBuzy(true);
     try {
-      const spliceToken = await nftStorageClient.store({
+      const spliceMetadata = {
         name: `Splice from ${collection}/${tokenId}`,
         description: `This Splice has been generated from ${collection}/${tokenId}`,
-        image: blob,
         properties: {
           origin_collection: collection,
           origin_token_id: tokenId,
@@ -123,9 +124,18 @@ export const NFTPage = () => {
           colors: dominantColors,
           style: selectedRenderer
         }
+      };
+      const spliceToken = await nftStorageClient.store({
+        ...spliceMetadata,
+        image: blob
       });
-      setSpliceToken(spliceToken);
-      setMintingState(MintingState.SAVED_IPFS);
+      setSpliceMetadataCID(spliceToken.ipnft);
+      setSpliceMetadata({
+        ...spliceMetadata,
+        external_url: spliceToken.url.toString(),
+        image: spliceToken.url.toString()
+      });
+      setMintingState(MintingState.PERSISTED);
     } catch (e) {
       toast({
         status: 'error',
@@ -153,8 +163,6 @@ export const NFTPage = () => {
         cid,
         account
       );
-      console.log('job created', jobId);
-      //setMintJobId(jobId);
       const mintJob = await splice.getMintJob(jobId);
       if (!mintJob) {
         console.error('this job should exist', jobId);
@@ -173,23 +181,28 @@ export const NFTPage = () => {
     setBuzy(false);
   };
 
-  const executeValidator = async (splice: Splice, jobId: number) => {
+  const executeValidator = async () => {
     setBuzy(true);
-    splice.listenForJobResults(jobId);
 
     try {
+      if (!splice || !mintJob) throw 'no splice instance or mintjob';
+      const jobId = mintJob.jobId;
+      splice.listenForJobResults(jobId);
       const validatorBaseUrl = process.env
         .REACT_APP_VALIDATOR_BASEURL as string;
       const url = `${validatorBaseUrl}/${chainId}/${jobId}`;
-      const res: { valid: boolean } = await axios.get(url, {
-        responseType: 'json'
-      });
-      console.log(res);
+      const res: { valid: boolean; txHash: string; bytes32: string } = (
+        await axios.get(url, {
+          responseType: 'json'
+        })
+      ).data;
+
       if (res.valid === true) {
         const mintJob = await splice.getMintJob(jobId);
         if (mintJob) {
           console.log(mintJob);
           setMintJob({ jobId, job: mintJob });
+          //TODO listen to chain events.
           if (mintJob.status == 1) {
             setMintingState(MintingState.MINTING_ALLOWED);
           }
@@ -208,41 +221,73 @@ export const NFTPage = () => {
   };
 
   const startMinting = async (jobId: number) => {
-    const spliceNftId = await splice?.mint(jobId);
-    toast({
-      status: 'success',
-      title: `Hooray, Splice #${spliceNftId} is yours now!`
-    });
-    setMintingState(MintingState.MINTED);
+    try {
+      const spliceNftId = await splice?.mint(jobId);
+      setMintingState(MintingState.MINTED);
+      toast({
+        status: 'success',
+        title: `Hooray, Splice #${spliceNftId} is yours now!`
+      });
+    } catch (e: any) {
+      console.error(e);
+      toast({
+        status: 'error',
+        title: e.message || `Minting went wrong :()`
+      });
+    }
   };
 
   return (
-    <Flex direction="column">
+    <Container maxW="container.xl">
       {nftImageUrl && (
-        <CreativePanel
-          nftImageUrl={nftImageUrl}
-          rendererName={selectedRenderer}
-          nftExtractedProps={{
-            randomness,
-            dominantColors
-          }}
-          setP5Canvas={(canvas: p5Types) => {
-            setP5Canvas(canvas);
-            setMintingState(MintingState.GENERATED);
-          }}
-          spliceDataUrl={dataUrl}
-        />
+        <Flex position="relative" justify="center">
+          <CreativePanel
+            nftImageUrl={nftImageUrl}
+            rendererName={selectedRenderer}
+            nftExtractedProps={{
+              randomness,
+              dominantColors
+            }}
+            onSketched={onSketched}
+            spliceDataUrl={sketch?.dataUrl}
+          />
+
+          <Flex position="absolute" right="1.5em" bottom="-1.5em">
+            {mintingState < MintingState.PERSISTED && dominantColors && (
+              <ArtworkStyleChooser
+                disabled={dominantColors.length == 0 || buzy}
+                selectedRenderer={selectedRenderer}
+                onRendererChanged={(name) => {
+                  setSelectedRenderer(name);
+                  setSketch(undefined);
+                }}
+              />
+            )}
+
+            {mintingState === MintingState.MINTED && (
+              <Button
+                as={Link}
+                href={sketch?.dataUrl}
+                isExternal
+                variant="white"
+              >
+                download
+              </Button>
+            )}
+          </Flex>
+        </Flex>
       )}
 
       <HStack
         background="white"
         minH="100vh"
         p={5}
+        pt={10}
         justify="space-between"
         align="flex-start"
         gridGap={10}
       >
-        <NFTDescription nft={nft} />
+        {nftMetadata && <NFTDescription nftMetadata={nftMetadata} />}
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
           {mintJob && <MintJobState mintJob={mintJob} />}
@@ -253,68 +298,79 @@ export const NFTPage = () => {
             setDominantColors={setDominantColors}
           />
 
-          {nft && (
+          {nftMetadata && (
             <MetaDataDisplay
-              nft={nft}
+              contractAddress={collection}
               tokenId={tokenId}
-              collection={collection}
-              isCollectionAllowed={isCollectionAllowed}
+              nftMetadata={nftMetadata}
               randomness={randomness}
-              spliceToken={spliceToken}
-              spliceMetadata={spliceMetadata}
             />
           )}
 
-          {mintingState < MintingState.GENERATED && dominantColors && (
-            <ArtworkStyleChooser
-              disabled={dominantColors.length == 0}
-              selectedRenderer={selectedRenderer}
-              onRendererChanged={(name) => {
-                setSelectedRenderer(name);
-                setMintingState(MintingState.GENERATING);
-              }}
-            />
+          {spliceMetadata && (
+            <>
+              <Divider />
+              <SpliceMetadataDisplay
+                spliceMetadataCID={spliceMetadataCID}
+                spliceMetadata={spliceMetadata}
+              />
+            </>
           )}
 
-          {mintingState == MintingState.GENERATED && isCollectionAllowed && (
-            <Button onClick={save} variant="black">
-              save
-            </Button>
+          {mintingState == MintingState.GENERATED && sketch?.blob && (
+            <Flex direction="column" align="center">
+              <Button
+                width="full"
+                disabled={!sketch.blob || buzy || !isCollectionAllowed}
+                onClick={() => {
+                  if (sketch.blob) persistArtwork(sketch.blob);
+                }}
+                variant="black"
+                isLoading={buzy}
+                loadingText="persisting on IPFS"
+              >
+                persist on IPFS
+              </Button>
+              {!isCollectionAllowed && (
+                <Text color="red.500">
+                  minting NFTs of this collection is not allowed right now
+                </Text>
+              )}
+            </Flex>
           )}
 
-          {mintingState == MintingState.SAVED && creativePng && (
+          {mintingState == MintingState.PERSISTED && spliceMetadataCID && (
+            <Flex align="center" direction="column">
+              <Button
+                width="full"
+                onClick={() =>
+                  requestMint({
+                    collection,
+                    tokenId,
+                    cid: spliceMetadataCID
+                  })
+                }
+                variant="black"
+                disabled={!isCollectionAllowed}
+                isLoading={buzy}
+                loadingText="creating mint job"
+              >
+                request to mint
+              </Button>
+              {!isCollectionAllowed && (
+                <Text color="red.500">
+                  minting NFTs of this collection is not allowed right now
+                </Text>
+              )}
+            </Flex>
+          )}
+
+          {mintingState === MintingState.MINTING_REQUESTED && (
             <Button
-              onClick={() => persistArtwork(creativePng)}
-              variant="black"
+              onClick={executeValidator}
               isLoading={buzy}
-              loadingText="persisting on IPFS"
-            >
-              persist on IPFS
-            </Button>
-          )}
-
-          {mintingState == MintingState.SAVED_IPFS && spliceToken && (
-            <Button
-              onClick={() =>
-                requestMint({
-                  collection,
-                  tokenId,
-                  cid: spliceToken.ipnft
-                })
-              }
-              variant="black"
-              isLoading={buzy}
-              loadingText="creating mint job"
-            >
-              request to mint
-            </Button>
-          )}
-          {splice && mintJob && mintingState == MintingState.MINTING_REQUESTED && (
-            <Button
-              onClick={() => executeValidator(splice, mintJob.jobId)}
               disabled={buzy}
               variant="black"
-              isLoading={buzy}
               loadingText="waiting for validation"
             >
               request validation
@@ -332,6 +388,6 @@ export const NFTPage = () => {
           )}
         </Flex>
       </HStack>
-    </Flex>
+    </Container>
   );
 };

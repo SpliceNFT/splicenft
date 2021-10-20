@@ -1,33 +1,53 @@
 import { Flex } from '@chakra-ui/react';
-import { RGB } from 'get-rgba-palette';
-import p5Types from 'p5';
-import React from 'react';
-import Sketch from 'react-p5';
 import { Renderers } from '@splicenft/common';
+import { RGB } from 'get-rgba-palette';
+import React from 'react';
+import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
   colors: RGB[];
   rendererName: string;
-  onCanvasCreated: (p5: p5Types) => void;
+  onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
 }) => {
-  const { dim, colors, onCanvasCreated, randomness, rendererName } = props;
+  const { dim, colors, onSketched, randomness, rendererName } = props;
 
-  const setup = (p5: p5Types, canvasParentRef: Element) => {
-    p5.createCanvas(dim.w, dim.h).parent(canvasParentRef);
-    p5.randomSeed(randomness);
-    onCanvasCreated(p5);
-  };
+  const sketch = (p5: P5Instance) => {
+    let renderer = Renderers[rendererName];
 
-  const draw = (p5: p5Types) => {
-    const renderer = Renderers[rendererName];
-    renderer({ p5, colors, dim });
+    p5.setup = () => {
+      p5.randomSeed(randomness);
+      p5.createCanvas(dim.w, dim.h, p5.P2D);
+    };
+
+    p5.updateWithProps = (props) => {
+      if (props.rendererName) {
+        renderer = Renderers[rendererName];
+      }
+    };
+    p5.draw = () => {
+      renderer({ p5, colors, dim });
+
+      const canvas = (p5 as any).canvas as HTMLCanvasElement;
+      const dataUrl = canvas.toDataURL('image/png');
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return;
+          onSketched({
+            blob,
+            dataUrl
+          });
+        },
+        'image/png',
+        100
+      );
+    };
   };
 
   return (
     <Flex direction="column">
-      <Sketch setup={setup} draw={draw} />
+      <ReactP5Wrapper sketch={sketch} rendererName={rendererName} />;
     </Flex>
   );
 };

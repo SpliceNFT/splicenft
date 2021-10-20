@@ -7,6 +7,11 @@ export default extendTheme({
     heading: 'Barlow',
     body: 'Barlow'
   },
+  sizes: {
+    container: {
+      xl: '1500px'
+    }
+  },
   initialColorMode: 'light',
   useSystemColorMode: true,
   styles: {

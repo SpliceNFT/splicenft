@@ -1,4 +1,4 @@
-import { Flex } from '@chakra-ui/react';
+import { Flex, SkeletonText, Skeleton } from '@chakra-ui/react';
 import palette, { RGB } from 'get-rgba-palette';
 import ImageToColors from 'image-to-colors';
 import React, { useEffect } from 'react';
@@ -44,6 +44,6 @@ export const DominantColors = ({
   return dominantColors.length > 0 ? (
     <DominantColorsDisplay colors={dominantColors} />
   ) : (
-    <></>
+    <Skeleton height="20px" />
   );
 };

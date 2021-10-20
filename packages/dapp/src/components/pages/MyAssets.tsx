@@ -47,8 +47,13 @@ export const MyAssetsPage = () => {
   }, [account, indexer]);
 
   const onNFTMinted = async (collection: string, tokenId: string) => {
-    if (!library) return;
-    const newItem = await indexer?.getAssetMetadata(collection, tokenId);
+    if (!library || !indexer) return;
+    const newMetadata = indexer.getAssetMetadata(collection, tokenId);
+    const newItem: NFTItem = {
+      contract_address: collection,
+      token_id: tokenId,
+      metadata: newMetadata
+    };
     if (newItem) {
       setNFTs([...nfts, newItem]);
     }
@@ -75,8 +80,8 @@ export const MyAssetsPage = () => {
           </Flex>
         </Alert>
       ) : (
-        <SimpleGrid columns={[1, 2, 3]} spacingX={5} spacingY="20px">
-          {nfts.map((nft) => (
+        <SimpleGrid columns={[1, 2, 4]} spacingX={5} spacingY="20px">
+          {nfts.map((nft: NFTItem) => (
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}
               nft={nft}

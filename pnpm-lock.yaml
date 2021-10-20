@@ -172,7 +172,7 @@ importers:
       react-dom: ^17.0.2
       react-helmet: ^6.1.0
       react-icons: ^4.3.1
-      react-p5: ^1.3.19
+      react-p5-wrapper: ^3.0.2
       react-router: ^5.2.1
       react-router-dom: ^5.3.0
       react-scripts: 4.0.3
@@ -204,7 +204,7 @@ importers:
       react-dom: 17.0.2_react@17.0.2
       react-helmet: 6.1.0_react@17.0.2
       react-icons: 4.3.1_react@17.0.2
-      react-p5: 1.3.19_react-dom@17.0.2+react@17.0.2
+      react-p5-wrapper: 3.0.2_react-dom@17.0.2+react@17.0.2
       react-router: 5.2.1_react@17.0.2
       react-router-dom: 5.3.0_react@17.0.2
       react-scripts: 4.0.3_react@17.0.2+typescript@4.4.3
@@ -8348,6 +8348,26 @@ packages:
       object-keys: 1.1.1
       regexp.prototype.flags: 1.3.1
 
+  /deep-equal/2.0.5:
+    resolution: {integrity: sha512-nPiRgmbAtm1a3JsnLCf6/SLfXcjyN5v8L1TXzdCmHrXJ4hx+gW/w1YCcn7z8gJtSiDArZCgYtbao3QqLm/N1Sw==}
+    dependencies:
+      call-bind: 1.0.2
+      es-get-iterator: 1.1.2
+      get-intrinsic: 1.1.1
+      is-arguments: 1.1.1
+      is-date-object: 1.0.5
+      is-regex: 1.1.4
+      isarray: 2.0.5
+      object-is: 1.1.5
+      object-keys: 1.1.1
+      object.assign: 4.1.2
+      regexp.prototype.flags: 1.3.1
+      side-channel: 1.0.4
+      which-boxed-primitive: 1.0.2
+      which-collection: 1.0.1
+      which-typed-array: 1.1.7
+    dev: false
+
   /deep-extend/0.6.0:
     resolution: {integrity: sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==}
     engines: {node: '>=4.0.0'}
@@ -8971,6 +8991,19 @@ packages:
       string.prototype.trimend: 1.0.4
       string.prototype.trimstart: 1.0.4
       unbox-primitive: 1.0.1
+
+  /es-get-iterator/1.1.2:
+    resolution: {integrity: sha512-+DTO8GYwbMCwbywjimwZMHp8AuYXOS2JZFWoi2AlPOS3ebnII9w/NLpNZtA7A0YLaVDw+O7KFCeoIV7OPvM7hQ==}
+    dependencies:
+      call-bind: 1.0.2
+      get-intrinsic: 1.1.1
+      has-symbols: 1.0.2
+      is-arguments: 1.1.1
+      is-map: 2.0.2
+      is-set: 2.0.2
+      is-string: 1.0.7
+      isarray: 2.0.5
+    dev: false
 
   /es-to-primitive/1.2.1:
     resolution: {integrity: sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==}
@@ -12223,6 +12256,10 @@ packages:
     resolution: {integrity: sha512-DhWU/kqY7X2F6KrrVTu7mHlbd2Pbo4D1YkAzasBMjQs6lJAoefxaA6m6CpSX0K6pjt9D0b9PNFI5zduy/vzOYw==}
     dev: false
 
+  /is-map/2.0.2:
+    resolution: {integrity: sha512-cOZFQQozTha1f4MxLFzlgKYPTyj26picdZTx82hbc/Xf4K/tZOOXSCkMvU4pKioRXGDLJRn0GM7Upe7kR721yg==}
+    dev: false
+
   /is-module/1.0.0:
     resolution: {integrity: sha1-Mlj7afeMFNW4FdZkM2tM/7ZEFZE=}
     dev: false
@@ -12336,6 +12373,10 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
+  /is-set/2.0.2:
+    resolution: {integrity: sha512-+2cnTEZeY5z/iXGbLhPrOAaK/Mau5k5eXq9j14CpRTftq0pAJu2MwVRSZhyZWBzx3o6X795Lz6Bpb6R0GKf37g==}
+    dev: false
+
   /is-stream/1.1.0:
     resolution: {integrity: sha1-EtSj3U5o4Lec6428hBc66A2RykQ=}
     engines: {node: '>=0.10.0'}
@@ -12390,6 +12431,14 @@ packages:
   /is-utf8/0.2.1:
     resolution: {integrity: sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=}
     dev: true
+
+  /is-weakmap/2.0.1:
+    resolution: {integrity: sha512-NSBR4kH5oVj1Uwvv970ruUkCV7O1mzgVFO4/rev2cLRda9Tm9HrL70ZPut4rOHgY0FNrUu9BCbXA2sdQ+x0chA==}
+    dev: false
+
+  /is-weakset/2.0.1:
+    resolution: {integrity: sha512-pi4vhbhVHGLxohUw7PhGsueT4vRGFoXhP7+RGN0jKIv9+8PWYCQTqtADngrxOm2g46hoH0+g8uZZBzMrvVGDmw==}
+    dev: false
 
   /is-windows/1.0.2:
     resolution: {integrity: sha512-eXK1UInq2bPmjyX6e3VHIzMLobc4J94i4AWn+Hpq3OU5KkrRC96OAcR3PRJ/pGu6m8TRnBHP9dkXQVsT/COVIA==}
@@ -15598,11 +15647,6 @@ packages:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  /opencollective-postinstall/2.0.2:
-    resolution: {integrity: sha512-pVOEP16TrAO2/fjej1IdOyupJY8KDUM1CvsaScRbw6oddvpQoOfGk4ywha0HKKVAD6RkW4x6Q+tNBwhf3Bgpuw==}
-    hasBin: true
-    dev: false
-
   /opn/5.5.0:
     resolution: {integrity: sha512-PqHpggC9bLV0VeWcdKhkpxY+3JTzetLSqTCWL/z/tFIbI6G8JCjondXklT1JinczLz2Xib62sSp0T/gKT4KksA==}
     engines: {node: '>=4'}
@@ -15854,6 +15898,10 @@ packages:
 
   /p5/1.1.9:
     resolution: {integrity: sha512-gU+UBEAXLGt3RQFzTtsKijF+eBidweIqRrg51AniuLG8LKHzylrB5ilIOzyDgcR1/hWt6danWPArjaVtXHWfWg==}
+    dev: false
+
+  /p5/1.4.0:
+    resolution: {integrity: sha512-U888W2ChcIzPhRhnv4FkNhaa4f5BDIWZfLhzvx9ZrQ5KtkZr/+o1UPIicV3yWTRy0HEG23NviHyDR3kgjaJ9wA==}
     dev: false
 
   /p5js-node/1.3.4:
@@ -17437,16 +17485,15 @@ packages:
       p-defer: 3.0.0
     dev: false
 
-  /react-p5/1.3.19_react-dom@17.0.2+react@17.0.2:
-    resolution: {integrity: sha512-jA/xmFOHiy6pIjlwMVu3hfcD9brB9pbfl5BSF0SCiruye6xjzv4jkcmTUKP0lgiTdcdEgu2CpAI7VFH05eaFJg==}
-    requiresBuild: true
+  /react-p5-wrapper/3.0.2_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-EZHNsZ1q9vV9qrAGfoOgwsfzP8ufxFtTfNgQnc4i2UT0f7u/xnH8inT3WjLFs+uAA+9ji/Fd+2KpnWMv10w8Vw==}
     peerDependencies:
-      react: '>= 17.0.1'
-      react-dom: '>= 17.0.1'
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
     dependencies:
-      '@types/p5': 0.9.1
-      opencollective-postinstall: 2.0.2
-      p5: 1.1.9
+      '@types/p5': 1.3.1
+      deep-equal: 2.0.5
+      p5: 1.4.0
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: false
@@ -21016,6 +21063,15 @@ packages:
       is-number-object: 1.0.6
       is-string: 1.0.7
       is-symbol: 1.0.4
+
+  /which-collection/1.0.1:
+    resolution: {integrity: sha512-W8xeTUwaln8i3K/cY1nGXzdnVZlidBcagyNFtBdD5kxnb4TvGKR7FfSIS3mYpwWS1QUCutfKz8IY8RjftB0+1A==}
+    dependencies:
+      is-map: 2.0.2
+      is-set: 2.0.2
+      is-weakmap: 2.0.1
+      is-weakset: 2.0.1
+    dev: false
 
   /which-module/1.0.0:
     resolution: {integrity: sha1-u6Y8qGGUiZT/MHc2CJ47lgJsKk8=}

@@ -3,7 +3,8 @@ import {
   MintingState,
   MintJob,
   NFTItem,
-  resolveImage
+  NFTMetaData,
+  Splice
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -13,11 +14,11 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItem }) => {
-  if (!nft.metadata) return <></>;
-
   const [isCollectionAllowed, setIsCollectionAllowed] = useState<boolean>();
   const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
   const [mintingState, setMintingState] = useState<MintingState>();
+  const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
+
   const { splice } = useSplice();
 
   /*
@@ -27,8 +28,6 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   // const buzy = [MintingState.GETTING_COLORS, MintingState.MINTING].includes(
   //   mintingState
   // );
-
-  const imgUrl = resolveImage(nft.metadata);
 
   const MStatusText = (status: MintingState) => {
     switch (status) {
@@ -44,6 +43,13 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   };
 
   useEffect(() => {
+    (async () => {
+      const metadata = await nft.metadata;
+      if (metadata) setNftMetadata(metadata);
+    })();
+  }, []);
+
+  useEffect(() => {
     if (!splice) return;
     (async () => {
       const allowed = await splice.isCollectionAllowed(nft.contract_address);
@@ -54,19 +60,7 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
         );
         if (_mintJob) {
           setMintJob(_mintJob);
-          switch (_mintJob.job.status) {
-            case 0:
-              setMintingState(MintingState.MINTING_REQUESTED);
-              break;
-            case 1:
-              setMintingState(MintingState.MINTING_ALLOWED);
-              break;
-            case 2:
-              setMintingState(MintingState.MINTED);
-              break;
-            case 3:
-              setMintingState(MintingState.FAILED);
-          }
+          setMintingState(Splice.translateJobStatus(_mintJob.job));
         }
       }
       setIsCollectionAllowed(allowed);
@@ -76,7 +70,7 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
   return (
     <SpliceCard direction="column">
       <Flex maxH={80}>
-        <FallbackImage imgUrl={imgUrl} />
+        <FallbackImage metadata={nftMetadata} />
       </Flex>
 
       <LinkOverlay
@@ -85,7 +79,7 @@ export const NFTCard = ({ nft }: { nft: NFTItem }) => {
         p={4}
         background="white"
       >
-        <Heading size="md">{nft.metadata?.name}</Heading>
+        {nftMetadata && <Heading size="md">{nftMetadata.name}</Heading>}
       </LinkOverlay>
 
       <Flex background="black" direction="row" p={6}>

@@ -1,7 +1,6 @@
-import React from 'react';
-import { NFTItem, NFTMetaData } from '@splicenft/common';
-import { Flex, Text, Link } from '@chakra-ui/react';
-import { SpliceToken } from '../../types/SpliceToken';
+import { Flex, Link, Text } from '@chakra-ui/react';
+import { ipfsGW, NFTItem, NFTMetaData } from '@splicenft/common';
+import React, { useEffect, useState } from 'react';
 
 const MetaDataItem = ({
   label,
@@ -11,7 +10,7 @@ const MetaDataItem = ({
 }: {
   label: string;
   value: string | number;
-  link?: string | undefined;
+  link?: string | undefined | null;
   color?: string | undefined;
 }) => {
   return (
@@ -19,7 +18,7 @@ const MetaDataItem = ({
       <Text fontWeight="bold">{label}</Text>
       <Text fontWeight="normal" textColor={color} isTruncated>
         {link ? (
-          <Link href={link} isExternal>
+          <Link href={ipfsGW(link)} isExternal>
             {value}
           </Link>
         ) : (
@@ -30,47 +29,52 @@ const MetaDataItem = ({
   );
 };
 
-export const MetaDataDisplay = ({
-  nft,
-  collection,
-  isCollectionAllowed,
-  tokenId,
-  randomness,
-  spliceToken,
-  spliceMetadata
+export const SpliceMetadataDisplay = ({
+  spliceMetadata,
+  spliceMetadataCID
 }: {
-  nft: NFTItem;
-  collection: string;
-  isCollectionAllowed?: boolean;
-  tokenId: string;
-  randomness: number;
-  spliceToken?: SpliceToken;
-  spliceMetadata?: NFTMetaData;
+  spliceMetadata: NFTMetaData;
+  spliceMetadataCID?: string;
 }) => {
-  const { metadata } = nft;
-
-  const splMetaDataProps: Record<string, any> = spliceMetadata?.properties
+  const splMetaDataProps: Record<string, any> = spliceMetadata.properties
     ? spliceMetadata.properties
     : {};
-
   return (
-    <Flex direction="column" gridGap={3}>
-      <MetaDataItem
-        label="collection"
-        value={collection}
-        color={isCollectionAllowed === false ? 'red' : undefined}
-      />
-      <MetaDataItem label="token id" value={tokenId} />
-      <MetaDataItem label="randomness" value={randomness} />
-      {spliceToken && (
+    <>
+      {spliceMetadataCID && (
         <MetaDataItem
           label="CID"
-          value={spliceToken.ipnft}
-          link={spliceToken.url}
+          value={spliceMetadataCID}
+          link={spliceMetadata.external_url}
         />
       )}
 
-      {metadata?.attributes?.map((attr) => {
+      {Object.keys(splMetaDataProps).map((prop) => {
+        const val = splMetaDataProps[prop];
+        return <MetaDataItem key={`prop-${prop}`} label={prop} value={val} />;
+      })}
+    </>
+  );
+};
+
+export const MetaDataDisplay = ({
+  nftMetadata,
+  contractAddress,
+  tokenId,
+  randomness
+}: {
+  nftMetadata: NFTMetaData;
+  randomness: number;
+  contractAddress: string;
+  tokenId: string | number;
+}) => {
+  return (
+    <Flex direction="column" gridGap={3}>
+      <MetaDataItem label="collection" value={contractAddress} />
+      <MetaDataItem label="token id" value={tokenId} />
+      <MetaDataItem label="randomness" value={randomness} />
+
+      {nftMetadata.attributes?.map((attr) => {
         return (
           <MetaDataItem
             key={`attr-${attr.trait_type}`}
@@ -79,16 +83,6 @@ export const MetaDataDisplay = ({
           />
         );
       })}
-      {spliceMetadata?.properties && (
-        <Flex bg="gray.100" direction="column" gridGap={3} p={3}>
-          {Object.keys(splMetaDataProps).map((prop) => {
-            const val = splMetaDataProps[prop];
-            return (
-              <MetaDataItem key={`prop-${prop}`} label={prop} value={val} />
-            );
-          })}
-        </Flex>
-      )}
     </Flex>
   );
 };

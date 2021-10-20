@@ -24,8 +24,9 @@ export const ArtworkStyleChooser = ({
     <Menu>
       <MenuButton
         as={Button}
-        variant="black"
+        variant="white"
         disabled={disabled}
+        boxShadow="md"
         rightIcon={<ChevronDownIcon />}
       >
         {selectedRenderer ? selectedRenderer : 'choose a style'}

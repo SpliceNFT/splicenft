@@ -1,16 +1,5 @@
-import {
-  Box,
-  Button,
-  Center,
-  Circle,
-  Container,
-  Text,
-  Flex,
-  Image,
-  Link
-} from '@chakra-ui/react';
+import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
-import p5Types from 'p5';
 import React from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 
@@ -38,7 +27,7 @@ const Preview = ({
   spliceDataUrl,
   nftExtractedProps,
   rendererName,
-  setP5Canvas
+  onSketched
 }: {
   dominantColors?: RGB[];
   nftImageUrl: string;
@@ -48,19 +37,25 @@ const Preview = ({
     dominantColors: RGB[];
   };
   rendererName?: string;
-  setP5Canvas?: (canvas: p5Types) => void;
+  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
 
   return (
-    <Flex position="relative">
+    <Flex
+      position="relative"
+      minHeight="20vw"
+      borderBottomWidth="1px"
+      borderBottomStyle="solid"
+      borderBottomColor="gray.200"
+    >
       <Center width="100%" height="100%">
-        {dominantColors && setP5Canvas && !spliceDataUrl && rendererName ? (
+        {dominantColors && onSketched && !spliceDataUrl && rendererName ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
-            onCanvasCreated={setP5Canvas}
+            onSketched={onSketched}
             rendererName={rendererName}
           />
         ) : (
@@ -86,13 +81,13 @@ const Preview = ({
 
 export const CreativePanel = ({
   nftImageUrl,
-  setP5Canvas,
+  onSketched,
   nftExtractedProps,
   spliceDataUrl,
   rendererName
 }: {
   nftImageUrl: string;
-  setP5Canvas: (canvas: p5Types) => void;
+  onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
@@ -104,7 +99,7 @@ export const CreativePanel = ({
     return (
       <Preview
         nftImageUrl={nftImageUrl}
-        setP5Canvas={setP5Canvas}
+        onSketched={onSketched}
         nftExtractedProps={nftExtractedProps}
         rendererName={rendererName}
       />
@@ -121,13 +116,3 @@ export const CreativePanel = ({
     return <PlainImage imgUrl={nftImageUrl} />;
   }
 };
-
-/*
- {mintingState === MintingState.MINTED && (
-        <Box position="absolute" right="10px" bottom="10px">
-          <Button as={Link} href={spliceDataUrl} isExternal variant="black">
-            download
-          </Button>
-        </Box>
-      )}
-      */
