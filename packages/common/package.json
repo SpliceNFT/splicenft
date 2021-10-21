@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "engines": {
-    "node": ">=10",
-    "pnpm": ">=3"
+    "node": ">=16",
+    "pnpm": ">=5"
   },
   "homepage": "https://github.com/cod1ng-earth/splicenft",
   "repository": {

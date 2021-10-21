@@ -1,26 +1,26 @@
 {
   "name": "splicenft",
   "version": "1.0.0",
-  "description": "> \"Can you breed an Ape with a Cat and what would be the result?\"",
+  "description": "A generative art project that renders deterministic, validated header images for existing NFTs",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm run -r build"
   },
   "engines": {
-    "node": ">=14",
-    "pnpm": ">=3"
+    "node": ">=16",
+    "pnpm": ">=5"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cod1ng-earth/ethonline21.git"
+    "url": "git+https://github.com/cod1ng-earth/splicenft.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cod1ng-earth/ethonline21/issues"
+    "url": "https://github.com/cod1ng-earth/splicenft/issues"
   },
-  "homepage": "https://github.com/cod1ng-earth/ethonline21#readme",
+  "homepage": "https://getsplice.io",
   "devDependencies": {
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "^4.12.0",
