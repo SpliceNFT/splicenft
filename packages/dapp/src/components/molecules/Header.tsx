@@ -24,7 +24,12 @@ const Header = () => {
       <Flex direction="row" align="center" gridGap={8}>
         {active && (
           <Flex direction="row" gridGap={10}>
-            <Link as={ReactLink} to="/" exact activeStyle={{ fontWeight: 800 }}>
+            <Link
+              as={ReactLink}
+              to="/my-assets"
+              exact
+              activeStyle={{ fontWeight: 800 }}
+            >
               My NFTs
             </Link>
             <Link
