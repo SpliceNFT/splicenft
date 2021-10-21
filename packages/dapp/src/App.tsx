@@ -1,5 +1,8 @@
 import { ChakraProvider } from '@chakra-ui/react';
-import '@fontsource/barlow';
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow/700.css';
+import '@fontsource/barlow/800.css';
 import { Web3ReactProvider } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';

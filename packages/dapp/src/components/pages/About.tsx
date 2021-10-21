@@ -42,7 +42,7 @@ export const AboutPage = () => {
   return (
     <>
       <Hero bg="black" py={10} color="white">
-        <Heading size="4xl" mb={5}>
+        <Heading size="4xl" mb={5} fontWeight="800">
           {' '}
           Creative building blocks <br /> for the Metaverse
         </Heading>
