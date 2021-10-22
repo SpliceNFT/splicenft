@@ -13,12 +13,12 @@ const Header = () => {
     activate(injected, console.error);
   };
 
-  useEffect(() => {
-    activate(injected, console.error);
-  }, []);
+  // useEffect(() => {
+  //   activate(injected, console.error);
+  // }, []);
 
   return (
-    <Flex p={5} my={3} align="center">
+    <Flex p={5} my={3} align="center" gridGap={2}>
       <Logo />
       <Spacer />
       <Flex direction="row" align="center" gridGap={8}>

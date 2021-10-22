@@ -52,9 +52,20 @@ export const AboutPage = () => {
         </Heading>
       </Hero>
 
-      <Hero bg="cyan.400">
-        <HStack>
-          <Flex direction="column" gridGap={5} color="white" flex="1">
+      <Hero bg="white">
+        <Flex justify="center">
+          <Image
+            my={10}
+            display={{ base: 'flex', md: 'none' }}
+            src={flyFrog}
+            rounded="full"
+            border="4px solid white"
+            maxH="200pt"
+            align="center"
+          />
+        </Flex>
+        <HStack mb={10}>
+          <Flex direction="column" gridGap={5} flex="1">
             <Heading size="xl">
               NFTs make great <b>profile pictures</b>.
             </Heading>
@@ -73,8 +84,9 @@ export const AboutPage = () => {
             </Text>
             <Text fontSize="larger">That’s where Splice comes in.</Text>
           </Flex>
-          <Flex flex="1" justify="center">
+          <Flex flex={{ base: 0, md: 1 }} justify="center">
             <Image
+              display={{ base: 'none', md: 'flex' }}
               src={flyFrog}
               rounded="full"
               border="4px solid white"
@@ -83,8 +95,9 @@ export const AboutPage = () => {
           </Flex>
         </HStack>
       </Hero>
-      <Hero bg="white" py={20}>
-        <Flex direction="column" gridGap={10}>
+
+      <Hero bg="black" py={20}>
+        <Flex direction="column" gridGap={10} color="white">
           <Heading size="xl">
             Splice generates building blocks for metaverse creation.
           </Heading>
