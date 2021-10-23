@@ -26,7 +26,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { NFTDescription } from '../atoms/NFTDescription';
-import { ArtworkStyleChooser } from '../molecules/ArtworkStyleChooser';
+import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { DominantColors } from '../molecules/DominantColors';
 import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';

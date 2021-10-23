@@ -1,13 +1,9 @@
 import {
   Alert,
-  Box,
-  Circle,
   Container,
   Flex,
-  Heading,
-  Image,
-  Text,
-  Skeleton,
+  LinkBox,
+  LinkOverlay,
   useToast,
   VStack
 } from '@chakra-ui/react';
@@ -23,37 +19,42 @@ import axios from 'axios';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useSplice } from '../../context/SpliceContext';
-import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
-import { DominantColorsDisplay } from '../molecules/DominantColors';
+import { SpliceArtwork } from '../molecules/Splice/SpliceArtwork';
+import { SpliceMetadata } from '../molecules/Splice/SpliceMetadataDisplay';
 
 type MySplice = {
   tokenId: number;
   metadataUrl: string; //SpliceNFT;
 };
 
-const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
+const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
   const { indexer } = useSplice();
   const [origin, setOrigin] =
     useState<{ nftMetadata: NFTMetaData; imageUrl: string }>();
-  const [metadata, setMetadata] = useState<SpliceNFT>();
+  const [metadata, setMetadata] =
+    useState<{ metadata: SpliceNFT; imageUrl: string }>();
 
   useEffect(() => {
     if (!indexer) return;
     (async () => {
-      const metadata = await (
-        await axios.get(ipfsGW(splice.metadataUrl), {
+      const _metadata = await (
+        await axios.get(ipfsGW(mySplice.metadataUrl), {
           responseType: 'json'
         })
       ).data;
-      setMetadata(metadata);
+      setMetadata({
+        metadata: _metadata,
+        imageUrl: resolveImage(_metadata)
+      });
     })();
   }, [indexer]);
 
   useEffect(() => {
     if (!indexer || !metadata) return;
     (async () => {
-      const { origin_collection, origin_token_id } = metadata.properties;
+      const { origin_collection, origin_token_id } =
+        metadata.metadata.properties;
       const nftMetadata = await indexer.getAssetMetadata(
         origin_collection,
         origin_token_id
@@ -68,42 +69,20 @@ const SpliceArtwork = ({ splice }: { splice: MySplice }) => {
   }, [indexer, metadata]);
 
   return (
-    <SpliceCard direction="row">
-      <Flex w="75%" position="relative" bg="transparent">
-        {metadata ? (
-          <Image src={resolveImage(metadata)} />
-        ) : (
-          <Box bg="grey.200" />
-        )}
-        <Box width="100%" height="100%">
-          <Circle size="120px" bottom="10px" position="absolute" left="10px">
-            {origin?.imageUrl && (
-              <FallbackImage
-                imgUrl={origin.imageUrl}
-                rounded="full"
-                border="4px solid white"
-              />
-            )}
-          </Circle>
-        </Box>
-      </Flex>
-      <Flex p={3} direction="column" gridGap={3}>
-        {metadata ? (
-          <>
-            <Heading size="sm">{metadata.name}</Heading>
-            <Text>
-              <b>Randomness</b> {metadata.properties.randomness}
-            </Text>
-            <Text>
-              <b>Style</b> {metadata.properties.style}
-            </Text>
-            <Text fontWeight="bold">Colors</Text>
-            <DominantColorsDisplay colors={metadata.properties.colors} />
-          </>
-        ) : (
-          <Skeleton h="20px">no metadata yet</Skeleton>
-        )}
-      </Flex>
+    <SpliceCard direction={['column', null, null, 'row']}>
+      <LinkBox>
+        <LinkOverlay href={metadata?.imageUrl || ''} isExternal>
+          <SpliceArtwork
+            originImageUrl={origin?.imageUrl}
+            spliceImageUrl={metadata?.imageUrl}
+          />
+        </LinkOverlay>
+      </LinkBox>
+      <SpliceMetadata
+        tokenId={mySplice.tokenId}
+        metadata={metadata?.metadata}
+        metadataUrl={mySplice.metadataUrl}
+      ></SpliceMetadata>
     </SpliceCard>
   );
 };
@@ -152,14 +131,14 @@ export const MySplicesPage = () => {
         <Alert status="info">We're loading your splices, standby.</Alert>
       )}
       <VStack gridGap={10}>
-        {splices.map((spliceResult) => (
+        {splices.map((spliceResult: MySplice) => (
           <Flex
             bg="white"
             w="100%"
             direction="row"
             key={`splice-${spliceResult.tokenId}`}
           >
-            <SpliceArtwork splice={spliceResult} />
+            <SpliceCardDisplay mySplice={spliceResult} />
           </Flex>
         ))}
       </VStack>
