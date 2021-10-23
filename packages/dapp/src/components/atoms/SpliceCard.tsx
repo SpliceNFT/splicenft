@@ -6,7 +6,7 @@ export const SpliceCard = ({
   direction = 'column'
 }: {
   children: React.ReactNode;
-  direction: string;
+  direction: string | Array<string | null>;
 }) => (
   <LinkBox
     as={Flex}
