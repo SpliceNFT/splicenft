@@ -11,20 +11,27 @@ const Header = () => {
 
   const connect = () => {
     activate(injected, console.error);
+    localStorage.setItem('seenBefore', 'true');
   };
 
   useEffect(() => {
-    activate(injected, console.error);
+    const sb = localStorage.getItem('seenBefore');
+    if (sb === 'true') activate(injected, console.error);
   }, []);
 
   return (
-    <Flex p={5} my={3} align="center">
+    <Flex p={5} my={3} align="center" gridGap={2}>
       <Logo />
       <Spacer />
       <Flex direction="row" align="center" gridGap={8}>
         {active && (
           <Flex direction="row" gridGap={10}>
-            <Link as={ReactLink} to="/" exact activeStyle={{ fontWeight: 800 }}>
+            <Link
+              as={ReactLink}
+              to="/my-assets"
+              exact
+              activeStyle={{ fontWeight: 800 }}
+            >
               My NFTs
             </Link>
             <Link

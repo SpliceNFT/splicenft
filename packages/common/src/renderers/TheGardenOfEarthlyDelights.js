@@ -332,7 +332,7 @@ export default function ({ p5, colors, dim }) {
    * drawTripTychFrames() draws three frames on top of the scene
    */
   function drawTripTychFrames(w, h) {
-    p5.stroke(255);
+    p5.stroke(0);
     p5.noFill();
 
     //first use sharp edges to get rid of those pesky corners

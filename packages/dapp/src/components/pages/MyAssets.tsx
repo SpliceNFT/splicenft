@@ -72,10 +72,14 @@ export const MyAssetsPage = () => {
             width="100%"
           >
             <AlertTitle>
-              it seems you don't have any assets on chain {chainId}{' '}
+              {chainId
+                ? `it seems you don't have any assets on chain {chainId}`
+                : `please connect with an Ethereum account (Kovan works best atm)`}
             </AlertTitle>
             <AlertDescription>
-              {chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
+              {chainId && chainId !== 1 && (
+                <MintButton onMinted={onNFTMinted} />
+              )}
             </AlertDescription>
           </Flex>
         </Alert>

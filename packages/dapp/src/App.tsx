@@ -1,4 +1,8 @@
 import { ChakraProvider } from '@chakra-ui/react';
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow/700.css';
+import '@fontsource/barlow/800.css';
 import { Web3ReactProvider } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';
@@ -6,12 +10,12 @@ import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
 import { SubFooter } from './components/molecules/SubFooter';
+import { AboutPage } from './components/pages/About';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
-import '@fontsource/barlow';
 
 function getLibrary(provider: any) {
   return new providers.Web3Provider(provider);
@@ -32,8 +36,11 @@ function App() {
               <Route path="/my-splices">
                 <MySplicesPage />
               </Route>
-              <Route path="/">
+              <Route path="/my-assets">
                 <MyAssetsPage />
+              </Route>
+              <Route path="/">
+                <AboutPage />
               </Route>
             </Switch>
           </Router>

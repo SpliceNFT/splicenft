@@ -9,7 +9,7 @@ export const P5Sketch = (props: {
   randomness: number;
   colors: RGB[];
   rendererName: string;
-  onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
 }) => {
   const { dim, colors, onSketched, randomness, rendererName } = props;
 
@@ -28,26 +28,27 @@ export const P5Sketch = (props: {
     };
     p5.draw = () => {
       renderer({ p5, colors, dim });
-
-      const canvas = (p5 as any).canvas as HTMLCanvasElement;
-      const dataUrl = canvas.toDataURL('image/png');
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) return;
-          onSketched({
-            blob,
-            dataUrl
-          });
-        },
-        'image/png',
-        100
-      );
+      if (onSketched) {
+        const canvas = (p5 as any).canvas as HTMLCanvasElement;
+        const dataUrl = canvas.toDataURL('image/png');
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return;
+            onSketched({
+              blob,
+              dataUrl
+            });
+          },
+          'image/png',
+          100
+        );
+      }
     };
   };
 
   return (
     <Flex direction="column">
-      <ReactP5Wrapper sketch={sketch} rendererName={rendererName} />;
+      <ReactP5Wrapper sketch={sketch} rendererName={rendererName} />
     </Flex>
   );
 };
