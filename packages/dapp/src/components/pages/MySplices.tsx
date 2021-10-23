@@ -69,18 +69,21 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
   }, [indexer, metadata]);
 
   return (
-    <LinkBox as={SpliceCard} direction={['column', null, null, 'row']}>
-      <LinkOverlay href={metadata?.imageUrl || ''} isExternal>
-        <SpliceArtwork
-          originImageUrl={origin?.imageUrl}
-          spliceImageUrl={metadata?.imageUrl}
-        />
-      </LinkOverlay>
+    <SpliceCard direction={['column', null, null, 'row']}>
+      <LinkBox>
+        <LinkOverlay href={metadata?.imageUrl || ''} isExternal>
+          <SpliceArtwork
+            originImageUrl={origin?.imageUrl}
+            spliceImageUrl={metadata?.imageUrl}
+          />
+        </LinkOverlay>
+      </LinkBox>
       <SpliceMetadata
         tokenId={mySplice.tokenId}
         metadata={metadata?.metadata}
+        metadataUrl={mySplice.metadataUrl}
       ></SpliceMetadata>
-    </LinkBox>
+    </SpliceCard>
   );
 };
 

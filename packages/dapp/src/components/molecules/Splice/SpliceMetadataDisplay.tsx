@@ -1,4 +1,4 @@
-import { Flex, Heading, Skeleton, Text } from '@chakra-ui/react';
+import { Flex, Heading, Skeleton, Text, Link } from '@chakra-ui/react';
 import { SpliceNFT } from '@splicenft/common';
 import React from 'react';
 import { DominantColorsDisplay } from '../../molecules/DominantColors';
@@ -6,17 +6,26 @@ import { DominantColorsDisplay } from '../../molecules/DominantColors';
 export const SpliceMetadata = ({
   tokenId,
   metadata,
+  metadataUrl,
   children
 }: {
   tokenId?: number;
   metadata: SpliceNFT | undefined | null;
+  metadataUrl?: string;
   children?: React.ReactNode;
 }) => {
   return (
     <Flex p={3} direction="column" gridGap={3}>
       {metadata ? (
         <>
-          <Heading size="md">Splice #{tokenId}</Heading>
+          <Flex align="flex-end" gridGap={2}>
+            <Heading size="md">Splice #{tokenId}</Heading>
+            {metadataUrl && (
+              <Link fontSize="xs" href={metadataUrl || ''} isExternal>
+                Metadata
+              </Link>
+            )}
+          </Flex>
           <Text>{metadata.description}</Text>
 
           <Text>
