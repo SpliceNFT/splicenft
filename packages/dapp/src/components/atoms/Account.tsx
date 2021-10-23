@@ -6,10 +6,7 @@ import { truncateAddress } from '../../modules/strings';
 
 export default ({ account }: { account: string }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
-
   const [balance, setBalance] = useState<string>();
-  //const [network, setNetwork] = useState<string>();
-  const [accountDisplay, setAccountDisplay] = useState<string>();
 
   useEffect(() => {
     if (!library || !account) return;
@@ -20,11 +17,6 @@ export default ({ account }: { account: string }) => {
       setBalance(ethFloat.toFixed(4));
     })();
   }, [library, account]);
-
-  useEffect(() => {
-    if (!account) return;
-    setAccountDisplay(truncateAddress(account));
-  }, [account]);
 
   return (
     <Flex
@@ -37,11 +29,13 @@ export default ({ account }: { account: string }) => {
       align="center"
     >
       <Flex direction="column" align="flex-end" justify="center" mr="2">
-        <Text fontWeight="bold" fontSize="lg">
-          {balance} ETH
-        </Text>
+        <Flex direction="row" fontWeight="bold" fontSize="lg" gridGap={1}>
+          <Text>{balance}</Text>
+          <Text display={['none', 'inline']}>ETH</Text>
+          <Text display={['inline', 'none']}>E</Text>
+        </Flex>
         <Text isTruncated fontSize="xs" fontFamily="mono">
-          {accountDisplay}
+          {truncateAddress(account)}
         </Text>
         {chainId !== 1 && <Text fontSize="xx-small">chain: {chainId}</Text>}
       </Flex>

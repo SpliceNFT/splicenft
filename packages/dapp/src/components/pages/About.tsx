@@ -10,6 +10,7 @@ import {
   Image,
   Heading,
   HStack,
+  SimpleGrid,
   SystemProps
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
@@ -29,15 +30,24 @@ const Hero = (props: { children: ReactNode } & SystemProps) => {
   return (
     <Flex
       width="100%"
-      minH="500pt"
       bg="black"
       pt={5}
-      {...rest}
       align="center"
       fontSize="large"
+      direction="column"
+      {...rest}
     >
-      <Container maxW="container.lg">{children}</Container>
+      {children}
     </Flex>
+  );
+};
+
+const ContainerHero = (props: { children: ReactNode } & SystemProps) => {
+  const { children, ...rest } = props;
+  return (
+    <Hero py={12} {...rest}>
+      <Container maxW="container.lg">{children}</Container>
+    </Hero>
   );
 };
 
@@ -74,16 +84,18 @@ export const AboutPage = () => {
   return (
     <>
       <Hero bg="black" color="white" py={12}>
-        <Flex direction="column" my={12}>
-          <Heading size="4xl" mb={5} fontWeight="800">
-            Generative Art for your NFT
-          </Heading>
-          <Heading size="lg">
-            Choose one of your NFTs, select a style, and Splice will generate a
-            unique header image for you.
-          </Heading>
-        </Flex>
-        <Center mb={12}>
+        <Container maxW="container.lg">
+          <Flex direction="column" my={12}>
+            <Heading size="4xl" mb={5} fontWeight="800">
+              Generative Art for your NFT
+            </Heading>
+            <Heading size="lg">
+              Choose one of your NFTs, select a style, and Splice will generate
+              a unique header image for you.
+            </Heading>
+          </Flex>
+        </Container>
+        <Center mb={12} overflow="hidden" maxW="100%">
           <P5Sketch
             randomness={currentRenderer.randomness}
             dim={{ w: 1500, h: 500 }}
@@ -94,19 +106,21 @@ export const AboutPage = () => {
             rendererName={currentRenderer.key}
           />
         </Center>
-        <Button
-          w="full"
-          as={NavLink}
-          to="/my-assets"
-          variant="white"
-          size="lg"
-          fontSize="2xl"
-        >
-          try it yourself.
-        </Button>
+        <Container maxW="container.lg">
+          <Button
+            w="full"
+            as={NavLink}
+            to="/my-assets"
+            variant="white"
+            size="lg"
+            fontSize="2xl"
+          >
+            try it yourself.
+          </Button>
+        </Container>
       </Hero>
 
-      <Hero bg="white">
+      <ContainerHero bg="white">
         <Flex justify="center">
           <Image
             my={10}
@@ -118,7 +132,7 @@ export const AboutPage = () => {
             align="center"
           />
         </Flex>
-        <HStack mb={10}>
+        <HStack>
           <Flex direction="column" gridGap={5} flex="1">
             <Heading size="xl">
               NFTs make great <b>profile pictures</b>.
@@ -159,7 +173,9 @@ export const AboutPage = () => {
               weapons, etc. So that’s a great vision, but currently there aren’t
               great, generic tools to make it happen.
             </Text>
-            <Text fontSize="larger">That’s where Splice comes in.</Text>
+            <Text fontSize="larger" fontWeight="bold">
+              That’s where Splice comes in.
+            </Text>
           </Flex>
           <Flex flex={{ base: 0, md: 1 }} justify="center">
             <Image
@@ -171,9 +187,9 @@ export const AboutPage = () => {
             />
           </Flex>
         </HStack>
-      </Hero>
+      </ContainerHero>
 
-      <Hero bg="black" py={20}>
+      <ContainerHero bg="black">
         <Flex direction="column" gridGap={10} color="white">
           <Heading size="xl">
             Splice generates building blocks for metaverse creation.
@@ -196,11 +212,11 @@ export const AboutPage = () => {
           </Text>
           <Image src={flyFrogSample} />
         </Flex>
-      </Hero>
-      <Hero bg="cyan.500">
+      </ContainerHero>
+      <ContainerHero bg="cyan.500">
         <Flex direction="column" gridGap={10} align="center" color="white">
           <Heading size="2xl">Meet the team</Heading>
-          <HStack spacing={100}>
+          <SimpleGrid columns={[1, 3]} spacing={100}>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
               <Image src={stefan} rounded="full" />
               <Text fontSize="2xl">Stefan "elmariachi"</Text>
@@ -237,9 +253,9 @@ export const AboutPage = () => {
                 <Icon as={FaTwitter} boxSize="6" title="@TimothyCDB" />
               </Link>
             </Flex>
-          </HStack>
+          </SimpleGrid>
         </Flex>
-      </Hero>
+      </ContainerHero>
     </>
   );
 };

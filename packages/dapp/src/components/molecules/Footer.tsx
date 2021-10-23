@@ -3,7 +3,7 @@ import {
   Text,
   Heading,
   Image,
-  HStack,
+  SimpleGrid,
   Link,
   Icon
 } from '@chakra-ui/react';
@@ -21,11 +21,16 @@ export const Footer = () => {
 
   return (
     <Flex bg="gray.800" p={12} color="white" direction="column">
-      <HStack width="100%" justify="space-between">
-        <Flex width="20%">
+      <SimpleGrid
+        columns={[1, null, 3]}
+        width="100%"
+        spacing={10}
+        justify="space-between"
+      >
+        <Flex justify="center">
           <Image src={spliceWhite} />
         </Flex>
-        <Flex align="center" direction="column" width="50%">
+        <Flex align="center" direction="column">
           <Flex direction="column" align="center" mb={1}>
             <Text fontSize="xl">
               Started at{' '}
@@ -81,21 +86,29 @@ export const Footer = () => {
             </Link>
           </Flex>
         </Flex>
-        <Flex direction="column" width="20%">
-          <Heading size="md">Info</Heading>
-          <Text>Network: {chainId && CHAINS[chainId]}</Text>
-          <Text isTruncated>
-            You:{' '}
-            <Link href={`https://etherscan.io/address/${account}`} isExternal>
-              {' '}
-              {account}
-            </Link>
-          </Text>
-          {splice && (
-            <Text isTruncated>Splice contract: {splice.address} </Text>
+        <Flex direction="column">
+          {chainId && (
+            <>
+              <Heading size="md">Info</Heading>
+
+              <Text>Network: {chainId && CHAINS[chainId]}</Text>
+              <Text isTruncated>
+                You:{' '}
+                <Link
+                  href={`https://etherscan.io/address/${account}`}
+                  isExternal
+                >
+                  {' '}
+                  {account}
+                </Link>
+              </Text>
+              {splice && (
+                <Text isTruncated>Splice contract: {splice.address} </Text>
+              )}
+            </>
           )}
         </Flex>
-      </HStack>
+      </SimpleGrid>
     </Flex>
   );
 };
