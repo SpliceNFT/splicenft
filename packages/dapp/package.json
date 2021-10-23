@@ -10,6 +10,7 @@
     "@fontsource/barlow": "^4.5.0",
     "@splicenft/common": "workspace:*",
     "@types/p5": "0.9.1",
+    "@web3-react/abstract-connector": "^6.0.7",
     "@web3-react/core": "^6.1.9",
     "@web3-react/injected-connector": "^6.0.7",
     "@web3-react/walletconnect-connector": "^6.2.4",

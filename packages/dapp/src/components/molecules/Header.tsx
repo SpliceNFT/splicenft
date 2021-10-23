@@ -1,16 +1,33 @@
-import { Button, Flex, Spacer, Link } from '@chakra-ui/react';
+import { ChevronDownIcon } from '@chakra-ui/icons';
+import {
+  Button,
+  Flex,
+  Link,
+  Text,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Spacer
+} from '@chakra-ui/react';
+import { AbstractConnector } from '@web3-react/abstract-connector/dist';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect } from 'react';
 import { NavLink as ReactLink } from 'react-router-dom';
-import { injected } from '../../modules/connectors';
+import { injected, walletconnect } from '../../modules/connectors';
 import Account from '../atoms/Account';
 import Logo from '../atoms/Logo';
 
 const Header = () => {
   const { active, activate, account } = useWeb3React();
 
-  const connect = () => {
-    activate(injected, console.error);
+  const connectors = [
+    { name: 'MetaMask', connector: injected },
+    { name: 'Wallet Connect', connector: walletconnect }
+  ];
+
+  const connect = (connector: AbstractConnector) => {
+    activate(connector, console.error);
     localStorage.setItem('seenBefore', 'true');
   };
 
@@ -44,9 +61,26 @@ const Header = () => {
           </Flex>
         )}
         {!active && (
-          <Button variant="black" onClick={connect}>
-            Connect Wallet
-          </Button>
+          <Menu>
+            <MenuButton
+              as={Button}
+              variant="black"
+              boxShadow="md"
+              rightIcon={<ChevronDownIcon />}
+            >
+              Connect Wallet
+            </MenuButton>
+            <MenuList>
+              {connectors.map(({ name, connector }) => (
+                <MenuItem
+                  key={`connector-${name}`}
+                  onClick={() => connect(connector)}
+                >
+                  {name}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
         )}
         {account && <Account account={account} />}
       </Flex>
