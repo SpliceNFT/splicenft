@@ -18,6 +18,7 @@ export const P5Sketch = (props: {
 
     p5.setup = () => {
       p5.randomSeed(randomness);
+      p5.pixelDensity(1);
       p5.createCanvas(dim.w, dim.h, p5.P2D);
     };
 

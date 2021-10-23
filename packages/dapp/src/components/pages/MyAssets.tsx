@@ -73,7 +73,7 @@ export const MyAssetsPage = () => {
           >
             <AlertTitle>
               {chainId
-                ? `it seems you don't have any assets on chain {chainId}`
+                ? `it seems you don't have any assets on chain ${chainId}`
                 : `please connect with an Ethereum account (Kovan works best atm)`}
             </AlertTitle>
             <AlertDescription>
