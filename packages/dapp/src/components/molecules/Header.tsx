@@ -11,11 +11,13 @@ const Header = () => {
 
   const connect = () => {
     activate(injected, console.error);
+    localStorage.setItem('seenBefore', 'true');
   };
 
-  // useEffect(() => {
-  //   activate(injected, console.error);
-  // }, []);
+  useEffect(() => {
+    const sb = localStorage.getItem('seenBefore');
+    if (sb === 'true') activate(injected, console.error);
+  }, []);
 
   return (
     <Flex p={5} my={3} align="center" gridGap={2}>

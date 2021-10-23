@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import {
   Text,
   Link,
@@ -6,6 +6,7 @@ import {
   Container,
   Button,
   Flex,
+  Center,
   Image,
   Heading,
   HStack,
@@ -20,6 +21,8 @@ import flyFrogSample from '../../img/frog_sample_bg.png';
 import stefan from '../../img/team/stefan.jpg';
 import emily from '../../img/team/emily.jpg';
 import timothy from '../../img/team/timothy.jpg';
+import { P5Sketch } from '../molecules/P5Sketch';
+import { Renderers, RGB } from '@splicenft/common';
 
 const Hero = (props: { children: ReactNode } & SystemProps) => {
   const { children, ...rest } = props;
@@ -39,17 +42,68 @@ const Hero = (props: { children: ReactNode } & SystemProps) => {
 };
 
 export const AboutPage = () => {
+  const dominantColors: RGB[] = [
+    [168, 35, 33],
+    [240, 239, 122],
+    [242, 176, 174],
+    [145, 202, 242],
+    [39, 114, 168]
+  ];
+  const renderers = Object.keys(Renderers);
+
+  const [currentRenderer, setCurrentRenderer] = useState<{
+    randomness: number;
+    idx: number;
+    key: string;
+  }>({
+    randomness: Math.PI * 100_000_000,
+    idx: 0,
+    key: renderers[0]
+  });
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const idx = (currentRenderer.idx + 1) % renderers.length;
+      const randomness = (currentRenderer.randomness += 1);
+      setCurrentRenderer({ idx, key: renderers[idx], randomness });
+    }, 5000);
+    return () => {
+      clearInterval(iv);
+    };
+  }, [currentRenderer]);
   return (
     <>
-      <Hero bg="black" py={10} color="white">
-        <Heading size="4xl" mb={5} fontWeight="800">
-          {' '}
-          Creative building blocks <br /> for the Metaverse
-        </Heading>
-        <Heading size="lg">
-          Splice is a generative art project that renders deterministic,
-          validated header images for existing NFTs
-        </Heading>
+      <Hero bg="black" color="white" py={12}>
+        <Flex direction="column" my={12}>
+          <Heading size="4xl" mb={5} fontWeight="800">
+            Generative Art for your NFT
+          </Heading>
+          <Heading size="lg">
+            Choose one of your NFTs, select a style, and Splice will generate a
+            unique header image for you.
+          </Heading>
+        </Flex>
+        <Center mb={12}>
+          <P5Sketch
+            randomness={currentRenderer.randomness}
+            dim={{ w: 1500, h: 500 }}
+            colors={dominantColors}
+            onSketched={() => {
+              return false;
+            }}
+            rendererName={currentRenderer.key}
+          />
+        </Center>
+        <Button
+          w="full"
+          as={NavLink}
+          to="/my-assets"
+          variant="white"
+          size="lg"
+          fontSize="2xl"
+        >
+          try it yourself.
+        </Button>
       </Hero>
 
       <Hero bg="white">
@@ -70,17 +124,40 @@ export const AboutPage = () => {
               NFTs make great <b>profile pictures</b>.
             </Heading>
             <Text>
-              Showing off your NFT as a profile picture, preferably on the
-              collection communities' Discord channels, makes you part of the
-              gang! Large communities grow around NFT collections and invent
-              derivative value - like $MILK tokens and companion eggs for cool
-              cats, spinoffs on BAYC or puppies for Doges.
+              Showing off your NFT as a profile picture makes you part of the
+              gang! Large communities grow around NFT collections and have
+              derivative value on their roadmaps - like{' '}
+              <Link
+                href="https://discord.com/channels/845608239013167104/850356675993927701/898681968147955732"
+                isExternal
+              >
+                $MILK tokens for creature breeding on cool cats
+              </Link>
+              ,{' '}
+              <Link
+                href="https://opensea.io/collection/mutant-ape-yacht-club"
+                isExternal
+              >
+                BAYC spinoffs
+              </Link>
+              ,{' '}
+              <Link
+                href="https://opensea.io/collection/doge-pound-puppies-real"
+                isExternal
+              >
+                Dogepound Puppies
+              </Link>{' '}
+              or{' '}
+              <Link href="https://www.lootproject.com/" isExternal>
+                Loot tokens as unique seed for new creations
+              </Link>
+              .
             </Text>
             <Text>
-              These derivative elements can form a metaverse where NFT
-              communities flourish – a world of playspaces, workplaces, games,
-              tools, accessories, weapons, etc. So that’s a great vision, but
-              currently there aren’t good tools to make it happen.
+              Derivative arts form a metaverse where NFT communities flourish –
+              a world of playspaces, workplaces, games, tools, accessories,
+              weapons, etc. So that’s a great vision, but currently there aren’t
+              great, generic tools to make it happen.
             </Text>
             <Text fontSize="larger">That’s where Splice comes in.</Text>
           </Flex>
@@ -102,27 +179,22 @@ export const AboutPage = () => {
             Splice generates building blocks for metaverse creation.
           </Heading>
           <Text>
-            When you input your NFT, Splice extracts its features and metadata
-            and generates an array of derivative elements. For the start at
-            EthOnline we've built an MVP to address an immediate need:{' '}
+            When you input your NFT, Splice extracts its{' '}
+            <b>features and metadata</b> to build derivative elements based on
+            them. For the start{' '}
+            <Link
+              href="https://showcase.ethglobal.com/ethonline2021/splice"
+              isExternal
+            >
+              at EthOnline 21
+            </Link>{' '}
+            we've built an MVP to address an immediate need:{' '}
             <b>header images</b> for places like Twitter and Discord where the
             NFT community currently lives. Anyone who owns an NFT in a
             collection that we've onboarded can create a matching header image
             on Splice.
           </Text>
           <Image src={flyFrogSample} />
-
-          <Button
-            as={NavLink}
-            to="/my-assets"
-            variant="black"
-            size="xl"
-            boxShadow="lg"
-            fontSize="2xl"
-            bg="cyan.400"
-          >
-            try it yourself.
-          </Button>
         </Flex>
       </Hero>
       <Hero bg="cyan.500">
