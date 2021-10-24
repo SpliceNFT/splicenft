@@ -7,6 +7,7 @@ import {
   Button,
   Flex,
   Center,
+  Box,
   Image,
   Heading,
   HStack,
@@ -17,13 +18,17 @@ import { NavLink } from 'react-router-dom';
 import { FaTwitter } from 'react-icons/fa';
 
 import flyFrog from '../../img/flyfrog_plain.png';
-import flyFrogSample from '../../img/frog_sample_bg.png';
-
 import stefan from '../../img/team/stefan.jpg';
 import emily from '../../img/team/emily.jpg';
 import timothy from '../../img/team/timothy.jpg';
-import { P5Sketch } from '../molecules/P5Sketch';
-import { Renderers, RGB } from '@splicenft/common';
+
+import {
+  CarouselProvider,
+  Slider,
+  Slide,
+  Image as SlImage
+} from 'pure-react-carousel';
+import 'pure-react-carousel/dist/react-carousel.es.css';
 
 const Hero = (props: { children: ReactNode } & SystemProps) => {
   const { children, ...rest } = props;
@@ -52,60 +57,63 @@ const ContainerHero = (props: { children: ReactNode } & SystemProps) => {
 };
 
 export const AboutPage = () => {
-  const dominantColors: RGB[] = [
-    [168, 35, 33],
-    [240, 239, 122],
-    [242, 176, 174],
-    [145, 202, 242],
-    [39, 114, 168]
-  ];
-  const renderers = Object.keys(Renderers);
-
-  const [currentRenderer, setCurrentRenderer] = useState<{
-    randomness: number;
-    idx: number;
-    key: string;
-  }>({
-    randomness: Math.PI * 100_000_000,
-    idx: 0,
-    key: renderers[0]
-  });
-
-  useEffect(() => {
-    const iv = setInterval(() => {
-      const idx = (currentRenderer.idx + 1) % renderers.length;
-      const randomness = (currentRenderer.randomness += 1);
-      setCurrentRenderer({ idx, key: renderers[idx], randomness });
-    }, 5000);
-    return () => {
-      clearInterval(iv);
-    };
-  }, [currentRenderer]);
   return (
     <>
       <Hero bg="black" color="white" py={12}>
         <Container maxW="container.lg">
-          <Flex direction="column" my={12}>
+          <Flex direction="column" mb={6}>
             <Heading size="4xl" mb={5} fontWeight="800">
-              Generative Art for your NFT
+              Generative art for your NFT
             </Heading>
             <Heading size="lg">
-              Choose one of your NFTs, select a style, and Splice will generate
-              a unique header image for you.
+              Choose your NFT, select a style, and generate a unique header
+              image.
             </Heading>
           </Flex>
+
+          <Box mb={6}>
+            <CarouselProvider
+              naturalSlideWidth={1500}
+              naturalSlideHeight={500}
+              totalSlides={4}
+              interval={3500}
+              visibleSlides={1}
+              infinite={true}
+              isPlaying={true}
+            >
+              <Slider>
+                <Slide index={0}>
+                  <SlImage
+                    isBgImage
+                    src="/samples/cat_17.png"
+                    hasMasterSpinner={false}
+                  />
+                </Slide>
+                <Slide index={1}>
+                  <SlImage
+                    isBgImage
+                    src="/samples/bayc_15.png"
+                    hasMasterSpinner={false}
+                  />{' '}
+                </Slide>
+                <Slide index={2}>
+                  <SlImage
+                    isBgImage
+                    src="/samples/doodle_5.png"
+                    hasMasterSpinner={false}
+                  />
+                </Slide>
+                <Slide index={3}>
+                  <SlImage
+                    isBgImage
+                    src="/samples/frog_6729.png"
+                    hasMasterSpinner={false}
+                  />
+                </Slide>
+              </Slider>
+            </CarouselProvider>
+          </Box>
         </Container>
-        <Center mb={12} overflow="hidden" maxW="100%">
-          <P5Sketch
-            randomness={currentRenderer.randomness}
-            dim={{ w: 1500, h: 500 }}
-            colors={dominantColors}
-            onSketched={() => {
-              return false;
-            }}
-            rendererName={currentRenderer.key}
-          />
-        </Center>
         <Container maxW="container.lg">
           <Button
             w="full"
@@ -115,7 +123,7 @@ export const AboutPage = () => {
             size="lg"
             fontSize="2xl"
           >
-            try it yourself.
+            Try it!
           </Button>
         </Container>
       </Hero>
@@ -134,47 +142,40 @@ export const AboutPage = () => {
         </Flex>
         <HStack>
           <Flex direction="column" gridGap={5} flex="1">
-            <Heading size="xl">
-              NFTs make great <b>profile pictures</b>.
-            </Heading>
+            <Heading size="xl">How does it work?</Heading>
             <Text>
-              Showing off your NFT as a profile picture makes you part of the
-              gang! Large communities grow around NFT collections and have
-              derivative value on their roadmaps - like{' '}
+              After you select one of your NFTs, Splice extracts its color
+              palette and metadata, uses that as a seed for whichever art
+              algorithm you choose, and generates a one-of-a-kind header image
+              for you to mint.
+            </Text>
+            <Heading size="lg">Why Splice?</Heading>
+            <Text>
+              Splice lets you mint a super-cool header image based on your NFT,
+              for places like Twitter and Discord. But that’s just the
+              beginning. This kind of derivative art will enrich a metaverse
+              where NFT communities flourish – a world of game spaces,
+              workplaces, tools, gifts, accessories, weapons, etc.
+            </Text>
+            <Text>
+              Eventually, Eventually, Splice will generate all sorts of digital
+              assets.{' '}
               <Link
-                href="https://discord.com/channels/845608239013167104/850356675993927701/898681968147955732"
+                href="https://discord.gg/JhtT87y2BA"
                 isExternal
+                color="cyan.500"
               >
-                $MILK tokens for creature breeding on cool cats
-              </Link>
-              ,{' '}
-              <Link
-                href="https://opensea.io/collection/mutant-ape-yacht-club"
-                isExternal
-              >
-                BAYC spinoffs
-              </Link>
-              ,{' '}
-              <Link
-                href="https://opensea.io/collection/doge-pound-puppies-real"
-                isExternal
-              >
-                Dogepound Puppies
+                Join our Discord
               </Link>{' '}
-              or{' '}
-              <Link href="https://www.lootproject.com/" isExternal>
-                Loot tokens as unique seed for new creations
-              </Link>
-              .
-            </Text>
-            <Text>
-              Derivative arts form a metaverse where NFT communities flourish –
-              a world of playspaces, workplaces, games, tools, accessories,
-              weapons, etc. So that’s a great vision, but currently there aren’t
-              great, generic tools to make it happen.
-            </Text>
-            <Text fontSize="larger" fontWeight="bold">
-              That’s where Splice comes in.
+              and{' '}
+              <Link
+                href="https://twitter.com/splicenft"
+                color="cyan.500"
+                isExternal
+              >
+                follow us on Twitter
+              </Link>{' '}
+              to determine what we Splice next.
             </Text>
           </Flex>
           <Flex flex={{ base: 0, md: 1 }} justify="center">
@@ -189,68 +190,59 @@ export const AboutPage = () => {
         </HStack>
       </ContainerHero>
 
-      <ContainerHero bg="black">
-        <Flex direction="column" gridGap={10} color="white">
-          <Heading size="xl">
-            Splice generates building blocks for metaverse creation.
-          </Heading>
-          <Text>
-            When you input your NFT, Splice extracts its{' '}
-            <b>features and metadata</b> to build derivative elements based on
-            them. For the start{' '}
-            <Link
-              href="https://showcase.ethglobal.com/ethonline2021/splice"
-              isExternal
-            >
-              at EthOnline 21
-            </Link>{' '}
-            we've built an MVP to address an immediate need:{' '}
-            <b>header images</b> for places like Twitter and Discord where the
-            NFT community currently lives. Anyone who owns an NFT in a
-            collection that we've onboarded can create a matching header image
-            on Splice.
-          </Text>
-          <Image src={flyFrogSample} />
-        </Flex>
-      </ContainerHero>
-      <ContainerHero bg="cyan.500">
+      <ContainerHero bg="gray.700">
         <Flex direction="column" gridGap={10} align="center" color="white">
-          <Heading size="2xl">Meet the team</Heading>
-          <SimpleGrid columns={[1, 3]} spacing={100}>
+          <Heading size="2xl">The team</Heading>
+          <SimpleGrid columns={[1, null, 3]} spacing={100}>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
               <Image src={stefan} rounded="full" />
-              <Text fontSize="2xl">Stefan "elmariachi"</Text>
-              <Text fontSize="xl">Code</Text>
+              <Text fontSize="2xl" fontWeight="bold">
+                Stefan "elmariachi"
+              </Text>
+              <Text fontSize="xl">Web3 Coder</Text>
               <Link
                 href="https://twitter.com/stadolf"
                 isExternal
                 fontStyle="bold"
               >
-                <Icon as={FaTwitter} boxSize="6" title="@stadolf" />
+                <Flex gridGap={2}>
+                  <Icon as={FaTwitter} boxSize="6" title="@stadolf" />
+                  <Text fontSize="md">@stadolf</Text>
+                </Flex>
               </Link>
             </Flex>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
               <Image src={emily} rounded="full" />
-              <Text fontSize="2xl">Emily</Text>
-              <Text fontSize="xl">Art</Text>
+              <Text fontSize="2xl" fontWeight="bold">
+                Emily
+              </Text>
+              <Text fontSize="xl">Generative Artist</Text>
               <Link
                 href="https://twitter.com/emilyaweil"
                 isExternal
                 fontStyle="bold"
               >
-                <Icon as={FaTwitter} boxSize="6" title="@emilyaweil" />
+                <Flex gridGap={2}>
+                  <Icon as={FaTwitter} boxSize="6" title="@emilyaweil" />
+                  <Text fontSize="md">@emilyaweil</Text>
+                </Flex>
               </Link>
             </Flex>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
               <Image src={timothy} rounded="full" />
-              <Text fontSize="2xl">Tim</Text>
-              <Text fontSize="xl">Strategy</Text>
+              <Text fontSize="2xl" fontWeight="bold">
+                Tim
+              </Text>
+              <Text fontSize="xl">Strategist</Text>
               <Link
-                href="https://twitter.com/TimothyCDB"
+                href="https://twitter.com/timothycbkr"
                 isExternal
                 fontStyle="bold"
               >
-                <Icon as={FaTwitter} boxSize="6" title="@TimothyCDB" />
+                <Flex gridGap={2}>
+                  <Icon as={FaTwitter} boxSize="6" title="@timothycbkr" />
+                  <Text fontSize="md">@timothycbkr</Text>
+                </Flex>
               </Link>
             </Flex>
           </SimpleGrid>

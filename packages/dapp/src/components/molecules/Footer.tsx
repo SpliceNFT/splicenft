@@ -49,8 +49,8 @@ export const Footer = () => {
               <Link href="https://twitter.com/emilyaweil" isExternal>
                 @emilyaweil
               </Link>
-              <Link href="https://twitter.com/TimothyCDB" isExternal>
-                @TimothyCDB
+              <Link href="https://twitter.com/timothycbkr" isExternal>
+                @timothycbkr
               </Link>
             </Flex>
           </Flex>
