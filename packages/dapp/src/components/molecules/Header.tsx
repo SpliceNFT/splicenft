@@ -58,6 +58,9 @@ const Header = () => {
             >
               My splices
             </Link>
+            <Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
+              Create
+            </Link>
           </Flex>
         )}
         {!active && (
