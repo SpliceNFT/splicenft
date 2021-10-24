@@ -3,7 +3,6 @@ import {
   Button,
   Flex,
   Link,
-  Text,
   Menu,
   MenuButton,
   MenuItem,

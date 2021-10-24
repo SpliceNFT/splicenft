@@ -1,15 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Container,
-  Text,
-  Heading,
-  Button,
-  Flex,
-  Textarea
-} from '@chakra-ui/react';
-import { render } from 'react-dom';
-import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
+import { Button, Container, Flex, Textarea } from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
+import React, { useState } from 'react';
+import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
 const PreviewSketch = (props: {
   dim: { w: number; h: number };
