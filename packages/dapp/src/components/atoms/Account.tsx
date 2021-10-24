@@ -1,5 +1,6 @@
 import { Flex, Text, Circle } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
+import { CHAINS } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { providers, utils } from 'ethers';
 import { truncateAddress } from '../../modules/strings';
@@ -37,7 +38,9 @@ export default ({ account }: { account: string }) => {
         <Text isTruncated fontSize="xs" fontFamily="mono">
           {truncateAddress(account)}
         </Text>
-        {chainId !== 1 && <Text fontSize="xx-small">chain: {chainId}</Text>}
+        {chainId !== 1 && (
+          <Text fontSize="x-small">{chainId && CHAINS[chainId]}</Text>
+        )}
       </Flex>
       <Flex>
         <Circle size="3em" bg="tomato" color="white"></Circle>

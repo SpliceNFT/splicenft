@@ -38,8 +38,8 @@ export const SubFooter = () => {
           prealpha demo
         </Link>
         . If you want to support us,{' '}
-        <Link href="https://etherscan.io/address/0x6b4C7567f905eBcD0CA5F2F9f076180ADA9558f0">
-          send funds on mainnet
+        <Link href="https://etherscan.io/address/0x03926e02bFf7f1eD401192B8D825B5bCe12E2b2D">
+          send funds to our Gnosis Safe.
         </Link>
         ,{' '}
         <Link

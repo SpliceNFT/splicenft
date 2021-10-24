@@ -28,7 +28,26 @@ import { ethers, upgrades } from 'hardhat';
       'ipfs://QmRdNB3Q6Q5gVWnduBmxNZb4p9zKFmM3Qx3tohBb8B2KRK/',
       10000
     );
+
     console.log('Deployed FlyFrogs:', flyFrogs.address);
+
+    const doodles = await TestnetNFT.deploy(
+      'Doodles Testnet',
+      'DOODLES',
+      'ipfs://QmPMc4tcBsMqLRuCQtPmPe84bpSjrC3Ky7t3JWuHXYB4aS/',
+      2000
+    );
+    console.log('Deployed Doodles:', doodles.address);
+
+    console.log(
+      'put this into your dapp/.env/REACT_APP_TESTNETNFT_CONTRACT_ADDRESS: ',
+      [
+        coolcatNft.address,
+        deadFellazNft.address,
+        flyFrogs.address,
+        doodles.address
+      ].join(',')
+    );
 
     const Splice = await ethers.getContractFactory('Splice');
     const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
@@ -37,13 +56,16 @@ import { ethers, upgrades } from 'hardhat';
     await splice.allowCollection(coolcatNft.address, 10000);
     console.log('allowed cool cats to mint splices');
 
-    const p = [1, 2, 3, 4, 5].map((i) => coolcatNft.mint(lastAccount.address));
+    await Promise.all(
+      [1, 2, 3].map((i) => coolcatNft.mint(lastAccount.address))
+    );
 
-    await Promise.all(p);
-    console.log('minted 5 cool cat NFTs to: ', lastAccount.address);
+    await Promise.all(
+      [1, 2, 3].map((i) => deadFellazNft.mint(lastAccount.address))
+    );
 
-    const q = [1, 2, 3].map((i) => deadFellazNft.mint(lastAccount.address));
-    await Promise.all(q);
-    console.log('minted 3 dead fellaz NFTs to: ', lastAccount.address);
+    await flyFrogs.mint(lastAccount.address);
+    await doodles.mint(lastAccount.address);
+    console.log('minted sample NFTs to: ', lastAccount.address);
   })();
 })();
