@@ -1,8 +1,80 @@
-import { Button, Container, Flex, Textarea } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Textarea,
+  useToast
+} from '@chakra-ui/react';
+import { NFTItem, resolveImage, Splice } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
+import { useSplice } from '../../context/SpliceContext';
+import { FallbackImage } from '../atoms/FallbackImage';
+import { DominantColors } from '../molecules/DominantColors';
 
+const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
+  const [collection, setCollection] = useState<string>();
+  const [tokenId, setTokenId] = useState<string>();
+
+  const { indexer } = useSplice();
+
+  const loadNft = async () => {
+    if (!indexer || !collection || !tokenId) return;
+    console.log(collection, tokenId);
+
+    const nftMetadata = await indexer.getAssetMetadata(collection, tokenId);
+
+    if (nftMetadata) {
+      onNFT({
+        contract_address: collection,
+        token_id: tokenId,
+        metadata: nftMetadata
+      });
+    }
+  };
+
+  return (
+    <Flex
+      as="form"
+      direction="column"
+      onSubmit={(e) => {
+        e.preventDefault();
+        loadNft();
+      }}
+      w="full"
+    >
+      <FormControl>
+        <FormLabel>Collection address</FormLabel>
+        <Input
+          bg="white"
+          variant="filled"
+          type="text"
+          placeholder="0x"
+          onChange={(e) => setCollection(e.target.value)}
+          value={collection}
+        />
+      </FormControl>
+      <FormControl>
+        <FormLabel>TokenId</FormLabel>
+        <Input
+          bg="white"
+          type="text"
+          onChange={(e) => setTokenId(e.target.value)}
+          value={tokenId}
+        />
+      </FormControl>
+      <Button type="submit" my={6} variant="black">
+        Submit
+      </Button>
+    </Flex>
+  );
+};
 const PreviewSketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
@@ -10,6 +82,8 @@ const PreviewSketch = (props: {
   code: string;
 }) => {
   const { dim, colors, randomness, code } = props;
+  const toast = useToast();
+
   let renderer: any;
 
   const sketch = (p5: P5Instance) => {
@@ -21,11 +95,25 @@ const PreviewSketch = (props: {
 
     p5.updateWithProps = (props) => {
       if (props.code) {
-        renderer = Function(`"use strict";return (${props.code})`)();
+        try {
+          renderer = Function(`"use strict";return (${props.code})`)();
+        } catch (e: any) {
+          console.error(e);
+          toast({
+            status: 'error',
+            title: 'Your code contains an error: ' + e.toString()
+          });
+        }
       }
     };
+
     p5.draw = () => {
-      renderer({ p5, colors, dim });
+      try {
+        if (renderer) renderer({ p5, colors, dim });
+        p5.noLoop();
+      } catch (e: any) {
+        console.error(e);
+      }
     };
   };
 
@@ -38,7 +126,20 @@ const PreviewSketch = (props: {
 
 export const CreatePage = () => {
   const [code, setCode] = useState<string>();
+  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
 
+  const [nftItem, setNFTItem] = useState<NFTItem>();
+  const [randomness, setRandomness] = useState<number>(0);
+
+  useEffect(() => {
+    if (!nftItem) return;
+    setRandomness(
+      Splice.computeRandomnessLocally(
+        nftItem.contract_address,
+        nftItem.token_id
+      )
+    );
+  }, [nftItem]);
   const save = () => {
     const $el: HTMLTextAreaElement = document.getElementById(
       'codearea'
@@ -48,6 +149,26 @@ export const CreatePage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
+      <Heading>Create your own Splice artwork style</Heading>
+      <Flex my={6} gridGap={6}>
+        <Flex flex="2" w="full">
+          <NFTChooser onNFT={setNFTItem} />
+        </Flex>
+        {nftItem && (
+          <Flex flex="1">
+            <FallbackImage metadata={nftItem.metadata} />
+          </Flex>
+        )}
+      </Flex>
+      {nftItem && (
+        <Box my={4}>
+          <DominantColors
+            imageUrl={resolveImage(nftItem.metadata)}
+            dominantColors={dominantColors}
+            setDominantColors={setDominantColors}
+          />
+        </Box>
+      )}
       <Textarea
         id="codearea"
         name="codearea"
@@ -56,24 +177,17 @@ export const CreatePage = () => {
         bg="white"
         rows={20}
       ></Textarea>
-      <Button
-        onClick={() => {
-          save();
-        }}
-      >
-        Save
-      </Button>
-      {code && (
+      <Flex my={4}>
+        <Button onClick={save} variant="black">
+          Save
+        </Button>
+      </Flex>
+      {code && nftItem && (
         <PreviewSketch
           code={code}
-          randomness={2}
+          randomness={randomness}
           dim={{ w: 1500, h: 500 }}
-          colors={[
-            [255, 128, 0],
-            [128, 255, 0],
-            [0, 128, 255],
-            [0, 255, 128]
-          ]}
+          colors={dominantColors}
         />
       )}
     </Container>
