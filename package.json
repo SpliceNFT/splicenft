@@ -1,7 +1,7 @@
 {
   "name": "splicenft",
   "version": "1.0.0",
-  "description": "A generative art project that renders deterministic, validated header images for existing NFTs",
+  "description": "A generative art platform that renders deterministic, validated header images for existing NFTs",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm run -r build"
