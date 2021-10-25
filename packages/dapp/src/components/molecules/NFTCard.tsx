@@ -2,7 +2,7 @@ import { Flex, Heading, LinkOverlay, Spacer, Text } from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
-  NFTItem,
+  NFTItemInTransit,
   NFTMetaData,
   Splice
 } from '@splicenft/common';
@@ -13,7 +13,7 @@ import { truncateAddress } from '../../modules/strings';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
 
-export const NFTCard = ({ nft }: { nft: NFTItem }) => {
+export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [isCollectionAllowed, setIsCollectionAllowed] = useState<boolean>();
   const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
   const [mintingState, setMintingState] = useState<MintingState>();

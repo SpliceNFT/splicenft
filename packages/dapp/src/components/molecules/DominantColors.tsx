@@ -1,8 +1,8 @@
 import { Flex, Skeleton } from '@chakra-ui/react';
-import palette, { RGB } from 'get-rgba-palette';
-import ImageToColors, { Color } from 'image-to-colors';
+import { RGB } from 'get-rgba-palette';
 import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
+import { extractColors } from '@splicenft/common';
 
 export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
   <Flex direction="row" w="100%" align="center" height="10px" gridGap={1}>
@@ -16,6 +16,7 @@ export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
     })}
   </Flex>
 );
+
 export const DominantColors = ({
   imageUrl,
   dominantColors,
@@ -25,31 +26,15 @@ export const DominantColors = ({
   dominantColors: RGB[];
   setDominantColors: (c: RGB[]) => void;
 }) => {
-  const extractColors = async (imgUrl: string) => {
-    let pixels: Color[] = [];
-    try {
-      pixels = await ImageToColors.getFromExternalSource(imgUrl, {
-        setImageCrossOriginToAnonymous: true
-      });
-    } catch (e: any) {
-      pixels = await ImageToColors.getFromExternalSource(
-        `${process.env.REACT_APP_CORS_PROXY}?url=${imgUrl}`,
-        {
-          setImageCrossOriginToAnonymous: true
-        }
-      );
-    }
-    if (!pixels) return;
-    const flatPixels = pixels.flatMap((p) => [...p, 255]);
-
-    const colors = palette(flatPixels, 10);
-
-    setDominantColors(colors);
-  };
-
   useEffect(() => {
     if (!imageUrl) return;
-    extractColors(imageUrl);
+    (async () => {
+      setDominantColors(
+        await extractColors(imageUrl, {
+          proxy: process.env.REACT_APP_CORS_PROXY
+        })
+      );
+    })();
   }, [imageUrl]);
 
   return dominantColors.length > 0 ? (

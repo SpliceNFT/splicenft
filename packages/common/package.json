@@ -35,8 +35,11 @@
     "@types/p5": "0.9.1",
     "axios": "^0.21.4",
     "ethers": "^5.4.7",
+    "get-rgba-palette": "^2.0.1",
+    "image-to-colors": "^1.0.2",
     "multiformats": "^9.4.8",
     "nft.storage": "^3.3.0",
-    "p5": "1.1.9"
+    "p5": "1.1.9",
+    "rgb-hex": "^4.0.0"
   }
 }

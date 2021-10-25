@@ -20,10 +20,17 @@ export type NFTMetaData = {
   animation_url?: string;
 };
 
-export type NFTItem = {
+type BaseNFTItem = {
   contract_address: string;
   token_id: string;
-  metadata: null | NFTMetaData | Promise<NFTMetaData | null>;
   name?: string;
   description?: string;
+};
+
+export type NFTItem = BaseNFTItem & {
+  metadata: NFTMetaData;
+};
+
+export type NFTItemInTransit = BaseNFTItem & {
+  metadata: null | NFTMetaData | Promise<NFTMetaData | null>;
 };
