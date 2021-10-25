@@ -131,8 +131,6 @@ export const AboutPage = () => {
             my={10}
             display={{ base: 'flex', md: 'none' }}
             src={extractsColorsAndMetadataImg}
-            rounded="full"
-            border="4px solid white"
             maxH="200pt"
             align="center"
           />
@@ -178,8 +176,6 @@ export const AboutPage = () => {
             <Image
               display={{ base: 'none', md: 'flex' }}
               src={extractsColorsAndMetadataImg}
-              rounded="full"
-              border="4px solid white"
               maxH="250pt"
             />
           </Flex>
