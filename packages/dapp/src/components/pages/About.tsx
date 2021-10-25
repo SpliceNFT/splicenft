@@ -1,35 +1,31 @@
-import React, { ReactNode, useEffect, useState } from 'react';
 import {
-  Text,
-  Link,
-  Icon,
-  Container,
-  Button,
-  Flex,
-  Center,
   Box,
-  Image,
+  Button,
+  Container,
+  Flex,
   Heading,
   HStack,
+  Icon,
+  Image,
+  Link,
   SimpleGrid,
-  SystemProps
+  SystemProps,
+  Text
 } from '@chakra-ui/react';
-import { NavLink } from 'react-router-dom';
-import { FaTwitter } from 'react-icons/fa';
-
-
-import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetadata.png';
-import stefan from '../../img/team/stefan.jpg';
-import emily from '../../img/team/emily.jpg';
-import timothy from '../../img/team/timothy.jpg';
-
 import {
   CarouselProvider,
-  Slider,
+  Image as SlImage,
   Slide,
-  Image as SlImage
+  Slider
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
+import React, { ReactNode } from 'react';
+import { FaTwitter } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
+import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetadata.png';
+import emily from '../../img/team/emily.jpg';
+import stefan from '../../img/team/stefan.jpg';
+import timothy from '../../img/team/timothy.jpg';
 
 const Hero = (props: { children: ReactNode } & SystemProps) => {
   const { children, ...rest } = props;
