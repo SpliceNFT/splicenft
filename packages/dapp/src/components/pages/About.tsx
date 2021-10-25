@@ -1,34 +1,31 @@
-import React, { ReactNode, useEffect, useState } from 'react';
 import {
-  Text,
-  Link,
-  Icon,
-  Container,
-  Button,
-  Flex,
-  Center,
   Box,
-  Image,
+  Button,
+  Container,
+  Flex,
   Heading,
   HStack,
+  Icon,
+  Image,
+  Link,
   SimpleGrid,
-  SystemProps
+  SystemProps,
+  Text
 } from '@chakra-ui/react';
-import { NavLink } from 'react-router-dom';
-import { FaTwitter } from 'react-icons/fa';
-
-import cat16 from '../../img/cat_16.png';
-import stefan from '../../img/team/stefan.jpg';
-import emily from '../../img/team/emily.jpg';
-import timothy from '../../img/team/timothy.jpg';
-
 import {
   CarouselProvider,
-  Slider,
+  Image as SlImage,
   Slide,
-  Image as SlImage
+  Slider
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
+import React, { ReactNode } from 'react';
+import { FaTwitter } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
+import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetadata.png';
+import emily from '../../img/team/emily.jpg';
+import stefan from '../../img/team/stefan.jpg';
+import timothy from '../../img/team/timothy.jpg';
 
 const Hero = (props: { children: ReactNode } & SystemProps) => {
   const { children, ...rest } = props;
@@ -133,9 +130,7 @@ export const AboutPage = () => {
           <Image
             my={10}
             display={{ base: 'flex', md: 'none' }}
-            src={cat16}
-            rounded="full"
-            border="4px solid white"
+            src={extractsColorsAndMetadataImg}
             maxH="200pt"
             align="center"
           />
@@ -155,21 +150,21 @@ export const AboutPage = () => {
               for places like Twitter and Discord. But that’s just the
               beginning. This kind of derivative art will enrich a metaverse
               where NFT communities flourish – a world of game spaces,
-              workplaces, tools, gifts, accessories, weapons, etc.
+              workplaces, tools, weapons, gifts, accessories, etc.
             </Text>
             <Text>
               Eventually, Splice will generate all sorts of digital assets.{' '}
               <Link
                 href="https://discord.gg/JhtT87y2BA"
                 isExternal
-                color="cyan.500"
+                color="purple.600"
               >
                 Join our Discord
               </Link>{' '}
               and{' '}
               <Link
                 href="https://twitter.com/splicenft"
-                color="cyan.500"
+                color="purple.600"
                 isExternal
               >
                 follow us on Twitter
@@ -180,9 +175,7 @@ export const AboutPage = () => {
           <Flex flex={{ base: 0, md: 1 }} justify="center">
             <Image
               display={{ base: 'none', md: 'flex' }}
-              src={cat16}
-              rounded="full"
-              border="4px solid white"
+              src={extractsColorsAndMetadataImg}
               maxH="250pt"
             />
           </Flex>
