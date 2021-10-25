@@ -20,7 +20,7 @@ export const Footer = () => {
   const { splice } = useSplice();
 
   return (
-    <Flex bg="gray.800" p={12} color="white" direction="column">
+    <Flex bg="black" p={12} color="white" direction="column">
       <SimpleGrid
         columns={[1, null, 3]}
         width="100%"

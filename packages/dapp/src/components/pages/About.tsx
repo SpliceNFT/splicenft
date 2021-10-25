@@ -17,7 +17,7 @@ import {
 import { NavLink } from 'react-router-dom';
 import { FaTwitter } from 'react-icons/fa';
 
-import flyFrog from '../../img/flyfrog_plain.png';
+import cat16 from '../../img/cat_16.png';
 import stefan from '../../img/team/stefan.jpg';
 import emily from '../../img/team/emily.jpg';
 import timothy from '../../img/team/timothy.jpg';
@@ -85,7 +85,7 @@ export const AboutPage = () => {
                 <Slide index={0}>
                   <SlImage
                     isBgImage
-                    src="/samples/cat_17.png"
+                    src="/samples/cat_district.png"
                     hasMasterSpinner={false}
                   />
                 </Slide>
@@ -133,7 +133,7 @@ export const AboutPage = () => {
           <Image
             my={10}
             display={{ base: 'flex', md: 'none' }}
-            src={flyFrog}
+            src={cat16}
             rounded="full"
             border="4px solid white"
             maxH="200pt"
@@ -158,8 +158,7 @@ export const AboutPage = () => {
               workplaces, tools, gifts, accessories, weapons, etc.
             </Text>
             <Text>
-              Eventually, Eventually, Splice will generate all sorts of digital
-              assets.{' '}
+              Eventually, Splice will generate all sorts of digital assets.{' '}
               <Link
                 href="https://discord.gg/JhtT87y2BA"
                 isExternal
@@ -181,7 +180,7 @@ export const AboutPage = () => {
           <Flex flex={{ base: 0, md: 1 }} justify="center">
             <Image
               display={{ base: 'none', md: 'flex' }}
-              src={flyFrog}
+              src={cat16}
               rounded="full"
               border="4px solid white"
               maxH="250pt"
@@ -190,8 +189,8 @@ export const AboutPage = () => {
         </HStack>
       </ContainerHero>
 
-      <ContainerHero bg="gray.700">
-        <Flex direction="column" gridGap={10} align="center" color="white">
+      <ContainerHero bg="gray.100">
+        <Flex direction="column" gridGap={10} align="center">
           <Heading size="2xl">The team</Heading>
           <SimpleGrid columns={[1, null, 3]} spacing={100}>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
