@@ -184,7 +184,7 @@ export const AboutPage = () => {
 
       <ContainerHero bg="gray.100">
         <Flex direction="column" gridGap={10} align="center">
-          <Heading size="2xl">The team</Heading>
+          <Heading size="2xl">Team</Heading>
           <SimpleGrid columns={[1, null, 3]} spacing={100}>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
               <Image src={stefan} rounded="full" />
