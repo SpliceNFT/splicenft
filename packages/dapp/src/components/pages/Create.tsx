@@ -7,6 +7,7 @@ import {
   FormLabel,
   Heading,
   Input,
+  Text,
   Textarea,
   useToast
 } from '@chakra-ui/react';
@@ -161,13 +162,21 @@ export const CreatePage = () => {
         )}
       </Flex>
       {nftItem && (
-        <Box my={4}>
-          <DominantColors
-            imageUrl={resolveImage(nftItem.metadata)}
-            dominantColors={dominantColors}
-            setDominantColors={setDominantColors}
-          />
-        </Box>
+        <Flex my={4} align="center" gridGap={3}>
+          <Flex flex="1">
+            <DominantColors
+              imageUrl={resolveImage(nftItem.metadata)}
+              dominantColors={dominantColors}
+              setDominantColors={setDominantColors}
+            />
+          </Flex>
+          <Flex flex="1">
+            <Text>
+              <strong>Random seed: </strong>
+              {randomness}
+            </Text>
+          </Flex>
+        </Flex>
       )}
       <Textarea
         id="codearea"
