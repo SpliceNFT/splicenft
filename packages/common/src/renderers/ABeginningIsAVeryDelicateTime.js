@@ -8,6 +8,254 @@ import p5 from 'p5';
 
 export default function ({ p5, colors, dim }) {
   /**
+   * drawWaves() draws horizontal waves of color, across the canvas, more ripples towards the bottom of the screen to give a sense of depth.
+   */
+  function drawWaves(
+    ordered_color_array,
+    waves_height,
+    canvas_dim,
+    max_colors_waves
+  ) {
+    const height_of_stripe = canvas_dim.h / ordered_color_array.length;
+    let wave_colors = [];
+
+    //because too many stripes looks terrible, I'm limiting the number to 5 of the lightest colors
+    if (ordered_color_array.length > max_colors_waves)
+      wave_colors = p5.subset(
+        ordered_color_array,
+        ordered_color_array.length - 1 - max_colors_waves,
+        ordered_color_array.length
+      );
+    else wave_colors = ordered_color_array;
+
+    const stripe_width =
+      (canvas_dim.h - waves_height) / (wave_colors.length - 1);
+
+    for (let i = wave_colors.length - 1; i > 0; i--) {
+      p5.fill(wave_colors[i]);
+      p5.noStroke();
+
+      //create array of vertexes
+      const this_curvey_line_y_pnt =
+        waves_height + (wave_colors.length - 1 - i) * stripe_width;
+      const num_points_increment = 5;
+      const percentage_variation = 60;
+      const arrayOfPointsForCurveyLine = createArrayOfPointsForCurveyLine(
+        1,
+        percentage_variation,
+        stripe_width,
+        (wave_colors.length - i) * num_points_increment,
+        this_curvey_line_y_pnt,
+        canvas_dim
+      );
+
+      //draw curvey array of vertexes with fully saturated color
+      p5.beginShape();
+      for (
+        let vertex_counter = 0;
+        vertex_counter < arrayOfPointsForCurveyLine.length;
+        vertex_counter++
+      ) {
+        p5.curveVertex(
+          arrayOfPointsForCurveyLine[vertex_counter].x,
+          arrayOfPointsForCurveyLine[vertex_counter].y
+        );
+      }
+      p5.endShape(p5.CLOSE);
+
+      //now draw darkening lines in that color, to give the shape shading
+      const shade_spacing = 1;
+      const shade_increment = 0.5;
+      for (
+        let shade_counter = 0;
+        shade_counter < stripe_width * 2;
+        shade_counter += shade_spacing
+      ) {
+        //draw a darker version of that shape
+        p5.fill(
+          getDarkerOrLighterVersionOfColor(
+            wave_colors[i],
+            1,
+            shade_counter * shade_increment
+          )
+        );
+        p5.beginShape();
+        for (
+          let vertex_counter = 0;
+          vertex_counter < arrayOfPointsForCurveyLine.length;
+          vertex_counter++
+        ) {
+          p5.curveVertex(
+            arrayOfPointsForCurveyLine[vertex_counter].x,
+            arrayOfPointsForCurveyLine[vertex_counter].y + shade_counter
+          );
+        }
+        p5.endShape(p5.CLOSE);
+      }
+    }
+  }
+
+  /**
+   * drawMoons() draws big moons onto the sky
+   */
+  function drawMoons(
+    num_moons,
+    ordered_color_array,
+    sky_height,
+    sky_width,
+    ascending_size_flag
+  ) {
+    let this_moon_color;
+    for (let moon_counter = 0; moon_counter < num_moons; moon_counter++) {
+      let moon_color_index;
+      //pick colors depending on how many colors are in the palette
+      switch (ordered_color_array.length) {
+        case 2:
+          moon_color_index = 1;
+          this_moon_color = getDarkerOrLighterVersionOfColor(
+            ordered_color_array[moon_color_index],
+            coinFlip(),
+            p5.random(75)
+          );
+          break;
+        case 3:
+          moon_color_index = 1 + moon_counter;
+          this_moon_color = getDarkerOrLighterVersionOfColor(
+            ordered_color_array[moon_color_index],
+            coinFlip(),
+            p5.random(50)
+          );
+          break;
+        default:
+          moon_color_index =
+            1 + p5.round(p5.random(ordered_color_array.length - 3));
+          //fix it if index is too high, beyond array
+          if (moon_color_index > ordered_color_array.length - 1)
+            moon_color_index = ordered_color_array.length - 1;
+          this_moon_color = ordered_color_array[moon_color_index];
+          break;
+      }
+
+      let moon_diameter;
+      //set diameter and account for different sized canvases
+      if (ascending_size_flag) {
+        moon_diameter = p5.random(
+          (150 * sky_width) / 1500 + ((60 * sky_width) / 1500) * moon_counter,
+          (200 * sky_width) / 1500 + ((60 * sky_width) / 1500) * moon_counter
+        );
+      } else {
+        moon_diameter = p5.random(
+          (150 * sky_width) / 1500 - ((60 * sky_width) / 1500) * moon_counter,
+          (200 * sky_width) / 1500 - ((60 * sky_width) / 1500) * moon_counter
+        );
+      }
+      let moon_y_pnt = p5.random(75, sky_height - 75);
+      //spread them out horizontally
+      let direction = coinFlip();
+      let moon_x_pnt =
+        (sky_width / num_moons) * moon_counter +
+        sky_width / num_moons / 2 +
+        direction * p5.random(moon_diameter / 4);
+      //now draw darkening lines in that color, to give the shape shading
+      const shade_spacing = 1;
+      const shade_increment = 0.2;
+      const number_of_shade_iterations = moon_diameter / 2;
+      //get a darker version of the target color
+      const starting_color = getDarkerOrLighterVersionOfColor(
+        this_moon_color,
+        1,
+        number_of_shade_iterations * shade_increment * 2
+      );
+
+      //const stripe_width
+      for (
+        let shade_counter = 0;
+        shade_counter < number_of_shade_iterations;
+        shade_counter += shade_spacing
+      ) {
+        p5.fill(
+          getDarkerOrLighterVersionOfColor(
+            this_moon_color,
+            0,
+            shade_counter * shade_increment
+          )
+        );
+        p5.ellipse(
+          moon_x_pnt,
+          moon_y_pnt - shade_counter / 4,
+          moon_diameter - shade_counter / 4,
+          moon_diameter - shade_counter
+        );
+      }
+    }
+  }
+
+  /**
+   * drawStars() draws a bunch of little stars in the sky
+   */
+  function drawStars(num_stars, ordered_color_array, sky_height, sky_width) {
+    //somewhat evenly spaced
+    const num_cols = p5.round(num_stars / 4);
+    const num_rows = p5.round(num_stars / num_cols) + 5;
+    const col_spacing = sky_width / num_cols + 1;
+    const row_spacing = sky_height / num_rows;
+    let this_star_color;
+
+    for (let col_counter = 0; col_counter < num_cols; col_counter++) {
+      for (let row_counter = 0; row_counter < num_rows; row_counter++) {
+        let random_color_index_not_darkest;
+        let this_star_color;
+        switch (ordered_color_array.length) {
+          case 2:
+            random_color_index_not_darkest = 1;
+            this_star_color = getDarkerOrLighterVersionOfColor(
+              ordered_color_array[random_color_index_not_darkest],
+              coinFlip(),
+              p5.random(50)
+            );
+            break;
+          case 3:
+            if (coinFlip() == 1) random_color_index_not_darkest = 1;
+            else random_color_index_not_darkest = 2;
+            this_star_color = getDarkerOrLighterVersionOfColor(
+              ordered_color_array[random_color_index_not_darkest],
+              coinFlip(),
+              p5.random(50)
+            );
+            break;
+          default:
+            random_color_index_not_darkest = p5.round(
+              p5.random(1, ordered_color_array.length - 1)
+            );
+            this_star_color =
+              ordered_color_array[random_color_index_not_darkest];
+            break;
+        }
+
+        let star_y_pnt =
+          row_counter * row_spacing + p5.random(row_spacing / 2) * coinFlip();
+        //spread them out horizontally
+        let star_x_pnt =
+          col_counter * col_spacing + p5.random(col_spacing / 2) * coinFlip();
+        //set diameter and account for different sized canvases
+        let star_diameter = p5.floor(
+          p5.random((2 * sky_width) / 1500, (10 * sky_width) / 1500)
+        );
+        p5.fill(this_star_color);
+        p5.ellipse(star_x_pnt, star_y_pnt, star_diameter, star_diameter);
+      }
+    }
+  }
+
+  /**
+   * coinFlip() just returns a 1 or -1, with a 50% probability of either
+   */
+  function coinFlip() {
+    if (p5.random(10) >= 5) return 1;
+    else return -1;
+  }
+
+  /**
    * randomNegOrPositiveNum() generates a random number that's randomly positive or negative
    */
   function randomNegOrPositiveNum(min, max) {
@@ -268,7 +516,6 @@ export default function ({ p5, colors, dim }) {
    * and then draws shaded strokes, of every other color in the palette, with those strokes becoming flatter as
    * they move up the canvas.
    */
-
   const orderedColorArray = reOrderColorsDarkestToLightest(colors);
   const height_of_stripe = dim.h / orderedColorArray.length;
   //draw darkest color on the top rect of vertical golden mean
@@ -281,68 +528,7 @@ export default function ({ p5, colors, dim }) {
   p5.background(orderedColorArray[0]);
   p5.noLoop();
 
-  //draw rest of colors from lightest to darkest, down from the top rect
-  const stripe_width = sqr_width / (orderedColorArray.length - 1);
-  for (let i = orderedColorArray.length - 1; i > 0; i--) {
-    p5.fill(orderedColorArray[i]);
-    p5.noStroke();
-
-    //create array of vertexes
-    const this_curvey_line_y_pnt =
-      rect_width + (orderedColorArray.length - 1 - i) * stripe_width;
-    const num_points_increment = 5;
-    const percentage_variation = 60;
-    const arrayOfPointsForCurveyLine = createArrayOfPointsForCurveyLine(
-      1,
-      percentage_variation,
-      stripe_width,
-      (orderedColorArray.length - i) * num_points_increment,
-      this_curvey_line_y_pnt,
-      dim
-    );
-
-    //draw curvey array of vertexes with fully saturated color
-    p5.beginShape();
-    for (
-      let vertex_counter = 0;
-      vertex_counter < arrayOfPointsForCurveyLine.length;
-      vertex_counter++
-    ) {
-      p5.curveVertex(
-        arrayOfPointsForCurveyLine[vertex_counter].x,
-        arrayOfPointsForCurveyLine[vertex_counter].y
-      );
-    }
-    p5.endShape(p5.CLOSE);
-
-    //now draw darkening lines in that color, to give the shape shading
-    const shade_spacing = 1;
-    const shade_increment = 0.5;
-    for (
-      let shade_counter = 0;
-      shade_counter < stripe_width * 2;
-      shade_counter += shade_spacing
-    ) {
-      //draw a darker version of that shape
-      p5.fill(
-        getDarkerOrLighterVersionOfColor(
-          orderedColorArray[i],
-          1,
-          shade_counter * shade_increment
-        )
-      );
-      p5.beginShape();
-      for (
-        let vertex_counter = 0;
-        vertex_counter < arrayOfPointsForCurveyLine.length;
-        vertex_counter++
-      ) {
-        p5.curveVertex(
-          arrayOfPointsForCurveyLine[vertex_counter].x,
-          arrayOfPointsForCurveyLine[vertex_counter].y + shade_counter
-        );
-      }
-      p5.endShape(p5.CLOSE);
-    }
-  }
+  drawStars(150, orderedColorArray, dim.h, dim.w);
+  drawMoons(2, orderedColorArray, rect_width, dim.w, 1);
+  drawWaves(orderedColorArray, rect_width, dim, 5);
 }
