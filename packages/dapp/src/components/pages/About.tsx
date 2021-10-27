@@ -131,7 +131,7 @@ export const AboutPage = () => {
             my={10}
             display={{ base: 'flex', md: 'none' }}
             src={extractsColorsAndMetadataImg}
-            maxH="200pt"
+            maxH="600pt"
             align="center"
           />
         </Flex>
@@ -176,7 +176,7 @@ export const AboutPage = () => {
             <Image
               display={{ base: 'none', md: 'flex' }}
               src={extractsColorsAndMetadataImg}
-              maxH="250pt"
+              maxH="600pt"
             />
           </Flex>
         </HStack>
