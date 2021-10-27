@@ -4,7 +4,7 @@ export * from './types/NFT';
 export * from './types/SpliceNFT';
 
 export { default as getProvider } from './provider';
-export { resolveImage, ipfsGW } from './img';
+export { resolveImage, ipfsGW, extractColors } from './img';
 export { CHAINS, ChainOpt } from './types/Chains';
 
 export { NFTIndexer } from './types/NFTIndexer';

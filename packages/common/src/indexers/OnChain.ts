@@ -2,8 +2,7 @@ import axios from 'axios';
 import { ethers } from 'ethers';
 import { ipfsGW } from '..';
 import { ChainOpt } from '../types/Chains';
-
-import { NFTItem, NFTMetaData } from '../types/NFT';
+import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
 import { NFTIndexer } from '../types/NFTIndexer';
 
 export type KnownCollections = Record<ChainOpt, string[]>;
@@ -153,14 +152,16 @@ export class OnChain implements NFTIndexer {
     });
   }
 
-  public async getAllAssetsOfOwner(ownerAddress: string): Promise<NFTItem[]> {
+  public async getAllAssetsOfOwner(
+    ownerAddress: string
+  ): Promise<NFTItemInTransit[]> {
     const items = await Promise.all(
       Object.keys(this.collections).map((coll: string) =>
         this.getNFTsOfOwner(coll, ownerAddress)
       )
     );
 
-    const onlyWorkingAssets = <NFTItem[]>(
+    const onlyWorkingAssets = <NFTItemInTransit[]>(
       items.flatMap((i) => i).filter((i) => i != null)
     );
 
@@ -170,12 +171,12 @@ export class OnChain implements NFTIndexer {
   protected async getNFTsOfOwner(
     collection: string,
     ownerAddress: string
-  ): Promise<Array<NFTItem | null>> {
+  ): Promise<Array<NFTItemInTransit | null>> {
     const contract =
       this.collections[collection] ||
       new ethers.Contract(collection, ERC721ABI, this.provider);
     const bal = await contract.balanceOf(ownerAddress);
-    const promises = [];
+    const promises: Array<Promise<NFTItemInTransit>> = [];
     for (let i = 0; i < bal; i++) {
       promises.push(
         (async () => {
@@ -189,16 +190,16 @@ export class OnChain implements NFTIndexer {
         })()
       );
     }
-    return await Promise.all(promises);
+    return Promise.all(promises);
   }
 
   public async _getAssetMetadata(
     c: ethers.Contract,
     tokenId: string
-  ): Promise<NFTMetaData> {
+  ): Promise<NFTMetaData | null> {
     const tokenUrl: string = ipfsGW(await c.tokenURI(tokenId));
 
-    let metaData: NFTMetaData;
+    let metaData: NFTMetaData | null = null;
 
     try {
       metaData = (
@@ -207,9 +208,7 @@ export class OnChain implements NFTIndexer {
         })
       ).data;
     } catch (e) {
-      if (!this.proxyAddress) {
-        throw e;
-      } else {
+      if (this.proxyAddress) {
         const res = await axios.get<NFTMetaData>(this.proxyAddress, {
           params: {
             url: tokenUrl
@@ -225,7 +224,7 @@ export class OnChain implements NFTIndexer {
   public async getAssetMetadata(
     collection: string,
     tokenId: string
-  ): Promise<NFTMetaData> {
+  ): Promise<NFTMetaData | null> {
     const contract =
       this.collections[collection] ||
       new ethers.Contract(collection, ERC721ABI, this.provider);

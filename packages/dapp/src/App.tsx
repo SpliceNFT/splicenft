@@ -11,6 +11,7 @@ import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
 import { SubFooter } from './components/molecules/SubFooter';
 import { AboutPage } from './components/pages/About';
+import { CreatePage } from './components/pages/Create';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
@@ -38,6 +39,9 @@ function App() {
               </Route>
               <Route path="/my-assets">
                 <MyAssetsPage />
+              </Route>
+              <Route path="/create">
+                <CreatePage />
               </Route>
               <Route path="/">
                 <AboutPage />

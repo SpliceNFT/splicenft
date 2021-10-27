@@ -1,6 +1,6 @@
+import { Flex, Heading, Text } from '@chakra-ui/react';
 import { NFTMetaData } from '@splicenft/common';
 import React from 'react';
-import { Flex, Heading, Text, Skeleton } from '@chakra-ui/react';
 
 export const NFTDescription = ({
   nftMetadata

@@ -1,13 +1,13 @@
 import {
   Alert,
-  AlertTitle,
   AlertDescription,
+  AlertTitle,
   Container,
   Flex,
   SimpleGrid,
   useToast
 } from '@chakra-ui/react';
-import { NFTItem } from '@splicenft/common';
+import { NFTItemInTransit } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -21,7 +21,7 @@ export const MyAssetsPage = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [nfts, setNFTs] = useState<NFTItem[]>([]);
+  const [nfts, setNFTs] = useState<NFTItemInTransit[]>([]);
   const toast = useToast();
 
   useEffect(() => {
@@ -48,14 +48,17 @@ export const MyAssetsPage = () => {
 
   const onNFTMinted = async (collection: string, tokenId: string) => {
     if (!library || !indexer) return;
-    const newMetadata = indexer.getAssetMetadata(collection, tokenId);
-    const newItem: NFTItem = {
-      contract_address: collection,
-      token_id: tokenId,
-      metadata: newMetadata
-    };
-    if (newItem) {
-      setNFTs([...nfts, newItem]);
+    const newMetadata = await indexer.getAssetMetadata(collection, tokenId);
+
+    if (newMetadata) {
+      setNFTs([
+        ...nfts,
+        {
+          contract_address: collection,
+          token_id: tokenId,
+          metadata: newMetadata
+        }
+      ]);
     }
   };
 
@@ -84,8 +87,8 @@ export const MyAssetsPage = () => {
           </Flex>
         </Alert>
       ) : (
-        <SimpleGrid columns={[1, 2, 4]} spacingX={5} spacingY="20px">
-          {nfts.map((nft: NFTItem) => (
+        <SimpleGrid columns={[1, 2, 3, 4]} spacingX={5} spacingY="20px">
+          {nfts.map((nft: NFTItemInTransit) => (
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}
               nft={nft}

@@ -1,8 +1,7 @@
-import { NFTMetaData } from '..';
-import { NFTItem } from '../types/NFT';
+import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
 
 export interface NFTIndexer {
-  getAllAssetsOfOwner(ownerAddress: string): Promise<NFTItem[]>;
+  getAllAssetsOfOwner(ownerAddress: string): Promise<NFTItemInTransit[]>;
   getAssetMetadata(
     collection: string,
     tokenId: string

@@ -1,6 +1,6 @@
 import { Flex, Link, Text } from '@chakra-ui/react';
-import { ipfsGW, NFTItem, NFTMetaData } from '@splicenft/common';
-import React, { useEffect, useState } from 'react';
+import { ipfsGW, NFTMetaData } from '@splicenft/common';
+import React from 'react';
 
 const MetaDataItem = ({
   label,

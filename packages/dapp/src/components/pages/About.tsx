@@ -81,28 +81,24 @@ export const AboutPage = () => {
               <Slider>
                 <Slide index={0}>
                   <SlImage
-                    isBgImage
                     src="/samples/cat_district.png"
                     hasMasterSpinner={false}
                   />
                 </Slide>
                 <Slide index={1}>
                   <SlImage
-                    isBgImage
                     src="/samples/bayc_15.png"
                     hasMasterSpinner={false}
                   />{' '}
                 </Slide>
                 <Slide index={2}>
                   <SlImage
-                    isBgImage
                     src="/samples/doodle_5.png"
                     hasMasterSpinner={false}
                   />
                 </Slide>
                 <Slide index={3}>
                   <SlImage
-                    isBgImage
                     src="/samples/frog_6729.png"
                     hasMasterSpinner={false}
                   />

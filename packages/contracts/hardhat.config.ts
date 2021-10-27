@@ -44,7 +44,9 @@ task('splice:allow', 'allows a collection')
     const splice = await Splice.attach(
       process.env.SPLICE_CONTRACT_ADDRESS as string
     );
-    const receipt = await splice.allowCollection(collection, 1000);
+    const receipt = await (
+      await splice.allowCollection(collection, 1000)
+    ).wait();
     console.log(receipt);
   });
 // You need to export an object to set up your config

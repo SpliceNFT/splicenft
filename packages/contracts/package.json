@@ -6,6 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "build": "hardhat compile",
+    "deploy:dev": "hardhat run --network localhost scripts/deployForDevs.ts",
     "test": "hardhat test",
     "chain": "hardhat node",
     "typechain": "hardhat typechain"

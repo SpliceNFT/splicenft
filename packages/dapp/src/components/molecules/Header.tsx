@@ -3,7 +3,6 @@ import {
   Button,
   Flex,
   Link,
-  Text,
   Menu,
   MenuButton,
   MenuItem,
@@ -57,6 +56,9 @@ const Header = () => {
               activeStyle={{ fontWeight: 800 }}
             >
               My splices
+            </Link>
+            <Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
+              Create
             </Link>
           </Flex>
         )}

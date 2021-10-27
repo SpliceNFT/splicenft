@@ -1,17 +1,16 @@
 import {
   Button,
   Container,
-  Link,
+  Divider,
   Flex,
   HStack,
+  Link,
   Text,
-  useToast,
-  Divider
+  useToast
 } from '@chakra-ui/react';
 import {
   MintingState,
   MintJob,
-  NFTItem,
   NFTMetaData,
   resolveImage,
   Splice
@@ -25,8 +24,8 @@ import { CIDString } from 'nft.storage/dist/src/lib/interface';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
-import { NFTDescription } from '../atoms/NFTDescription';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
+import { NFTDescription } from '../atoms/NFTDescription';
 import { DominantColors } from '../molecules/DominantColors';
 import { MintJobState } from '../molecules/MintJobState';
 import { CreativePanel } from '../organisms/CreativePanel';
