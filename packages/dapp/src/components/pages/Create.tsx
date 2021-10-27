@@ -151,6 +151,9 @@ export const CreatePage = () => {
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
       <Heading>Create your own Splice artwork style</Heading>
+      <Heading size="sm" color="gray.400">
+        Heads up: this is only here for validation, not very intuitive.
+      </Heading>
       <Flex my={6} gridGap={6}>
         <Flex flex="2" w="full">
           <NFTChooser onNFT={setNFTItem} />
@@ -185,7 +188,12 @@ export const CreatePage = () => {
         placeholder="your code goes here"
         bg="white"
         rows={20}
-      ></Textarea>
+      >{`function ({ p5, colors, dim }) {
+  p5.fill(p5.color(colors[0][0], colors[0][1], colors[0][2]));
+  p5.stroke(p5.color(colors[1][0], colors[1][1], colors[1][2]));
+  p5.strokeWeight(15);
+  p5.rect(100,50,dim.w-100,dim.h-100);
+}`}</Textarea>
       <Flex my={4}>
         <Button onClick={save} variant="black">
           Save
