@@ -104,6 +104,6 @@ contract SpliceValidator is ChainlinkClient, Ownable {
     recordChainlinkFulfillment(_requestId)
   {
     (uint32 jobId, bool valid) = interpretOracleResponse(_result);
-    splice.publishJobResult(jobId, valid);
+    //splice.publishJobResult(jobId, valid);
   }
 }

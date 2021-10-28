@@ -20,8 +20,8 @@ error QuoteNotImplemented();
 interface ISplicePriceStrategy {
   function quote(
     ISpliceStyleNFT styleNFT,
-    uint256 style_token_id,
     IERC721 collection,
-    StyleSettings styleSettings
+    uint256 token_id,
+    StyleSettings memory styleSettings
   ) external view returns (uint256);
 }

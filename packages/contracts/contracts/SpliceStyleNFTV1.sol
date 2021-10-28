@@ -59,35 +59,43 @@ contract SpliceStyleNFTV1 is ERC721, Ownable, ISpliceStyleNFT {
     return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  function quoteFee(uint256 style_token_id, IERC721 nft)
+  function quoteFee(IERC721 nft, uint256 style_token_id)
     external
     view
+    override
     returns (uint256)
   {
     StyleSettings memory settings = styleSettings[style_token_id];
-    return settings.priceStrategy.quote(this, style_token_id, nft, settings);
+    return settings.priceStrategy.quote(this, nft, style_token_id, settings);
   }
 
   function getSettings(uint256 token_id)
     public
     view
+    override
     returns (StyleSettings memory)
   {
     return styleSettings[token_id];
   }
 
-  function canMintOnStyle(uint256 style_token_id) public view returns (bool) {
+  function canMintOnStyle(uint256 style_token_id)
+    public
+    view
+    override
+    returns (bool)
+  {
     StyleSettings memory settings = styleSettings[style_token_id];
     return settings.mintedOfStyle + 1 <= settings.cap;
   }
 
   function incrementMintedPerStyle(uint256 style_token_id)
-    internal
+    external
+    override
     returns (uint16)
   {
     require(canMintOnStyle(style_token_id), 'the style has been fully minted');
-    styleSettings[style_token_id] += 1;
-    return styleSettings[style_token_id];
+    styleSettings[style_token_id].mintedOfStyle += 1; // = styleSettings[style_token_id] + 1;
+    return styleSettings[style_token_id].mintedOfStyle;
   }
 
   function mint(

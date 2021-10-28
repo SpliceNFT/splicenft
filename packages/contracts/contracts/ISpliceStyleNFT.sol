@@ -5,7 +5,7 @@ import './StyleSettings.sol';
 import './ISplicePriceStrategy.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
-interface ISpliceStyleNFT {
+interface ISpliceStyleNFT is IERC721 {
   function mint(
     uint16 _cap,
     string memory _metadataCID,
@@ -18,13 +18,14 @@ interface ISpliceStyleNFT {
     view
     returns (StyleSettings memory);
 
-  function canMintOnStyle(uint256 style_token_id) public returns (bool);
+  function canMintOnStyle(uint256 style_token_id) external returns (bool);
 
+  //todo: important! if this must be marked "external" it definitely mustn't be called externally
   function incrementMintedPerStyle(uint256 style_token_id)
     external
     returns (uint16);
 
-  function quoteFee(uint256 style_id, IERC721 nft)
+  function quoteFee(IERC721 nft, uint256 style_token_id)
     external
     view
     returns (uint256);
