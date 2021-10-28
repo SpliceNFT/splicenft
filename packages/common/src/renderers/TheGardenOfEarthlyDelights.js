@@ -87,8 +87,65 @@ export default function ({ p5, colors, dim }) {
       );
   }
 
+  
   /**
-   * getColorForFlatGridRect() handles color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1),  a tertiary color(s) if they exist (value=2), the darkest color (value=3).
+   * reOrderColorsDarkestToLightest() takes an array of colors and sends back an array ordered darkest to lightest
+   */
+  function reOrderColorsDarkestToLightest(colors) {
+    let orderedColors = [];
+    let rgbSumOfColorsArray = [];
+
+    //not sure I can use the p5js copy function so I'll just do it myself
+    for (let i = 0; i < colors.length; i++) {
+      rgbSumOfColorsArray.push(getRGBSum(colors[i]));
+    }
+
+    //cycle through colors, and get darkest
+    while (orderedColors.length < colors.length) {
+      //initialize with the first color in the rgbSumOfColorsArray
+      let sum_of_darkest_remaining_color;
+      let index_of_darkest_remaining_color;
+      let index_sum_of_color;
+      //get the first color in the array
+      for (let i = 0; i < rgbSumOfColorsArray.length; i++) {
+        if (rgbSumOfColorsArray[i] != -1) {
+          sum_of_darkest_remaining_color = rgbSumOfColorsArray[i];
+          index_of_darkest_remaining_color = i;
+          break;
+        }
+      }
+
+      for (let i = 0; i < rgbSumOfColorsArray.length; i++) {
+        index_sum_of_color = rgbSumOfColorsArray[i];
+        if (
+          sum_of_darkest_remaining_color > index_sum_of_color &&
+          index_sum_of_color != -1
+        ) {
+          sum_of_darkest_remaining_color = index_sum_of_color;
+          index_of_darkest_remaining_color = i;
+        }
+      }
+
+      //found the darkest remaining color
+      //add it to the new order array
+      orderedColors.push(colors[index_of_darkest_remaining_color]);
+
+      //set the array index to a dummy number
+      rgbSumOfColorsArray[index_of_darkest_remaining_color] = -1;
+    }
+    return orderedColors;
+  }
+  
+  /**
+   * getRGBSum(this_color) sums the RGB values for a color
+  */
+  function getRGBSum(this_color) {
+    return p5.red(this_color) + p5.green(this_color) + p5.blue(this_color);
+  }
+  
+  
+  /**
+   * getColor() handles color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1),  a tertiary color(s) if they exist (value=2), the darkest color (value=3).
    */
   function getColor(colors, colorIndex) {
     let num_tertiary_colors;
@@ -124,7 +181,7 @@ export default function ({ p5, colors, dim }) {
         let darkest_color_total =
           p5.red(colors[1]) + p5.green(colors[1]) + p5.blue(colors[1]);
         for (let i = 2; i < colors.length; i++) {
-          const next_color_total =
+          let next_color_total =
             p5.red(colors[i]) + p5.green(colors[i]) + p5.blue(colors[i]);
           if (darkest_color_total > next_color_total) {
             //new darkest color
@@ -133,6 +190,19 @@ export default function ({ p5, colors, dim }) {
           }
         }
         return colors[darkest_color_index];
+        break;
+      case 4:
+        //any color, including background color, selected randomly
+        if (colors.length == 2) {
+          return getLikeColor(colors[1]);
+        } else {
+          if (colors.length == 3) {
+            if (p5.random(100) < 50) return getLikeColor(getColor(colors, 3));
+          }
+        }
+        num_tertiary_colors = colors.length;
+        let random_color = p5.floor(p5.random(num_tertiary_colors));
+        return colors[random_color];
         break;
     }
   }
@@ -320,35 +390,20 @@ export default function ({ p5, colors, dim }) {
   }
 
   /**
-   * drawHorizon() draws a background polygon that represents a mountain
-   */
-  function drawHorizon(w, h, this_color) {
-    p5.fill(this_color);
-    p5.noStroke();
-    p5.rect(0, h / 2, w, h);
-  }
-
-  /**
-   * drawTripTychFrames() draws three frames on top of the scene
-   */
-  function drawTripTychFrames(w, h) {
-    p5.stroke(0);
+ * drawTripTychFrames() draws three frames on top of the scene
+ */
+ function  drawTripTychFrames(w, h, frame_color){
+    p5.stroke(frame_color);
     p5.noFill();
-
-    //first use sharp edges to get rid of those pesky corners
-    //strokeWeight(11);
-    //scale strokeWeight
-    p5.strokeWeight(p5.int((11 / 750) * w));
-    p5.rect(0, 0, w / 4, h);
-    p5.rect(w / 4, 0, w / 2, h);
-    p5.rect((w * 3) / 4, 0, w / 4, h);
-
-    //now round the edges
-    const curvature = p5.int((30 / 750) * w);
-    p5.rect(0, 0, w / 4, h, curvature);
-    p5.rect(w / 4, 0, w / 2, h, curvature);
-    p5.rect((w * 3) / 4, 0, w / 4, h, curvature);
-  }
+  
+   //EDIT
+   //square panels
+   p5.strokeWeight(int((8/750)*w));
+   p5.rect(0, 0, w/4, h);
+   p5.rect(w/4, 0,w/2 ,h);
+   p5.rect((w*3)/4, 0,w/4 ,h);
+   
+}
 
   /**
    * fractalObject() holds the info for each fractal, like its radians, position, etc.
@@ -483,21 +538,21 @@ export default function ({ p5, colors, dim }) {
    */
   const max_seeds = 60;
   const fractalObjects = [];
+  const orderedColorArray = [];
 
   //first time in, do some initializing
   if (fractalObjects.length == 0) {
     p5.noLoop();
-    //get most common color and draw that onto the background
-    p5.background(getColor(colors, 0));
+    //get darkest color and draw that onto the background
+    orderedColorArray = reOrderColorsDarkestToLightest(colors);
+    p5.background(orderedColorArray[0]);
 
     p5.stroke(p5.color(colors[1]));
     p5.ellipse(0, 0, 50, 100);
-    //get darkest color and use that for the horizon line
-    drawHorizon(dim.w, dim.h, getColor(colors, 3));
   }
 
   while (fractalObjects.length < max_seeds)
-    plantFractal(colors, dim, max_seeds, fractalObjects);
+     plantFractal(orderedColorArray, dim, max_seeds, fractalObjects);
 
   let still_growing = 1;
   while (still_growing == 1)
@@ -506,6 +561,6 @@ export default function ({ p5, colors, dim }) {
   //if planted all the seeds, go ahead and stop looping through this function and draw the triptych frame overlay
   if (fractalObjects.length >= max_seeds) {
     //draw triptych frames on top of everything
-    drawTripTychFrames(dim.w, dim.h);
+     drawTripTychFrames(dim.width, dim.height,orderedColorArray[orderedColorArray.length-1]);
   }
 }
