@@ -1,7 +1,5 @@
 /* eslint-disable no-unreachable */
 /* eslint-disable no-case-declarations */
-import p5 from 'p5';
-//import { DrawProps } from '../../types/Renderers';
 
 /**
  * TheGardenOfEarthlyDelights generates a mildly post-apocalyptic landscape,
@@ -87,7 +85,6 @@ export default function ({ p5, colors, dim }) {
       );
   }
 
-  
   /**
    * reOrderColorsDarkestToLightest() takes an array of colors and sends back an array ordered darkest to lightest
    */
@@ -135,15 +132,14 @@ export default function ({ p5, colors, dim }) {
     }
     return orderedColors;
   }
-  
+
   /**
    * getRGBSum(this_color) sums the RGB values for a color
-  */
+   */
   function getRGBSum(this_color) {
     return p5.red(this_color) + p5.green(this_color) + p5.blue(this_color);
   }
-  
-  
+
   /**
    * getColor() handles color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1),  a tertiary color(s) if they exist (value=2), the darkest color (value=3).
    */
@@ -390,20 +386,19 @@ export default function ({ p5, colors, dim }) {
   }
 
   /**
- * drawTripTychFrames() draws three frames on top of the scene
- */
- function  drawTripTychFrames(w, h, frame_color){
+   * drawTripTychFrames() draws three frames on top of the scene
+   */
+  function drawTripTychFrames(w, h, frame_color) {
     p5.stroke(frame_color);
     p5.noFill();
-  
-   //EDIT
-   //square panels
-   p5.strokeWeight(int((8/750)*w));
-   p5.rect(0, 0, w/4, h);
-   p5.rect(w/4, 0,w/2 ,h);
-   p5.rect((w*3)/4, 0,w/4 ,h);
-   
-}
+
+    //EDIT
+    //square panels
+    p5.strokeWeight(p5.int((8 / 750) * w));
+    p5.rect(0, 0, w / 4, h);
+    p5.rect(w / 4, 0, w / 2, h);
+    p5.rect((w * 3) / 4, 0, w / 4, h);
+  }
 
   /**
    * fractalObject() holds the info for each fractal, like its radians, position, etc.
@@ -538,7 +533,7 @@ export default function ({ p5, colors, dim }) {
    */
   const max_seeds = 60;
   const fractalObjects = [];
-  const orderedColorArray = [];
+  let orderedColorArray = [];
 
   //first time in, do some initializing
   if (fractalObjects.length == 0) {
@@ -552,7 +547,7 @@ export default function ({ p5, colors, dim }) {
   }
 
   while (fractalObjects.length < max_seeds)
-     plantFractal(orderedColorArray, dim, max_seeds, fractalObjects);
+    plantFractal(orderedColorArray, dim, max_seeds, fractalObjects);
 
   let still_growing = 1;
   while (still_growing == 1)
@@ -561,6 +556,10 @@ export default function ({ p5, colors, dim }) {
   //if planted all the seeds, go ahead and stop looping through this function and draw the triptych frame overlay
   if (fractalObjects.length >= max_seeds) {
     //draw triptych frames on top of everything
-     drawTripTychFrames(dim.width, dim.height,orderedColorArray[orderedColorArray.length-1]);
+    drawTripTychFrames(
+      dim.w,
+      dim.h,
+      orderedColorArray[orderedColorArray.length - 1]
+    );
   }
 }
