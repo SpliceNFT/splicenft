@@ -1,6 +1,4 @@
 /* eslint-disable no-unreachable */
-import p5 from 'p5';
-//import { DrawProps } from '../types/Renderers';
 
 /**
  * District 1618 generates a panel of shapes based on the golden mean (1.618)
@@ -155,12 +153,15 @@ export default function ({ p5, colors, dim }) {
   }
 
   /**
-   * getColor() handles color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1),  a tertiary color(s) if they exist (value=2), the darkest color (value=3), and any random color in the colors array, including the most common and secondary ones (value=4)
+   * getColor() handles color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1),  a tertiary color(s) if they exist (value=2), the darkest color (value=3).
    */
   function getColor(colors, colorIndex) {
-    let num_tertiary_colors, random_color, r;
-    let darkest_color_total;
-    let darkest_color_index = 1;
+    let num_tertiary_colors,
+      r,
+      darkest_color_index,
+      darkest_color_total,
+      random_color;
+
     switch (colorIndex) {
       case 0:
         //possibly the background color
@@ -184,16 +185,16 @@ export default function ({ p5, colors, dim }) {
           return getLikeColor(colors[1]);
         }
         num_tertiary_colors = colors.length - 1;
-        r = Math.floor(p5.random(num_tertiary_colors));
+        r = p5.floor(p5.random(num_tertiary_colors));
         return colors[1 + r];
         break;
       case 3:
         //get the darkest color start as the second in the array, after the most common one
-
+        darkest_color_index = 1;
         darkest_color_total =
           p5.red(colors[1]) + p5.green(colors[1]) + p5.blue(colors[1]);
         for (let i = 2; i < colors.length; i++) {
-          const next_color_total =
+          let next_color_total =
             p5.red(colors[i]) + p5.green(colors[i]) + p5.blue(colors[i]);
           if (darkest_color_total > next_color_total) {
             //new darkest color
@@ -206,11 +207,9 @@ export default function ({ p5, colors, dim }) {
       case 4:
         //any color, including background color, selected randomly
         if (colors.length == 2) {
-          //if there are only two colors in the color array, find a like color to work with
           return getLikeColor(colors[1]);
         } else {
           if (colors.length == 3) {
-            //if there are only three colors in the color array, find some like colors to make the pattern richer
             if (p5.random(100) < 50) return getLikeColor(getColor(colors, 3));
           }
         }
@@ -219,6 +218,13 @@ export default function ({ p5, colors, dim }) {
         return colors[random_color];
         break;
     }
+  }
+
+  /**
+   * getRGBSum(this_color) sums the RGB values for a color
+   */
+  function getRGBSum(this_color) {
+    return p5.red(this_color) + p5.green(this_color) + p5.blue(this_color);
   }
 
   /**
@@ -248,6 +254,54 @@ export default function ({ p5, colors, dim }) {
   }
 
   /**
+   * reOrderColorsDarkestToLightest() takes an array of colors and sends back an array ordered darkest to lightest
+   */
+  function reOrderColorsDarkestToLightest(colors) {
+    let orderedColors = [];
+    let rgbSumOfColorsArray = [];
+
+    //not sure I can use the p5js copy function so I'll just do it myself
+    for (let i = 0; i < colors.length; i++) {
+      rgbSumOfColorsArray.push(getRGBSum(colors[i]));
+    }
+
+    //cycle through colors, and get darkest
+    while (orderedColors.length < colors.length) {
+      //initialize with the first color in the rgbSumOfColorsArray
+      let sum_of_darkest_remaining_color;
+      let index_of_darkest_remaining_color;
+      let index_sum_of_color;
+      //get the first color in the array
+      for (let i = 0; i < rgbSumOfColorsArray.length; i++) {
+        if (rgbSumOfColorsArray[i] != -1) {
+          sum_of_darkest_remaining_color = rgbSumOfColorsArray[i];
+          index_of_darkest_remaining_color = i;
+          break;
+        }
+      }
+
+      for (let i = 0; i < rgbSumOfColorsArray.length; i++) {
+        index_sum_of_color = rgbSumOfColorsArray[i];
+        if (
+          sum_of_darkest_remaining_color > index_sum_of_color &&
+          index_sum_of_color != -1
+        ) {
+          sum_of_darkest_remaining_color = index_sum_of_color;
+          index_of_darkest_remaining_color = i;
+        }
+      }
+
+      //found the darkest remaining color
+      //add it to the new order array
+      orderedColors.push(colors[index_of_darkest_remaining_color]);
+
+      //set the array index to a dummy number
+      rgbSumOfColorsArray[index_of_darkest_remaining_color] = -1;
+    }
+    return orderedColors;
+  }
+
+  /**
    * district1618() is where an array of arrays, of grids of golden mean rectangles is built,
    * cycled through as a grid, and then drawn.
    */
@@ -260,7 +314,8 @@ export default function ({ p5, colors, dim }) {
   const num_cols_across_grid_array = [10, 6, 10];
 
   p5.noLoop();
-  p5.background(getColor(colors, 3));
+  const orderedColorArray = reOrderColorsDarkestToLightest(colors);
+  p5.background(orderedColorArray[0]);
 
   //build an array of grids, in this case, three grids that will be drawn across the screen
   //get the sqr_width for each of these grids, then create shrinking rects
@@ -302,7 +357,7 @@ export default function ({ p5, colors, dim }) {
       arrayOfGoldenMeanRectArray[grid_counter],
       grid_dim,
       start_pnt,
-      colors
+      orderedColorArray
     );
   }
 }
