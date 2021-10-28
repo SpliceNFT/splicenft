@@ -1,6 +1,4 @@
 /* eslint-disable no-unreachable */
-import p5 from 'p5';
-//import { DrawProps } from '../types/Renderers';
 
 /**
  * District 1618 generates a panel of shapes based on the golden mean (1.618)
@@ -158,7 +156,12 @@ export default function ({ p5, colors, dim }) {
    * getColor() handles color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1),  a tertiary color(s) if they exist (value=2), the darkest color (value=3).
    */
   function getColor(colors, colorIndex) {
-    let num_tertiary_colors;
+    let num_tertiary_colors,
+      r,
+      darkest_color_index,
+      darkest_color_total,
+      random_color;
+
     switch (colorIndex) {
       case 0:
         //possibly the background color
@@ -182,13 +185,13 @@ export default function ({ p5, colors, dim }) {
           return getLikeColor(colors[1]);
         }
         num_tertiary_colors = colors.length - 1;
-        let r = p5.floor(p5.random(num_tertiary_colors));
+        r = p5.floor(p5.random(num_tertiary_colors));
         return colors[1 + r];
         break;
       case 3:
         //get the darkest color start as the second in the array, after the most common one
-        let darkest_color_index = 1;
-        let darkest_color_total =
+        darkest_color_index = 1;
+        darkest_color_total =
           p5.red(colors[1]) + p5.green(colors[1]) + p5.blue(colors[1]);
         for (let i = 2; i < colors.length; i++) {
           let next_color_total =
@@ -211,7 +214,7 @@ export default function ({ p5, colors, dim }) {
           }
         }
         num_tertiary_colors = colors.length;
-        let random_color = p5.floor(p5.random(num_tertiary_colors));
+        random_color = p5.floor(p5.random(num_tertiary_colors));
         return colors[random_color];
         break;
     }
@@ -223,7 +226,7 @@ export default function ({ p5, colors, dim }) {
   function getRGBSum(this_color) {
     return p5.red(this_color) + p5.green(this_color) + p5.blue(this_color);
   }
-  
+
   /**
    * getLikeColor() calculates a color that's more or less saturated than the input color
    */
@@ -250,8 +253,7 @@ export default function ({ p5, colors, dim }) {
     return new_color;
   }
 
-  
-/**
+  /**
    * reOrderColorsDarkestToLightest() takes an array of colors and sends back an array ordered darkest to lightest
    */
   function reOrderColorsDarkestToLightest(colors) {
@@ -298,9 +300,8 @@ export default function ({ p5, colors, dim }) {
     }
     return orderedColors;
   }
-  
-  
- /**
+
+  /**
    * district1618() is where an array of arrays, of grids of golden mean rectangles is built,
    * cycled through as a grid, and then drawn.
    */
