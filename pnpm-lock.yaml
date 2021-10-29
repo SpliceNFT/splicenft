@@ -102,10 +102,12 @@ importers:
       ethereum-waffle: ^3.4.0
       ethers: ^5.4.7
       hardhat: ^2.6.4
+      hardhat-contract-sizer: ^2.1.1
       ipfs-core: ^0.11.1
       ipfs-only-hash: ^4.0.0
       ipfs-unixfs-importer: ^9.0.6
       multiformats: ^9.4.8
+      nft.storage: ^3.3.0
       ts-node: ^10.2.1
       tsconfig-paths: ^3.11.0
       typechain: ^5.1.2
@@ -119,10 +121,12 @@ importers:
       '@openzeppelin/hardhat-upgrades': 1.10.0_47fc40963be4c618e60eb210e0a285bd
       '@types/dotenv-flow': 3.2.0
       dotenv-flow: 3.2.0
+      hardhat-contract-sizer: 2.1.1_hardhat@2.6.4
       ipfs-core: 0.11.1
       ipfs-only-hash: 4.0.0
       ipfs-unixfs-importer: 9.0.6
       multiformats: 9.4.8
+      nft.storage: 3.3.0
     devDependencies:
       '@nomiclabs/hardhat-ethers': 2.0.2_ethers@5.4.7+hardhat@2.6.4
       '@nomiclabs/hardhat-etherscan': 2.1.6_hardhat@2.6.4
@@ -7431,6 +7435,16 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
+  /cli-table3/0.6.0:
+    resolution: {integrity: sha512-gnB85c3MGC7Nm9I/FkiasNBOKjOiO1RNuXXarQms37q4QMpWdlbBgD/VnOStA2faG1dpXMv31RFApjX1/QdgWQ==}
+    engines: {node: 10.* || >= 12.*}
+    dependencies:
+      object-assign: 4.1.1
+      string-width: 4.2.2
+    optionalDependencies:
+      colors: 1.4.0
+    dev: false
+
   /cliui/3.2.0:
     resolution: {integrity: sha1-EgYBU3qRbSmUD5NNo7SNWFo5IT0=}
     dependencies:
@@ -10361,7 +10375,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.2_supports-color@6.1.0
+      debug: 4.3.2
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -10938,6 +10952,16 @@ packages:
   /hard-rejection/2.1.0:
     resolution: {integrity: sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==}
     engines: {node: '>=6'}
+    dev: false
+
+  /hardhat-contract-sizer/2.1.1_hardhat@2.6.4:
+    resolution: {integrity: sha512-QgfuwdUkKT7Ugn6Zja26Eie7h6OLcBfWBewaaQtYMCzyglNafQPgUIznN2C42/iFmGrlqFPbqv4B98Iev89KSQ==}
+    peerDependencies:
+      hardhat: ^2.0.0
+    dependencies:
+      cli-table3: 0.6.0
+      colors: 1.4.0
+      hardhat: 2.6.4
     dev: false
 
   /hardhat/2.6.4:

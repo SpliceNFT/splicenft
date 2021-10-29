@@ -13,14 +13,25 @@ contract SpliceStyleNFTV1 is ERC721, Ownable, ISpliceStyleNFT {
 
   Counters.Counter private _tokenIds;
 
-  mapping(address => bool) isArtist;
+  mapping(address => bool) public isArtist;
   mapping(uint256 => StyleSettings) styleSettings;
+
+  address public spliceNFT;
 
   constructor() ERC721('Splice Style NFT V1', 'SPLSV1') Ownable() {}
 
   modifier onlyArtist() {
     require(isArtist[msg.sender] == true, 'only artists can mint styles');
     _;
+  }
+
+  modifier onlySplice() {
+    require(msg.sender == spliceNFT, 'only callable by Splice');
+    _;
+  }
+
+  function setSplice(address _spliceNFT) external onlyOwner {
+    spliceNFT = _spliceNFT;
   }
 
   function allowArtist(address artist) external onlyOwner {
@@ -88,9 +99,12 @@ contract SpliceStyleNFTV1 is ERC721, Ownable, ISpliceStyleNFT {
     return settings.mintedOfStyle + 1 <= settings.cap;
   }
 
+  //todo: IMPORTANT check that this really can only be called by the Splice contract!
+
   function incrementMintedPerStyle(uint256 style_token_id)
     external
     override
+    onlySplice
     returns (uint16)
   {
     require(canMintOnStyle(style_token_id), 'the style has been fully minted');

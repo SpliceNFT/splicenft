@@ -49,7 +49,7 @@ contract Splice is
   //uint256 private constant MINT_LIMIT = 22;
 
   //todo shall we be able to change that?!
-  uint8 public ARTIST_SHARE = 85;
+  uint8 public ARTIST_SHARE;
 
   //which collections are allowed to be spliced
   mapping(address => bool) collectionAllowList;
@@ -85,20 +85,29 @@ contract Splice is
    */
   EscrowUpgradeable private feesEscrow;
 
+  //separate killswitch than Pauseable.
+  bool public saleIsActive;
+
   function initialize(string memory name_, string memory symbol_)
     public
     initializer
   {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
-
+    ARTIST_SHARE = 85;
+    //todo: unsure if a gnosis safe is payable...
+    platformBeneficiary = payable(msg.sender);
     //todo check that the escrow now belongs to this contract.
+    //todo ensure that the escrow can also support collection's accounts
     feesEscrow = new EscrowUpgradeable();
     feesEscrow.initialize();
+    saleIsActive = false;
   }
 
+  //todo: add more interfaces for royalties here.
   /**
    * @dev See {IERC165-supportsInterface}.
+   *
    */
   function supportsInterface(bytes4 interfaceId)
     public
@@ -120,12 +129,18 @@ contract Splice is
     token.transfer(platformBeneficiary, token.balanceOf(address(this)));
   }
 
+  //todo fallback function & withdrawal for eth for owner
+
   function pause() public onlyOwner {
     _pause();
   }
 
   function unpause() public onlyOwner {
     _unpause();
+  }
+
+  function toggleSaleIsActive(bool newValue) public onlyOwner {
+    saleIsActive = newValue;
   }
 
   //todo: we might consider dismissing this idea.
@@ -185,8 +200,8 @@ contract Splice is
     return collectionAllowList[collection];
   }
 
-  function allowCollection(address collection)
-    external
+  function _allowCollection(address collection)
+    internal
     onlyOwner
     whenNotPaused
   {
@@ -200,9 +215,11 @@ contract Splice is
     whenNotPaused
   {
     for (uint256 i; i < collections.length; i++) {
-      this.allowCollection(collections[i]);
+      _allowCollection(collections[i]);
     }
   }
+
+  //todo: disallow collection
 
   /**
    * we assume that our metadata CIDs are folder roots containing a /metadata.json
@@ -306,13 +323,13 @@ contract Splice is
   }
 
   //todo: check that this really works (according to the escrow code it should.)
-  function withdrawShares() external nonReentrant {
+  function withdrawShares() external nonReentrant whenNotPaused {
     //todo: this require might be not what we want. I just have it here to ensure
     //that only artists can call this.
-    require(
-      styleNFT.balanceOf(msg.sender) > 0,
-      'you must own at least one style to withdraw your fee shares'
-    );
+    // require(
+    //   styleNFT.balanceOf(msg.sender) > 0,
+    //   'you must own at least one style to withdraw your fee shares'
+    // );
 
     //todo: the payable cast might not be right (msg.sender might be a contract)
     feesEscrow.withdraw(payable(msg.sender));
@@ -326,7 +343,9 @@ contract Splice is
     bytes memory your_signature,
     bytes memory verifier_signature,
     address recipient
-  ) public payable whenNotPaused returns (uint256 token_id) {
+  ) public payable whenNotPaused nonReentrant returns (uint256 token_id) {
+    require(saleIsActive);
+
     require(
       isCollectionAllowed(address(origin_collection)),
       'splicing this collection is not allowed'
@@ -358,11 +377,11 @@ contract Splice is
       'no validator signature could be verified'
     );
 
+    styleNFT.incrementMintedPerStyle(style_token_id);
     _tokenIds.increment();
     token_id = _tokenIds.current();
 
     _safeMint(recipient, token_id);
-    styleNFT.incrementMintedPerStyle(style_token_id);
 
     tokenHeritage[token_id] = TokenHeritage(
       msg.sender,

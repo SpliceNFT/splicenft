@@ -6,6 +6,11 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
 import '@openzeppelin/hardhat-upgrades';
+import 'hardhat-contract-sizer';
+import './tasks/mintStyle';
+import './tasks/mint';
+import './tasks/allow';
+
 import { config as dotenv } from 'dotenv-flow';
 dotenv();
 
@@ -19,34 +24,6 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
-task('nft:mint', 'mints on ENV.TESTNETNFT_CONTRACT_ADDRESS to <address>')
-  .addParam('address')
-  .setAction(async (taskArgs, hre) => {
-    const { address } = taskArgs;
-
-    const TestnetNFT = await hre.ethers.getContractFactory('TestnetNFT');
-
-    const testnetNFT = await TestnetNFT.attach(
-      process.env.TESTNETNFT_CONTRACT_ADDRESS as string
-    );
-
-    const receipt = await testnetNFT.mint(address);
-    console.log(receipt);
-  });
-
-task('splice:allow', 'allows a collection')
-  .addPositionalParam('collection')
-  .setAction(async (taskArgs, hre) => {
-    const { collection } = taskArgs;
-
-    const Splice = await hre.ethers.getContractFactory('Splice');
-
-    const splice = await Splice.attach(
-      process.env.SPLICE_CONTRACT_ADDRESS as string
-    );
-    const receipt = await (await splice.allowCollection(collection)).wait();
-    console.log(receipt);
-  });
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
