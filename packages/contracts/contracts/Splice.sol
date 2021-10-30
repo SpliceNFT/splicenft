@@ -302,6 +302,7 @@ contract Splice is
 
   function quote(IERC721 nft, uint256 style_token_id)
     public
+    view
     returns (uint256 fee)
   {
     require(

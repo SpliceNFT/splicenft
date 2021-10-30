@@ -18,7 +18,7 @@ interface ISpliceStyleNFT is IERC721 {
     view
     returns (StyleSettings memory);
 
-  function canMintOnStyle(uint256 style_token_id) external returns (bool);
+  function canMintOnStyle(uint256 style_token_id) external view returns (bool);
 
   //todo: important! if this must be marked "external" it definitely mustn't be called externally
   function incrementMintedPerStyle(uint256 style_token_id)
