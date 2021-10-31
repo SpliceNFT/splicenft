@@ -17,6 +17,7 @@
   "files": [
     "artifacts",
     "typechain",
+    "index.ts",
     "index.js",
     "index.d.ts"
   ],
