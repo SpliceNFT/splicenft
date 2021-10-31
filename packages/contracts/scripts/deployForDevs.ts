@@ -70,7 +70,11 @@ const deployTestnetNFT = async (
   console.log('splice style nft:', spliceStyleNFT.address);
 
   const Splice = await ethers.getContractFactory('Splice');
-  const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
+  const splice = await upgrades.deployProxy(Splice, [
+    'Splice',
+    'SPLICE',
+    'https://localhost:5999/1/'
+  ]);
   console.log('splice contract:', splice.address);
 
   const r = await splice.setStyleNFT(spliceStyleNFT.address);
@@ -82,9 +86,6 @@ const deployTestnetNFT = async (
   console.log('allowed artist: ', artistAccount.address);
 
   await splice.toggleSaleIsActive(true);
-
-  await splice.allowCollections([nfts[0], nfts[1]]);
-  console.log('allowed minting collections:', nfts[0], nfts[1]);
 
   await splice.addValidator(accounts[0].address);
   console.log('added validator', accounts[0].address);

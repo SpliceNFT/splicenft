@@ -12,7 +12,11 @@ import { ethers, upgrades } from 'hardhat';
   console.log('splice style nft:', spliceStyleNFT.address);
 
   const Splice = await ethers.getContractFactory('Splice');
-  const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
+  const splice = await upgrades.deployProxy(Splice, [
+    'Splice',
+    'SPLICE',
+    'https://getsplice.io/1/'
+  ]);
   console.log('splice contract:', splice.address);
 
   const r = await splice.setStyleNFT(spliceStyleNFT.address);

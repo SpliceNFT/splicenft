@@ -15,11 +15,11 @@ import '@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerU
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
+import 'hardhat/console.sol';
 
 import './BytesLib.sol';
 import './ISpliceStyleNFT.sol';
 import './SpliceStyleNFTV1.sol';
-import 'hardhat/console.sol';
 
 contract Splice is
   ERC721EnumerableUpgradeable,
@@ -35,12 +35,6 @@ contract Splice is
     IERC721 origin_collection;
     uint256 origin_token_id;
     uint256 style_token_id;
-    //todo: this would be MUCH smaller when using bytes32 with base58 encoding,
-    //see file history & Base58 library
-    //not possible with nft.storage since it returns cidv1
-    //we're storing the dag-cbor base32 "folder" CID
-    //they're resolved as "ipfs://<metadataCID>/metadata.json
-    string metadataCID;
   }
 
   CountersUpgradeable.Counter private _tokenIds;
@@ -51,9 +45,7 @@ contract Splice is
   //todo shall we be able to change that?!
   uint8 public ARTIST_SHARE;
 
-  //which collections are allowed to be spliced
-  //todo: likely only needed for tertiary shares. Could be disabled
-  mapping(address => bool) public collectionAllowList;
+  string private baseUri;
 
   //lookup table
   //keccack(0xcollection + origin_token_id) => splice token ID
@@ -89,10 +81,11 @@ contract Splice is
   //separate killswitch than Pauseable.
   bool public saleIsActive;
 
-  function initialize(string memory name_, string memory symbol_)
-    public
-    initializer
-  {
+  function initialize(
+    string memory name_,
+    string memory symbol_,
+    string memory baseUri_
+  ) public initializer {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
     ARTIST_SHARE = 85;
@@ -102,23 +95,17 @@ contract Splice is
     //todo ensure that the escrow can also support collection's accounts
     feesEscrow = new EscrowUpgradeable();
     feesEscrow.initialize();
+    baseUri = baseUri_;
     saleIsActive = false;
   }
 
-  //todo: add more interfaces for royalties here.
-  /**
-   * @dev See {IERC165-supportsInterface}.
-   *
-   */
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    override(ERC721EnumerableUpgradeable)
-    returns (bool)
-  {
-    if (interfaceId == type(IERC721Enumerable).interfaceId)
-      return ERC721Upgradeable.supportsInterface(interfaceId);
-    else return false;
+  //todo: might be unwanted.
+  function setBaseUri(string memory newBaseUri) public onlyOwner {
+    baseUri = newBaseUri;
+  }
+
+  function _baseURI() internal view override returns (string memory) {
+    return baseUri;
   }
 
   /**
@@ -129,6 +116,10 @@ contract Splice is
   function withdrawERC20(IERC20 token) public onlyOwner {
     token.transfer(platformBeneficiary, token.balanceOf(address(this)));
   }
+
+  //todo: add more interfaces for royalties here.
+  //https://eips.ethereum.org/EIPS/eip-2981
+  // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
 
   //todo fallback function & withdrawal for eth for owner
 
@@ -197,56 +188,6 @@ contract Splice is
     platformBeneficiary = newAddress;
   }
 
-  function isCollectionAllowed(address collection) public view returns (bool) {
-    return collectionAllowList[collection];
-  }
-
-  function _allowCollection(address collection)
-    internal
-    onlyOwner
-    whenNotPaused
-  {
-    //todo check whether nft supports ERC721 interface (ERC165)
-    collectionAllowList[collection] = true;
-  }
-
-  function allowCollections(address[] calldata collections)
-    external
-    onlyOwner
-    whenNotPaused
-  {
-    for (uint256 i; i < collections.length; i++) {
-      _allowCollection(collections[i]);
-    }
-  }
-
-  //todo: disallow collection
-
-  /**
-   * we assume that our metadata CIDs are folder roots containing a /metadata.json
-   * that's how nft.storage does it.
-   */
-  function _metadataURI(string memory metadataCID)
-    private
-    pure
-    returns (string memory)
-  {
-    return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
-  }
-
-  function tokenURI(uint256 token_id)
-    public
-    view
-    override
-    returns (string memory)
-  {
-    require(
-      _exists(token_id),
-      'ERC721Metadata: URI query for nonexistent token'
-    );
-    return tokenHeritage[token_id].metadataCID;
-  }
-
   function findHeritage(IERC721 nft, uint256 token_id)
     public
     view
@@ -269,13 +210,8 @@ contract Splice is
     return keccak256(abi.encodePacked(nft, token_id));
   }
 
-  function randomness(address nft, uint256 token_id)
-    public
-    pure
-    returns (uint32)
-  {
-    bytes32 hash = heritageHash(address(nft), token_id);
-    bytes memory rm = abi.encodePacked(hash);
+  function randomness(bytes32 _heritageHash) public pure returns (uint32) {
+    bytes memory rm = abi.encodePacked(_heritageHash);
     return BytesLib.toUint32(rm, 0);
   }
 
@@ -323,17 +259,12 @@ contract Splice is
     IERC721 origin_collection,
     uint256 origin_token_id,
     uint256 style_token_id,
-    string calldata metadataCID,
-    bytes memory your_signature,
-    bytes memory verifier_signature,
+    bytes calldata spliceData,
+    bytes calldata your_signature,
+    bytes calldata verifier_signature,
     address recipient
   ) public payable whenNotPaused nonReentrant returns (uint256 token_id) {
     require(saleIsActive);
-
-    require(
-      isCollectionAllowed(address(origin_collection)),
-      'splicing this collection is not allowed'
-    );
 
     //we only allow the owner of an NFT to mint a splice of it.
     require(origin_collection.ownerOf(origin_token_id) == msg.sender);
@@ -345,19 +276,26 @@ contract Splice is
     require(msg.value >= fee, 'you sent insufficient fees');
 
     splitMintFee(fee, style_token_id);
+    bytes32 _heritageHash = heritageHash(
+      address(origin_collection),
+      origin_token_id
+    );
 
-    bytes32 cidHash = keccak256(abi.encode(metadataCID));
+    bytes32 inputHash = keccak256(
+      abi.encode(spliceData, randomness(_heritageHash))
+    );
+    console.logBytes32(inputHash);
 
     require(
       SignatureCheckerUpgradeable.isValidSignatureNow(
         msg.sender,
-        cidHash,
+        inputHash,
         your_signature
       ),
       'your signature is not valid'
     );
     require(
-      isValidatedMint(cidHash, verifier_signature),
+      isValidatedMint(inputHash, verifier_signature),
       'no validator signature could be verified'
     );
 
@@ -371,13 +309,10 @@ contract Splice is
       msg.sender,
       origin_collection,
       origin_token_id,
-      style_token_id,
-      metadataCID
+      style_token_id
     );
 
-    originToTokenId[
-      uint256(heritageHash(address(origin_collection), origin_token_id))
-    ] = token_id;
+    originToTokenId[uint256(_heritageHash)] = token_id;
 
     return token_id;
   }

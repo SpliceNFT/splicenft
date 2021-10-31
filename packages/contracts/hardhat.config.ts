@@ -9,7 +9,6 @@ import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-contract-sizer';
 import './tasks/mintStyle';
 import './tasks/mint';
-import './tasks/allow';
 
 import { config as dotenv } from 'dotenv-flow';
 dotenv();

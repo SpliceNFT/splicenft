@@ -28,7 +28,6 @@ export type TokenHeritage = {
   origin_token_id: BigNumber;
   style_token_id: BigNumber;
   splice_token_id: BigNumber;
-  metadataCID: string;
 };
 
 type TokenMetadataResponse = Array<{ tokenId: number; metadataUrl: string }>;
@@ -63,12 +62,6 @@ export class Splice {
       this.contract.signer || this.contract.provider
     );
     return this.styleNFTContract;
-  }
-
-  public async isCollectionAllowed(
-    collectionAddress: string
-  ): Promise<boolean> {
-    return this.contract.isCollectionAllowed(collectionAddress);
   }
 
   // public async requestMinting(
@@ -138,7 +131,7 @@ export class Splice {
     return tokenId.toNumber();
   }
 
-  public static computeRandomnessLocally(
+  public static computeRandomness(
     collection: string,
     token_id: string | number
   ): number {
@@ -151,13 +144,6 @@ export class Splice {
     const bytes = utils.arrayify(kecc);
     const _randomness = new DataView(bytes.buffer).getUint32(0);
     return _randomness;
-  }
-
-  public async computeRandomnessOnChain(
-    collection: string,
-    token_id: number | string
-  ): Promise<number> {
-    return await this.contract.randomness(collection, token_id);
   }
 
   public async findHeritage(
@@ -182,13 +168,13 @@ export class Splice {
     };
   }
 
-  public getMetadataUrl(heritage: TokenHeritage) {
-    return `ipfs://${heritage.metadataCID}/metadata.json`;
+  public async getMetadataUrl(tokenId: number | string): Promise<string> {
+    return await this.contract.tokenURI(tokenId);
   }
-
   public async fetchMetadata(heritage: TokenHeritage): Promise<NFTMetaData> {
-    //todo: get directly from ipfs
-    const url = ipfsGW(this.getMetadataUrl(heritage));
+    const url = ipfsGW(
+      await this.getMetadataUrl(heritage.splice_token_id.toString())
+    );
     const _metadata = await axios.get(url);
     const metadata = (await _metadata.data) as NFTMetaData;
     return metadata;
