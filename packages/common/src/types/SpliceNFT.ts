@@ -6,11 +6,13 @@ import { RGB } from './Renderers';
  */
 export type SpliceNFT = NFTMetaData & {
   properties: {
-    colors: RGB[];
     origin_collection: string;
     origin_token_id: string;
+    style_metadata_url: string;
+    style_collection: string;
+    style_token_id: string;
+    colors: RGB[];
     randomness: number;
-    style: string;
   };
 };
 

@@ -194,6 +194,8 @@ export class Splice {
     return metadata;
   }
 
+  //todo: this might get highly expensive
+  //needs a subgraph!
   public async getAllStyles(): Promise<TokenMetadataResponse> {
     const styleNFT = await this.getStyleNFT();
     const totalSupply = await styleNFT.totalSupply();

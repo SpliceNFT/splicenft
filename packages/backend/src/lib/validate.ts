@@ -1,6 +1,6 @@
 import axios from 'axios';
 import chalk from 'chalk';
-import { Renderers, resolveImage, Splice } from '@splicenft/common';
+import { resolveImage, Splice } from '@splicenft/common';
 import Render from './render';
 import { PNG } from 'pngjs';
 

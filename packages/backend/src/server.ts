@@ -28,13 +28,8 @@ if (process.env.NODE_ENV === 'production') {
   app.use(helmet());
 }
 
-import {
-  Renderers,
-  Splice,
-  getProvider,
-  SPLICE_ADDRESSES,
-  RGB
-} from '@splicenft/common';
+import { Splice, getProvider, SPLICE_ADDRESSES, RGB } from '@splicenft/common';
+import Metadata from './lib/Metadata';
 
 const styleCache = new StyleCache([31337]);
 styleCache.init();
@@ -50,9 +45,23 @@ const GRAYSCALE_COLORS: RGB[] = [
   [250, 250, 250]
 ];
 
-app.get('/render/:algo', (req, res) => {
-  const renderer = Renderers[req.params.algo];
-  if (!renderer) return res.status(404).send('algorithm not found');
+app.get('/render/:network/:style_token_id', async (req, res) => {
+  //const renderer = Renderers[req.params.algo];
+  //if (!renderer) return res.status(404).send('algorithm not found');
+  const networkId = parseInt(req.params.network);
+  const styleTokenId = parseInt(req.params.style_token_id);
+
+  const cache = styleCache.getCache(networkId);
+  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
+
+  const style = cache.getStyle(styleTokenId);
+  if (!style) {
+    return res
+      .status(500)
+      .send(`style ${styleTokenId} not available on network ${networkId}`);
+  }
+  const renderer = await style.getRenderer();
+
   try {
     Render(
       renderer,
@@ -117,26 +126,19 @@ app.get('/styles/:network', async (req, res) => {
   res.json(styles);
 });
 
-app.post('/validate/:network/:mintjob', async (req, res) => {
+// /1/1
+app.get('/:network/:tokenid', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  const mintJobId = parseInt(req.params.mintjob);
+  const tokenId = parseInt(req.params.tokenid);
+
+  const cache = styleCache.getCache(networkId);
   const splice = SpliceInstances[networkId];
 
-  console.log(
-    chalk.blue.bold('starting validation for splice job %s on chain %s'),
-    mintJobId,
-    networkId
-  );
+  if (!cache || !splice)
+    return res.status(500).send(`network ${networkId} not supported`);
 
-  await Validate(mintJobId, splice, (err: any | null, result: any) => {
-    if (err) {
-      console.log(chalk.red.bold(err));
-      return res.status(400).send({
-        error: err
-      });
-    }
-    res.send(result);
-  });
+  const metadata = await Metadata(splice, cache, tokenId);
+  res.send(metadata);
 });
 
 export default app;

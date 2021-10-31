@@ -6,7 +6,7 @@
  * of towers and barbed wires, whose shapes are defined by L-systems.
  */
 
-export default function ({ p5, colors, dim }) {
+function({ p5, colors, dim }) {
   /**
    * growAndDrawFractals() draws the fractal and then updates its underlying rule (grows it)
    */

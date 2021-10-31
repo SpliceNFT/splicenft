@@ -1,13 +1,4 @@
-import p5 from 'p5';
-
-/**
- * ConfidenceInTheMission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.
- * It draws two grids of rectangles on top of one another:
- * 1. a main grid that angles with one-point perspective, has a wide dark gap in the vertical middle,
- * and fades in towards the vertical middle of the canvas and
- * 2. a grid that's flat, fully saturated, and displays blocks of rects of various colors.
- */
-export default function ({ p5, colors, dim }) {
+function ({ p5, colors, dim }) {
   p5.noLoop();
   /**
    * getColorForFlatGridRect() handles all color picking. The colorIndex parameter represents: the most common color (value=0), the secondary color (value=1) and the tertiary color(s) if they exist (value=2).

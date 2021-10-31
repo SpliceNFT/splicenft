@@ -7,6 +7,7 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './ISpliceStyleNFT.sol';
 import './ISplicePriceStrategy.sol';
+import './StyleSettings.sol';
 
 contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
   using Counters for Counters.Counter;

@@ -16,7 +16,7 @@ export type NFTMetaData = {
   image?: string;
   google_image?: string;
   ipfs_image?: string;
-  external_url: null | string;
+  external_url?: string;
   animation_url?: string;
 };
 

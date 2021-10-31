@@ -4,8 +4,7 @@
  * District 1618 generates a panel of shapes based on the golden mean (1.618)
  */
 
-export default function ({ p5, colors, dim }) {
-  //export default function ({ p5, colors, dim }) {
+function ({ p5, colors, dim }) {
   /**
    * layoutGridOnPartOfCanvas() takes a series of shrinking rectangles (an array of goldenMeanRects)
    * and positions them as a grid on the canvas. The grid is defined by a designated starting point (start_pnt) and
