@@ -1,0 +1,5 @@
+GET http://localhost:5999/styles/31337
+
+###
+
+GET http://localhost:5999/styles/31337/1

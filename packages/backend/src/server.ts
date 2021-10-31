@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import Render from './lib/render';
 import Validate from './lib/validate';
 import chalk from 'chalk';
+import { SpliceInstances } from './lib/SpliceContracts';
+import { StyleCache } from './lib/StyleCache';
+import { StyleNFTResponse } from '@splicenft/common';
 
 const app: Express = express();
 
@@ -21,6 +24,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Handle security and origin in production
 if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('short'));
   app.use(helmet());
 }
 
@@ -31,9 +35,6 @@ import {
   SPLICE_ADDRESSES,
   RGB
 } from '@splicenft/common';
-
-import { SpliceInstances } from './lib/SpliceContracts';
-import { StyleCache } from './lib/StyleCache';
 
 const styleCache = new StyleCache([31337]);
 styleCache.init();
@@ -79,13 +80,41 @@ app.get('/render/:algo', (req, res) => {
 app.get('/styles/:network/:style_token_id', async (req, res) => {
   const networkId = parseInt(req.params.network);
   const styleTokenId = parseInt(req.params.style_token_id);
-  res.send('boo');
+
+  const cache = styleCache.getCache(networkId);
+  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
+
+  const style = cache.getStyle(styleTokenId);
+  if (!style) {
+    return res
+      .status(500)
+      .send(`style ${styleTokenId} not available on network ${networkId}`);
+  }
+  const code = await style.getCode();
+  res.json({
+    style_token_id: style.tokenId,
+    metadata: style.getMetadata(),
+    code
+  });
 });
 
 app.get('/styles/:network', async (req, res) => {
   const networkId = req.params.network;
 
-  res.send('foo');
+  const cache = styleCache.getCache(parseInt(networkId));
+  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
+
+  const promises = cache.getStyles().map((style) => {
+    return (async () => {
+      return {
+        style_token_id: style.tokenId,
+        metadata: style.getMetadata()
+      };
+    })();
+  });
+  const styles: StyleNFTResponse[] = await Promise.all(promises);
+
+  res.json(styles);
 });
 
 app.post('/validate/:network/:mintjob', async (req, res) => {
