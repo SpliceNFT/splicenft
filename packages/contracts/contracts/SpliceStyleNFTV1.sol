@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './ISpliceStyleNFT.sol';
 import './ISplicePriceStrategy.sol';
 
-contract SpliceStyleNFTV1 is ERC721, Ownable, ISpliceStyleNFT {
+contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
   using Counters for Counters.Counter;
 
   Counters.Counter private _tokenIds;
@@ -18,7 +18,11 @@ contract SpliceStyleNFTV1 is ERC721, Ownable, ISpliceStyleNFT {
 
   address public spliceNFT;
 
-  constructor() ERC721('Splice Style NFT V1', 'SPLSV1') Ownable() {}
+  constructor()
+    ERC721('Splice Style NFT V1', 'SPLSV1')
+    ERC721Enumerable()
+    Ownable()
+  {}
 
   modifier onlyArtist() {
     require(isArtist[msg.sender] == true, 'only artists can mint styles');

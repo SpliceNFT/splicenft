@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
@@ -52,14 +52,15 @@ contract Splice is
   uint8 public ARTIST_SHARE;
 
   //which collections are allowed to be spliced
-  mapping(address => bool) collectionAllowList;
+  //todo: likely only needed for tertiary shares. Could be disabled
+  mapping(address => bool) public collectionAllowList;
 
   //lookup table
   //keccack(0xcollection + origin_token_id) => splice token ID
-  mapping(uint256 => uint256) originToTokenId;
+  mapping(uint256 => uint256) public originToTokenId;
 
   //splice token ID => heritage
-  mapping(uint256 => TokenHeritage) tokenHeritage;
+  mapping(uint256 => TokenHeritage) public tokenHeritage;
 
   /**
    * Validators are trusted accounts that must sign minting
@@ -249,25 +250,15 @@ contract Splice is
   function findHeritage(IERC721 nft, uint256 token_id)
     public
     view
-    returns (TokenHeritage memory heritage)
+    returns (uint256 splice_token_id, TokenHeritage memory heritage)
   {
     require(
       nft.ownerOf(token_id) != address(0),
       'the token is not minted or belongs to 0x0'
     );
-    uint256 originHash = uint256(
-      keccak256(abi.encodePacked(address(nft), token_id))
-    );
-    uint256 splice_token_id = originToTokenId[originHash];
-    return (tokenHeritage[splice_token_id]);
-  }
-
-  function getHeritage(uint256 token_id)
-    public
-    view
-    returns (TokenHeritage memory)
-  {
-    return tokenHeritage[token_id];
+    uint256 originHash = uint256(heritageHash(address(nft), token_id));
+    splice_token_id = originToTokenId[originHash];
+    heritage = tokenHeritage[splice_token_id];
   }
 
   function heritageHash(address nft, uint256 token_id)
@@ -278,26 +269,14 @@ contract Splice is
     return keccak256(abi.encodePacked(nft, token_id));
   }
 
-  function getTokenOrigin(uint256 token_id)
-    public
-    view
-    returns (address collection, uint256 originalTokenId)
-  {
-    TokenHeritage memory _heritage = getHeritage(token_id);
-    return (address(_heritage.origin_collection), _heritage.origin_token_id);
-  }
-
-  function _toRandomness(bytes32 hash) internal pure returns (uint32) {
-    bytes memory rm = abi.encodePacked(hash);
-    return BytesLib.toUint32(rm, 0);
-  }
-
   function randomness(address nft, uint256 token_id)
     public
     pure
     returns (uint32)
   {
-    return _toRandomness(heritageHash(address(nft), token_id));
+    bytes32 hash = heritageHash(address(nft), token_id);
+    bytes memory rm = abi.encodePacked(hash);
+    return BytesLib.toUint32(rm, 0);
   }
 
   function quote(IERC721 nft, uint256 style_token_id)
@@ -334,6 +313,10 @@ contract Splice is
 
     //todo: the payable cast might not be right (msg.sender might be a contract)
     feesEscrow.withdraw(payable(msg.sender));
+  }
+
+  function shareBalanceOf(address payee) public view returns (uint256) {
+    return feesEscrow.depositsOf(payee);
   }
 
   function mint(

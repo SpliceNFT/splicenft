@@ -42,10 +42,19 @@ task('splice:style', 'mints a style')
     });
 
     const metadata = await nftStorageClient.store({
-      name: styleName,
-      description: `A Splice style`,
+      name: 'ConfidenceInTheMission',
+      description: `ConfidenceInTheMission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.
+       It draws two grids of rectangles on top of one another:
+       1. a main grid that angles with one-point perspective, has a wide dark gap in the vertical middle,
+       and fades in towards the vertical middle of the canvas and
+       2. a grid that's flat, fully saturated, and displays blocks of rects of various colors.
+      `,
       image: new File([previewImg], 'preview.png', { type: 'image/png' }),
       properties: {
+        creator_name: 'Emily Weil',
+        creator_twitter: '@emilyaweil',
+        code_library: 'p5.js',
+        code_library_version: '1.4.0',
         code: new File([code], 'code.js', {
           type: 'application/javascript'
         })
