@@ -3,3 +3,14 @@ GET http://localhost:5999/styles/31337
 ###
 
 GET http://localhost:5999/styles/31337/1
+
+###
+
+POST http://localhost:5999/validate/31337
+Content-Type: application/json
+
+{
+  "style_token_id": 1,
+  "origin_collection": "0x00",
+  "origin_token_id": 1
+}

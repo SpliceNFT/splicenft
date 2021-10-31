@@ -261,7 +261,7 @@ contract Splice is
     uint256 style_token_id,
     bytes calldata spliceData,
     bytes calldata your_signature,
-    bytes calldata verifier_signature,
+    bytes calldata validator_signature,
     address recipient
   ) public payable whenNotPaused nonReentrant returns (uint256 token_id) {
     require(saleIsActive);
@@ -295,7 +295,7 @@ contract Splice is
       'your signature is not valid'
     );
     require(
-      isValidatedMint(inputHash, verifier_signature),
+      isValidatedMint(inputHash, validator_signature),
       'no validator signature could be verified'
     );
 

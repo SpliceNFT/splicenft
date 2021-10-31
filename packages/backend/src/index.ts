@@ -5,5 +5,5 @@ import app from './server';
 // Start the application by listening to specific port
 const port = Number(process.env.PORT || 5999);
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Splice server listening at http://localhost:${port}`);
 });

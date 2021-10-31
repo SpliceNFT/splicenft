@@ -45,6 +45,7 @@ const GRAYSCALE_COLORS: RGB[] = [
   [250, 250, 250]
 ];
 
+//generic renderer
 app.get('/render/:network/:style_token_id', async (req, res) => {
   //const renderer = Renderers[req.params.algo];
   //if (!renderer) return res.status(404).send('algorithm not found');
@@ -84,6 +85,31 @@ app.get('/render/:network/:style_token_id', async (req, res) => {
     console.error(e);
     res.status(500).end();
   }
+});
+
+app.post('/validate/:network', async (req, res) => {
+  const networkId = parseInt(req.params.network);
+  const { style_token_id, origin_collection, origin_token_id } = req.body;
+
+  const splice = SpliceInstances[networkId];
+  const cache = styleCache.getCache(networkId);
+  if (!splice || !cache)
+    return res.status(500).send(`network ${networkId} not supported`);
+
+  const style = cache.getStyle(style_token_id);
+  if (!style) {
+    return res
+      .status(500)
+      .send(`style ${style_token_id} not available on network ${networkId}`);
+  }
+
+  const response = await Validate(splice, style, {
+    origin_collection,
+    origin_token_id
+  });
+  res.send({
+    res: response
+  });
 });
 
 app.get('/styles/:network/:style_token_id', async (req, res) => {
@@ -126,7 +152,7 @@ app.get('/styles/:network', async (req, res) => {
   res.json(styles);
 });
 
-// /1/1
+//this is the token metadata URI:  /1/1
 app.get('/:network/:tokenid', async (req, res) => {
   const networkId = parseInt(req.params.network);
   const tokenId = parseInt(req.params.tokenid);

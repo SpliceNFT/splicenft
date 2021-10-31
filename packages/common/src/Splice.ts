@@ -5,7 +5,7 @@ import {
   StyleNFTFactory
 } from '@splicenft/contracts';
 import axios from 'axios';
-import { BigNumber, Contract, providers, Signer, utils } from 'ethers';
+import { BigNumber, Contract, ethers, providers, Signer, utils } from 'ethers';
 import { ipfsGW, NFTMetaData } from '.';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
@@ -17,7 +17,7 @@ export const SPLICE_ADDRESSES: Record<number, string> = {
 export enum MintingState {
   UNKNOWN,
   GENERATED,
-  PERSISTED,
+  VERIFIED,
   MINTED,
   FAILED
 }
@@ -101,26 +101,26 @@ export class Splice {
     origin_collection,
     origin_token_id,
     style_token_id,
-    metadataCID,
+    spliceData,
     your_signature,
-    verifier_signature,
+    validator_signature,
     recipient
   }: {
     origin_collection: string;
     origin_token_id: string | number;
     style_token_id: string | number;
-    metadataCID: string;
+    spliceData: Buffer | Uint8Array;
     your_signature: string | Uint8Array;
-    verifier_signature: string | Uint8Array;
+    validator_signature: string | Uint8Array;
     recipient: string;
   }) {
     const tx = await this.contract.mint(
       origin_collection,
       origin_token_id,
       style_token_id,
-      metadataCID,
+      ethers.utils.hexlify(spliceData),
       your_signature,
-      verifier_signature,
+      validator_signature,
       recipient
     );
     const result = await tx.wait();
@@ -172,11 +172,14 @@ export class Splice {
     return await this.contract.tokenURI(tokenId);
   }
   public async fetchMetadata(heritage: TokenHeritage): Promise<NFTMetaData> {
-    const url = ipfsGW(
-      await this.getMetadataUrl(heritage.splice_token_id.toString())
+    const _metadataUrl = await this.getMetadataUrl(
+      heritage.splice_token_id.toString()
     );
+
+    const url = ipfsGW(_metadataUrl);
     const _metadata = await axios.get(url);
     const metadata = (await _metadata.data) as NFTMetaData;
+    metadata.external_url = _metadataUrl;
     return metadata;
   }
 

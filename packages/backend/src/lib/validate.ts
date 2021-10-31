@@ -5,6 +5,7 @@ import Render from './render';
 import { PNG } from 'pngjs';
 
 import { utils } from 'ethers';
+import { StyleData } from './StyleCache';
 
 const DIFF_THRESHOLD = 10;
 const TOLERATED_DIFF_PERC = 2;
@@ -24,6 +25,16 @@ const uint32ToUint8Array = (num: number) => {
   return ret;
 };
 
+const validate = async (
+  splice: Splice,
+  style: StyleData,
+  request: {
+    origin_collection: string;
+    origin_token_id: string;
+  }
+): Promise<string> => {
+  return 'foo';
+};
 // const validate = async (mintJobId, splice, callback) => {
 //   const _job = await splice.getMintJob(mintJobId);
 //   if (!_job) {
@@ -140,12 +151,4 @@ const uint32ToUint8Array = (num: number) => {
 //   );
 // };
 
-const validate = async (
-  mintJobId: number,
-  splice: Splice,
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  callback: Function
-) => {
-  callback(null, { foo: 'bar' });
-};
 export default validate;

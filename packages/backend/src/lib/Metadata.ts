@@ -12,7 +12,7 @@ const Metadata = async (
   const style = styleCache.getStyle(heritage.style_token_id.toNumber());
   if (!style) throw `style token seems corrupt`;
 
-  const randomness = Splice.computeRandomnessLocally(
+  const randomness = Splice.computeRandomness(
     heritage.origin_collection,
     heritage.origin_token_id.toString()
   );
