@@ -3,12 +3,12 @@ import {
   Button,
   Flex,
   Menu,
-  Text,
   MenuButton,
   MenuItem,
-  MenuList
+  MenuList,
+  Text
 } from '@chakra-ui/react';
-import { StyleNFTResponse } from '@splicenft/common';
+import { Style } from '@splicenft/common';
 import React from 'react';
 import { useSplice } from '../../context/SpliceContext';
 
@@ -17,8 +17,8 @@ export const ArtworkStyleChooser = ({
   onStyleChanged,
   disabled = false
 }: {
-  selectedStyle?: StyleNFTResponse;
-  onStyleChanged: (style: StyleNFTResponse) => void;
+  selectedStyle?: Style;
+  onStyleChanged: (style: Style) => void;
   disabled?: boolean;
 }) => {
   const { spliceStyles } = useSplice();
@@ -37,15 +37,15 @@ export const ArtworkStyleChooser = ({
           <Text fontWeight="normal" fontSize={selectedStyle ? 'xs' : 'md'}>
             choose a style
           </Text>
-          {selectedStyle && selectedStyle.metadata.name}
+          {selectedStyle && selectedStyle.getMetadata().name}
         </MenuButton>
         <MenuList>
-          {spliceStyles.map((style: StyleNFTResponse) => (
+          {spliceStyles.map((style: Style) => (
             <MenuItem
-              key={`style-${style.style_token_id}`}
+              key={`style-${style.tokenId}`}
               onClick={() => onStyleChanged(style)}
             >
-              {style.metadata.name}
+              {style.getMetadata().name}
             </MenuItem>
           ))}
         </MenuList>

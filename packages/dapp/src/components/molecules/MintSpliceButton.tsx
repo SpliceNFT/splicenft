@@ -1,5 +1,5 @@
 import { useToast, Flex, Text, Button } from '@chakra-ui/react';
-import { StyleNFTResponse } from '@splicenft/common';
+import { Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ export const MintSpliceButton = ({
 }: {
   collection: string;
   originTokenId: string;
-  selectedStyle: StyleNFTResponse;
+  selectedStyle: Style;
   onMinted: (spliceTokenId: number) => unknown;
 }) => {
   const { account } = useWeb3React();
@@ -25,10 +25,7 @@ export const MintSpliceButton = ({
   useEffect(() => {
     if (!splice) return;
     (async () => {
-      const _quoteWei = await splice.quote(
-        collection,
-        selectedStyle.style_token_id
-      );
+      const _quoteWei = await splice.quote(collection, selectedStyle.tokenId);
       setQuote(_quoteWei);
     })();
   }, [selectedStyle]);
@@ -40,7 +37,7 @@ export const MintSpliceButton = ({
       const spliceTokenId = await splice.mint({
         origin_collection: collection,
         origin_token_id: originTokenId,
-        style_token_id: selectedStyle.style_token_id,
+        style_token_id: selectedStyle.tokenId,
         recipient: account,
         mintingFee: quote
       });

@@ -124,6 +124,7 @@ export class Splice {
         value: mintingFee
       }
     );
+
     const result = await tx.wait();
     const transferEvent: SpliceContract.TransferEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -132,6 +133,7 @@ export class Splice {
     return tokenId.toNumber();
   }
 
+  //todo: allow tokenId to be BigNumber
   public static computeRandomness(
     collection: string,
     token_id: string | number

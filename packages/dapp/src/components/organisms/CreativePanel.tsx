@@ -1,10 +1,7 @@
 import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
-import { StyleNFTResponse } from '@splicenft/common';
-import { useWeb3React } from '@web3-react/core';
-import axios from 'axios';
+import { Style } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect, useState } from 'react';
-import { useSplice } from '../../context/SpliceContext';
 import { P5Sketch } from '../molecules/P5Sketch';
 
 export const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
@@ -33,14 +30,13 @@ const Preview = ({
   style,
   onSketched
 }: {
-  dominantColors?: RGB[];
   nftImageUrl: string;
   spliceDataUrl?: string | undefined;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
   };
-  style?: StyleNFTResponse;
+  style?: Style;
   onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
@@ -49,11 +45,8 @@ const Preview = ({
   useEffect(() => {
     if (!style) return;
     (async () => {
-      const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
-      const url = `${baseUrl}${style.code_url}`;
-
-      const resp = await (await axios.get(url)).data;
-      setCode(resp.code);
+      const _code = await style.getCode();
+      setCode(_code);
     })();
   }, [style]);
 
@@ -109,7 +102,7 @@ export const CreativePanel = ({
     dominantColors: RGB[];
   };
   spliceDataUrl?: string;
-  style?: StyleNFTResponse;
+  style?: Style;
 }) => {
   if (style && !spliceDataUrl) {
     return (

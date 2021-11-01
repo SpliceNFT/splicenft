@@ -1,32 +1,30 @@
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Button,
   Container,
   Divider,
   Flex,
   HStack,
   Link,
-  Heading,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Text,
   useToast
 } from '@chakra-ui/react';
 import {
   MintingState,
-  TokenHeritage,
   NFTMetaData,
   resolveImage,
   Splice,
   SpliceNFT,
-  StyleNFTResponse
+  Style,
+  TokenHeritage
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
-import { ethers, providers } from 'ethers';
+import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect, useState } from 'react';
-import { useParams, NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
@@ -53,7 +51,7 @@ export const NFTPage = () => {
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [randomness, setRandomness] = useState<number>(0);
 
-  const [selectedStyle, setSelectedStyle] = useState<StyleNFTResponse>();
+  const [selectedStyle, setSelectedStyle] = useState<Style>();
 
   const [heritage, setHeritage] = useState<TokenHeritage>();
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
@@ -82,8 +80,6 @@ export const NFTPage = () => {
       setSketch({
         dataUrl: resolveImage(metadata)
       });
-
-      console.log('md', metadata);
     })();
   }, [collection, tokenId, splice]);
 
@@ -219,7 +215,7 @@ export const NFTPage = () => {
               <ArtworkStyleChooser
                 disabled={dominantColors.length == 0 || buzy}
                 selectedStyle={selectedStyle}
-                onStyleChanged={(style: StyleNFTResponse) => {
+                onStyleChanged={(style: Style) => {
                   setSelectedStyle(style);
                   setSketch(undefined);
                 }}
@@ -260,7 +256,7 @@ export const NFTPage = () => {
       >
         <NFTDescription
           nftMetadata={nftMetadata}
-          styleNFT={selectedStyle?.metadata}
+          styleNFT={selectedStyle?.getMetadata()}
         />
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
