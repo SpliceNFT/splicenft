@@ -31,5 +31,7 @@ export type StyleNFT = NFTMetaData & {
 
 export type StyleNFTResponse = {
   style_token_id: number;
+  //a path to get the code, quick. Use the ipfs code prop if you don't trust us.
+  code_url: string;
   metadata: StyleNFT;
 };

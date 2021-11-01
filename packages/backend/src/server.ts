@@ -19,7 +19,6 @@ app.set('trust proxy', 1); // trust first proxy
 // Handle logs in console during development
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
-  app.use(cors());
 }
 
 // Handle security and origin in production
@@ -27,6 +26,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('short'));
   app.use(helmet());
 }
+app.use(cors());
 
 import { Splice, getProvider, SPLICE_ADDRESSES, RGB } from '@splicenft/common';
 import Metadata from './lib/Metadata';
@@ -143,6 +143,7 @@ app.get('/styles/:network', async (req, res) => {
     return (async () => {
       return {
         style_token_id: style.tokenId,
+        code_url: `/styles/${networkId}/${style.tokenId}`,
         metadata: style.getMetadata()
       };
     })();
