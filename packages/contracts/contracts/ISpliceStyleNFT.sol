@@ -18,6 +18,8 @@ interface ISpliceStyleNFT is IERC721 {
     view
     returns (StyleSettings memory);
 
+  function mintsLeft(uint256 style_token_id) external view returns (uint16);
+
   function canMintOnStyle(uint256 style_token_id) external view returns (bool);
 
   //todo: important! if this must be marked "external" it definitely mustn't be called externally

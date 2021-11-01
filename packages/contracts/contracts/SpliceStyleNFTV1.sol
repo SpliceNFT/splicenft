@@ -94,14 +94,23 @@ contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
     return styleSettings[token_id];
   }
 
+  function mintsLeft(uint256 style_token_id)
+    public
+    view
+    override
+    returns (uint16)
+  {
+    StyleSettings memory settings = styleSettings[style_token_id];
+    return settings.cap - settings.mintedOfStyle;
+  }
+
   function canMintOnStyle(uint256 style_token_id)
     public
     view
     override
     returns (bool)
   {
-    StyleSettings memory settings = styleSettings[style_token_id];
-    return settings.mintedOfStyle + 1 <= settings.cap;
+    return (mintsLeft(style_token_id) > 0);
   }
 
   //todo: IMPORTANT check that this really can only be called by the Splice contract!
