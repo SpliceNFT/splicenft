@@ -559,7 +559,8 @@ export default function ({ p5, colors, dim }) {
     drawTripTychFrames(
       dim.w,
       dim.h,
-      orderedColorArray[orderedColorArray.length - 1]
-    );
+      p5.color(255,255,255)
+    );   
+    
   }
 }
