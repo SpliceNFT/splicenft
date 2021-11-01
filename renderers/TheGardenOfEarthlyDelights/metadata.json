@@ -1,6 +1,6 @@
 {
-  "name": "Confidence In The Mission",
-  "description": "Confidence In The Mission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.",
+  "name": "The Garden Of Earthly Delights",
+  "description": "The Garden Of Earthly Delights generates a mildly post-apocalyptic landscape, of towers and barbed wires, whose shapes are defined by L-systems.",
   "properties": {
     "creator_name": "Emily Weil",
     "creator_twitter": "https://twitter.com/emilyaweil",
