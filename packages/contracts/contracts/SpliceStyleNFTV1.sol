@@ -105,7 +105,7 @@ contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
   }
 
   //todo: IMPORTANT check that this really can only be called by the Splice contract!
-
+  //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
   function incrementMintedPerStyle(uint256 style_token_id)
     external
     override

@@ -152,29 +152,6 @@ contract Splice is
     return validators.values();
   }
 
-  /**
-   * checks if any known validator has signed the mint request
-   */
-  function isValidatedMint(bytes32 hash, bytes memory signature)
-    public
-    view
-    returns (bool)
-  {
-    for (uint256 i = 0; i < validators.length(); i++) {
-      //todo (later) provide incentive (add mint fee share) for that validator.
-      if (
-        SignatureCheckerUpgradeable.isValidSignatureNow(
-          validators.at(i),
-          hash,
-          signature
-        )
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   function setStyleNFT(ISpliceStyleNFT _styleNFT) public onlyOwner {
     styleNFT = _styleNFT;
   }
@@ -259,9 +236,6 @@ contract Splice is
     IERC721 origin_collection,
     uint256 origin_token_id,
     uint256 style_token_id,
-    bytes calldata spliceData,
-    bytes calldata your_signature,
-    bytes calldata validator_signature,
     address recipient
   ) public payable whenNotPaused nonReentrant returns (uint256 token_id) {
     require(saleIsActive);
@@ -276,29 +250,9 @@ contract Splice is
     require(msg.value >= fee, 'you sent insufficient fees');
 
     splitMintFee(fee, style_token_id);
-    bytes32 _heritageHash = heritageHash(
-      address(origin_collection),
-      origin_token_id
-    );
 
-    bytes32 inputHash = keccak256(
-      abi.encode(spliceData, randomness(_heritageHash))
-    );
-    console.logBytes32(inputHash);
-
-    require(
-      SignatureCheckerUpgradeable.isValidSignatureNow(
-        msg.sender,
-        inputHash,
-        your_signature
-      ),
-      'your signature is not valid'
-    );
-    require(
-      isValidatedMint(inputHash, validator_signature),
-      'no validator signature could be verified'
-    );
-
+    //todo: important: check that this only can called by us.
+    //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
     styleNFT.incrementMintedPerStyle(style_token_id);
     _tokenIds.increment();
     token_id = _tokenIds.current();
@@ -312,6 +266,10 @@ contract Splice is
       style_token_id
     );
 
+    bytes32 _heritageHash = heritageHash(
+      address(origin_collection),
+      origin_token_id
+    );
     originToTokenId[uint256(_heritageHash)] = token_id;
 
     return token_id;
