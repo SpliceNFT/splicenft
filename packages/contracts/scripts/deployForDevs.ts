@@ -71,7 +71,7 @@ const deployTestnetNFT = async (
   const splice = await upgrades.deployProxy(Splice, [
     'Splice',
     'SPLICE',
-    'https://localhost:5999/31337/'
+    'http://localhost:5999/metadata/31337/'
   ]);
   console.log('splice contract:', splice.address);
 

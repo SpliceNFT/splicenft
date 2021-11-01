@@ -27,7 +27,6 @@ importers:
       '@splicenft/common': workspace:*
       '@types/cors': ^2.8.12
       '@types/express': ^4.17.13
-      '@types/get-pixels': ^3.3.1
       '@types/morgan': ^1.9.3
       '@types/node': ^16.10.3
       '@types/omggif': ^1.0.2
@@ -72,7 +71,6 @@ importers:
     devDependencies:
       '@types/cors': 2.8.12
       '@types/express': 4.17.13
-      '@types/get-pixels': 3.3.1
       '@types/morgan': 1.9.3
       '@types/node': 16.10.3
       '@types/omggif': 1.0.2
@@ -4464,13 +4462,6 @@ packages:
       '@types/node': 16.9.2
     dev: true
 
-  /@types/get-pixels/3.3.1:
-    resolution: {integrity: sha512-i2Wsjxfvce3/IPxBBSGqneWXQ14boqTVVeuG7SIhz3EYBPM/6XNobcwe1o8hpZ2K2DeJ/H9oSGZqlJcYabhVCQ==}
-    dependencies:
-      '@types/ndarray': 1.0.11
-      '@types/node': 16.10.3
-    dev: true
-
   /@types/glob/7.1.4:
     resolution: {integrity: sha512-w+LsMxKyYQm347Otw+IfBXOv9UWVjpHpCDdbBMt8Kz/xbvCYNjP+0qPh91Km3iKfSRLBB0P7fAMf0KHrPu+MyA==}
     dependencies:
@@ -4579,10 +4570,6 @@ packages:
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
     dev: false
-
-  /@types/ndarray/1.0.11:
-    resolution: {integrity: sha512-hOZVTN24zDHwCHaW7mF9n1vHJt83fZhNZ0YYRBwQGhA96yBWWDPTDDlqJatagHIOJB0a4xoNkNc+t/Cxd+6qUA==}
-    dev: true
 
   /@types/node-fetch/2.5.12:
     resolution: {integrity: sha512-MKgC4dlq4kKNa/mYrwpKfzQMB5X3ee5U6fSprkKpToBqBmX4nFZL9cW5jl6sWn+xpRJ7ypWh2yyqqr8UUCstSw==}

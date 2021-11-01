@@ -20,7 +20,7 @@ const Metadata = async (
   return {
     name: `Splice of ${heritage.origin_collection} / ${heritage.origin_token_id}`,
     description: `This Splice was created by using token ${heritage.origin_token_id} of ${heritage.origin_collection}. You can create its artwork yourself by downloading its style information, fetch its origin NFT image data, extract its features and feed it into the style code.`,
-    image: ``,
+    image: '',
     properties: {
       colors: [],
       origin_collection: heritage.origin_collection,

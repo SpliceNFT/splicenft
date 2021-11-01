@@ -1,11 +1,10 @@
 import axios from 'axios';
 import chalk from 'chalk';
-import { resolveImage, Splice } from '@splicenft/common';
+import { resolveImage, Splice, Style } from '@splicenft/common';
 import Render from './render';
 import { PNG } from 'pngjs';
 
 import { utils } from 'ethers';
-import { StyleData } from './StyleCache';
 
 const DIFF_THRESHOLD = 10;
 const TOLERATED_DIFF_PERC = 2;
@@ -27,7 +26,7 @@ const uint32ToUint8Array = (num: number) => {
 
 const validate = async (
   splice: Splice,
-  style: StyleData,
+  style: Style,
   request: {
     origin_collection: string;
     origin_token_id: string;

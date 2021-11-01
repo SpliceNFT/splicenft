@@ -1,13 +1,13 @@
+import { RGB, StyleNFTResponse } from '@splicenft/common';
 import cors from 'cors';
-import express, { Express } from 'express';
+import express, { Express, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import Artwork from './lib/Artwork';
+import Metadata from './lib/Metadata';
 import Render from './lib/render';
-import Validate from './lib/validate';
-import chalk from 'chalk';
-import { SpliceInstances } from './lib/SpliceContracts';
+import { providerFor, SpliceInstances } from './lib/SpliceContracts';
 import { StyleCache } from './lib/StyleCache';
-import { StyleNFTResponse } from '@splicenft/common';
 
 const app: Express = express();
 
@@ -28,9 +28,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 app.use(cors());
 
-import { Splice, getProvider, SPLICE_ADDRESSES, RGB } from '@splicenft/common';
-import Metadata from './lib/Metadata';
-
 const styleCache = new StyleCache([31337]);
 styleCache.init();
 
@@ -44,6 +41,19 @@ const GRAYSCALE_COLORS: RGB[] = [
   [220, 220, 220],
   [250, 250, 250]
 ];
+
+const ImageCallback = (res: Response) => {
+  return (err: any | null, buffer: Buffer) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).end();
+    }
+
+    res.set('Content-Type', 'image/png');
+    res.status(200);
+    res.send(buffer);
+  };
+};
 
 //generic renderer
 app.get('/render/:network/:style_token_id', async (req, res) => {
@@ -71,45 +81,12 @@ app.get('/render/:network/:style_token_id', async (req, res) => {
         dim: { w: 1500, h: 500 },
         randomness: 1
       },
-      (err: any | null, buffer: Buffer) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).end();
-        }
-        res.set('Content-Type', 'image/png');
-        res.status(200);
-        res.send(buffer);
-      }
+      ImageCallback(res)
     );
   } catch (e) {
     console.error(e);
     res.status(500).end();
   }
-});
-
-app.post('/validate/:network', async (req, res) => {
-  const networkId = parseInt(req.params.network);
-  const { style_token_id, origin_collection, origin_token_id } = req.body;
-
-  const splice = SpliceInstances[networkId];
-  const cache = styleCache.getCache(networkId);
-  if (!splice || !cache)
-    return res.status(500).send(`network ${networkId} not supported`);
-
-  const style = cache.getStyle(style_token_id);
-  if (!style) {
-    return res
-      .status(500)
-      .send(`style ${style_token_id} not available on network ${networkId}`);
-  }
-
-  const response = await Validate(splice, style, {
-    origin_collection,
-    origin_token_id
-  });
-  res.send({
-    res: response
-  });
 });
 
 app.get('/styles/:network/:style_token_id', async (req, res) => {
@@ -154,7 +131,7 @@ app.get('/styles/:network', async (req, res) => {
 });
 
 //this is the token metadata URI:  /1/1
-app.get('/:network/:tokenid', async (req, res) => {
+app.get('/metadata/:network/:tokenid', async (req, res) => {
   const networkId = parseInt(req.params.network);
   const tokenId = parseInt(req.params.tokenid);
 
@@ -165,7 +142,23 @@ app.get('/:network/:tokenid', async (req, res) => {
     return res.status(500).send(`network ${networkId} not supported`);
 
   const metadata = await Metadata(splice, cache, tokenId);
+  metadata.image = `${process.env.SERVER_BASE_URL}/splice/${networkId}/${tokenId}/image.png`;
   res.send(metadata);
+});
+
+app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
+  const networkId = parseInt(req.params.network);
+  const tokenId = parseInt(req.params.tokenid);
+  const cache = styleCache.getCache(networkId);
+  const splice = SpliceInstances[networkId];
+  const provider = providerFor(networkId);
+  if (!cache || !splice || !provider)
+    return res.status(500).send(`network ${networkId} not supported`);
+  try {
+    await Artwork(provider, cache, splice, tokenId, ImageCallback(res));
+  } catch (e: any) {
+    res.status(500).send(`couldnt create image :( ${e.message}`);
+  }
 });
 
 export default app;

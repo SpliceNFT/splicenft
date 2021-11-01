@@ -14,3 +14,15 @@ Content-Type: application/json
   "origin_collection": "0x00",
   "origin_token_id": 1
 }
+
+### 
+
+http://localhost:5999/metadata/31337/1
+
+### 
+
+http://localhost:5999/splice/31337/1/image.png
+
+###
+
+https://gateway.pinata.cloud/ipfs/QmVY4YEruMJdBcWEyePD6revtUpve8QFWMyDGyHYX9zJQp
