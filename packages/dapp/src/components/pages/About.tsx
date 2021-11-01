@@ -87,13 +87,13 @@ export const AboutPage = () => {
                 </Slide>
                 <Slide index={1}>
                   <SlImage
-                    src="/samples/bayc_15.png"
+                    src="/samples/garden_sample.png"
                     hasMasterSpinner={false}
                   />{' '}
                 </Slide>
                 <Slide index={2}>
                   <SlImage
-                    src="/samples/doodle_5.png"
+                    src="/samples/beginning_sample.png"
                     hasMasterSpinner={false}
                   />
                 </Slide>
