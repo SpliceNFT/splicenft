@@ -6,7 +6,8 @@ import {
 } from '@splicenft/contracts';
 import axios from 'axios';
 import { BigNumber, Contract, ethers, providers, Signer, utils } from 'ethers';
-import { ipfsGW, NFTMetaData } from '.';
+import { ipfsGW } from './img';
+import { SpliceNFT } from './types/SpliceNFT';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
   //4: '0x0',
@@ -17,7 +18,7 @@ export const SPLICE_ADDRESSES: Record<number, string> = {
 export enum MintingState {
   UNKNOWN,
   GENERATED,
-  VERIFIED,
+  VALIDATED,
   MINTED,
   FAILED
 }
@@ -89,6 +90,10 @@ export class Splice {
   //   //console.log(receipt);
   // }
 
+  public async getChain(): Promise<number> {
+    const network = await this.contract.provider.getNetwork();
+    return network.chainId;
+  }
   public async quote(
     collection: string,
     styleTokenId: number
@@ -101,27 +106,23 @@ export class Splice {
     origin_collection,
     origin_token_id,
     style_token_id,
-    spliceData,
-    your_signature,
-    validator_signature,
-    recipient
+    recipient,
+    mintingFee
   }: {
     origin_collection: string;
     origin_token_id: string | number;
     style_token_id: string | number;
-    spliceData: Buffer | Uint8Array;
-    your_signature: string | Uint8Array;
-    validator_signature: string | Uint8Array;
     recipient: string;
+    mintingFee: ethers.BigNumber;
   }) {
     const tx = await this.contract.mint(
       origin_collection,
       origin_token_id,
       style_token_id,
-      ethers.utils.hexlify(spliceData),
-      your_signature,
-      validator_signature,
-      recipient
+      recipient,
+      {
+        value: mintingFee
+      }
     );
     const result = await tx.wait();
     const transferEvent: SpliceContract.TransferEvent =
@@ -154,6 +155,7 @@ export class Splice {
       collectionAddress,
       tokenId
     );
+    if (heritageResult.splice_token_id.isZero()) return null;
     return {
       ...heritageResult.heritage,
       splice_token_id: heritageResult.splice_token_id
@@ -171,14 +173,14 @@ export class Splice {
   public async getMetadataUrl(tokenId: number | string): Promise<string> {
     return await this.contract.tokenURI(tokenId);
   }
-  public async fetchMetadata(heritage: TokenHeritage): Promise<NFTMetaData> {
+  public async fetchMetadata(heritage: TokenHeritage): Promise<SpliceNFT> {
     const _metadataUrl = await this.getMetadataUrl(
       heritage.splice_token_id.toString()
     );
 
     const url = ipfsGW(_metadataUrl);
     const _metadata = await axios.get(url);
-    const metadata = (await _metadata.data) as NFTMetaData;
+    const metadata = (await _metadata.data) as SpliceNFT;
     metadata.external_url = _metadataUrl;
     return metadata;
   }
