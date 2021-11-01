@@ -1,9 +1,10 @@
 {
-  "name": "ConfidenceInTheMission",
+  "name": "Confidence In The Mission",
   "description": "Confidence In The Mission generates an abstraction of the interior of HAL, from 2001 Space Odyssey. \n It draws two grids of rectangles on top of one another: \n1. a main grid that angles with one-point perspective, has a wide dark gap in the vertical middle,\nand fades in towards the vertical middle of the canvas and\n2. a grid that's flat, fully saturated, and displays blocks of rects of various colors.",
   "properties": {
     "creator_name": "Emily Weil",
-    "creator_twitter": "@emilyaweil",
+    "creator_twitter": "https://twitter.com/emilyaweil",
+    "creator_url": "",
     "code_library": "p5.js",
     "code_library_version": "1.4.0"
   }

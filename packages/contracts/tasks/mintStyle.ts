@@ -3,7 +3,7 @@ import { HardhatUserConfig, task } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
 import fs from 'fs';
 
-//pnpx hardhat --network localhost splice:style --account-idx 18 --style-nft-address 0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE --price-strategy-address 0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1  ../../renderers/ConfidenceInTheMission 0.05 200
+//pnpx hardhat --network localhost splice:style --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200
 
 task('splice:style', 'mints a style')
   .addParam('styleNftAddress')

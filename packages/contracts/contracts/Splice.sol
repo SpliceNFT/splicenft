@@ -30,6 +30,10 @@ contract Splice is
   using CountersUpgradeable for CountersUpgradeable.Counter;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
+  error InsufficientFees();
+  error NotOwningOrigin();
+  error MintingCapOnStyleReached();
+
   struct TokenHeritage {
     address requestor;
     IERC721 origin_collection;
@@ -39,10 +43,6 @@ contract Splice is
 
   CountersUpgradeable.Counter private _tokenIds;
 
-  //uint256 public constant MAX_TOKENS_PER_ADDRESS = 222;
-  //uint256 private constant MINT_LIMIT = 22;
-
-  //todo shall we be able to change that?!
   uint8 public ARTIST_SHARE;
 
   string private baseUri;
@@ -135,8 +135,8 @@ contract Splice is
     saleIsActive = newValue;
   }
 
-  //todo: we might consider dismissing this idea.
   function updateArtistShare(uint8 share) public onlyOwner {
+    require(share < 25, 'artblocks is also taking 25 max :.)');
     ARTIST_SHARE = share;
   }
 
@@ -160,6 +160,7 @@ contract Splice is
     return address(styleNFT);
   }
 
+  //todo: the platform benef. should be the only one to name a new beneficiary, not the owner.
   function setPlatformBeneficiary(address payable newAddress) public onlyOwner {
     require(address(0) != newAddress, 'must be a real address');
     platformBeneficiary = newAddress;
@@ -197,10 +198,10 @@ contract Splice is
     view
     returns (uint256 fee)
   {
-    require(
-      styleNFT.canMintOnStyle(style_token_id),
-      'the mint cap of that style has reached'
-    );
+    if (!styleNFT.canMintOnStyle(style_token_id)) {
+      revert MintingCapOnStyleReached();
+    }
+
     return styleNFT.quoteFee(nft, style_token_id);
   }
 
@@ -241,13 +242,13 @@ contract Splice is
     require(saleIsActive);
 
     //we only allow the owner of an NFT to mint a splice of it.
-    require(origin_collection.ownerOf(origin_token_id) == msg.sender);
+    if (origin_collection.ownerOf(origin_token_id) != msg.sender)
+      revert NotOwningOrigin();
 
-    //todo check whether input data seems legit (cid looks like a cid)
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)
     uint256 fee = quote(origin_collection, style_token_id);
-    require(msg.value >= fee, 'you sent insufficient fees');
+    if (msg.value < fee) revert InsufficientFees();
 
     splitMintFee(fee, style_token_id);
 

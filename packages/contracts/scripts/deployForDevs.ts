@@ -12,9 +12,7 @@ const deployTestnetNFT = async (
   const TestnetNFT = await ethers.getContractFactory('TestnetNFT');
   const nft = await TestnetNFT.deploy(name, symbol, baseUri, limit);
 
-  await Promise.all(
-    [1, 2, 3].map((i: number) => nft.mint(lastAccount.address))
-  );
+  await Promise.all([1, 2].map((i: number) => nft.mint(lastAccount.address)));
 
   return nft.address;
 };
