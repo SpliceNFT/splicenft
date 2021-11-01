@@ -1,6 +1,10 @@
 import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
+import { StyleNFTResponse } from '@splicenft/common';
+import { useWeb3React } from '@web3-react/core';
+import axios from 'axios';
 import { RGB } from 'get-rgba-palette';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSplice } from '../../context/SpliceContext';
 import { P5Sketch } from '../molecules/P5Sketch';
 
 export const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
@@ -26,7 +30,7 @@ const Preview = ({
   nftImageUrl,
   spliceDataUrl,
   nftExtractedProps,
-  rendererName,
+  style,
   onSketched
 }: {
   dominantColors?: RGB[];
@@ -36,10 +40,22 @@ const Preview = ({
     randomness: number;
     dominantColors: RGB[];
   };
-  rendererName?: string;
+  style?: StyleNFTResponse;
   onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
+  const [code, setCode] = useState<string>();
+
+  useEffect(() => {
+    if (!style) return;
+    (async () => {
+      const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
+      const url = `${baseUrl}${style.code_url}`;
+
+      const resp = await (await axios.get(url)).data;
+      setCode(resp.code);
+    })();
+  }, [style]);
 
   return (
     <Flex
@@ -50,13 +66,13 @@ const Preview = ({
       borderBottomColor="gray.200"
     >
       <Center width="100%" height="100%">
-        {dominantColors && onSketched && !spliceDataUrl && rendererName ? (
+        {dominantColors && onSketched && !spliceDataUrl && style ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
             onSketched={onSketched}
-            rendererName={rendererName}
+            code={code}
           />
         ) : (
           <Image src={spliceDataUrl} />
@@ -84,7 +100,7 @@ export const CreativePanel = ({
   onSketched,
   nftExtractedProps,
   spliceDataUrl,
-  rendererName
+  style
 }: {
   nftImageUrl: string;
   onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
@@ -93,15 +109,15 @@ export const CreativePanel = ({
     dominantColors: RGB[];
   };
   spliceDataUrl?: string;
-  rendererName?: string;
+  style?: StyleNFTResponse;
 }) => {
-  if (rendererName && !spliceDataUrl) {
+  if (style && !spliceDataUrl) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
         onSketched={onSketched}
         nftExtractedProps={nftExtractedProps}
-        rendererName={rendererName}
+        style={style}
       />
     );
   } else if (spliceDataUrl) {

@@ -7,16 +7,19 @@ import {
   NFTPort,
   OnChain,
   Splice,
-  SPLICE_ADDRESSES
+  SPLICE_ADDRESSES,
+  StyleNFTResponse
 } from '@splicenft/common';
 import { knownCollections } from '../modules/chains';
+import axios from 'axios';
 
 interface ISpliceContext {
   splice?: Splice;
   indexer?: NFTIndexer;
+  spliceStyles: StyleNFTResponse[];
 }
 
-const SpliceContext = React.createContext<ISpliceContext>({});
+const SpliceContext = React.createContext<ISpliceContext>({ spliceStyles: [] });
 
 const useSplice = () => useContext(SpliceContext);
 
@@ -24,6 +27,7 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
   const [indexer, setIndexer] = useState<NFTIndexer>();
+  const [spliceStyles, setStyles] = useState<StyleNFTResponse[]>([]);
 
   useEffect(() => {
     if (!library || !chainId) return;
@@ -59,8 +63,20 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [library, chainId]);
 
+  useEffect(() => {
+    if (!splice) return;
+
+    (async () => {
+      const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
+      const spliceChain = await splice.getChain();
+      const url = `${baseUrl}/styles/${spliceChain}`;
+      const _styles: StyleNFTResponse[] = await (await axios.get(url)).data;
+      setStyles(_styles);
+    })();
+  }, [splice]);
+
   return (
-    <SpliceContext.Provider value={{ splice, indexer }}>
+    <SpliceContext.Provider value={{ splice, indexer, spliceStyles }}>
       {children}
     </SpliceContext.Provider>
   );

@@ -5,29 +5,33 @@ import {
   Flex,
   HStack,
   Link,
+  Heading,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Text,
   useToast
 } from '@chakra-ui/react';
 import {
   MintingState,
-  MintJob,
+  TokenHeritage,
   NFTMetaData,
   resolveImage,
-  Splice
+  Splice,
+  SpliceNFT,
+  StyleNFTResponse
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
-import { providers } from 'ethers';
+import { ethers, providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
-import { NFTStorage } from 'nft.storage';
-import { CIDString } from 'nft.storage/dist/src/lib/interface';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { DominantColors } from '../molecules/DominantColors';
-import { MintJobState } from '../molecules/MintJobState';
+import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { CreativePanel } from '../organisms/CreativePanel';
 import {
   MetaDataDisplay,
@@ -43,20 +47,16 @@ export const NFTPage = () => {
   const { account, chainId } = useWeb3React<providers.Web3Provider>();
   const { splice, indexer } = useSplice();
 
-  const [isCollectionAllowed, setIsCollectionAllowed] =
-    useState<boolean>(false);
   const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [randomness, setRandomness] = useState<number>(0);
 
-  const [selectedRenderer, setSelectedRenderer] = useState<string>();
+  const [selectedStyle, setSelectedStyle] = useState<StyleNFTResponse>();
 
-  const [mintJob, setMintJob] = useState<{ jobId: number; job: MintJob }>();
-  const [spliceMetadata, setSpliceMetadata] = useState<NFTMetaData>();
-  const [spliceMetadataCID, setSpliceMetadataCID] = useState<CIDString>();
-
+  const [heritage, setHeritage] = useState<TokenHeritage>();
+  const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
   );
@@ -64,33 +64,26 @@ export const NFTPage = () => {
   const [sketch, setSketch] = useState<{ dataUrl: string; blob?: Blob }>();
   const [buzy, setBuzy] = useState<boolean>(false);
 
-  const nftStorageClient = new NFTStorage({
-    token: process.env.REACT_APP_NFTSTORAGE_APIKEY as string
-  });
-
-  //find an existing job
+  //find an existing splice
   useEffect(() => {
     if (!collection || !tokenId || !splice) return;
-    setRandomness(Splice.computeRandomnessLocally(collection, tokenId));
-
-    splice.isCollectionAllowed(collection).then(setIsCollectionAllowed);
+    setRandomness(Splice.computeRandomness(collection, tokenId));
 
     (async () => {
-      const res = await splice.findJobFor(collection, tokenId);
-      if (res === null) return;
+      const _heritage = await splice.findHeritage(collection, tokenId);
+      if (_heritage === null) return;
 
-      setMintJob(res);
-      setRandomness(res.job.randomness);
-      setMintingState(Splice.translateJobStatus(res.job));
-      const metadata = await splice.fetchMetadata(res.job);
-      metadata.external_url = splice.getMetadataUrl(res.job);
+      setHeritage(_heritage);
+      setMintingState(MintingState.MINTED);
+
+      const metadata = await splice.fetchMetadata(_heritage);
       setSpliceMetadata(metadata);
-      setSpliceMetadataCID(res.job.metadataCID);
+
       setSketch({
         dataUrl: resolveImage(metadata)
       });
 
-      console.log('job status', res.job.status);
+      console.log('md', metadata);
     })();
   }, [collection, tokenId, splice]);
 
@@ -110,107 +103,81 @@ export const NFTPage = () => {
     setMintingState(MintingState.GENERATED);
   };
 
-  const persistArtwork = async (blob: Blob) => {
-    setBuzy(true);
-    try {
-      const spliceMetadata = {
-        name: `Splice from ${collection}/${tokenId}`,
-        description: `This Splice has been generated from ${collection}/${tokenId}`,
-        properties: {
-          origin_collection: collection,
-          origin_token_id: tokenId,
-          randomness: randomness,
-          colors: dominantColors,
-          style: selectedRenderer
-        }
-      };
-      const spliceToken = await nftStorageClient.store({
-        ...spliceMetadata,
-        image: blob
-      });
-      setSpliceMetadataCID(spliceToken.ipnft);
-      setSpliceMetadata({
-        ...spliceMetadata,
-        external_url: spliceToken.url.toString(),
-        image: spliceToken.url.toString()
-      });
-      setMintingState(MintingState.PERSISTED);
-    } catch (e) {
-      toast({
-        status: 'error',
-        title: 'storing on nft.storage failed. Try again'
-      });
+  const onMinted = async (spliceTokenId: number) => {
+    toast({
+      status: 'success',
+      title: `Hooray, Splice #${spliceTokenId} is yours now!`
+    });
+    setMintingState(MintingState.MINTED);
+    if (splice) {
+      const _heritage = await splice.getHeritage(spliceTokenId);
+      if (_heritage) {
+        setHeritage(_heritage);
+      }
     }
-    setBuzy(false);
   };
 
-  const requestMint = async ({
-    collection,
-    tokenId,
-    cid
-  }: {
-    collection: string;
-    tokenId: string;
-    cid: string;
-  }) => {
-    if (!splice || !account) return;
-    setBuzy(true);
-    try {
-      const jobId = await splice.requestMinting(
-        collection,
-        tokenId,
-        cid,
-        account
-      );
-      const mintJob = await splice.getMintJob(jobId);
-      if (!mintJob) {
-        console.error('this job should exist', jobId);
-      } else {
-        setMintJob({ jobId, job: mintJob });
-      }
-      setMintingState(MintingState.MINTING_REQUESTED);
-    } catch (e) {
-      console.log(e);
-      toast({
-        title: 'Transaction failed',
-        status: 'error',
-        isClosable: true
-      });
-    }
-    setBuzy(false);
+  const persistArtwork = async (blob: Blob) => {
+    // setBuzy(true);
+    // try {
+    //   const spliceMetadata = {
+    //     name: `Splice from ${collection}/${tokenId}`,
+    //     description: `This Splice has been generated from ${collection}/${tokenId}`,
+    //     properties: {
+    //       origin_collection: collection,
+    //       origin_token_id: tokenId,
+    //       randomness: randomness,
+    //       colors: dominantColors,
+    //       style: selectedRenderer
+    //     }
+    //   };
+    //   const spliceToken = await nftStorageClient.store({
+    //     ...spliceMetadata,
+    //     image: blob
+    //   });
+    //   setSpliceMetadata({
+    //     ...spliceMetadata,
+    //     external_url: spliceToken.url.toString(),
+    //     image: spliceToken.url.toString()
+    //   });
+    //   setMintingState(MintingState.PERSISTED);
+    // } catch (e) {
+    //   toast({
+    //     status: 'error',
+    //     title: 'storing on nft.storage failed. Try again'
+    //   });
+    // }
+    // setBuzy(false);
   };
 
   const executeValidator = async () => {
     setBuzy(true);
 
     try {
-      if (!splice || !mintJob) throw 'no splice instance or mintjob';
-      const jobId = mintJob.jobId;
-      splice.listenForJobResults(jobId);
+      if (!splice) throw 'no splice instance';
+
       const validatorBaseUrl = process.env
         .REACT_APP_VALIDATOR_BASEURL as string;
-      const url = `${validatorBaseUrl}/${chainId}/${jobId}`;
-      const res: { valid: boolean; txHash: string; bytes32: string } = (
-        await axios.get(url, {
-          responseType: 'json'
-        })
+      const url = `${validatorBaseUrl}/validate/${chainId}`;
+      const res: { valid: boolean; signature: string } = (
+        await axios.post(
+          url,
+          {
+            style_token_id: 1,
+            origin_collection: collection,
+            origin_token_id: tokenId
+          },
+          { responseType: 'json' }
+        )
       ).data;
 
       if (res.valid === true) {
-        const mintJob = await splice.getMintJob(jobId);
-        if (mintJob) {
-          console.log(mintJob);
-          setMintJob({ jobId, job: mintJob });
-          //TODO listen to chain events.
-          if (mintJob.status == 1) {
-            setMintingState(MintingState.MINTING_ALLOWED);
-          }
-        }
+        setMintingState(MintingState.VALIDATED);
       }
-    } catch (e) {
-      console.log(e);
+    } catch (e: any) {
+      console.error(e);
       toast({
-        title: 'validation process failed',
+        title: `validation process failed, ${e.message}`,
         status: 'error',
         isClosable: true
       });
@@ -219,30 +186,26 @@ export const NFTPage = () => {
     setBuzy(false);
   };
 
-  const startMinting = async (jobId: number) => {
-    try {
-      const spliceNftId = await splice?.mint(jobId);
-      setMintingState(MintingState.MINTED);
-      toast({
-        status: 'success',
-        title: `Hooray, Splice #${spliceNftId} is yours now!`
-      });
-    } catch (e: any) {
-      console.error(e);
-      toast({
-        status: 'error',
-        title: e.message || `Minting went wrong :()`
-      });
-    }
-  };
-
   return (
     <Container maxW="container.xl">
+      <Breadcrumb>
+        <BreadcrumbItem>
+          <BreadcrumbLink as={NavLink} to="/my-assets">
+            Your Assets
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink isLastChild>
+            Mint Splice for {nftMetadata?.name}
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
+
       {nftImageUrl && (
-        <Flex position="relative" justify="center">
+        <Flex position="relative" justify="center" mt={6}>
           <CreativePanel
             nftImageUrl={nftImageUrl}
-            rendererName={selectedRenderer}
+            style={selectedStyle}
             nftExtractedProps={{
               randomness,
               dominantColors
@@ -251,15 +214,24 @@ export const NFTPage = () => {
             spliceDataUrl={sketch?.dataUrl}
           />
 
-          <Flex position="absolute" right="1.5em" bottom="-1.5em">
-            {mintingState < MintingState.PERSISTED && dominantColors && (
+          <Flex position="absolute" right="1.5em" bottom="-1.5em" gridGap={6}>
+            {mintingState < MintingState.MINTED && dominantColors && (
               <ArtworkStyleChooser
                 disabled={dominantColors.length == 0 || buzy}
-                selectedRenderer={selectedRenderer}
-                onRendererChanged={(name) => {
-                  setSelectedRenderer(name);
+                selectedStyle={selectedStyle}
+                onStyleChanged={(style: StyleNFTResponse) => {
+                  setSelectedStyle(style);
                   setSketch(undefined);
                 }}
+              />
+            )}
+
+            {mintingState === MintingState.GENERATED && selectedStyle && (
+              <MintSpliceButton
+                collection={collection}
+                originTokenId={tokenId}
+                selectedStyle={selectedStyle}
+                onMinted={onMinted}
               />
             )}
 
@@ -286,11 +258,12 @@ export const NFTPage = () => {
         align="flex-start"
         gridGap={10}
       >
-        {nftMetadata && <NFTDescription nftMetadata={nftMetadata} />}
+        <NFTDescription
+          nftMetadata={nftMetadata}
+          styleNFT={selectedStyle?.metadata}
+        />
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
-          {mintJob && <MintJobState mintJob={mintJob} />}
-
           <DominantColors
             imageUrl={nftImageUrl}
             dominantColors={dominantColors}
@@ -309,36 +282,11 @@ export const NFTPage = () => {
           {spliceMetadata && (
             <>
               <Divider />
-              <SpliceMetadataDisplay
-                spliceMetadataCID={spliceMetadataCID}
-                spliceMetadata={spliceMetadata}
-              />
+              <SpliceMetadataDisplay spliceMetadata={spliceMetadata} />
             </>
           )}
 
-          {mintingState == MintingState.GENERATED && sketch?.blob && (
-            <Flex direction="column" align="center">
-              <Button
-                width="full"
-                disabled={!sketch.blob || buzy || !isCollectionAllowed}
-                onClick={() => {
-                  if (sketch.blob) persistArtwork(sketch.blob);
-                }}
-                variant="black"
-                isLoading={buzy}
-                loadingText="persisting on IPFS"
-              >
-                persist on IPFS
-              </Button>
-              {!isCollectionAllowed && (
-                <Text color="red.500">
-                  minting NFTs of this collection is not allowed right now
-                </Text>
-              )}
-            </Flex>
-          )}
-
-          {mintingState == MintingState.PERSISTED && spliceMetadataCID && (
+          {/*mintingState == MintingState.PERSISTED (
             <Flex align="center" direction="column">
               <Button
                 width="full"
@@ -362,9 +310,9 @@ export const NFTPage = () => {
                 </Text>
               )}
             </Flex>
-          )}
+              )*/}
 
-          {mintingState === MintingState.MINTING_REQUESTED && (
+          {/*mintingState === MintingState.MINTING_REQUESTED && (
             <Button
               onClick={executeValidator}
               isLoading={buzy}
@@ -374,8 +322,9 @@ export const NFTPage = () => {
             >
               request validation
             </Button>
-          )}
-          {mintJob && mintingState == MintingState.MINTING_ALLOWED && (
+          )*/}
+
+          {/*mintJob && mintingState == MintingState.MINTING_ALLOWED && (
             <Button
               onClick={() => startMinting(mintJob.jobId)}
               variant="black"
@@ -384,7 +333,7 @@ export const NFTPage = () => {
             >
               mint your splice!
             </Button>
-          )}
+          )*/}
         </Flex>
       </HStack>
     </Container>
