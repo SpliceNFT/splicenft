@@ -1,22 +1,25 @@
 import { ethers, upgrades } from 'hardhat';
 
 (async () => {
-  const Validator = await ethers.getContractFactory('SpliceValidator');
-  const validator = await Validator.deploy();
-  console.log('Deployed validator:', validator.address);
+  const PriceStrategy = await ethers.getContractFactory(
+    'SplicePriceStrategyStatic'
+  );
+  const staticPriceStrategy = await PriceStrategy.deploy();
+  console.log('static price strategy instance:', staticPriceStrategy.address);
 
-  const Splice = await ethers.getContractFactory('Splice', {
-    // we might need to deploy that separately because of size
-    // libraries: {
-    //   Base58: '0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0'
-    // }
-  });
-  const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
-  console.log('Deployed splice contract:', splice.address);
+  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFTV1');
+  const spliceStyleNFT = await SpliceStyleNFT.deploy();
+  console.log('splice style nft:', spliceStyleNFT.address);
 
-  //await splice.deployed();
+  const Splice = await ethers.getContractFactory('Splice');
+  const splice = await upgrades.deployProxy(Splice, [
+    'Splice',
+    'SPLICE',
+    'https://validate.getsplice.io/metadata/4/'
+  ]);
+  console.log('splice contract:', splice.address);
 
-  validator.setSplice(splice.address);
-  splice.setValidator(validator.address);
-  console.log('connected both instances');
+  const r = await splice.setStyleNFT(spliceStyleNFT.address);
+  const q = await spliceStyleNFT.setSplice(splice.address);
+  console.log('connected Splice & StyleNFT');
 })();

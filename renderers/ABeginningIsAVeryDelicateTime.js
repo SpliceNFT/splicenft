@@ -1,12 +1,11 @@
 /* eslint-disable no-unreachable */
 /* eslint-disable no-case-declarations */
-import p5 from 'p5';
 
 /**
  * ABeginningIsAVeryDelicateTime is a nod to the otherworldly landscape of the book (and movie!) Dune.
  */
 
-export default function ({ p5, colors, dim }) {
+function ({ p5, colors, dim }) {
   /**
    * drawWaves() draws horizontal waves of color, across the canvas, more ripples towards the bottom of the screen to give a sense of depth.
    */

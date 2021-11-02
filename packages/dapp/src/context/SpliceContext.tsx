@@ -7,16 +7,20 @@ import {
   NFTPort,
   OnChain,
   Splice,
-  SPLICE_ADDRESSES
+  SPLICE_ADDRESSES,
+  Style,
+  StyleNFTResponse
 } from '@splicenft/common';
 import { knownCollections } from '../modules/chains';
+import axios from 'axios';
 
 interface ISpliceContext {
   splice?: Splice;
   indexer?: NFTIndexer;
+  spliceStyles: Style[];
 }
 
-const SpliceContext = React.createContext<ISpliceContext>({});
+const SpliceContext = React.createContext<ISpliceContext>({ spliceStyles: [] });
 
 const useSplice = () => useContext(SpliceContext);
 
@@ -24,6 +28,7 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
   const [indexer, setIndexer] = useState<NFTIndexer>();
+  const [spliceStyles, setStyles] = useState<Style[]>([]);
 
   useEffect(() => {
     if (!library || !chainId) return;
@@ -59,8 +64,34 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [library, chainId]);
 
+  useEffect(() => {
+    if (!splice) return;
+
+    (async () => {
+      const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
+      const spliceChain = await splice.getChain();
+      const styleNFTCollection = await splice.getStyleNFT();
+      const url = `${baseUrl}/styles/${spliceChain}`;
+      try {
+        const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
+        const _styles = styleRes.map(
+          (r) =>
+            new Style(
+              styleNFTCollection.address,
+              r.style_token_id,
+              url,
+              r.metadata
+            )
+        );
+        setStyles(_styles);
+      } catch (e: any) {
+        console.error("couldn't load splices", e.message);
+      }
+    })();
+  }, [splice]);
+
   return (
-    <SpliceContext.Provider value={{ splice, indexer }}>
+    <SpliceContext.Provider value={{ splice, indexer, spliceStyles }}>
       {children}
     </SpliceContext.Provider>
   );

@@ -9,7 +9,8 @@
     "deploy:dev": "hardhat run --network localhost scripts/deployForDevs.ts",
     "test": "hardhat test",
     "chain": "hardhat node",
-    "typechain": "hardhat typechain"
+    "typechain": "hardhat typechain",
+    "build:index": "tsc index.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,7 @@
   "files": [
     "artifacts",
     "typechain",
+    "index.ts",
     "index.js",
     "index.d.ts"
   ],
@@ -47,9 +49,11 @@
     "@openzeppelin/hardhat-upgrades": "^1.10.0",
     "@types/dotenv-flow": "^3.2.0",
     "dotenv-flow": "^3.2.0",
+    "hardhat-contract-sizer": "^2.1.1",
     "ipfs-core": "^0.11.1",
     "ipfs-only-hash": "^4.0.0",
     "ipfs-unixfs-importer": "^9.0.6",
-    "multiformats": "^9.4.8"
+    "multiformats": "^9.4.8",
+    "nft.storage": "^3.3.0"
   }
 }

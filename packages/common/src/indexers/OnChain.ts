@@ -16,7 +16,7 @@ export interface MetadataResponse {
   metadata: NFTMetaData;
 }
 
-const ERC721ABI = [
+export const ERC721ABI = [
   {
     inputs: [
       {

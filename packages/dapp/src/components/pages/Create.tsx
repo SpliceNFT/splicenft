@@ -135,10 +135,7 @@ export const CreatePage = () => {
   useEffect(() => {
     if (!nftItem) return;
     setRandomness(
-      Splice.computeRandomnessLocally(
-        nftItem.contract_address,
-        nftItem.token_id
-      )
+      Splice.computeRandomness(nftItem.contract_address, nftItem.token_id)
     );
   }, [nftItem]);
   const save = () => {

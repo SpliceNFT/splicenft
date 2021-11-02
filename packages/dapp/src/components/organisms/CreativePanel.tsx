@@ -1,6 +1,7 @@
 import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
+import { Style } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 
 export const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
@@ -26,20 +27,28 @@ const Preview = ({
   nftImageUrl,
   spliceDataUrl,
   nftExtractedProps,
-  rendererName,
+  style,
   onSketched
 }: {
-  dominantColors?: RGB[];
   nftImageUrl: string;
   spliceDataUrl?: string | undefined;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
   };
-  rendererName?: string;
-  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  style?: Style;
+  onSketched?: (dataUrl: string) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
+  const [code, setCode] = useState<string>();
+
+  useEffect(() => {
+    if (!style) return;
+    (async () => {
+      const _code = await style.getCode();
+      setCode(_code);
+    })();
+  }, [style]);
 
   return (
     <Flex
@@ -50,13 +59,13 @@ const Preview = ({
       borderBottomColor="gray.200"
     >
       <Center width="100%" height="100%">
-        {dominantColors && onSketched && !spliceDataUrl && rendererName ? (
+        {dominantColors && onSketched && !spliceDataUrl && style ? (
           <P5Sketch
             randomness={randomness}
             dim={{ w: 1500, h: 500 }}
             colors={dominantColors}
             onSketched={onSketched}
-            rendererName={rendererName}
+            code={code}
           />
         ) : (
           <Image src={spliceDataUrl} />
@@ -84,24 +93,24 @@ export const CreativePanel = ({
   onSketched,
   nftExtractedProps,
   spliceDataUrl,
-  rendererName
+  style
 }: {
   nftImageUrl: string;
-  onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  onSketched?: (dataUrl: string) => void;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
   };
   spliceDataUrl?: string;
-  rendererName?: string;
+  style?: Style;
 }) => {
-  if (rendererName && !spliceDataUrl) {
+  if (style && !spliceDataUrl) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
         onSketched={onSketched}
         nftExtractedProps={nftExtractedProps}
-        rendererName={rendererName}
+        style={style}
       />
     );
   } else if (spliceDataUrl) {

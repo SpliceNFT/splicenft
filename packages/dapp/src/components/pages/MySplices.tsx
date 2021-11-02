@@ -36,19 +36,19 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
     useState<{ metadata: SpliceNFT; imageUrl: string }>();
 
   useEffect(() => {
-    if (!indexer) return;
     (async () => {
       const _metadata = await (
-        await axios.get(ipfsGW(mySplice.metadataUrl), {
+        await axios.get<SpliceNFT>(ipfsGW(mySplice.metadataUrl), {
           responseType: 'json'
         })
       ).data;
+
       setMetadata({
         metadata: _metadata,
         imageUrl: resolveImage(_metadata)
       });
     })();
-  }, [indexer]);
+  }, []);
 
   useEffect(() => {
     if (!indexer || !metadata) return;
@@ -70,7 +70,7 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
 
   return (
     <SpliceCard direction={['column', null, null, 'row']}>
-      <LinkBox>
+      <LinkBox as={Flex}>
         <LinkOverlay href={metadata?.imageUrl || ''} isExternal>
           <SpliceArtwork
             originImageUrl={origin?.imageUrl}

@@ -5,42 +5,51 @@ import {
   Menu,
   MenuButton,
   MenuItem,
-  MenuList
+  MenuList,
+  Text
 } from '@chakra-ui/react';
-
+import { Style } from '@splicenft/common';
 import React from 'react';
-import { RendererNames } from '@splicenft/common';
+import { useSplice } from '../../context/SpliceContext';
 
 export const ArtworkStyleChooser = ({
-  selectedRenderer,
-  onRendererChanged,
+  selectedStyle,
+  onStyleChanged,
   disabled = false
 }: {
-  selectedRenderer?: string;
-  onRendererChanged: (rendererName: string) => void;
+  selectedStyle?: Style;
+  onStyleChanged: (style: Style) => void;
   disabled?: boolean;
-}) => (
-  <Flex direction="row">
-    <Menu>
-      <MenuButton
-        as={Button}
-        variant="white"
-        disabled={disabled}
-        boxShadow="md"
-        rightIcon={<ChevronDownIcon />}
-      >
-        {selectedRenderer ? selectedRenderer : 'choose a style'}
-      </MenuButton>
-      <MenuList>
-        {RendererNames.map((name) => (
-          <MenuItem
-            key={`renderer-${name}`}
-            onClick={() => onRendererChanged(name)}
-          >
-            {name}
-          </MenuItem>
-        ))}
-      </MenuList>
-    </Menu>
-  </Flex>
-);
+}) => {
+  const { spliceStyles } = useSplice();
+
+  return (
+    <Flex direction="row">
+      <Menu>
+        <MenuButton
+          as={Button}
+          variant="white"
+          disabled={disabled}
+          boxShadow="md"
+          textAlign="left"
+          rightIcon={<ChevronDownIcon />}
+        >
+          <Text fontWeight="normal" fontSize={selectedStyle ? 'xs' : 'md'}>
+            choose a style
+          </Text>
+          {selectedStyle && selectedStyle.getMetadata().name}
+        </MenuButton>
+        <MenuList>
+          {spliceStyles.map((style: Style) => (
+            <MenuItem
+              key={`style-${style.tokenId}`}
+              onClick={() => onStyleChanged(style)}
+            >
+              {style.getMetadata().name}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    </Flex>
+  );
+};

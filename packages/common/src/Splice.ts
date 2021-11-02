@@ -1,105 +1,146 @@
 import {
-  MintRequestedEvent,
   Splice as SpliceContract,
-  TransferEvent
+  SpliceStyleNFT as StyleNFTContract,
+  SpliceFactory,
+  StyleNFTFactory
 } from '@splicenft/contracts';
 import axios from 'axios';
-import {
-  BigNumber,
-  constants,
-  Contract,
-  ethers,
-  providers,
-  Signer,
-  utils
-} from 'ethers';
-import { ipfsGW, NFTMetaData, resolveImage } from '.';
-import { abi as SpliceABI } from './abi/Splice.json';
+import { BigNumber, Contract, ethers, providers, Signer, utils } from 'ethers';
+import { ipfsGW } from './img';
+import { SpliceNFT } from './types/SpliceNFT';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
-  //4: '0x0',
-  42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
+  4: '0x729410F8db69932E38dF158101e60d09aAA6423D'
+  //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
 };
 
 export enum MintingState {
   UNKNOWN,
   GENERATED,
-  PERSISTED,
-  MINTING_REQUESTED,
-  MINTING_ALLOWED,
+  VALIDATED,
   MINTED,
   FAILED
 }
 
-export type MintJob = {
+export type TokenHeritage = {
   requestor: string;
-  collection: string;
-  metadataCID: string;
-  randomness: number;
-  recipient: string;
-  token_id: BigNumber;
-  status: number;
+  origin_collection: string;
+  origin_token_id: BigNumber;
+  style_token_id: BigNumber;
+  splice_token_id: BigNumber;
 };
 
+type TokenMetadataResponse = Array<{ tokenId: number; metadataUrl: string }>;
+
 export class Splice {
-  private contract: SpliceContract;
+  private contract: SpliceContract.Splice;
+
+  private styleNFTContract?: StyleNFTContract.SpliceStyleNFTV1;
 
   get address() {
     return this.contract.address;
   }
 
-  constructor(splice: SpliceContract) {
+  constructor(splice: SpliceContract.Splice) {
     this.contract = splice;
   }
 
   static from(address: string, signer: Signer | providers.Provider) {
-    const contract = new Contract(address, SpliceABI, signer) as SpliceContract;
-    return new Splice(contract);
+    const spliceFactory = SpliceFactory.connect(address, signer);
+    const contract = spliceFactory.attach(address);
+    const spl = new Splice(contract);
+    return spl;
   }
 
-  public async isCollectionAllowed(
-    collectionAddress: string
-  ): Promise<boolean> {
-    return this.contract.isCollectionAllowed(collectionAddress);
-  }
+  public async getStyleNFT(): Promise<StyleNFTContract.SpliceStyleNFTV1> {
+    if (this.styleNFTContract) return this.styleNFTContract;
 
-  public async requestMinting(
-    collectionAddress: string,
-    tokenId: string | number,
-    cidString: string,
-    recipient: string
-  ): Promise<number> {
-    //console.log('orig', cidString);
+    const styleNFTAddress = await this.contract.getStyleNFT();
 
-    const tx = await this.contract.requestMint(
-      collectionAddress,
-      tokenId,
-      cidString,
-      recipient
+    this.styleNFTContract = StyleNFTFactory.connect(
+      styleNFTAddress,
+      this.contract.signer || this.contract.provider
     );
-
-    const result = await tx.wait();
-    const requestedEvent: MintRequestedEvent =
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      result.events![0] as MintRequestedEvent;
-    const jobId = requestedEvent.args.jobId;
-    return jobId;
-
-    //console.log(receipt);
+    return this.styleNFTContract;
   }
 
-  public async mint(jobId: number) {
-    const tx = await this.contract.finalizeMint(jobId);
-    const result = await tx.wait();
-    const transferEvent: TransferEvent =
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      result.events![0] as TransferEvent;
-    const tokenId = transferEvent.args.tokenId;
-    return tokenId.toNumber();
+  // public async requestMinting(
+  //   collectionAddress: string,
+  //   tokenId: string | number,
+  //   cidString: string,
+  //   recipient: string
+  // ): Promise<number> {
+  //   //console.log('orig', cidString);
+
+  //   const tx = await this.contract.requestMint(
+  //     collectionAddress,
+  //     tokenId,
+  //     cidString,
+  //     recipient
+  //   );
+
+  //   const result = await tx.wait();
+  //   const requestedEvent: MintRequestedEvent =
+  //     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  //     result.events![0] as MintRequestedEvent;
+  //   const jobId = requestedEvent.args.jobId;
+  //   return jobId;
+
+  //   //console.log(receipt);
+  // }
+
+  public async getChain(): Promise<number> {
+    const network = await this.contract.provider.getNetwork();
+    return network.chainId;
+  }
+  public async quote(
+    collection: string,
+    styleTokenId: number
+  ): Promise<BigNumber> {
+    const quoteWei = await this.contract.quote(collection, styleTokenId);
+    return quoteWei;
   }
 
-  public static computeRandomnessLocally(
+  public async mint({
+    origin_collection,
+    origin_token_id,
+    style_token_id,
+    recipient,
+    mintingFee
+  }: {
+    origin_collection: string;
+    origin_token_id: string | number;
+    style_token_id: string | number;
+    recipient: string;
+    mintingFee: ethers.BigNumber;
+  }): Promise<{ transactionHash: string; spliceTokenId: number | undefined }> {
+    const tx = await this.contract.mint(
+      origin_collection,
+      origin_token_id,
+      style_token_id,
+      recipient,
+      {
+        value: mintingFee
+      }
+    );
+    const result = await tx.wait();
+    console.log(result);
+
+    const transferEvent: SpliceContract.TransferEvent =
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      result.events?.find(
+        (evt) => evt.event === 'Transfer'
+      ) as SpliceContract.TransferEvent;
+
+    return {
+      transactionHash: result.transactionHash,
+      spliceTokenId: transferEvent?.args.tokenId.toNumber()
+    };
+  }
+
+  //todo: allow tokenId to be BigNumber
+  public static computeRandomness(
     collection: string,
     token_id: string | number
   ): number {
@@ -114,68 +155,74 @@ export class Splice {
     return _randomness;
   }
 
-  public async computeRandomnessOnChain(
-    collection: string,
-    token_id: number | string
-  ): Promise<number> {
-    return await this.contract.randomness(collection, token_id);
-  }
-  // public computeRandomnessOnChain(
-  //   collection: string,
-  //   token_id: number
-  // ): number {}
-
-  public async findJobFor(
+  public async findHeritage(
     collectionAddress: string,
     tokenId: string | number
-  ): Promise<{ jobId: number; job: MintJob } | null> {
-    const { jobId, job } = await this.contract.findMintJob(
+  ): Promise<TokenHeritage | null> {
+    const heritageResult = await this.contract.findHeritage(
       collectionAddress,
       tokenId
     );
-    if (job.collection === constants.AddressZero) {
-      return null;
-    }
-    return { jobId, job };
+    if (heritageResult.splice_token_id.isZero()) return null;
+    return {
+      ...heritageResult.heritage,
+      splice_token_id: heritageResult.splice_token_id
+    };
   }
 
-  public async getMintJob(jobId: number): Promise<MintJob | null> {
-    const mintJob = await this.contract.getMintJob(jobId);
-    if (mintJob.collection === constants.AddressZero) {
-      return null;
-    }
-    return mintJob;
+  public async getHeritage(tokenId: number): Promise<TokenHeritage | null> {
+    const result = await this.contract.tokenHeritage(tokenId);
+    return {
+      ...result,
+      splice_token_id: BigNumber.from(tokenId)
+    };
   }
 
-  public getMetadataUrl(job: MintJob) {
-    return `ipfs://${job.metadataCID}/metadata.json`;
+  public async getMetadataUrl(tokenId: number | string): Promise<string> {
+    return await this.contract.tokenURI(tokenId);
   }
-  public async fetchMetadata(job: MintJob): Promise<NFTMetaData> {
-    //todo: get directly from ipfs
-    const url = ipfsGW(this.getMetadataUrl(job));
+  public async fetchMetadata(heritage: TokenHeritage): Promise<SpliceNFT> {
+    const _metadataUrl = await this.getMetadataUrl(
+      heritage.splice_token_id.toString()
+    );
+
+    const url = ipfsGW(_metadataUrl);
     const _metadata = await axios.get(url);
-    const metadata = (await _metadata.data) as NFTMetaData;
+    const metadata = (await _metadata.data) as SpliceNFT;
+    metadata.external_url = _metadataUrl;
     return metadata;
   }
 
-  public async greenlight(
-    jobId: number,
-    result: boolean
-  ): Promise<ethers.ContractReceipt> {
-    const tx = await this.contract.greenlightMintByOwner(jobId, result);
-    const receipt = await tx.wait();
-    return receipt;
+  //todo: this might get highly expensive
+  //needs a subgraph!
+  public async getAllStyles(): Promise<TokenMetadataResponse> {
+    const styleNFT = await this.getStyleNFT();
+    const totalSupply = await styleNFT.totalSupply();
+
+    const promises = [];
+
+    for (let i = 0; i < Math.min(10, totalSupply.toNumber()); i++) {
+      promises.push(
+        (async () => {
+          const tokenId = await styleNFT.tokenByIndex(i);
+          const metadataUrl = await styleNFT.tokenURI(tokenId);
+          return { tokenId: tokenId.toNumber(), metadataUrl };
+        })()
+      );
+    }
+    return Promise.all(promises);
   }
 
   //todo: this also could be provided by an API or NFTPort
   public async getAllSplices(
-    address: string
-  ): Promise<{ tokenId: number; metadataUrl: string }[]> {
+    address: string,
+    splicesPerPage = 20
+  ): Promise<TokenMetadataResponse> {
     const balance = await this.contract.balanceOf(address);
 
     if (balance.isZero()) return [];
     const promises = [];
-    for (let i = 0; i < Math.min(10, balance.toNumber()); i++) {
+    for (let i = 0; i < Math.min(splicesPerPage, balance.toNumber()); i++) {
       promises.push(
         (async () => {
           const tokenId = await this.contract.tokenOfOwnerByIndex(
@@ -192,23 +239,8 @@ export class Splice {
     return tokens;
   }
 
-  /**
-   * since the status enum on chain doesn't contain all states
-   * of our MintingState enum, we must translate it here:
-   * @param job
-   */
-  public static translateJobStatus(job: MintJob) {
-    return (
-      {
-        0: MintingState.MINTING_REQUESTED,
-        1: MintingState.MINTING_ALLOWED,
-        2: MintingState.MINTED,
-        3: MintingState.FAILED
-      }[job.status] || MintingState.UNKNOWN
-    );
-  }
-  public async listenForJobResults(jobId: number) {
-    this.contract.on(this.contract.filters.JobResultArrived(), (jobResult) => {
+  public async listenForMintResult() {
+    this.contract.on(this.contract.filters.Transfer(), (jobResult) => {
       console.log(jobResult);
     });
   }

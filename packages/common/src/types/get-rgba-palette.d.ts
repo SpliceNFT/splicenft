@@ -6,7 +6,7 @@ declare module 'get-rgba-palette' {
    */
   type FilterFunction = (pixels: number[], index: number) => boolean;
   export default function (
-    pixels: number[],
+    pixels: number[] | Uint8Array,
     count?: number = 5,
     quality?: number = 10,
     filter?: FilterFunction

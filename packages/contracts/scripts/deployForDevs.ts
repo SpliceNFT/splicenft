@@ -1,71 +1,90 @@
 import { ethers, upgrades } from 'hardhat';
 
-(async () => {
-  await (async () => {
-    const accounts = await ethers.getSigners();
-    const lastAccount = accounts[accounts.length - 1];
+const deployTestnetNFT = async (
+  name: string,
+  symbol: string,
+  baseUri: string,
+  limit: number
+): Promise<string> => {
+  const accounts = await ethers.getSigners();
+  const lastAccount = accounts[accounts.length - 1];
 
-    const TestnetNFT = await ethers.getContractFactory('TestnetNFT');
-    const coolcatNft = await TestnetNFT.deploy(
+  const TestnetNFT = await ethers.getContractFactory('TestnetNFT');
+  const nft = await TestnetNFT.deploy(name, symbol, baseUri, limit);
+
+  await Promise.all([1, 2].map((i: number) => nft.mint(lastAccount.address)));
+
+  return nft.address;
+};
+
+(async () => {
+  const accounts = await ethers.getSigners();
+  const artistAccount = accounts[accounts.length - 2];
+
+  // deploy testnet nfts
+  const nftDeploys = [
+    deployTestnetNFT(
       'Cool Cats Testnet',
       'COOL',
       'https://api.coolcatsnft.com/cat/',
       10000
-    );
-    console.log('Deployed cool cats :', coolcatNft.address);
-
-    const deadFellazNft = await TestnetNFT.deploy(
+    ),
+    deployTestnetNFT(
       'DeadFellaz Testnet',
       'DEADFELLAZ',
       'https://api.deadfellaz.io/traits/',
       10000
-    );
-    console.log('Deployed DeadFellaz :', deadFellazNft.address);
-
-    const flyFrogs = await TestnetNFT.deploy(
+    ),
+    deployTestnetNFT(
       'FlyFrogs Testnet',
       'FLYFROGS',
       'ipfs://QmRdNB3Q6Q5gVWnduBmxNZb4p9zKFmM3Qx3tohBb8B2KRK/',
       10000
-    );
-
-    console.log('Deployed FlyFrogs:', flyFrogs.address);
-
-    const doodles = await TestnetNFT.deploy(
+    ),
+    deployTestnetNFT(
       'Doodles Testnet',
       'DOODLES',
       'ipfs://QmPMc4tcBsMqLRuCQtPmPe84bpSjrC3Ky7t3JWuHXYB4aS/',
       2000
-    );
-    console.log('Deployed Doodles:', doodles.address);
+    )
+  ];
 
-    console.log(
-      'put this into your dapp/.env/REACT_APP_TESTNETNFT_CONTRACT_ADDRESS: ',
-      [
-        coolcatNft.address,
-        deadFellazNft.address,
-        flyFrogs.address,
-        doodles.address
-      ].join(',')
-    );
+  const nfts = await Promise.all(nftDeploys);
 
-    const Splice = await ethers.getContractFactory('Splice');
-    const splice = await upgrades.deployProxy(Splice, ['Splice', 'SPLICE']);
-    console.log('Deployed splice contract:', splice.address);
+  console.log(
+    'put this into your dapp/.env/REACT_APP_TESTNETNFT_CONTRACT_ADDRESS: ',
+    nfts.join(',')
+  );
 
-    await splice.allowCollection(coolcatNft.address, 10000);
-    console.log('allowed cool cats to mint splices');
+  // deploy splice infra
+  const PriceStrategy = await ethers.getContractFactory(
+    'SplicePriceStrategyStatic'
+  );
+  const staticPriceStrategy = await PriceStrategy.deploy();
+  console.log('static price strategy instance:', staticPriceStrategy.address);
 
-    await Promise.all(
-      [1, 2, 3].map((i) => coolcatNft.mint(lastAccount.address))
-    );
+  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFTV1');
+  const spliceStyleNFT = await SpliceStyleNFT.deploy();
+  console.log('splice style nft:', spliceStyleNFT.address);
 
-    await Promise.all(
-      [1, 2, 3].map((i) => deadFellazNft.mint(lastAccount.address))
-    );
+  const Splice = await ethers.getContractFactory('Splice');
+  const splice = await upgrades.deployProxy(Splice, [
+    'Splice',
+    'SPLICE',
+    'http://localhost:5999/metadata/31337/'
+  ]);
+  console.log('splice contract:', splice.address);
 
-    await flyFrogs.mint(lastAccount.address);
-    await doodles.mint(lastAccount.address);
-    console.log('minted sample NFTs to: ', lastAccount.address);
-  })();
+  const r = await splice.setStyleNFT(spliceStyleNFT.address);
+  const q = await spliceStyleNFT.setSplice(splice.address);
+  console.log('connected Splice & StyleNFT');
+
+  //set some defaults
+  await spliceStyleNFT.allowArtist(artistAccount.address);
+  console.log('allowed artist: ', artistAccount.address);
+
+  await splice.toggleSaleIsActive(true);
+
+  await splice.addValidator(accounts[0].address);
+  console.log('added validator', accounts[0].address);
 })();

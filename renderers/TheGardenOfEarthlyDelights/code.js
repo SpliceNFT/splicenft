@@ -6,7 +6,7 @@
  * of towers and barbed wires, whose shapes are defined by L-systems.
  */
 
-export default function ({ p5, colors, dim }) {
+function({ p5, colors, dim }) {
   /**
    * growAndDrawFractals() draws the fractal and then updates its underlying rule (grows it)
    */
@@ -290,7 +290,7 @@ export default function ({ p5, colors, dim }) {
         a_rule_object = new Rule('F', 'F[+F]F[-F][F]');
         ruleset.push(a_rule_object);
         lsys = new LSystem('F', ruleset);
-        total_iterations = p5.random(3, 5);
+        total_iterations = p5.random(3, 6);
         num_radians = p5.random(80, 100);
         if (p5.random(100) > 50) num_radians = num_radians * -1;
         break;
@@ -298,7 +298,7 @@ export default function ({ p5, colors, dim }) {
         a_rule_object = new Rule('F', 'FF+[+F-F-F]-[-F+F+F]');
         ruleset.push(a_rule_object);
         lsys = new LSystem('F', ruleset);
-        total_iterations = p5.random(2, 3);
+        total_iterations = p5.random(2, 4);
         num_radians = p5.random(80, 120);
         if (p5.random(100) > 50) num_radians = num_radians * -1;
         break;
@@ -321,7 +321,7 @@ export default function ({ p5, colors, dim }) {
         a_rule_object = new Rule('X', 'F[+X][-X]FX');
         ruleset.push(a_rule_object);
         lsys = new LSystem('X', ruleset);
-        total_iterations = p5.random(4, 6);
+        total_iterations = p5.random(4, 7);
         num_radians = p5.random(80, 90);
         if (p5.random(100) > 50) num_radians = num_radians * -1;
         break;
@@ -346,7 +346,7 @@ export default function ({ p5, colors, dim }) {
         a_rule_object = new Rule('X', 'F[+X]F[-X]+XXXX');
         ruleset.push(a_rule_object);
         lsys = new LSystem('X', ruleset);
-        total_iterations = p5.int(p5.random(5, 6));
+        total_iterations = p5.int(p5.random(5, 7));
         num_radians = 10;
         if (p5.random(0, 100) < 50) num_radians = num_radians * -1;
         break;
@@ -531,7 +531,7 @@ export default function ({ p5, colors, dim }) {
    * theGardenOfEarthlyDelights code sets up initial variables, then calls functions to
    * 1. plant fractals into array, and 2. grow and render them
    */
-  const max_seeds = 20;
+  const max_seeds = 60;
   const fractalObjects = [];
   let orderedColorArray = [];
 
@@ -559,8 +559,7 @@ export default function ({ p5, colors, dim }) {
     drawTripTychFrames(
       dim.w,
       dim.h,
-      p5.color(255,255,255)
-    );   
-    
+      orderedColorArray[orderedColorArray.length - 1]
+    );
   }
 }

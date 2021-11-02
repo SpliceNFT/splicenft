@@ -1,5 +1,4 @@
 import { Flex } from '@chakra-ui/react';
-import { Renderers } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
 import React from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
@@ -8,48 +7,46 @@ export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
   colors: RGB[];
-  rendererName: string;
-  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  code?: string;
+  onSketched?: (dataUrl: string) => void;
 }) => {
-  const { dim, colors, onSketched, randomness, rendererName } = props;
+  const { dim, colors, onSketched, randomness, code } = props;
 
+  let renderer: any;
   const sketch = (p5: P5Instance) => {
-    let renderer = Renderers[rendererName];
-
     p5.setup = () => {
+      console.log('setup');
       p5.randomSeed(randomness);
       p5.pixelDensity(1);
       p5.createCanvas(dim.w, dim.h, p5.P2D);
     };
 
     p5.updateWithProps = (props) => {
-      if (props.rendererName) {
-        renderer = Renderers[rendererName];
+      if (props.code) {
+        try {
+          renderer = Function(`"use strict";return (${props.code})`)();
+        } catch (e: any) {
+          console.error(e);
+        }
       }
     };
     p5.draw = () => {
+      if (!renderer) return;
+      // renderer = Function(`"use strict";return (${props.code})`)();
+      console.log('drawing');
       renderer({ p5, colors, dim });
+      p5.noLoop();
       if (onSketched) {
         const canvas = (p5 as any).canvas as HTMLCanvasElement;
         const dataUrl = canvas.toDataURL('image/png');
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return;
-            onSketched({
-              blob,
-              dataUrl
-            });
-          },
-          'image/png',
-          100
-        );
+        onSketched(dataUrl);
       }
     };
   };
 
   return (
     <Flex direction="column">
-      <ReactP5Wrapper sketch={sketch} rendererName={rendererName} />
+      <ReactP5Wrapper sketch={sketch} code={code} />
     </Flex>
   );
 };

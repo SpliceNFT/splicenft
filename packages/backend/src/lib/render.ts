@@ -1,12 +1,21 @@
-const p5 = require('p5js-node');
+/* eslint-disable @typescript-eslint/ban-types */
+import p5 from 'p5js-node';
+import { Renderer, RGB } from '@splicenft/common';
 
-/**
- * @param {*} renderer
- * @param {*} drawProps {colors: number[][], dim:{w, h}, randomness: number }
- * @param {*} callback
- */
-module.exports = (renderer, drawProps, callback) => {
-  new p5((p5) => {
+export default function (
+  renderer: Renderer,
+  drawProps: {
+    colors: RGB[];
+    dim: {
+      w: number;
+      h: number;
+    };
+    randomness: number;
+  },
+  callback: Function
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new p5((p5: any) => {
     p5.setup = function () {
       p5.createCanvas(drawProps.dim.w, drawProps.dim.h);
       if (drawProps.randomness) {
@@ -30,4 +39,4 @@ module.exports = (renderer, drawProps, callback) => {
       }
     };
   });
-};
+}
