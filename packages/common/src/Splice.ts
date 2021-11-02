@@ -10,8 +10,8 @@ import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
 
 export const SPLICE_ADDRESSES: Record<number, string> = {
-  //4: '0x0',
-  42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
+  4: '0x729410F8db69932E38dF158101e60d09aAA6423D'
+  //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
 };
 
