@@ -29,32 +29,7 @@ import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetad
 import emily from '../../img/team/emily.jpg';
 import stefan from '../../img/team/stefan.jpg';
 import timothy from '../../img/team/timothy.jpg';
-
-const Hero = (props: { children: ReactNode } & SystemProps) => {
-  const { children, ...rest } = props;
-  return (
-    <Flex
-      width="100%"
-      bg="black"
-      pt={5}
-      align="center"
-      fontSize="large"
-      direction="column"
-      {...rest}
-    >
-      {children}
-    </Flex>
-  );
-};
-
-const ContainerHero = (props: { children: ReactNode } & SystemProps) => {
-  const { children, ...rest } = props;
-  return (
-    <Hero py={12} {...rest}>
-      <Container maxW="container.lg">{children}</Container>
-    </Hero>
-  );
-};
+import { ContainerHero, Hero } from '../atoms/Hero';
 
 export const AboutPage = () => {
   const { splice } = useSplice();

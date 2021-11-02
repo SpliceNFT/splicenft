@@ -15,6 +15,7 @@ import { CreatePage } from './components/pages/Create';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
+import { RoadmapPage } from './components/pages/Roadmap';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
 
@@ -42,6 +43,9 @@ function App() {
               </Route>
               <Route path="/create">
                 <CreatePage />
+              </Route>
+              <Route path="/roadmap">
+                <RoadmapPage />
               </Route>
               <Route path="/">
                 <AboutPage />
