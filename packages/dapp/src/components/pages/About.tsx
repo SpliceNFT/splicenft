@@ -74,7 +74,7 @@ export const AboutPage = () => {
                 </Slide>
                 <Slide index={2}>
                   <SlImage
-                    src="/samples/doodle_5.png"
+                    src="/samples/beginning_sample.png"
                     hasMasterSpinner={false}
                   />
                 </Slide>
