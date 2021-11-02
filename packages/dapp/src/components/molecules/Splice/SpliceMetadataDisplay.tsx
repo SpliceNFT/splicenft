@@ -1,6 +1,7 @@
 import { Flex, Heading, Skeleton, Text, Link } from '@chakra-ui/react';
 import { SpliceNFT } from '@splicenft/common';
 import React from 'react';
+import { useSplice } from '../../../context/SpliceContext';
 import { DominantColorsDisplay } from '../../molecules/DominantColors';
 
 export const SpliceMetadata = ({
@@ -9,11 +10,17 @@ export const SpliceMetadata = ({
   metadataUrl,
   children
 }: {
-  tokenId?: number;
+  tokenId?: string;
   metadata: SpliceNFT | undefined | null;
   metadataUrl?: string;
   children?: React.ReactNode;
 }) => {
+  const { spliceStyles } = useSplice();
+
+  const style = spliceStyles.find(
+    (s) => s.tokenId === metadata?.properties.style_token_id
+  );
+
   return (
     <Flex p={3} direction="column" gridGap={3} flex="1">
       {metadata ? (
@@ -32,7 +39,7 @@ export const SpliceMetadata = ({
             <b>Randomness</b> {metadata.properties.randomness}
           </Text>
           <Text>
-            <b>Style</b> {metadata.properties.style}
+            <b>Style</b> {style?.getMetadata().name}
           </Text>
           <Text fontWeight="bold">Colors</Text>
           <DominantColorsDisplay colors={metadata.properties.colors} />
