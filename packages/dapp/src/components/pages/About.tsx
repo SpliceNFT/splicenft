@@ -12,6 +12,7 @@ import {
   SystemProps,
   Text
 } from '@chakra-ui/react';
+import { useWeb3React } from '@web3-react/core';
 import {
   CarouselProvider,
   Image as SlImage,
@@ -20,8 +21,10 @@ import {
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
 import React, { ReactNode } from 'react';
+import { injected } from '../../modules/connectors';
 import { FaTwitter } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
+import { useSplice } from '../../context/SpliceContext';
 import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetadata.png';
 import emily from '../../img/team/emily.jpg';
 import stefan from '../../img/team/stefan.jpg';
@@ -54,6 +57,9 @@ const ContainerHero = (props: { children: ReactNode } & SystemProps) => {
 };
 
 export const AboutPage = () => {
+  const { splice } = useSplice();
+  const { active, activate, chainId } = useWeb3React();
+
   return (
     <>
       <Hero bg="black" color="white" py={12}>
@@ -108,16 +114,34 @@ export const AboutPage = () => {
           </Box>
         </Container>
         <Container maxW="container.lg">
-          <Button
-            w="full"
-            as={NavLink}
-            to="/my-assets"
-            variant="white"
-            size="lg"
-            fontSize="2xl"
-          >
-            Try it!
-          </Button>
+          {active ? (
+            <Button
+              w="full"
+              as={NavLink}
+              to="/my-assets"
+              variant="white"
+              size="lg"
+              disabled={!splice}
+              fontSize="2xl"
+            >
+              Try it!
+            </Button>
+          ) : (
+            <Button
+              w="full"
+              onClick={() => activate(injected, console.error)}
+              variant="white"
+              size="lg"
+              fontSize="2xl"
+            >
+              connect your wallet
+            </Button>
+          )}
+          {active && !splice && (
+            <Text textAlign="center">
+              network {chainId} not supported. Try Rinkeby.
+            </Text>
+          )}
         </Container>
       </Hero>
 

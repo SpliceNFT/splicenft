@@ -1,5 +1,6 @@
 import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
 import { Style } from '@splicenft/common';
+import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
@@ -41,11 +42,15 @@ const Preview = ({
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
   const [code, setCode] = useState<string>();
+  const { chainId } = useWeb3React();
 
   useEffect(() => {
-    if (!style) return;
+    if (!style || !chainId) return;
     (async () => {
-      const _code = await style.getCode();
+      const _code = await style.getCachedCode(
+        process.env.REACT_APP_VALIDATOR_BASEURL as string,
+        chainId
+      );
       setCode(_code);
     })();
   }, [style]);

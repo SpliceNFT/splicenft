@@ -34,8 +34,13 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     if (!library || !chainId) return;
 
     const chain = CHAINS[chainId];
-    if (!chain) throw `chain ${chainId} unsupported`;
-
+    if (!chain) {
+      setSplice(undefined);
+      setStyles([]);
+      setIndexer(undefined);
+      console.error(`chain ${chainId} unsupported`);
+      return;
+    }
     const splAddress =
       chain === 'localhost'
         ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)

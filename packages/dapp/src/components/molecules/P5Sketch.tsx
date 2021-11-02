@@ -15,7 +15,7 @@ export const P5Sketch = (props: {
   let renderer: any;
   const sketch = (p5: P5Instance) => {
     p5.setup = () => {
-      console.log('setup');
+      console.debug('setup');
       p5.randomSeed(randomness);
       p5.pixelDensity(1);
       p5.createCanvas(dim.w, dim.h, p5.P2D);
@@ -33,7 +33,7 @@ export const P5Sketch = (props: {
     p5.draw = () => {
       if (!renderer) return;
       // renderer = Function(`"use strict";return (${props.code})`)();
-      console.log('drawing');
+      console.debug('drawing');
       renderer({ p5, colors, dim });
       p5.noLoop();
       if (onSketched) {

@@ -13,12 +13,14 @@ import { AbstractConnector } from '@web3-react/abstract-connector/dist';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect } from 'react';
 import { NavLink as ReactLink } from 'react-router-dom';
+import { useSplice } from '../../context/SpliceContext';
 import { injected, walletconnect } from '../../modules/connectors';
 import Account from '../atoms/Account';
 import Logo from '../atoms/Logo';
 
 const Header = () => {
   const { active, activate, account } = useWeb3React();
+  const { splice } = useSplice();
 
   const connectors = [
     { name: 'MetaMask', connector: injected },
@@ -40,7 +42,7 @@ const Header = () => {
       <Logo />
       <Spacer />
       <Flex direction="row" align="center" gridGap={8}>
-        {active && (
+        {active && splice && (
           <Flex direction="row" gridGap={10}>
             <Link
               as={ReactLink}
@@ -57,9 +59,9 @@ const Header = () => {
             >
               My splices
             </Link>
-            <Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
+            {/*<Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
               Create
-            </Link>
+        </Link>*/}
           </Flex>
         )}
         {!active && (

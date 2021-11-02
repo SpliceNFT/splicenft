@@ -47,7 +47,7 @@ export const SpliceMetadataDisplay = ({
   return (
     <>
       <MetaDataItem
-        label="CID"
+        label="Metadata"
         value={spliceMetadata.external_url || ''}
         link={spliceMetadata.external_url}
       />

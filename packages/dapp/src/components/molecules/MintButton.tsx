@@ -67,6 +67,8 @@ export const MintButton = ({
   onMinted: (collection: string, tokenId: string) => void;
 }) => {
   const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
+  const [buzy, setBuzy] = useState<boolean>(false);
+
   const [mintableNFTs, setMintableNFTs] = useState<string[]>([]);
   const toast = useToast();
   useEffect(() => {
@@ -77,6 +79,7 @@ export const MintButton = ({
   const mintTestnetNFT = async (collection: string) => {
     if (!library) return;
     try {
+      setBuzy(true);
       const signer = library?.getSigner();
       const contract = new Contract(collection, MintingABI, signer);
       const tx = await contract.mint(account);
@@ -86,7 +89,7 @@ export const MintButton = ({
       // console.log(transferEvent);
       // const tokenId = transferEvent.tokenId;
       const tokenId: BigNumber = await receipt.events[0].args['tokenId'];
-
+      setBuzy(false);
       onMinted(collection, `${tokenId.toNumber()}`);
     } catch (e: any) {
       toast({
@@ -98,7 +101,15 @@ export const MintButton = ({
 
   return (
     <Menu enabled={mintableNFTs.length > 0}>
-      <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant="black">
+      <MenuButton
+        disabled={buzy}
+        boxShadow="md"
+        isLoading={buzy}
+        loadingText="Minting"
+        as={Button}
+        rightIcon={<ChevronDownIcon />}
+        variant="black"
+      >
         mint a testnet NFT
       </MenuButton>
       <MenuList>

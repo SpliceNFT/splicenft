@@ -50,6 +50,20 @@ export class Style {
     return renderer;
   }
 
+  async getCachedCode(
+    baseUrl: string,
+    networkId: string | number
+  ): Promise<string> {
+    if (this.code) return this.code;
+    const url = `${baseUrl}/styles/${networkId}/${this._tokenId}`;
+    console.debug(`fetching code for ${this.tokenId} from backend`);
+    const styleMetadata = await (await axios.get(url)).data;
+    //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
+    console.debug(`code for ${this.tokenId} fetched from backend`);
+    this.code = styleMetadata.code;
+    return styleMetadata.code;
+  }
+
   async getCode(): Promise<string> {
     if (this.code) return this.code;
 
