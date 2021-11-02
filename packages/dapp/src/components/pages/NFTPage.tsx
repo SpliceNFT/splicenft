@@ -19,8 +19,6 @@ import {
   Style,
   TokenHeritage
 } from '@splicenft/common';
-import { useWeb3React } from '@web3-react/core';
-import { providers } from 'ethers';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
@@ -41,7 +39,6 @@ export const NFTPage = () => {
 
   const toast = useToast();
 
-  const { account, chainId } = useWeb3React<providers.Web3Provider>();
   const { splice, indexer } = useSplice();
 
   const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();

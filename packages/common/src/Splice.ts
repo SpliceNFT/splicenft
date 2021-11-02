@@ -1,9 +1,10 @@
 import {
+  Splice__factory as SpliceFactory,
+  SpliceStyleNFTV1__factory as StyleNFTFactory,
   Splice as SpliceContract,
-  SpliceStyleNFT as StyleNFTContract,
-  SpliceFactory,
-  StyleNFTFactory
+  SpliceStyleNFTV1 as StyleNFTContract
 } from '@splicenft/contracts';
+import { TransferEvent } from '@splicenft/contracts/typechain/Splice';
 import axios from 'axios';
 import { BigNumber, Contract, ethers, providers, Signer, utils } from 'ethers';
 import { ipfsGW } from './img';
@@ -34,15 +35,15 @@ export type TokenHeritage = {
 type TokenMetadataResponse = Array<{ tokenId: number; metadataUrl: string }>;
 
 export class Splice {
-  private contract: SpliceContract.Splice;
+  private contract: SpliceContract;
 
-  private styleNFTContract?: StyleNFTContract.SpliceStyleNFTV1;
+  private styleNFTContract?: StyleNFTContract;
 
   get address() {
     return this.contract.address;
   }
 
-  constructor(splice: SpliceContract.Splice) {
+  constructor(splice: SpliceContract) {
     this.contract = splice;
   }
 
@@ -53,7 +54,7 @@ export class Splice {
     return spl;
   }
 
-  public async getStyleNFT(): Promise<StyleNFTContract.SpliceStyleNFTV1> {
+  public async getStyleNFT(): Promise<StyleNFTContract> {
     if (this.styleNFTContract) return this.styleNFTContract;
 
     const styleNFTAddress = await this.contract.getStyleNFT();
@@ -64,31 +65,6 @@ export class Splice {
     );
     return this.styleNFTContract;
   }
-
-  // public async requestMinting(
-  //   collectionAddress: string,
-  //   tokenId: string | number,
-  //   cidString: string,
-  //   recipient: string
-  // ): Promise<number> {
-  //   //console.log('orig', cidString);
-
-  //   const tx = await this.contract.requestMint(
-  //     collectionAddress,
-  //     tokenId,
-  //     cidString,
-  //     recipient
-  //   );
-
-  //   const result = await tx.wait();
-  //   const requestedEvent: MintRequestedEvent =
-  //     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  //     result.events![0] as MintRequestedEvent;
-  //   const jobId = requestedEvent.args.jobId;
-  //   return jobId;
-
-  //   //console.log(receipt);
-  // }
 
   public async getChain(): Promise<number> {
     const network = await this.contract.provider.getNetwork();
@@ -127,11 +103,9 @@ export class Splice {
     const result = await tx.wait();
     console.log(result);
 
-    const transferEvent: SpliceContract.TransferEvent =
+    const transferEvent: TransferEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      result.events?.find(
-        (evt) => evt.event === 'Transfer'
-      ) as SpliceContract.TransferEvent;
+      result.events?.find((evt) => evt.event === 'Transfer') as TransferEvent;
 
     return {
       transactionHash: result.transactionHash,

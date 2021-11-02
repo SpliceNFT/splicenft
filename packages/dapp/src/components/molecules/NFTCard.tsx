@@ -1,10 +1,8 @@
 import { Flex, Heading, LinkOverlay, Spacer, Text } from '@chakra-ui/react';
 import {
-  MintingState,
-  TokenHeritage,
   NFTItemInTransit,
   NFTMetaData,
-  Splice
+  TokenHeritage
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -19,19 +17,6 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
 
   const { splice } = useSplice();
-
-  // const MStatusText = (status: MintingState) => {
-  //   switch (status) {
-  //     case MintingState.MINTING_REQUESTED:
-  //       return 'Minting Requested';
-  //     case MintingState.MINTING_ALLOWED:
-  //       return 'Minting Allowed';
-  //     case MintingState.MINTED:
-  //       return 'Minted';
-  //     default:
-  //       return null;
-  //   }
-  // };
 
   useEffect(() => {
     (async () => {
