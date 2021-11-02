@@ -24,7 +24,7 @@ import { SpliceArtwork } from '../molecules/Splice/SpliceArtwork';
 import { SpliceMetadata } from '../molecules/Splice/SpliceMetadataDisplay';
 
 type MySplice = {
-  tokenId: number;
+  tokenId: string;
   metadataUrl: string; //SpliceNFT;
 };
 
@@ -35,18 +35,26 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
   const [metadata, setMetadata] =
     useState<{ metadata: SpliceNFT; imageUrl: string }>();
 
+  const toast = useToast();
   useEffect(() => {
     (async () => {
-      const _metadata = await (
-        await axios.get<SpliceNFT>(ipfsGW(mySplice.metadataUrl), {
-          responseType: 'json'
-        })
-      ).data;
+      try {
+        const _metadata = await (
+          await axios.get<SpliceNFT>(ipfsGW(mySplice.metadataUrl), {
+            responseType: 'json'
+          })
+        ).data;
 
-      setMetadata({
-        metadata: _metadata,
-        imageUrl: resolveImage(_metadata)
-      });
+        setMetadata({
+          metadata: _metadata,
+          imageUrl: resolveImage(_metadata)
+        });
+      } catch (e: any) {
+        toast({
+          status: 'error',
+          title: 'failed loading metadata for splice ' + mySplice.tokenId
+        });
+      }
     })();
   }, []);
 
@@ -95,18 +103,15 @@ export const MySplicesPage = () => {
   const [splices, setSplices] = useState<MySplice[]>([]);
   const toast = useToast();
 
-  const fetchAssets = async (splice: Splice, account: string) => {
-    setBuzy(true);
-    const _spl = await splice.getAllSplices(account);
-    setSplices(_spl);
-    setBuzy(false);
-  };
-
   useEffect(() => {
     if (!account || !splice) return;
     (async () => {
       try {
-        await fetchAssets(splice, account);
+        setBuzy(true);
+        const _spl = await splice.getAllSplices(account);
+
+        setSplices(_spl);
+        setBuzy(false);
         toast({
           status: 'success',
           title: 'fetched all splices'

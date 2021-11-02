@@ -60,7 +60,7 @@ app.get('/render/:network/:style_token_id', async (req, res) => {
   //const renderer = Renderers[req.params.algo];
   //if (!renderer) return res.status(404).send('algorithm not found');
   const networkId = parseInt(req.params.network);
-  const styleTokenId = parseInt(req.params.style_token_id);
+  const styleTokenId = req.params.style_token_id;
 
   const cache = styleCache.getCache(networkId);
   if (!cache) return res.status(500).send(`network ${networkId} not supported`);
@@ -91,7 +91,7 @@ app.get('/render/:network/:style_token_id', async (req, res) => {
 
 app.get('/styles/:network/:style_token_id', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  const styleTokenId = parseInt(req.params.style_token_id);
+  const styleTokenId = req.params.style_token_id;
 
   const cache = styleCache.getCache(networkId);
   if (!cache) return res.status(500).send(`network ${networkId} not supported`);

@@ -9,7 +9,7 @@ const Metadata = async (
   const heritage = await splice.getHeritage(tokenId);
   if (!heritage) throw `no heritage for token ${tokenId}`;
 
-  const style = styleCache.getStyle(heritage.style_token_id.toNumber());
+  const style = styleCache.getStyle(heritage.style_token_id.toString());
   if (!style) throw `style token seems corrupt`;
 
   const randomness = Splice.computeRandomness(

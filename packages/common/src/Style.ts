@@ -5,7 +5,7 @@ import { StyleNFT } from './types/SpliceNFT';
 
 export class Style {
   private _collectionAddress: string;
-  private _tokenId;
+  private _tokenId: string;
   private metadataUrl: string;
   private metadata: StyleNFT;
   private code: string | null;
@@ -18,7 +18,7 @@ export class Style {
 
   constructor(
     collectionAddress: string,
-    tokenId: number,
+    tokenId: string,
     metadataUrl: string,
     metadata: StyleNFT
   ) {

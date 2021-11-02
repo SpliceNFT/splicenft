@@ -32,7 +32,7 @@ export type TokenHeritage = {
   splice_token_id: BigNumber;
 };
 
-type TokenMetadataResponse = Array<{ tokenId: number; metadataUrl: string }>;
+type TokenMetadataResponse = Array<{ tokenId: string; metadataUrl: string }>;
 
 export class Splice {
   private contract: SpliceContract;
@@ -72,7 +72,7 @@ export class Splice {
   }
   public async quote(
     collection: string,
-    styleTokenId: number
+    styleTokenId: string
   ): Promise<BigNumber> {
     const quoteWei = await this.contract.quote(collection, styleTokenId);
     return quoteWei;
@@ -180,7 +180,7 @@ export class Splice {
         (async () => {
           const tokenId = await styleNFT.tokenByIndex(i);
           const metadataUrl = await styleNFT.tokenURI(tokenId);
-          return { tokenId: tokenId.toNumber(), metadataUrl };
+          return { tokenId: tokenId.toString(), metadataUrl };
         })()
       );
     }
@@ -205,7 +205,7 @@ export class Splice {
           );
           const metadataUrl = await this.contract.tokenURI(tokenId);
 
-          return { tokenId: tokenId.toNumber(), metadataUrl };
+          return { tokenId: tokenId.toString(), metadataUrl };
         })()
       );
     }

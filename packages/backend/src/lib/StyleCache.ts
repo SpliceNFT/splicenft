@@ -20,7 +20,7 @@ export class StyleMetadataCache {
     return this.styles;
   }
 
-  public getStyle(tokenId: number) {
+  public getStyle(tokenId: string) {
     return this.styles.find((s) => s.tokenId === tokenId);
   }
 

@@ -3,23 +3,13 @@ import { Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect, useState } from 'react';
+import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 
 export const PlainImage = ({ imgUrl }: { imgUrl: string }) => {
   return (
     <Container width="lg" py={20}>
-      <Flex rounded="lg" minH="80">
-        <Image
-          src={imgUrl}
-          title={imgUrl}
-          boxSize="fit-content"
-          objectFit="cover"
-          alt={imgUrl}
-          boxShadow="lg"
-          fallbackSrc="https://via.placeholder.com/800"
-          /*opacity={buzy ? 0.2 : 1}*/
-        />
-      </Flex>
+      <FallbackImage boxShadow="lg" imgUrl={imgUrl} />
     </Container>
   );
 };
