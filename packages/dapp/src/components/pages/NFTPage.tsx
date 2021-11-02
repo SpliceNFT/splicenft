@@ -50,13 +50,7 @@ export const NFTPage = () => {
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
   const [randomness, setRandomness] = useState<number>(0);
 
-  // const [selectedStyle, setSelectedStyle] = useState<Style>();
-  // const [sketch, setSketch] = useState<string>();
-
-  const [styleAndSketch, setStyleAndSketch] = useState<{
-    style?: Style | undefined;
-    sketch?: string | undefined;
-  }>({});
+  const [selectedStyle, setSelectedStyle] = useState<Style>();
 
   const [heritage, setHeritage] = useState<TokenHeritage>();
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
@@ -64,6 +58,7 @@ export const NFTPage = () => {
     MintingState.UNKNOWN
   );
 
+  const [sketch, setSketch] = useState<string>();
   const [buzy, setBuzy] = useState<boolean>(false);
 
   //find an existing splice
@@ -73,17 +68,19 @@ export const NFTPage = () => {
 
     (async () => {
       const _heritage = await splice.findHeritage(collection, tokenId);
-      if (_heritage === null) return;
-
-      setHeritage(_heritage);
-      setMintingState(MintingState.MINTED);
-
-      const metadata = await splice.fetchMetadata(_heritage);
-      setSpliceMetadata(metadata);
-
-      setStyleAndSketch({ style: undefined, sketch: resolveImage(metadata) });
+      setHeritage(_heritage === null ? undefined : _heritage);
     })();
   }, [collection, tokenId, splice]);
+
+  useEffect(() => {
+    if (!heritage || !splice) return;
+    (async () => {
+      const metadata = await splice.fetchMetadata(heritage);
+      setMintingState(MintingState.MINTED);
+      setSpliceMetadata(metadata);
+      setSketch(resolveImage(metadata));
+    })();
+  }, [heritage]);
 
   useEffect(() => {
     if (!indexer) return;
@@ -97,20 +94,34 @@ export const NFTPage = () => {
   }, [indexer]);
 
   const onSketched = (dataUrl: string) => {
-    setStyleAndSketch({ style: styleAndSketch.style, sketch: dataUrl });
+    //setSketch(dataUrl);
     setMintingState(MintingState.GENERATED);
   };
 
-  const onMinted = async (spliceTokenId: number) => {
-    toast({
-      status: 'success',
-      title: `Hooray, Splice #${spliceTokenId} is yours now!`
-    });
-    setMintingState(MintingState.MINTED);
-    if (splice) {
-      const _heritage = await splice.getHeritage(spliceTokenId);
-      if (_heritage) {
-        setHeritage(_heritage);
+  const onMinted = async ({
+    transactionHash,
+    spliceTokenId
+  }: {
+    transactionHash: string;
+    spliceTokenId: number | undefined;
+  }) => {
+    if (!spliceTokenId) {
+      toast({
+        status: 'info',
+        title: `the minting transaction is on its way`,
+        description: transactionHash
+      });
+    } else {
+      toast({
+        status: 'success',
+        title: `Hooray, Splice #${spliceTokenId} is yours now!`
+      });
+
+      if (splice) {
+        const _heritage = await splice.getHeritage(spliceTokenId);
+        if (_heritage) {
+          setHeritage(_heritage);
+        }
       }
     }
   };
@@ -134,43 +145,38 @@ export const NFTPage = () => {
         <Flex position="relative" justify="center" mt={6}>
           <CreativePanel
             nftImageUrl={nftImageUrl}
-            styleAndSketch={styleAndSketch}
+            style={selectedStyle}
             nftExtractedProps={{
               randomness,
               dominantColors
             }}
             onSketched={onSketched}
+            spliceDataUrl={sketch}
           />
 
           <Flex position="absolute" right="1.5em" bottom="-1.5em" gridGap={6}>
             {mintingState < MintingState.MINTED && dominantColors && (
               <ArtworkStyleChooser
                 disabled={dominantColors.length == 0 || buzy}
-                selectedStyle={styleAndSketch.style}
+                selectedStyle={selectedStyle}
                 onStyleChanged={(style: Style) => {
-                  setStyleAndSketch({ style, sketch: undefined });
+                  setSelectedStyle(style);
+                  setSketch(undefined);
                 }}
               />
             )}
 
-            {MintingState.GENERATED === mintingState && styleAndSketch.style ? (
+            {mintingState === MintingState.GENERATED && selectedStyle && (
               <MintSpliceButton
                 collection={collection}
                 originTokenId={tokenId}
-                selectedStyle={styleAndSketch.style}
+                selectedStyle={selectedStyle}
                 onMinted={onMinted}
               />
-            ) : (
-              ''
             )}
 
             {mintingState === MintingState.MINTED && (
-              <Button
-                as={Link}
-                href={styleAndSketch.sketch}
-                isExternal
-                variant="white"
-              >
+              <Button as={Link} href={sketch} isExternal variant="white">
                 download
               </Button>
             )}
@@ -189,7 +195,7 @@ export const NFTPage = () => {
       >
         <NFTDescription
           nftMetadata={nftMetadata}
-          styleNFT={styleAndSketch.style?.getMetadata()}
+          styleNFT={selectedStyle?.getMetadata()}
         />
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>

@@ -114,7 +114,7 @@ export class Splice {
     style_token_id: string | number;
     recipient: string;
     mintingFee: ethers.BigNumber;
-  }) {
+  }): Promise<{ transactionHash: string; spliceTokenId: number | undefined }> {
     const tx = await this.contract.mint(
       origin_collection,
       origin_token_id,
@@ -124,13 +124,19 @@ export class Splice {
         value: mintingFee
       }
     );
-
     const result = await tx.wait();
+    console.log(result);
+
     const transferEvent: SpliceContract.TransferEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      result.events![0] as SpliceContract.TransferEvent;
-    const tokenId = transferEvent.args.tokenId;
-    return tokenId.toNumber();
+      result.events?.find(
+        (evt) => evt.event === 'Transfer'
+      ) as SpliceContract.TransferEvent;
+
+    return {
+      transactionHash: result.transactionHash,
+      spliceTokenId: transferEvent?.args.tokenId.toNumber()
+    };
   }
 
   //todo: allow tokenId to be BigNumber

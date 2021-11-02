@@ -92,7 +92,8 @@ export const CreativePanel = ({
   nftImageUrl,
   onSketched,
   nftExtractedProps,
-  styleAndSketch
+  spliceDataUrl,
+  style
 }: {
   nftImageUrl: string;
   onSketched?: (dataUrl: string) => void;
@@ -100,25 +101,23 @@ export const CreativePanel = ({
     randomness: number;
     dominantColors: RGB[];
   };
-  styleAndSketch: {
-    style?: Style | undefined;
-    sketch?: string | undefined;
-  };
+  spliceDataUrl?: string;
+  style?: Style;
 }) => {
-  if (styleAndSketch.style && !styleAndSketch.sketch) {
+  if (style && !spliceDataUrl) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
         onSketched={onSketched}
         nftExtractedProps={nftExtractedProps}
-        style={styleAndSketch.style}
+        style={style}
       />
     );
-  } else if (styleAndSketch.sketch) {
+  } else if (spliceDataUrl) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
-        spliceDataUrl={styleAndSketch.sketch}
+        spliceDataUrl={spliceDataUrl}
         nftExtractedProps={nftExtractedProps}
       />
     );

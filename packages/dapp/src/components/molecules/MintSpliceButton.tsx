@@ -14,7 +14,13 @@ export const MintSpliceButton = ({
   collection: string;
   originTokenId: string;
   selectedStyle: Style;
-  onMinted: (spliceTokenId: number) => unknown;
+  onMinted: ({
+    transactionHash,
+    spliceTokenId
+  }: {
+    transactionHash: string;
+    spliceTokenId: number | undefined;
+  }) => unknown;
 }) => {
   const { account } = useWeb3React();
   const { splice } = useSplice();
@@ -34,14 +40,14 @@ export const MintSpliceButton = ({
     if (!splice || !account || !quote) return;
     setBuzy(true);
     try {
-      const spliceTokenId = await splice.mint({
+      const mintingResult = await splice.mint({
         origin_collection: collection,
         origin_token_id: originTokenId,
         style_token_id: selectedStyle.tokenId,
         recipient: account,
         mintingFee: quote
       });
-      onMinted(spliceTokenId);
+      onMinted(mintingResult);
     } catch (e: any) {
       console.error(e);
       toast({
