@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "build": "hardhat compile",
+    "build": "hardhat compile && hardhat typechain",
     "deploy:dev": "hardhat run --network localhost scripts/deployForDevs.ts",
     "test": "hardhat test",
     "chain": "hardhat node",

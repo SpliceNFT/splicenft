@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 app.use(cors());
 
-const styleCache = new StyleCache([31337]);
+const styleCache = new StyleCache([4, 31337]);
 styleCache.init();
 
 const GRAYSCALE_COLORS: RGB[] = [

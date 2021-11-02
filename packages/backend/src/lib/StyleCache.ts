@@ -85,7 +85,9 @@ export class StyleCache {
       const splice = SpliceInstances[networkId];
       if (splice) {
         const mdCache = new StyleMetadataCache(networkId, splice);
-        mdCache.fetchAllStyles();
+        mdCache.fetchAllStyles().catch((e: any) => {
+          console.error('cant setup cache on network', networkId, e.message);
+        });
         this.caches[networkId] = mdCache;
       }
     }

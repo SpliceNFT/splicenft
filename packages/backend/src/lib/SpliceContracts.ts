@@ -5,7 +5,7 @@ import CHAINS from './networks';
 
 export const SpliceInstances: Record<string, Splice> = {};
 
-[1, 4, 42, 31337].map((networkId) => {
+[4, 31337].map((networkId) => {
   const provider = providerFor(networkId);
   if (!provider) return;
 
