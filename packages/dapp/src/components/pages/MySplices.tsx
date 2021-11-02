@@ -70,7 +70,7 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
 
   return (
     <SpliceCard direction={['column', null, null, 'row']}>
-      <LinkBox>
+      <LinkBox as={Flex}>
         <LinkOverlay href={metadata?.imageUrl || ''} isExternal>
           <SpliceArtwork
             originImageUrl={origin?.imageUrl}

@@ -37,7 +37,7 @@ const Preview = ({
     dominantColors: RGB[];
   };
   style?: Style;
-  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  onSketched?: (dataUrl: string) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
   const [code, setCode] = useState<string>();
@@ -92,32 +92,33 @@ export const CreativePanel = ({
   nftImageUrl,
   onSketched,
   nftExtractedProps,
-  spliceDataUrl,
-  style
+  styleAndSketch
 }: {
   nftImageUrl: string;
-  onSketched: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  onSketched?: (dataUrl: string) => void;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
   };
-  spliceDataUrl?: string;
-  style?: Style;
+  styleAndSketch: {
+    style?: Style | undefined;
+    sketch?: string | undefined;
+  };
 }) => {
-  if (style && !spliceDataUrl) {
+  if (styleAndSketch.style && !styleAndSketch.sketch) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
         onSketched={onSketched}
         nftExtractedProps={nftExtractedProps}
-        style={style}
+        style={styleAndSketch.style}
       />
     );
-  } else if (spliceDataUrl) {
+  } else if (styleAndSketch.sketch) {
     return (
       <Preview
         nftImageUrl={nftImageUrl}
-        spliceDataUrl={spliceDataUrl}
+        spliceDataUrl={styleAndSketch.sketch}
         nftExtractedProps={nftExtractedProps}
       />
     );

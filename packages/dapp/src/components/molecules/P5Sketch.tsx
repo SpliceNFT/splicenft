@@ -8,13 +8,14 @@ export const P5Sketch = (props: {
   randomness: number;
   colors: RGB[];
   code?: string;
-  onSketched?: ({ dataUrl, blob }: { dataUrl: string; blob?: Blob }) => void;
+  onSketched?: (dataUrl: string) => void;
 }) => {
   const { dim, colors, onSketched, randomness, code } = props;
 
   let renderer: any;
   const sketch = (p5: P5Instance) => {
     p5.setup = () => {
+      console.log('setup');
       p5.randomSeed(randomness);
       p5.pixelDensity(1);
       p5.createCanvas(dim.w, dim.h, p5.P2D);
@@ -31,22 +32,14 @@ export const P5Sketch = (props: {
     };
     p5.draw = () => {
       if (!renderer) return;
+      // renderer = Function(`"use strict";return (${props.code})`)();
+      console.log('drawing');
       renderer({ p5, colors, dim });
       p5.noLoop();
       if (onSketched) {
         const canvas = (p5 as any).canvas as HTMLCanvasElement;
         const dataUrl = canvas.toDataURL('image/png');
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return;
-            onSketched({
-              blob,
-              dataUrl
-            });
-          },
-          'image/png',
-          100
-        );
+        onSketched(dataUrl);
       }
     };
   };

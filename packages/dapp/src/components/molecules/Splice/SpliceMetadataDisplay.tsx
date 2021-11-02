@@ -15,7 +15,7 @@ export const SpliceMetadata = ({
   children?: React.ReactNode;
 }) => {
   return (
-    <Flex p={3} direction="column" gridGap={3}>
+    <Flex p={3} direction="column" gridGap={3} flex="1">
       {metadata ? (
         <>
           <Flex align="flex-end" gridGap={2}>

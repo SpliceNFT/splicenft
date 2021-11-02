@@ -55,10 +55,10 @@ export class Style {
 
     const codeUrl = this.metadata.properties.code;
     const gwUrl = ipfsGW(codeUrl);
-    console.log(`fetching code for ${this.tokenId} at ${gwUrl}`);
+    console.debug(`fetching code for ${this.tokenId} at ${gwUrl}`);
     try {
       const code = await (await axios.get(gwUrl)).data;
-      console.log(`code for ${this.tokenId} fetched`);
+      console.debug(`code for ${this.tokenId} fetched`);
       this.code = code;
       return code;
     } catch (err: any) {
