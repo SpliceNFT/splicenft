@@ -1,4 +1,10 @@
-import { Flex, Heading, LinkOverlay, Spacer, Text } from '@chakra-ui/react';
+import {
+  AspectRatio,
+  Flex,
+  Heading,
+  LinkOverlay,
+  Text
+} from '@chakra-ui/react';
 import {
   NFTItemInTransit,
   NFTMetaData,
@@ -42,40 +48,40 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
 
   return (
     <SpliceCard direction="column">
-      <Flex maxH={80}>
+      <AspectRatio ratio={1}>
         <FallbackImage metadata={nftMetadata} />
-      </Flex>
-
-      <LinkOverlay
-        as={Link}
-        to={`/nft/${nft.contract_address}/${nft.token_id}`}
-        p={4}
-        background="white"
-      >
-        {nftMetadata && <Heading size="md">{nftMetadata.name}</Heading>}
-      </LinkOverlay>
-
-      <Flex background="black" direction="row" p={6}>
-        <Flex
-          direction="row"
-          align="center"
-          justify="space-between"
-          width="100%"
+      </AspectRatio>
+      <Flex direction="column" flex="1">
+        <LinkOverlay
+          as={Link}
+          to={`/nft/${nft.contract_address}/${nft.token_id}`}
+          p={4}
+          background="white"
         >
-          <Flex direction="column">
-            <Text color="gray.200" fontWeight="bold">
-              contract
-            </Text>
-            <Text color="white">{truncateAddress(nft.contract_address)}</Text>
-          </Flex>
+          {nftMetadata && <Heading size="md">{nftMetadata.name}</Heading>}
+        </LinkOverlay>
 
-          {heritage && (
+        <Flex background="black" direction="row" p={6}>
+          <Flex
+            direction="row"
+            align="center"
+            justify="space-between"
+            width="100%"
+          >
             <Flex direction="column">
-              <Text color="white">Minted</Text>
+              <Text color="gray.200" fontWeight="bold">
+                contract
+              </Text>
+              <Text color="white">{truncateAddress(nft.contract_address)}</Text>
             </Flex>
-          )}
+
+            {heritage && (
+              <Flex direction="column">
+                <Text color="white">Minted</Text>
+              </Flex>
+            )}
+          </Flex>
         </Flex>
-        <Spacer />
       </Flex>
     </SpliceCard>
   );

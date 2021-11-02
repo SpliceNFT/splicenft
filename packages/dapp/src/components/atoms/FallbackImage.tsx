@@ -23,9 +23,7 @@ export const FallbackImage = (
     <Image
       src={imageUrl}
       title={imageUrl}
-      boxSize="fit-content"
-      w="100%"
-      objectFit="cover"
+      fit="cover"
       alt={imageUrl}
       fallbackSrc={SplicePFPLogo}
       {...rest}

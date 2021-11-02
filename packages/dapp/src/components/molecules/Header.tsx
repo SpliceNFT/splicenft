@@ -27,14 +27,22 @@ const Header = () => {
     { name: 'Wallet Connect', connector: walletconnect }
   ];
 
-  const connect = (connector: AbstractConnector) => {
+  const connect = (connectorName: string, connector: AbstractConnector) => {
     activate(connector, console.error);
-    localStorage.setItem('seenBefore', 'true');
+    localStorage.setItem('prvConnectedWith', connectorName);
   };
 
   useEffect(() => {
-    const sb = localStorage.getItem('seenBefore');
-    if (sb === 'true') activate(injected, console.error);
+    const previousConnection = localStorage.getItem('prvConnectedWith');
+    if (previousConnection) {
+      const connector = connectors.find((c) => c.name === previousConnection);
+      console.debug(connector);
+      if (!connector) {
+        localStorage.removeItem('prvConnectedWith');
+      } else {
+        activate(connector.connector, console.error);
+      }
+    }
   }, []);
 
   return (
@@ -78,7 +86,7 @@ const Header = () => {
               {connectors.map(({ name, connector }) => (
                 <MenuItem
                   key={`connector-${name}`}
-                  onClick={() => connect(connector)}
+                  onClick={() => connect(name, connector)}
                 >
                   {name}
                 </MenuItem>

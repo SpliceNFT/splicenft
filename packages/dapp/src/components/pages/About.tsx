@@ -106,8 +106,8 @@ export const AboutPage = () => {
               w="full"
               onClick={() => activate(injected, console.error)}
               variant="white"
-              size="lg"
-              fontSize="2xl"
+              size="md"
+              fontSize="xl"
             >
               connect your wallet
             </Button>
