@@ -1,6 +1,7 @@
 // contracts/SpliceStaticPriceStrategy.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.9;
+
 import './StyleSettings.sol';
 import './ISplicePriceStrategy.sol';
 import './ISpliceStyleNFT.sol';

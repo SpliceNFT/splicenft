@@ -1,6 +1,6 @@
 // contracts/ISpliceStyleNFT.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.9;
 import './ISplicePriceStrategy.sol';
 
 struct StyleSettings {

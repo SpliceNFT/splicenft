@@ -1,6 +1,6 @@
 // contracts/Splice.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.9;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
@@ -136,7 +136,7 @@ contract Splice is
   }
 
   function updateArtistShare(uint8 share) public onlyOwner {
-    require(share < 25, 'artblocks is also taking 25 max :.)');
+    require(share > 75, 'we will never take more than 25%');
     ARTIST_SHARE = share;
   }
 
@@ -216,15 +216,16 @@ contract Splice is
     //todo: later add a share to a beneficiary of the origin collection.
   }
 
-  //todo: check that this really works (according to the escrow code it should.)
-  function withdrawShares() external nonReentrant whenNotPaused {
-    //todo: this require might be not what we want. I just have it here to ensure
-    //that only artists can call this.
-    // require(
-    //   styleNFT.balanceOf(msg.sender) > 0,
-    //   'you must own at least one style to withdraw your fee shares'
-    // );
+  //todo: this way anyone could initiate the payout for any payee for gas efficiency:
+  // function withdrawSharesFor(address payable payee)
+  //   public
+  //   nonReentrant
+  //   whenNotPaused
+  // {
+  //   feesEscrow.withdraw(payee);
+  // }
 
+  function withdrawShares() external nonReentrant whenNotPaused {
     //todo: the payable cast might not be right (msg.sender might be a contract)
     feesEscrow.withdraw(payable(msg.sender));
   }
@@ -241,6 +242,7 @@ contract Splice is
   ) public payable whenNotPaused nonReentrant returns (uint256 token_id) {
     require(saleIsActive);
 
+    //checks
     //we only allow the owner of an NFT to mint a splice of it.
     if (origin_collection.ownerOf(origin_token_id) != msg.sender)
       revert NotOwningOrigin();
@@ -250,11 +252,9 @@ contract Splice is
     uint256 fee = quote(origin_collection, style_token_id);
     if (msg.value < fee) revert InsufficientFees();
 
+    //effects
     splitMintFee(fee, style_token_id);
 
-    //todo: important: check that this only can called by us.
-    //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
-    styleNFT.incrementMintedPerStyle(style_token_id);
     _tokenIds.increment();
     token_id = _tokenIds.current();
 
@@ -272,6 +272,11 @@ contract Splice is
       origin_token_id
     );
     originToTokenId[uint256(_heritageHash)] = token_id;
+
+    //interactions
+    //todo: important: check that this only can called by us.
+    //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
+    styleNFT.incrementMintedPerStyle(style_token_id);
 
     return token_id;
   }
