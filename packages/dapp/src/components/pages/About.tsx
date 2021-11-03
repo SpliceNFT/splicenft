@@ -154,14 +154,14 @@ export const AboutPage = () => {
               <Link
                 href="https://discord.gg/JhtT87y2BA"
                 isExternal
-                color="purple.600"
+                color="twitter.500"
               >
                 Join our Discord
               </Link>{' '}
               and{' '}
               <Link
                 href="https://twitter.com/splicenft"
-                color="purple.600"
+                color="twitter.500"
                 isExternal
               >
                 follow us on Twitter

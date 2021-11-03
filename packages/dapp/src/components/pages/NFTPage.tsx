@@ -157,7 +157,7 @@ export const NFTPage = () => {
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink isLastChild>
+          <BreadcrumbLink>
             {heritage ? '' : 'Mint'} Splice for {nftMetadata?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>

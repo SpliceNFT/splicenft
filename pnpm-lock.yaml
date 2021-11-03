@@ -192,6 +192,7 @@ importers:
       '@types/node': ^12.0.0
       '@types/p5': 0.9.1
       '@types/react': ^17.0.0
+      '@types/react-blockies': ^1.4.1
       '@types/react-dom': ^17.0.0
       '@types/react-helmet': ^6.1.4
       '@types/react-router': ^5.1.16
@@ -211,6 +212,7 @@ importers:
       p5: 1.1.9
       pure-react-carousel: ^1.27.6
       react: ^17.0.2
+      react-blockies: ^1.4.1
       react-dom: ^17.0.2
       react-helmet: ^6.1.0
       react-icons: ^4.3.1
@@ -245,6 +247,7 @@ importers:
       p5: 1.1.9
       pure-react-carousel: 1.27.6_react-dom@17.0.2+react@17.0.2
       react: 17.0.2
+      react-blockies: 1.4.1_react@17.0.2
       react-dom: 17.0.2_react@17.0.2
       react-helmet: 6.1.0_react@17.0.2
       react-icons: 4.3.1_react@17.0.2
@@ -262,6 +265,7 @@ importers:
       '@types/jest': 26.0.24
       '@types/node': 12.20.25
       '@types/react': 17.0.21
+      '@types/react-blockies': 1.4.1
       '@types/react-dom': 17.0.9
       '@types/react-helmet': 6.1.4
       '@types/react-router': 5.1.16
@@ -4641,6 +4645,12 @@ packages:
     resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==}
     dev: true
 
+  /@types/react-blockies/1.4.1:
+    resolution: {integrity: sha512-aDX0g0hwzdodkGLSDNUQr6gXxwclGjnhS8jhsR8uQhAfe/7i3GZD/NDcSlQ2SiQiLhfRxX3NlY+nvBwf5Y0tTg==}
+    dependencies:
+      '@types/react': 17.0.21
+    dev: true
+
   /@types/react-dom/17.0.9:
     resolution: {integrity: sha512-wIvGxLfgpVDSAMH5utdL9Ngm5Owu0VsGmldro3ORLXV8CShrL8awVj06NuEXFQ5xyaYfdca7Sgbk/50Ri1GdPg==}
     dependencies:
@@ -5987,7 +5997,7 @@ packages:
   /axios/0.21.4:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.4
+      follow-redirects: 1.14.4_debug@4.3.2
     transitivePeerDependencies:
       - debug
     dev: false
@@ -10502,16 +10512,6 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /follow-redirects/1.14.4:
-    resolution: {integrity: sha512-zwGkiSXC1MUJG/qmeIFH2HBJx9u0V46QGUe3YR1fXG8bXQxq7fLj0RjLZQ5nubr9qNJUZrH+xUcwXEoXNpfS+g==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dev: false
-
   /follow-redirects/1.14.4_debug@4.3.2:
     resolution: {integrity: sha512-zwGkiSXC1MUJG/qmeIFH2HBJx9u0V46QGUe3YR1fXG8bXQxq7fLj0RjLZQ5nubr9qNJUZrH+xUcwXEoXNpfS+g==}
     engines: {node: '>=4.0'}
@@ -10521,7 +10521,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.2
+      debug: 4.3.2_supports-color@6.1.0
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -17681,6 +17681,15 @@ packages:
       raf: 3.4.1
       regenerator-runtime: 0.13.9
       whatwg-fetch: 3.6.2
+    dev: false
+
+  /react-blockies/1.4.1_react@17.0.2:
+    resolution: {integrity: sha512-4N015X5oPNnD3xQPsiqolOFzPZSSWyc5mJhJUZShUCHtiGUxVN+1qsWTcglkHMNySux9hUofaispqcw9QkWP5Q==}
+    peerDependencies:
+      react: '>=15.0.0'
+    dependencies:
+      prop-types: 15.7.2
+      react: 17.0.2
     dev: false
 
   /react-clientside-effect/1.2.5_react@17.0.2:

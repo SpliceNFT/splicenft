@@ -2,12 +2,16 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Container,
   Flex,
   SimpleGrid,
   useToast
 } from '@chakra-ui/react';
 import { NFTItemInTransit } from '@splicenft/common';
+import { NavLink } from 'react-router-dom';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -64,10 +68,17 @@ export const MyAssetsPage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
+      <Breadcrumb>
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink as={NavLink} to="/my-assets">
+            Your Assets
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
       {loading ? (
         'loading'
       ) : nfts.length === 0 ? (
-        <Alert status="info" overflow="visible">
+        <Alert status="info" overflow="visible" mt={6}>
           <Flex
             align="center"
             direction="row"
@@ -87,7 +98,7 @@ export const MyAssetsPage = () => {
           </Flex>
         </Alert>
       ) : (
-        <SimpleGrid columns={[1, 2, 3, 4]} spacingX={5} spacingY="20px">
+        <SimpleGrid columns={[1, 2, 3, 4]} spacingX={5} spacingY="20px" mt={6}>
           {nfts.map((nft: NFTItemInTransit) => (
             <NFTCard
               key={`${nft.contract_address}/${nft.token_id}`}

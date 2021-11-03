@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import {
   Button,
+  Box,
   Flex,
   Link,
   Menu,
@@ -46,12 +47,14 @@ const Header = () => {
   }, []);
 
   return (
-    <Flex p={5} my={3} align="center" gridGap={2}>
-      <Logo />
+    <Flex p={[2, 3, 5]} gridGap={2} mb={[0, 3]}>
+      <Flex flex="2">
+        <Logo />
+      </Flex>
       <Spacer />
-      <Flex direction="row" align="center" gridGap={8}>
+      <Flex direction="row" align="center" gridGap={3}>
         {active && splice && (
-          <Flex direction="row" gridGap={10}>
+          <Flex direction="row" gridGap={[5, 10]}>
             <Link
               as={ReactLink}
               to="/my-assets"
