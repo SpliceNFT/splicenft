@@ -1,16 +1,17 @@
 import { Splice, SpliceNFT } from '@splicenft/common';
-import { StyleCache, StyleMetadataCache } from './StyleCache';
+import { getSplice } from './SpliceContracts';
+import { StyleMetadataCache } from './StyleCache';
 
 const Metadata = async (
-  splice: Splice,
   styleCache: StyleMetadataCache,
   tokenId: number
 ): Promise<SpliceNFT> => {
+  const splice = getSplice(styleCache.network);
   const heritage = await splice.getHeritage(tokenId);
-  if (!heritage) throw `no heritage for token ${tokenId}`;
+  if (!heritage) throw new Error(`no heritage for token ${tokenId}`);
 
   const style = styleCache.getStyle(heritage.style_token_id.toString());
-  if (!style) throw `style token seems corrupt`;
+  if (!style) throw new Error(`style token seems corrupt`);
 
   const randomness = Splice.computeRandomness(
     heritage.origin_collection,

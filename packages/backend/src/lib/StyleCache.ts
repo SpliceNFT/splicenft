@@ -1,19 +1,20 @@
-import { ipfsGW, Splice, Style, StyleNFT } from '@splicenft/common';
-import { SpliceInstances } from './SpliceContracts';
-
+import { ipfsGW, Style, StyleNFT } from '@splicenft/common';
 import axios from 'axios';
+import { getSplice } from './SpliceContracts';
 
 export class StyleMetadataCache {
-  private splice: Splice;
   private styles: Style[];
   private fetched: boolean | null;
   private networkId: number;
 
-  constructor(networkId: number, splice: Splice) {
+  constructor(networkId: number) {
     this.networkId = networkId;
-    this.splice = splice;
     this.styles = [];
     this.fetched = null;
+  }
+
+  get network(): number {
+    return this.networkId;
   }
 
   public getStyles() {
@@ -28,9 +29,9 @@ export class StyleMetadataCache {
     if (this.fetched !== null) return;
 
     console.debug('start fetching metadata for network %s', this.networkId);
-
-    const allStyles = await this.splice.getAllStyles();
-    const styleCollection = await this.splice.getStyleNFT();
+    const splice = getSplice(this.networkId);
+    const allStyles = await splice.getAllStyles();
+    const styleCollection = await splice.getStyleNFT();
 
     const promises = allStyles.map((tokenMetadataResponse) => {
       const { tokenId, metadataUrl } = tokenMetadataResponse;
@@ -82,14 +83,11 @@ export class StyleCache {
 
   init() {
     for (const networkId of this.supportedNetworks) {
-      const splice = SpliceInstances[networkId];
-      if (splice) {
-        const mdCache = new StyleMetadataCache(networkId, splice);
-        mdCache.fetchAllStyles().catch((e: any) => {
-          console.error('cant setup cache on network', networkId, e.message);
-        });
-        this.caches[networkId] = mdCache;
-      }
+      const mdCache = new StyleMetadataCache(networkId);
+      mdCache.fetchAllStyles().catch((e: any) => {
+        console.error('cant setup cache on network', networkId, e.message);
+      });
+      this.caches[networkId] = mdCache;
     }
   }
 }

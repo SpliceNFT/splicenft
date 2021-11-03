@@ -1,21 +1,20 @@
 import {
-  Splice,
   ERC721ABI,
   ipfsGW,
   NFTMetaData,
-  resolveImage
+  resolveImage,
+  Splice
 } from '@splicenft/common';
-import { GetPixels } from './GetPixels';
-import FileType from 'file-type';
-
-import axios from 'axios';
-import { ethers, providers } from 'ethers';
-import { StyleMetadataCache } from './StyleCache';
 import { extractPalette } from '@splicenft/common/build/img';
+import axios from 'axios';
+import { ethers } from 'ethers';
+import FileType from 'file-type';
+import { GetPixels } from './GetPixels';
 import Render from './render';
+import { getSplice } from './SpliceContracts';
+import { StyleMetadataCache } from './StyleCache';
 
-async function extractOriginImage(metadata: NFTMetaData) {
-  const originImageUrl = resolveImage(metadata);
+async function extractOriginImage(originImageUrl: string) {
   const axiosResponse = await axios.get(originImageUrl, {
     responseType: 'arraybuffer'
   });
@@ -23,23 +22,24 @@ async function extractOriginImage(metadata: NFTMetaData) {
   const originalImageData: Buffer = await axiosResponse.data;
 
   const filetype = await FileType.fromBuffer(originalImageData);
-  if (!filetype) throw "can't read original nft file";
+  if (!filetype) throw new Error("can't read original nft file");
 
   return GetPixels(filetype.mime, originalImageData);
 }
 
 export default async function Artwork(
-  provider: providers.Provider,
   styleCache: StyleMetadataCache,
-  splice: Splice,
   tokenId: number,
   callback: (err: any | null, buffer: Buffer) => unknown
 ) {
+  const splice = getSplice(styleCache.network);
+  const { provider } = splice.providerOrSigner;
+
   const heritage = await splice.getHeritage(tokenId);
-  if (!heritage) throw `no heritage for token ${tokenId}`;
+  if (!heritage) throw new Error(`no heritage for token ${tokenId}`);
 
   const style = styleCache.getStyle(heritage.style_token_id.toString());
-  if (!style) throw `style token seems corrupt`;
+  if (!style) throw new Error(`style token seems corrupt`);
 
   const erc721 = new ethers.Contract(
     heritage.origin_collection,
@@ -57,7 +57,7 @@ export default async function Artwork(
     })
   ).data;
 
-  const originPixels = await extractOriginImage(originMetadata);
+  const originPixels = await extractOriginImage(resolveImage(originMetadata));
   const palette = extractPalette(new Uint8Array(originPixels));
 
   const randomness = Splice.computeRandomness(

@@ -47,6 +47,12 @@ export class Splice {
     this.contract = splice;
   }
 
+  get providerOrSigner(): { provider: providers.Provider; signer: Signer } {
+    return {
+      provider: this.contract.provider,
+      signer: this.contract.signer
+    };
+  }
   static from(address: string, signer: Signer | providers.Provider) {
     const spliceFactory = SpliceFactory.connect(address, signer);
     const contract = spliceFactory.attach(address);
@@ -146,10 +152,17 @@ export class Splice {
 
   public async getHeritage(tokenId: number): Promise<TokenHeritage | null> {
     const result = await this.contract.tokenHeritage(tokenId);
-    return {
-      ...result,
-      splice_token_id: BigNumber.from(tokenId)
-    };
+
+    if (
+      result.origin_token_id.isZero() ||
+      result.origin_collection === ethers.constants.AddressZero
+    ) {
+      return null;
+    } else
+      return {
+        ...result,
+        splice_token_id: BigNumber.from(tokenId)
+      };
   }
 
   public async getMetadataUrl(tokenId: number | string): Promise<string> {

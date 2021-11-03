@@ -39,17 +39,18 @@ export const NFTPage = () => {
 
   const toast = useToast();
 
-  const { splice, indexer } = useSplice();
+  const randomness = Splice.computeRandomness(collection, tokenId);
+
+  const { splice, indexer, spliceStyles } = useSplice();
 
   const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
-  const [randomness, setRandomness] = useState<number>(0);
 
   const [selectedStyle, setSelectedStyle] = useState<Style>();
 
-  const [heritage, setHeritage] = useState<TokenHeritage>();
+  const [heritage, setHeritage] = useState<TokenHeritage | null>();
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
@@ -60,20 +61,26 @@ export const NFTPage = () => {
 
   //find an existing splice
   useEffect(() => {
-    if (!collection || !tokenId || !splice) return;
-    setRandomness(Splice.computeRandomness(collection, tokenId));
-
+    if (!splice) return;
     (async () => {
       const _heritage = await splice.findHeritage(collection, tokenId);
-      setHeritage(_heritage === null ? undefined : _heritage);
+      if (_heritage) {
+        setMintingState(MintingState.MINTED);
+      }
+      setHeritage(_heritage);
     })();
-  }, [collection, tokenId, splice]);
+  }, [splice]);
 
   useEffect(() => {
     if (!heritage || !splice) return;
     (async () => {
       const metadata = await splice.fetchMetadata(heritage);
-      setMintingState(MintingState.MINTED);
+
+      setSelectedStyle(
+        spliceStyles.find(
+          (st) => st.tokenId === heritage.style_token_id.toString()
+        )
+      );
       setSpliceMetadata(metadata);
       setSketch(resolveImage(metadata));
     })();
@@ -92,7 +99,9 @@ export const NFTPage = () => {
 
   const onSketched = (dataUrl: string) => {
     //setSketch(dataUrl);
-    setMintingState(MintingState.GENERATED);
+    if (mintingState < MintingState.MINTED) {
+      setMintingState(MintingState.GENERATED);
+    }
   };
 
   const onMinted = async ({
@@ -109,6 +118,7 @@ export const NFTPage = () => {
         description: transactionHash
       });
     } else {
+      setMintingState(MintingState.MINTED);
       toast({
         status: 'success',
         title: `Hooray, Splice #${spliceTokenId} is yours now!`
@@ -116,6 +126,7 @@ export const NFTPage = () => {
 
       if (splice) {
         const _heritage = await splice.getHeritage(spliceTokenId);
+        console.log('heritage after minting: ', _heritage);
         if (_heritage) {
           setHeritage(_heritage);
         }
@@ -173,7 +184,13 @@ export const NFTPage = () => {
             )}
 
             {mintingState === MintingState.MINTED && (
-              <Button as={Link} href={sketch} isExternal variant="white">
+              <Button
+                as={Link}
+                href={sketch}
+                disabled={!sketch}
+                isExternal
+                variant="white"
+              >
                 download
               </Button>
             )}

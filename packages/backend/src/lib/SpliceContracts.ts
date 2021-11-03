@@ -3,18 +3,18 @@ import { providers } from 'ethers';
 
 import CHAINS from './networks';
 
-export const SpliceInstances: Record<string, Splice> = {};
-
-[4, 31337].map((networkId) => {
+export function getSplice(networkId: number): Splice {
   const provider = providerFor(networkId);
-  if (!provider) return;
+  if (!provider)
+    throw new Error(`Splice is not available for network ${networkId}`);
 
   const spliceAddress =
     SPLICE_ADDRESSES[networkId] || process.env.SPLICE_CONTRACT_ADDRESS;
-  if (spliceAddress) {
-    SpliceInstances[networkId] = Splice.from(spliceAddress, provider);
+  if (!spliceAddress) {
+    throw new Error(`Splice is not available for network ${networkId}`);
   }
-});
+  return Splice.from(spliceAddress, provider);
+}
 
 export function providerFor(networkId: number): providers.Provider | undefined {
   const network = CHAINS[networkId];
