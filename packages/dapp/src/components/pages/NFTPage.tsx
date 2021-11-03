@@ -6,8 +6,8 @@ import {
   Container,
   Divider,
   Flex,
-  HStack,
   Heading,
+  HStack,
   Link,
   useToast
 } from '@chakra-ui/react';
@@ -27,7 +27,7 @@ import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
-import { DominantColors } from '../molecules/DominantColors';
+import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { CreativePanel } from '../organisms/CreativePanel';
 import {
@@ -147,6 +147,7 @@ export const NFTPage = () => {
       spliceOwner === account
     );
   };
+
   return (
     <Container maxW="container.xl">
       <Breadcrumb>
@@ -167,12 +168,10 @@ export const NFTPage = () => {
           <CreativePanel
             nftImageUrl={nftImageUrl}
             style={selectedStyle}
-            nftExtractedProps={{
-              randomness,
-              dominantColors
-            }}
+            randomness={randomness}
             onSketched={onSketched}
             spliceDataUrl={sketch}
+            onDominantColors={setDominantColors}
           />
 
           <Flex position="absolute" right="1.5em" bottom="-1.5em" gridGap={6}>
@@ -240,11 +239,7 @@ export const NFTPage = () => {
           {nftMetadata && (
             <>
               <Heading size="md"> Origin attributes</Heading>
-              <DominantColors
-                imageUrl={nftImageUrl}
-                dominantColors={dominantColors}
-                setDominantColors={setDominantColors}
-              />
+              <DominantColorsDisplay colors={dominantColors} />
               <MetaDataDisplay
                 contractAddress={collection}
                 tokenId={tokenId}

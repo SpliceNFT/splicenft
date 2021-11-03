@@ -1,15 +1,17 @@
 import { Image, SystemProps } from '@chakra-ui/react';
 import { NFTMetaData, resolveImage } from '@splicenft/common';
-import React from 'react';
+import React, { SyntheticEvent } from 'react';
 import SplicePFPLogo from '../../img/SpliceLogoPFP.png';
 
 export const FallbackImage = (
   props: {
     imgUrl?: string | undefined;
     metadata?: NFTMetaData | null;
+
+    onNFTImageLoaded?: (event: SyntheticEvent<HTMLImageElement, Event>) => void;
   } & SystemProps
 ) => {
-  const { imgUrl, metadata, ...rest } = props;
+  const { imgUrl, metadata, onNFTImageLoaded, ...rest } = props;
 
   let imageUrl;
 
@@ -24,8 +26,9 @@ export const FallbackImage = (
       src={imageUrl}
       title={imageUrl}
       fit="cover"
-      alt={imageUrl}
-      fallbackSrc={SplicePFPLogo}
+      crossOrigin="anonymous"
+      onLoad={onNFTImageLoaded}
+      fallback={<Image src={SplicePFPLogo} />}
       {...rest}
       /*opacity={buzy ? 0.2 : 1}*/
     />

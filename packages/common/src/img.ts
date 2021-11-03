@@ -2,7 +2,8 @@ import palette, { RGB } from 'get-rgba-palette';
 import ImageToColors, { Color } from 'image-to-colors';
 import { NFTMetaData } from './types/NFT';
 
-const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+//const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+const IPFS_GATEWAY = 'https://dweb.link/ipfs/';
 
 export const resolveImage = (nftMetaData: NFTMetaData): string => {
   const imgUrl = nftMetaData.image ? nftMetaData.image : nftMetaData.image_url;
@@ -23,26 +24,35 @@ export const extractPalette = (flatPixels: number[] | Uint8Array): RGB[] => {
 
 //only in browsers.
 export const extractPixels = async (
-  imageUrl: string,
+  image: string | HTMLImageElement,
   options: {
     proxy?: string;
   }
 ): Promise<number[]> => {
   let pixels: Color[] = [];
-  try {
-    pixels = await ImageToColors.getFromExternalSource(imageUrl, {
+
+  if (typeof image === 'string') {
+    try {
+      pixels = await ImageToColors.getFromExternalSource(image, {
+        setImageCrossOriginToAnonymous: true
+      });
+    } catch (e: unknown) {
+      console.error(e);
+      if (options.proxy && typeof image === 'string') {
+        pixels = await ImageToColors.getFromExternalSource(
+          `${process.env.REACT_APP_CORS_PROXY}?url=${image}`,
+          {
+            setImageCrossOriginToAnonymous: true
+          }
+        );
+      }
+    }
+  } else {
+    image.crossOrigin = 'anonymous';
+    console.log('getting colors from loaded image');
+    pixels = ImageToColors.get(image, {
       setImageCrossOriginToAnonymous: true
     });
-  } catch (e: unknown) {
-    console.error(e);
-    if (options.proxy) {
-      pixels = await ImageToColors.getFromExternalSource(
-        `${process.env.REACT_APP_CORS_PROXY}?url=${imageUrl}`,
-        {
-          setImageCrossOriginToAnonymous: true
-        }
-      );
-    }
   }
 
   if (!pixels) return [];
@@ -50,11 +60,11 @@ export const extractPixels = async (
 };
 
 export const extractColors = async (
-  imageUrl: string,
+  image: string | HTMLImageElement,
   options: {
     proxy?: string;
   }
 ): Promise<RGB[]> => {
-  const px = await extractPixels(imageUrl, options);
+  const px = await extractPixels(image, options);
   return extractPalette(px);
 };

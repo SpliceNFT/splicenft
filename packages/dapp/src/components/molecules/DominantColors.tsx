@@ -17,6 +17,9 @@ export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
   </Flex>
 );
 
+/**
+ * @deprecated don't use. Use your image's src directly
+ */
 export const DominantColors = ({
   imageUrl,
   dominantColors,
