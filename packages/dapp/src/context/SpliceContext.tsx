@@ -48,6 +48,8 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (splAddress) {
       setSplice(Splice.from(splAddress, library.getSigner()));
+    } else {
+      setSplice(undefined);
     }
 
     switch (chain) {

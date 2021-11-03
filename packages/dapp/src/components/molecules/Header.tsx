@@ -8,6 +8,7 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  useToast,
   Spacer
 } from '@chakra-ui/react';
 import { AbstractConnector } from '@web3-react/abstract-connector/dist';
@@ -21,6 +22,7 @@ import Logo from '../atoms/Logo';
 
 const Header = () => {
   const { active, activate, account } = useWeb3React();
+  const toast = useToast();
   const { splice } = useSplice();
 
   const connectors = [
@@ -41,7 +43,13 @@ const Header = () => {
       if (!connector) {
         localStorage.removeItem('prvConnectedWith');
       } else {
-        activate(connector.connector, console.error);
+        activate(connector.connector, (err) => {
+          toast({
+            status: 'error',
+            title: 'activation error',
+            description: err.message
+          });
+        });
       }
     }
   }, []);
