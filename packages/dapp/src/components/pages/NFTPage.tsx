@@ -7,6 +7,7 @@ import {
   Divider,
   Flex,
   HStack,
+  Heading,
   Link,
   useToast
 } from '@chakra-ui/react';
@@ -19,6 +20,7 @@ import {
   Style,
   TokenHeritage
 } from '@splicenft/common';
+import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
@@ -42,6 +44,7 @@ export const NFTPage = () => {
   const randomness = Splice.computeRandomness(collection, tokenId);
 
   const { splice, indexer, spliceStyles } = useSplice();
+  const { account } = useWeb3React();
 
   const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
@@ -51,6 +54,8 @@ export const NFTPage = () => {
   const [selectedStyle, setSelectedStyle] = useState<Style>();
 
   const [heritage, setHeritage] = useState<TokenHeritage | null>();
+  const [spliceOwner, setSpliceOwner] = useState<string>();
+
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
   const [mintingState, setMintingState] = useState<MintingState>(
     MintingState.UNKNOWN
@@ -72,8 +77,9 @@ export const NFTPage = () => {
   }, [splice]);
 
   useEffect(() => {
-    if (!heritage || !splice) return;
+    if (!heritage || !splice || spliceStyles.length == 0) return;
     (async () => {
+      splice.ownerOf(heritage.splice_token_id).then(setSpliceOwner);
       const metadata = await splice.fetchMetadata(heritage);
 
       setSelectedStyle(
@@ -84,7 +90,7 @@ export const NFTPage = () => {
       setSpliceMetadata(metadata);
       setSketch(resolveImage(metadata));
     })();
-  }, [heritage]);
+  }, [heritage, spliceStyles]);
 
   useEffect(() => {
     if (!indexer) return;
@@ -134,6 +140,13 @@ export const NFTPage = () => {
     }
   };
 
+  const _isDownloadable = () => {
+    return (
+      mintingState === MintingState.MINTED &&
+      spliceOwner &&
+      spliceOwner === account
+    );
+  };
   return (
     <Container maxW="container.xl">
       <Breadcrumb>
@@ -144,7 +157,7 @@ export const NFTPage = () => {
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
           <BreadcrumbLink isLastChild>
-            Mint Splice for {nftMetadata?.name}
+            {heritage ? '' : 'Mint'} Splice for {nftMetadata?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
@@ -183,11 +196,12 @@ export const NFTPage = () => {
               />
             )}
 
-            {mintingState === MintingState.MINTED && (
+            {_isDownloadable() && (
               <Button
                 as={Link}
                 href={sketch}
                 disabled={!sketch}
+                boxShadow="md"
                 isExternal
                 variant="white"
               >
@@ -213,25 +227,30 @@ export const NFTPage = () => {
         />
 
         <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
-          <DominantColors
-            imageUrl={nftImageUrl}
-            dominantColors={dominantColors}
-            setDominantColors={setDominantColors}
-          />
-
-          {nftMetadata && (
-            <MetaDataDisplay
-              contractAddress={collection}
-              tokenId={tokenId}
-              nftMetadata={nftMetadata}
-              randomness={randomness}
-            />
-          )}
-
           {spliceMetadata && (
             <>
+              <Heading size="md"> Splice attributes</Heading>
+              <SpliceMetadataDisplay
+                spliceMetadata={spliceMetadata}
+                owner={spliceOwner}
+              />
               <Divider />
-              <SpliceMetadataDisplay spliceMetadata={spliceMetadata} />
+            </>
+          )}
+          {nftMetadata && (
+            <>
+              <Heading size="md"> Origin attributes</Heading>
+              <DominantColors
+                imageUrl={nftImageUrl}
+                dominantColors={dominantColors}
+                setDominantColors={setDominantColors}
+              />
+              <MetaDataDisplay
+                contractAddress={collection}
+                tokenId={tokenId}
+                nftMetadata={nftMetadata}
+                randomness={randomness}
+              />
             </>
           )}
         </Flex>

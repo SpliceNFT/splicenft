@@ -135,6 +135,10 @@ export class Splice {
     return _randomness;
   }
 
+  public async ownerOf(tokenId: BigNumber | string): Promise<string> {
+    return this.contract.ownerOf(tokenId);
+  }
+
   public async findHeritage(
     collectionAddress: string,
     tokenId: string | number

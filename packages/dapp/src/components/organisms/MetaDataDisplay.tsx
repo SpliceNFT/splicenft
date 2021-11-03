@@ -1,5 +1,6 @@
 import { Divider, Flex, Link, Text } from '@chakra-ui/react';
 import { ipfsGW, NFTMetaData, SpliceNFT } from '@splicenft/common';
+import { useWeb3React } from '@web3-react/core';
 import React from 'react';
 
 const MetaDataItem = ({
@@ -37,15 +38,23 @@ const MetaDataItem = ({
 };
 
 export const SpliceMetadataDisplay = ({
+  owner,
   spliceMetadata
 }: {
+  owner: string | undefined;
   spliceMetadata: SpliceNFT;
 }) => {
+  const { account } = useWeb3React();
+
   const splMetaDataProps: Record<string, any> = spliceMetadata.properties
     ? spliceMetadata.properties
     : {};
   return (
     <>
+      <MetaDataItem
+        label="Owner"
+        value={!owner ? '' : owner === account ? 'You' : owner}
+      />
       <MetaDataItem
         label="Metadata"
         value={spliceMetadata.external_url || ''}
