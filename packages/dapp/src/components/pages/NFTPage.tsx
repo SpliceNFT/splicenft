@@ -7,8 +7,8 @@ import {
   Divider,
   Flex,
   Heading,
-  HStack,
   Link,
+  SimpleGrid,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -157,7 +157,7 @@ export const NFTPage = () => {
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink isLastChild>
+          <BreadcrumbLink>
             {heritage ? '' : 'Mint'} Splice for {nftMetadata?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -174,7 +174,13 @@ export const NFTPage = () => {
             onDominantColors={setDominantColors}
           />
 
-          <Flex position="absolute" right="1.5em" bottom="-1.5em" gridGap={6}>
+          <Flex
+            position="absolute"
+            bottom="-1.5em"
+            gridGap={[2, 6]}
+            right={[null, null, '1.5em']}
+            direction={['column', 'row']}
+          >
             {mintingState < MintingState.MINTED && dominantColors && (
               <ArtworkStyleChooser
                 disabled={dominantColors.length == 0 || buzy}
@@ -211,21 +217,22 @@ export const NFTPage = () => {
         </Flex>
       )}
 
-      <HStack
+      <SimpleGrid
         background="white"
         minH="100vh"
         p={5}
         pt={10}
         justify="space-between"
         align="flex-start"
-        gridGap={10}
+        spacing={[2, 5]}
+        columns={[1, null, 2]}
       >
         <NFTDescription
           nftMetadata={nftMetadata}
           styleNFT={selectedStyle?.getMetadata()}
         />
 
-        <Flex boxShadow="xl" direction="column" w="50%" p={5} gridGap={5}>
+        <Flex boxShadow="xl" direction="column" p={5} gridGap={5}>
           {spliceMetadata && (
             <>
               <Heading size="md"> Splice attributes</Heading>
@@ -249,7 +256,7 @@ export const NFTPage = () => {
             </>
           )}
         </Flex>
-      </HStack>
+      </SimpleGrid>
     </Container>
   );
 };

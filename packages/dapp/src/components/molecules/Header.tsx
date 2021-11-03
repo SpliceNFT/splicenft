@@ -7,7 +7,8 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
-  Spacer
+  Spacer,
+  useToast
 } from '@chakra-ui/react';
 import { AbstractConnector } from '@web3-react/abstract-connector/dist';
 import { useWeb3React } from '@web3-react/core';
@@ -20,6 +21,7 @@ import Logo from '../atoms/Logo';
 
 const Header = () => {
   const { active, activate, account } = useWeb3React();
+  const toast = useToast();
   const { splice } = useSplice();
 
   const connectors = [
@@ -40,18 +42,26 @@ const Header = () => {
       if (!connector) {
         localStorage.removeItem('prvConnectedWith');
       } else {
-        activate(connector.connector, console.error);
+        activate(connector.connector, (err) => {
+          toast({
+            status: 'error',
+            title: 'activation error',
+            description: err.message
+          });
+        });
       }
     }
   }, []);
 
   return (
-    <Flex p={5} my={3} align="center" gridGap={2}>
-      <Logo />
+    <Flex p={[2, 3, 5]} gridGap={2} mb={[0, 3]}>
+      <Flex flex="2">
+        <Logo />
+      </Flex>
       <Spacer />
-      <Flex direction="row" align="center" gridGap={8}>
+      <Flex direction="row" align="center" gridGap={3}>
         {active && splice && (
-          <Flex direction="row" gridGap={10}>
+          <Flex direction="row" gridGap={[5, 10]}>
             <Link
               as={ReactLink}
               to="/my-assets"

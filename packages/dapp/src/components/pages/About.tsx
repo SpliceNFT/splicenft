@@ -9,7 +9,6 @@ import {
   Image,
   Link,
   SimpleGrid,
-  SystemProps,
   Text
 } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
@@ -20,8 +19,7 @@ import {
   Slider
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
-import React, { ReactNode } from 'react';
-import { injected } from '../../modules/connectors';
+import React from 'react';
 import { FaTwitter } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
@@ -29,6 +27,7 @@ import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetad
 import emily from '../../img/team/emily.jpg';
 import stefan from '../../img/team/stefan.jpg';
 import timothy from '../../img/team/timothy.jpg';
+import { injected } from '../../modules/connectors';
 import { ContainerHero, Hero } from '../atoms/Hero';
 
 export const AboutPage = () => {
@@ -40,7 +39,7 @@ export const AboutPage = () => {
       <Hero bg="black" color="white" py={12}>
         <Container maxW="container.lg">
           <Flex direction="column" mb={6}>
-            <Heading size="4xl" mb={5} fontWeight="800">
+            <Heading as="h1" size="3xl" mb={5} fontWeight="800">
               Generative art for your NFT
             </Heading>
             <Heading size="lg">
@@ -88,27 +87,26 @@ export const AboutPage = () => {
             </CarouselProvider>
           </Box>
         </Container>
-        <Container maxW="container.lg">
+        <Container maxW="container.lg" align="center">
           {active ? (
             <Button
-              w="full"
+              w="75%"
               as={NavLink}
               to="/my-assets"
               variant="white"
-              size="lg"
+              size="md"
               disabled={!splice}
-              fontSize="2xl"
+              fontSize="xl"
             >
               Try it!
             </Button>
           ) : (
             <>
               <Button
-                w="full"
+                w="75%"
                 onClick={() => activate(injected, console.error)}
                 variant="white"
                 size="md"
-                fontSize="xl"
               >
                 Connect your wallet to try Splice.
               </Button>
@@ -154,14 +152,14 @@ export const AboutPage = () => {
               <Link
                 href="https://discord.gg/JhtT87y2BA"
                 isExternal
-                color="purple.600"
+                color="twitter.500"
               >
                 Join our Discord
               </Link>{' '}
               and{' '}
               <Link
                 href="https://twitter.com/splicenft"
-                color="purple.600"
+                color="twitter.500"
                 isExternal
               >
                 follow us on Twitter
@@ -182,9 +180,9 @@ export const AboutPage = () => {
       <ContainerHero bg="gray.100">
         <Flex direction="column" gridGap={10} align="center">
           <Heading size="2xl">Team</Heading>
-          <SimpleGrid columns={[1, null, 3]} spacing={100}>
+          <SimpleGrid columns={[1, null, 3]} spacing={10}>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
-              <Image src={stefan} rounded="full" />
+              <Image src={stefan} rounded="full" w="70%" />
               <Text fontSize="2xl" fontWeight="bold">
                 Stefan "elmariachi"
               </Text>
@@ -195,13 +193,18 @@ export const AboutPage = () => {
                 fontStyle="bold"
               >
                 <Flex gridGap={2}>
-                  <Icon as={FaTwitter} boxSize="6" title="@stadolf" />
+                  <Icon
+                    as={FaTwitter}
+                    boxSize="6"
+                    title="@stadolf"
+                    color="twitter.500"
+                  />
                   <Text fontSize="md">@stadolf</Text>
                 </Flex>
               </Link>
             </Flex>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
-              <Image src={emily} rounded="full" />
+              <Image src={emily} rounded="full" w="70%" />
               <Text fontSize="2xl" fontWeight="bold">
                 Emily
               </Text>
@@ -212,13 +215,18 @@ export const AboutPage = () => {
                 fontStyle="bold"
               >
                 <Flex gridGap={2}>
-                  <Icon as={FaTwitter} boxSize="6" title="@emilyaweil" />
+                  <Icon
+                    as={FaTwitter}
+                    boxSize="6"
+                    title="@emilyaweil"
+                    color="twitter.500"
+                  />
                   <Text fontSize="md">@emilyaweil</Text>
                 </Flex>
               </Link>
             </Flex>
             <Flex direction="column" flex="1" align="center" gridGap={2}>
-              <Image src={timothy} rounded="full" />
+              <Image src={timothy} rounded="full" w="70%" />
               <Text fontSize="2xl" fontWeight="bold">
                 Tim
               </Text>
@@ -229,7 +237,12 @@ export const AboutPage = () => {
                 fontStyle="bold"
               >
                 <Flex gridGap={2}>
-                  <Icon as={FaTwitter} boxSize="6" title="@timothycbkr" />
+                  <Icon
+                    as={FaTwitter}
+                    boxSize="6"
+                    title="@timothycbkr"
+                    color="twitter.500"
+                  />
                   <Text fontSize="md">@timothycbkr</Text>
                 </Flex>
               </Link>

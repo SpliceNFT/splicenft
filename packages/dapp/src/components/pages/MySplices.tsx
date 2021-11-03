@@ -11,13 +11,13 @@ import {
   ipfsGW,
   NFTMetaData,
   resolveImage,
-  Splice,
   SpliceNFT
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { SpliceCard } from '../atoms/SpliceCard';
 import { SpliceArtwork } from '../molecules/Splice/SpliceArtwork';
@@ -79,7 +79,10 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
   return (
     <SpliceCard direction={['column', null, null, 'row']}>
       <LinkBox as={Flex}>
-        <LinkOverlay href={metadata?.imageUrl || ''} isExternal>
+        <LinkOverlay
+          as={NavLink}
+          to={`/nft/${metadata?.metadata.properties.origin_collection}/${metadata?.metadata.properties.origin_token_id}`}
+        >
           <SpliceArtwork
             originImageUrl={origin?.imageUrl}
             spliceImageUrl={metadata?.imageUrl}

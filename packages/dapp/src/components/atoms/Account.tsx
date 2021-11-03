@@ -4,6 +4,7 @@ import { CHAINS } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { providers, utils } from 'ethers';
 import { truncateAddress } from '../../modules/strings';
+import Blockies from 'react-blockies';
 
 export default ({ account }: { account: string }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
@@ -24,27 +25,34 @@ export default ({ account }: { account: string }) => {
       borderRadius="full"
       bg="white"
       boxShadow="lg"
-      py={1}
-      pr={2}
-      pl={5}
       align="center"
+      pr={[0, 2]}
     >
-      <Flex direction="column" align="flex-end" justify="center" mr="2">
-        <Flex direction="row" fontWeight="bold" fontSize="lg" gridGap={1}>
+      <Flex
+        direction="column"
+        align="flex-end"
+        justify="center"
+        display={['none', 'flex']}
+        py={1}
+        pr={3}
+        pl={5}
+      >
+        <Flex direction="row" fontWeight="bold" fontSize={'lg'} gridGap={1}>
           <Text>{balance}</Text>
           <Text display={['none', 'inline']}>ETH</Text>
           <Text display={['inline', 'none']}>E</Text>
         </Flex>
-        <Text isTruncated fontSize="xs" fontFamily="mono">
+        <Text isTruncated fontSize={['xx-small', 'xs']} fontFamily="mono">
           {truncateAddress(account)}
         </Text>
         {chainId !== 1 && (
           <Text fontSize="x-small">{chainId && CHAINS[chainId]}</Text>
         )}
       </Flex>
-      <Flex>
-        <Circle size="3em" bg="tomato" color="white"></Circle>
-      </Flex>
+
+      <Circle size="2.75em" overflow="hidden">
+        <Blockies seed={account} size={10} scale={5} />
+      </Circle>
     </Flex>
   );
 };
