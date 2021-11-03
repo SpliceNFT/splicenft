@@ -6,7 +6,6 @@ import morgan from 'morgan';
 import Artwork from './lib/Artwork';
 import Metadata from './lib/Metadata';
 import Render from './lib/render';
-import { providerFor, SpliceInstances } from './lib/SpliceContracts';
 import { StyleCache } from './lib/StyleCache';
 
 const app: Express = express();
@@ -57,8 +56,6 @@ const ImageCallback = (res: Response) => {
 
 //generic renderer
 app.get('/render/:network/:style_token_id', async (req, res) => {
-  //const renderer = Renderers[req.params.algo];
-  //if (!renderer) return res.status(404).send('algorithm not found');
   const networkId = parseInt(req.params.network);
   const styleTokenId = req.params.style_token_id;
 
@@ -68,7 +65,7 @@ app.get('/render/:network/:style_token_id', async (req, res) => {
   const style = cache.getStyle(styleTokenId);
   if (!style) {
     return res
-      .status(500)
+      .status(404)
       .send(`style ${styleTokenId} not available on network ${networkId}`);
   }
   const renderer = await style.getRenderer();
@@ -111,9 +108,9 @@ app.get('/styles/:network/:style_token_id', async (req, res) => {
 });
 
 app.get('/styles/:network', async (req, res) => {
-  const networkId = req.params.network;
+  const networkId = parseInt(req.params.network);
 
-  const cache = styleCache.getCache(parseInt(networkId));
+  const cache = styleCache.getCache(networkId);
   if (!cache) return res.status(500).send(`network ${networkId} not supported`);
 
   const promises = cache.getStyles().map((style) => {
@@ -136,26 +133,26 @@ app.get('/metadata/:network/:tokenid', async (req, res) => {
   const tokenId = parseInt(req.params.tokenid);
 
   const cache = styleCache.getCache(networkId);
-  const splice = SpliceInstances[networkId];
 
-  if (!cache || !splice)
-    return res.status(500).send(`network ${networkId} not supported`);
+  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
 
-  const metadata = await Metadata(splice, cache, tokenId);
-  metadata.image = `${process.env.SERVER_BASE_URL}/splice/${networkId}/${tokenId}/image.png`;
-  res.send(metadata);
+  try {
+    const metadata = await Metadata(cache, tokenId);
+    metadata.image = `${process.env.SERVER_BASE_URL}/splice/${networkId}/${tokenId}/image.png`;
+    res.send(metadata);
+  } catch (e: any) {
+    res.status(500).send(`couldnt create metadata :( ${e.message}`);
+  }
 });
 
 app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
   const networkId = parseInt(req.params.network);
   const tokenId = parseInt(req.params.tokenid);
   const cache = styleCache.getCache(networkId);
-  const splice = SpliceInstances[networkId];
-  const provider = providerFor(networkId);
-  if (!cache || !splice || !provider)
-    return res.status(500).send(`network ${networkId} not supported`);
+
+  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
   try {
-    await Artwork(provider, cache, splice, tokenId, ImageCallback(res));
+    await Artwork(cache, tokenId, ImageCallback(res));
   } catch (e: any) {
     res.status(500).send(`couldnt create image :( ${e.message}`);
   }
