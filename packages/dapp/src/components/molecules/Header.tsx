@@ -1,15 +1,14 @@
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import {
   Button,
-  Box,
   Flex,
   Link,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
-  useToast,
-  Spacer
+  Spacer,
+  useToast
 } from '@chakra-ui/react';
 import { AbstractConnector } from '@web3-react/abstract-connector/dist';
 import { useWeb3React } from '@web3-react/core';

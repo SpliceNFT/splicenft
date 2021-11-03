@@ -9,7 +9,6 @@ import {
   Image,
   Link,
   SimpleGrid,
-  SystemProps,
   Text
 } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
@@ -20,8 +19,7 @@ import {
   Slider
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
-import React, { ReactNode } from 'react';
-import { injected } from '../../modules/connectors';
+import React from 'react';
 import { FaTwitter } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
@@ -29,6 +27,7 @@ import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetad
 import emily from '../../img/team/emily.jpg';
 import stefan from '../../img/team/stefan.jpg';
 import timothy from '../../img/team/timothy.jpg';
+import { injected } from '../../modules/connectors';
 import { ContainerHero, Hero } from '../atoms/Hero';
 
 export const AboutPage = () => {
