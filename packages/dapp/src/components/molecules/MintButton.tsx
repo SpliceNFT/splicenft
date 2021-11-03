@@ -78,8 +78,8 @@ export const MintButton = ({
 
   const mintTestnetNFT = async (collection: string) => {
     if (!library) return;
+    setBuzy(true);
     try {
-      setBuzy(true);
       const signer = library?.getSigner();
       const contract = new Contract(collection, MintingABI, signer);
       const tx = await contract.mint(account);
@@ -89,14 +89,16 @@ export const MintButton = ({
       // console.log(transferEvent);
       // const tokenId = transferEvent.tokenId;
       const tokenId: BigNumber = await receipt.events[0].args['tokenId'];
-      setBuzy(false);
+
       onMinted(collection, `${tokenId.toNumber()}`);
     } catch (e: any) {
       toast({
         status: 'error',
+        isClosable: true,
         title: e.message || 'minting failed'
       });
     }
+    setBuzy(false);
   };
 
   return (

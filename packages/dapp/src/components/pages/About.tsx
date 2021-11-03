@@ -102,19 +102,21 @@ export const AboutPage = () => {
               Try it!
             </Button>
           ) : (
-            <Button
-              w="full"
-              onClick={() => activate(injected, console.error)}
-              variant="white"
-              size="md"
-              fontSize="xl"
-            >
-              connect your wallet
-            </Button>
+            <>
+              <Button
+                w="full"
+                onClick={() => activate(injected, console.error)}
+                variant="white"
+                size="md"
+                fontSize="xl"
+              >
+                Connect your wallet to try Splice.
+              </Button>
+            </>
           )}
           {active && !splice && (
             <Text textAlign="center">
-              network {chainId} not supported. Try Rinkeby.
+              network {chainId} not supported. Choose <em>Rinkeby Testnet</em>.
             </Text>
           )}
         </Container>
