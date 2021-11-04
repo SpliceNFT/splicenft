@@ -143,6 +143,7 @@ app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
   try {
     await Artwork(cache, tokenId, ImageCallback(res));
   } catch (e: any) {
+    console.error(`couldnt create image :( ${e.message}`);
     res.status(500).send(`couldnt create image :( ${e.message}`);
   }
 });

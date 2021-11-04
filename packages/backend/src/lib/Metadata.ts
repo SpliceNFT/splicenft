@@ -7,7 +7,7 @@ const Metadata = async (
   styleCache: StyleMetadataCache,
   tokenId: number
 ): Promise<SpliceNFT> => {
-  const key = `${styleCache.network}/splice/${tokenId}/medata.json`;
+  const key = `${styleCache.network}/splice/metadata/${tokenId}.json`;
 
   const cached = await Cache.lookupJSON<SpliceNFT>(key);
   if (cached) {

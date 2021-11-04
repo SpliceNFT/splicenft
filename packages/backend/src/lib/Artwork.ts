@@ -34,7 +34,7 @@ export default async function Artwork(
   tokenId: number,
   callback: (err: any | null, stream: Readable) => unknown
 ) {
-  const key = `${styleCache.network}/splice/${tokenId}/image.png`;
+  const key = `${styleCache.network}/splice/images/${tokenId}.png`;
 
   const stream = await Cache.lookupBinary(key);
   if (stream) {
