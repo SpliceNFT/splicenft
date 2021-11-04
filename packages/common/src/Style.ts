@@ -56,10 +56,14 @@ export class Style {
   ): Promise<string> {
     if (this.code) return this.code;
     const url = `${baseUrl}/styles/${networkId}/${this._tokenId}`;
-    console.debug(`fetching code for ${this.tokenId} from backend`);
+    console.debug(
+      `[%s] fetching code for [%s] from backend`,
+      networkId,
+      this.tokenId
+    );
     const styleMetadata = await (await axios.get(url)).data;
     //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
-    console.debug(`code for ${this.tokenId} fetched from backend`);
+    console.debug(`[%s] code for [%s] fetched`, networkId, this.tokenId);
     this.code = styleMetadata.code;
     return styleMetadata.code;
   }

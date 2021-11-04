@@ -1,6 +1,7 @@
 import { ipfsGW, Style, StyleNFT } from '@splicenft/common';
 import axios from 'axios';
 import { getSplice } from './SpliceContracts';
+import * as Cache from './Cache';
 
 export class StyleMetadataCache {
   private styles: Style[];
@@ -28,7 +29,8 @@ export class StyleMetadataCache {
   async fetchAllStyles() {
     if (this.fetched !== null) return;
 
-    console.debug('start fetching metadata for network %s', this.networkId);
+    console.debug('[%s] fetching style metadata', this.networkId);
+
     const splice = getSplice(this.networkId);
     const allStyles = await splice.getAllStyles();
     const styleCollection = await splice.getStyleNFT();
@@ -36,10 +38,19 @@ export class StyleMetadataCache {
     const promises = allStyles.map((tokenMetadataResponse) => {
       const { tokenId, metadataUrl } = tokenMetadataResponse;
       return (async () => {
-        const gwUrl = ipfsGW(metadataUrl);
-        console.debug(`start fetching metadata at ${gwUrl}`);
+        const cacheKey = `${this.network}/styles/${tokenId}/style.json`;
+        let metadata = await Cache.lookupJSON<StyleNFT>(cacheKey);
 
-        const metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+        if (!metadata) {
+          const gwUrl = ipfsGW(metadataUrl);
+          console.debug(
+            `[%s] fetching style metadata from network`,
+            this.networkId
+          );
+          metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+          Cache.store(cacheKey, metadata);
+        }
+
         const styleData = new Style(
           styleCollection.address,
           tokenId,
@@ -53,12 +64,12 @@ export class StyleMetadataCache {
 
     const resv = Promise.all(promises);
     resv.then((styles) => {
-      console.debug('metadata ready for network %s', this.networkId);
       this.styles = styles;
       styles.map((styleData) => {
         const { name, properties } = styleData.getMetadata();
         console.log(
-          '%d: %s by %s ',
+          '[%s] style %d ready: %s by %s',
+          this.networkId,
           styleData.tokenId,
           name,
           properties.creator_name

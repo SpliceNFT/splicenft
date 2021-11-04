@@ -72,5 +72,5 @@ task('splice:style', 'mints a style')
       .connect(artist)
       .mint(cap, cid, priceStrategyAddress, priceBytes);
     const confirmation = await receipt.wait();
-    console.log('confirmation', confirmation);
+    console.log('confirmation', confirmation.transactionHash);
   });
