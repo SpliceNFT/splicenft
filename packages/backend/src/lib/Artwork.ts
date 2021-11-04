@@ -14,6 +14,7 @@ import Render from './render';
 import { getSplice } from './SpliceContracts';
 import { StyleMetadataCache } from './StyleCache';
 import * as Cache from './Cache';
+import { Readable } from 'stream';
 
 async function extractOriginImage(originImageUrl: string) {
   const axiosResponse = await axios.get(originImageUrl, {
@@ -31,12 +32,13 @@ async function extractOriginImage(originImageUrl: string) {
 export default async function Artwork(
   styleCache: StyleMetadataCache,
   tokenId: number,
-  callback: (err: any | null, buffer: Buffer) => unknown
+  callback: (err: any | null, stream: Readable) => unknown
 ) {
-  const key = `${styleCache.network}/${tokenId}`;
-  const data = await Cache.lookup(key, 'image.png', 'binary');
-  if (data) {
-    return callback(null, data as Buffer);
+  const key = `${styleCache.network}/splice/${tokenId}/image.png`;
+
+  const stream = await Cache.lookupBinary(key);
+  if (stream) {
+    return callback(null, stream);
   }
 
   const splice = getSplice(styleCache.network);
@@ -83,9 +85,9 @@ export default async function Artwork(
     },
     (err: any | null, buffer: Buffer) => {
       if (!err) {
-        Cache.store(key, 'image.png', 'binary', buffer);
+        Cache.store(key, buffer);
       }
-      callback(err, buffer);
+      callback(err, Readable.from(buffer));
     }
   );
 }

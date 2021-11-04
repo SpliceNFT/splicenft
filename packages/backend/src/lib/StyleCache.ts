@@ -38,22 +38,14 @@ export class StyleMetadataCache {
     const promises = allStyles.map((tokenMetadataResponse) => {
       const { tokenId, metadataUrl } = tokenMetadataResponse;
       return (async () => {
-        const cacheKey = `${this.network}/styles/${tokenId}`;
-        let metadata: StyleNFT;
+        const cacheKey = `${this.network}/styles/${tokenId}/style.json`;
+        let metadata = await Cache.lookupJSON<StyleNFT>(cacheKey);
 
-        const cached = await Cache.lookup<StyleNFT>(
-          cacheKey,
-          'style.json',
-          'json'
-        );
-
-        if (cached) {
-          metadata = cached as StyleNFT;
-        } else {
+        if (!metadata) {
           const gwUrl = ipfsGW(metadataUrl);
           console.debug(`[%s] fetching style metadata from network`);
           metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
-          Cache.store(cacheKey, 'style.json', 'json', metadata);
+          Cache.store(cacheKey, metadata);
         }
 
         const styleData = new Style(

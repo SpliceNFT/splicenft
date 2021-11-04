@@ -1,43 +1,49 @@
-import { promises as fs, existsSync } from 'fs';
+import { promises as fs, existsSync, createReadStream, ReadStream } from 'fs';
+import { dirname } from 'path';
 
-export const CACHE_LOCATION = './.splice.cache/';
+export const CACHE_LOCATION = './.splice.cache';
 
-export async function lookup<T>(
-  key: string,
-  item: string,
-  type: 'binary' | 'json' = 'json'
-): Promise<T | Buffer | null> {
-  const mdPath = `${CACHE_LOCATION}/${key}/${item}`;
-  if (!existsSync(mdPath)) {
+export async function lookupString(key: string): Promise<string | null> {
+  const location = `${CACHE_LOCATION}/${key}`;
+
+  if (!existsSync(location)) {
     return null;
   }
-  const content = await fs.readFile(mdPath);
-  if (type === 'json') {
-    return JSON.parse(content.toString('utf-8')) as T;
-  } else {
-    return content;
-  }
+  return fs.readFile(location, { encoding: 'utf-8' });
 }
 
-export async function store(
-  key: string,
-  item: string,
-  type: 'json' | 'string' | 'binary',
-  payload: any
-): Promise<void> {
-  const path = `${CACHE_LOCATION}/${key}`;
-  if (!existsSync(path)) {
-    await fs.mkdir(path, { recursive: true });
+export async function lookupJSON<T>(key: string): Promise<T | null> {
+  const location = `${CACHE_LOCATION}/${key}`;
+
+  if (!existsSync(location)) {
+    return null;
   }
-  const mdPath = `${path}/${item}`;
-  switch (type) {
-    case 'binary':
-      return fs.writeFile(mdPath, payload);
-    case 'json':
-      return fs.writeFile(mdPath, JSON.stringify(payload), {
-        encoding: 'utf-8'
-      });
-    case 'string':
-      return fs.writeFile(mdPath, payload as string, { encoding: 'utf-8' });
+  const content = await fs.readFile(location, { encoding: 'utf-8' });
+  return JSON.parse(content) as T;
+}
+
+export async function lookupBinary(key: string): Promise<ReadStream | null> {
+  const location = `${CACHE_LOCATION}/${key}`;
+
+  if (!existsSync(location)) {
+    return null;
+  }
+  return createReadStream(location);
+}
+
+export async function store(key: string, payload: any): Promise<void> {
+  const location = `${CACHE_LOCATION}/${key}`;
+  if (!existsSync(dirname(location))) {
+    await fs.mkdir(dirname(location), { recursive: true });
+  }
+
+  if (payload instanceof Buffer) {
+    return fs.writeFile(location, payload);
+  } else if (typeof payload === 'string') {
+    return fs.writeFile(location, payload as string, { encoding: 'utf-8' });
+  } else {
+    return fs.writeFile(location, JSON.stringify(payload), {
+      encoding: 'utf-8'
+    });
   }
 }

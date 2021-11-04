@@ -7,11 +7,11 @@ const Metadata = async (
   styleCache: StyleMetadataCache,
   tokenId: number
 ): Promise<SpliceNFT> => {
-  const key = `${styleCache.network}/${tokenId}`;
+  const key = `${styleCache.network}/splice/${tokenId}/medata.json`;
 
-  const cached = await Cache.lookup<SpliceNFT>(key, 'metadata.json', 'json');
+  const cached = await Cache.lookupJSON<SpliceNFT>(key);
   if (cached) {
-    return cached as SpliceNFT;
+    return cached;
   }
 
   const splice = getSplice(styleCache.network);
@@ -40,7 +40,7 @@ const Metadata = async (
       style_token_id: style.tokenId.toString()
     }
   };
-  Cache.store(key, 'metadata.json', 'json', ret);
+  Cache.store(key, ret);
 
   return ret;
 };

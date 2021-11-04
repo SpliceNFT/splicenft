@@ -3,10 +3,12 @@ import cors from 'cors';
 import express, { Express, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { Readable } from 'stream';
 import Artwork from './lib/Artwork';
 import Metadata from './lib/Metadata';
 import Render from './lib/render';
 import { StyleCache } from './lib/StyleCache';
+import * as Cache from './lib/Cache';
 
 const app: Express = express();
 
@@ -42,7 +44,7 @@ const GRAYSCALE_COLORS: RGB[] = [
 ];
 
 const ImageCallback = (res: Response) => {
-  return (err: any | null, buffer: Buffer) => {
+  return (err: any | null, readable: Readable) => {
     if (err) {
       console.error(err);
       return res.status(500).end();
@@ -50,7 +52,7 @@ const ImageCallback = (res: Response) => {
 
     res.set('Content-Type', 'image/png');
     res.status(200);
-    res.send(buffer);
+    readable.pipe(res);
   };
 };
 
@@ -99,7 +101,12 @@ app.get('/styles/:network/:style_token_id', async (req, res) => {
       .status(500)
       .send(`style ${styleTokenId} not available on network ${networkId}`);
   }
-  const code = await style.getCode();
+  const key = `${networkId}/styles/${styleTokenId}/code.js`;
+  let code = await Cache.lookupString(key);
+  if (!code) {
+    code = await style.getCode();
+    Cache.store(key, code);
+  }
   res.json({
     style_token_id: style.tokenId,
     metadata: style.getMetadata(),
@@ -127,8 +134,21 @@ app.get('/styles/:network', async (req, res) => {
   res.json(styles);
 });
 
+app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
+  const networkId = parseInt(req.params.network);
+  const tokenId = parseInt(req.params.tokenid);
+  const cache = styleCache.getCache(networkId);
+
+  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
+  try {
+    await Artwork(cache, tokenId, ImageCallback(res));
+  } catch (e: any) {
+    res.status(500).send(`couldnt create image :( ${e.message}`);
+  }
+});
+
 //this is the token metadata URI:  /1/1
-app.get('/metadata/:network/:tokenid', async (req, res) => {
+app.get('/splice/:network/:tokenid', async (req, res) => {
   const networkId = parseInt(req.params.network);
   const tokenId = parseInt(req.params.tokenid);
 
@@ -142,19 +162,6 @@ app.get('/metadata/:network/:tokenid', async (req, res) => {
     res.send(metadata);
   } catch (e: any) {
     res.status(500).send(`couldnt create metadata :( ${e.message}`);
-  }
-});
-
-app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
-  const networkId = parseInt(req.params.network);
-  const tokenId = parseInt(req.params.tokenid);
-  const cache = styleCache.getCache(networkId);
-
-  if (!cache) return res.status(500).send(`network ${networkId} not supported`);
-  try {
-    await Artwork(cache, tokenId, ImageCallback(res));
-  } catch (e: any) {
-    res.status(500).send(`couldnt create image :( ${e.message}`);
   }
 });
 
