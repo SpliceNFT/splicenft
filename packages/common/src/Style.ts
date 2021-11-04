@@ -63,7 +63,7 @@ export class Style {
     );
     const styleMetadata = await (await axios.get(url)).data;
     //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
-    console.debug(`[%s] code for [%s] fetched`, this.tokenId);
+    console.debug(`[%s] code for [%s] fetched`, networkId, this.tokenId);
     this.code = styleMetadata.code;
     return styleMetadata.code;
   }

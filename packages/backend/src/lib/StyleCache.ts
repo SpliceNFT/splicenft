@@ -43,7 +43,10 @@ export class StyleMetadataCache {
 
         if (!metadata) {
           const gwUrl = ipfsGW(metadataUrl);
-          console.debug(`[%s] fetching style metadata from network`);
+          console.debug(
+            `[%s] fetching style metadata from network`,
+            this.networkId
+          );
           metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
           Cache.store(cacheKey, metadata);
         }
@@ -61,12 +64,12 @@ export class StyleMetadataCache {
 
     const resv = Promise.all(promises);
     resv.then((styles) => {
-      console.debug('metadata ready for network %s', this.networkId);
       this.styles = styles;
       styles.map((styleData) => {
         const { name, properties } = styleData.getMetadata();
         console.log(
-          '%d: %s by %s ',
+          '[%s] style %d ready: %s by %s',
+          this.networkId,
           styleData.tokenId,
           name,
           properties.creator_name
