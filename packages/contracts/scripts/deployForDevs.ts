@@ -1,4 +1,4 @@
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, run } from 'hardhat';
 
 const deployTestnetNFT = async (
   name: string,
@@ -87,4 +87,20 @@ const deployTestnetNFT = async (
 
   await splice.addValidator(accounts[0].address);
   console.log('added validator', accounts[0].address);
+
+  for await (const style of [
+    'ConfidenceInTheMission',
+    'ABeginningIsAVeryDelicateTime',
+    'District1618'
+  ]) {
+    await run('splice:style', {
+      styleNftAddress: spliceStyleNFT.address,
+      priceStrategyAddress: staticPriceStrategy.address,
+      accountIdx: '18',
+      directory: `../../renderers/${style}`,
+      mintPriceEth: '0.02',
+      cap: '200'
+    });
+    console.log(`deployed style ${style}`);
+  }
 })();
