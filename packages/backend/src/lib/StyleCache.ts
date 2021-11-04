@@ -1,6 +1,7 @@
 import { ipfsGW, Style, StyleNFT } from '@splicenft/common';
 import axios from 'axios';
 import { getSplice } from './SpliceContracts';
+import * as Cache from './Cache';
 
 export class StyleMetadataCache {
   private styles: Style[];
@@ -28,7 +29,8 @@ export class StyleMetadataCache {
   async fetchAllStyles() {
     if (this.fetched !== null) return;
 
-    console.debug('start fetching metadata for network %s', this.networkId);
+    console.debug('[%s] fetching style metadata', this.networkId);
+
     const splice = getSplice(this.networkId);
     const allStyles = await splice.getAllStyles();
     const styleCollection = await splice.getStyleNFT();
@@ -36,10 +38,24 @@ export class StyleMetadataCache {
     const promises = allStyles.map((tokenMetadataResponse) => {
       const { tokenId, metadataUrl } = tokenMetadataResponse;
       return (async () => {
-        const gwUrl = ipfsGW(metadataUrl);
-        console.debug(`start fetching metadata at ${gwUrl}`);
+        const cacheKey = `${this.network}/styles/${tokenId}`;
+        let metadata: StyleNFT;
 
-        const metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+        const cached = await Cache.lookup<StyleNFT>(
+          cacheKey,
+          'style.json',
+          'json'
+        );
+
+        if (cached) {
+          metadata = cached as StyleNFT;
+        } else {
+          const gwUrl = ipfsGW(metadataUrl);
+          console.debug(`[%s] fetching style metadata from network`);
+          metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+          Cache.store(cacheKey, 'style.json', 'json', metadata);
+        }
+
         const styleData = new Style(
           styleCollection.address,
           tokenId,

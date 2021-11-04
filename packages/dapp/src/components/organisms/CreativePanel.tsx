@@ -93,7 +93,6 @@ export const CreativePanel = ({
   const onNFTImageLoaded = (
     event: SyntheticEvent<HTMLImageElement, Event>
   ): void => {
-    console.log(event);
     extractColors(event.currentTarget, {}).then((colors) => {
       setDominantColors(colors);
       if (onDominantColors) onDominantColors(colors);
