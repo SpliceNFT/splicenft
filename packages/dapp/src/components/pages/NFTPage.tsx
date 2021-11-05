@@ -195,6 +195,8 @@ export const NFTPage = () => {
 
             {mintingState === MintingState.GENERATED && selectedStyle && (
               <MintSpliceButton
+                buzy={buzy}
+                setBuzy={setBuzy}
                 collection={collection}
                 originTokenId={tokenId}
                 selectedStyle={selectedStyle}
