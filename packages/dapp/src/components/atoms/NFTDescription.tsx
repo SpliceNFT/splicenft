@@ -21,7 +21,7 @@ export const NFTDescription = ({
 }) => {
   const props = styleNFT?.properties;
   return (
-    <Flex direction="column">
+    <Flex direction="column" pt={6}>
       {styleNFT && (
         <Flex direction="column" mb={12}>
           <Heading size="xl" mb={2}>

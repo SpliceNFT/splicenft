@@ -179,7 +179,7 @@ export const NFTPage = () => {
             position="absolute"
             bottom="-1.5em"
             gridGap={[2, 6]}
-            right={[null, null, '1.5em']}
+            right={[null, null, 2]}
             direction={['column', 'row']}
           >
             {mintingState < MintingState.MINTED && dominantColors && (
@@ -219,34 +219,42 @@ export const NFTPage = () => {
       )}
 
       <SimpleGrid
-        background="white"
-        minH="100vh"
-        p={5}
-        pt={10}
         justify="space-between"
         align="flex-start"
         spacing={[2, 5]}
         columns={[1, null, 2]}
+        mb={12}
+        mt={[6, null, 1]}
       >
         <NFTDescription
           nftMetadata={nftMetadata}
           spliceMetadata={spliceMetadata}
           styleNFT={selectedStyle?.getMetadata()}
         />
-
-        <Flex boxShadow="xl" direction="column" p={5} gridGap={3}>
+        <Flex direction="column" gridGap={6} pt={3}>
           {spliceMetadata && (
-            <>
+            <Flex
+              boxShadow="xl"
+              direction="column"
+              p={6}
+              gridGap={3}
+              background="white"
+            >
               <Heading size="md"> Splice attributes</Heading>
               <SpliceMetadataDisplay
                 spliceMetadata={spliceMetadata}
                 owner={spliceOwner}
               />
-              <Divider />
-            </>
+            </Flex>
           )}
           {nftMetadata && (
-            <>
+            <Flex
+              boxShadow="xl"
+              direction="column"
+              p={6}
+              gridGap={3}
+              background="white"
+            >
               <Heading size="md"> Origin attributes</Heading>
               {!heritage && (
                 <MetaDataItem
@@ -260,7 +268,7 @@ export const NFTPage = () => {
                 nftMetadata={nftMetadata}
                 randomness={randomness}
               />
-            </>
+            </Flex>
           )}
         </Flex>
       </SimpleGrid>
