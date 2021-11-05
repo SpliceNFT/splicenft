@@ -1,12 +1,13 @@
 import {
-  Splice__factory as SpliceFactory,
-  SpliceStyleNFTV1__factory as StyleNFTFactory,
   Splice as SpliceContract,
-  SpliceStyleNFTV1 as StyleNFTContract
+  SpliceStyleNFTV1 as StyleNFTContract,
+  SpliceStyleNFTV1__factory as StyleNFTFactory,
+  Splice__factory as SpliceFactory
 } from '@splicenft/contracts';
 import { TransferEvent } from '@splicenft/contracts/typechain/Splice';
 import axios from 'axios';
-import { BigNumber, Contract, ethers, providers, Signer, utils } from 'ethers';
+import { BigNumber, ethers, providers, Signer, utils } from 'ethers';
+import { erc721 } from '.';
 import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
 
@@ -32,7 +33,7 @@ export type TokenHeritage = {
   splice_token_id: BigNumber;
 };
 
-type TokenMetadataResponse = Array<{ tokenId: string; metadataUrl: string }>;
+export type TokenMetadataResponse = { tokenId: string; metadataUrl: string };
 
 export class Splice {
   private contract: SpliceContract;
@@ -169,24 +170,34 @@ export class Splice {
       };
   }
 
+  public getOriginNftContract(address: string) {
+    return erc721(
+      this.providerOrSigner.signer || this.providerOrSigner.provider,
+      address
+    );
+  }
+
   public async getMetadataUrl(tokenId: number | string): Promise<string> {
     return await this.contract.tokenURI(tokenId);
   }
-  public async fetchMetadata(heritage: TokenHeritage): Promise<SpliceNFT> {
+  public async getMetadata(heritage: TokenHeritage): Promise<SpliceNFT> {
     const _metadataUrl = await this.getMetadataUrl(
       heritage.splice_token_id.toString()
     );
+    return this.fetchMetadata(_metadataUrl);
+  }
 
-    const url = ipfsGW(_metadataUrl);
-    const _metadata = await axios.get(url);
-    const metadata = (await _metadata.data) as SpliceNFT;
-    metadata.external_url = _metadataUrl;
+  public async fetchMetadata(metadataUrl: string): Promise<SpliceNFT> {
+    const metadata = (await (
+      await axios.get(ipfsGW(metadataUrl))
+    ).data) as SpliceNFT;
+    metadata.splice.metadataUrl = metadataUrl;
     return metadata;
   }
 
   //todo: this might get highly expensive
   //needs a subgraph!
-  public async getAllStyles(): Promise<TokenMetadataResponse> {
+  public async getAllStyles(): Promise<TokenMetadataResponse[]> {
     const styleNFT = await this.getStyleNFT();
     const totalSupply = await styleNFT.totalSupply();
 
@@ -208,7 +219,7 @@ export class Splice {
   public async getAllSplices(
     address: string,
     splicesPerPage = 20
-  ): Promise<TokenMetadataResponse> {
+  ): Promise<TokenMetadataResponse[]> {
     const balance = await this.contract.balanceOf(address);
 
     if (balance.isZero()) return [];
