@@ -1,4 +1,4 @@
-import { Box, Circle, Image } from '@chakra-ui/react';
+import { Flex, Circle, Image } from '@chakra-ui/react';
 import React from 'react';
 import { FallbackImage } from '../../atoms/FallbackImage';
 
@@ -10,19 +10,22 @@ export const SpliceArtwork = ({
   originImageUrl: string | null | undefined;
 }) => {
   return (
-    <Box position="relative" bg="transparent">
-      {spliceImageUrl ? <Image src={spliceImageUrl} /> : <Box bg="grey.200" />}
-      <Box width="100%" height="100%">
-        <Circle size="120px" bottom="10px" position="absolute" left="10px">
-          {originImageUrl && (
-            <FallbackImage
-              imgUrl={originImageUrl}
-              rounded="full"
-              border="4px solid white"
-            />
-          )}
-        </Circle>
-      </Box>
-    </Box>
+    <Flex position="relative" bg="transparent">
+      {spliceImageUrl ? (
+        <FallbackImage imgUrl={spliceImageUrl} />
+      ) : (
+        <Flex bg="grey.200" />
+      )}
+
+      <Circle size="15%" bottom="10%" left="10px" position="absolute">
+        {originImageUrl && (
+          <FallbackImage
+            imgUrl={originImageUrl}
+            rounded="full"
+            border="4px solid white"
+          />
+        )}
+      </Circle>
+    </Flex>
   );
 };

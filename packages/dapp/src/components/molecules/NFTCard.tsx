@@ -47,7 +47,7 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   }, [splice]);
 
   return (
-    <SpliceCard direction="column">
+    <SpliceCard flexDirection="column">
       <AspectRatio ratio={1}>
         <FallbackImage metadata={nftMetadata} />
       </AspectRatio>

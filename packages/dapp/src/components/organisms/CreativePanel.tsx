@@ -45,7 +45,7 @@ const Preview = ({
       borderBottomStyle="solid"
       borderBottomColor="gray.200"
     >
-      <Center width="100%" height="100%">
+      <Center width="100%" height="100%" position="relative">
         {dominantColors && onSketched && !spliceDataUrl && style ? (
           <P5Sketch
             randomness={randomness}
@@ -59,7 +59,7 @@ const Preview = ({
         )}
       </Center>
       <Center position="absolute" width="100%" height="100%">
-        <Circle size="200px">{nftImage}</Circle>
+        <Circle size="15%">{nftImage}</Circle>
       </Center>
     </Flex>
   );

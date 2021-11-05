@@ -9,7 +9,9 @@ export const MintSpliceButton = ({
   collection,
   originTokenId,
   selectedStyle,
-  onMinted
+  onMinted,
+  buzy,
+  setBuzy
 }: {
   collection: string;
   originTokenId: string;
@@ -21,10 +23,12 @@ export const MintSpliceButton = ({
     transactionHash: string;
     spliceTokenId: number | undefined;
   }) => unknown;
+  buzy: boolean;
+  setBuzy: (buzy: boolean) => void;
 }) => {
   const { account } = useWeb3React();
   const { splice } = useSplice();
-  const [buzy, setBuzy] = useState<boolean>(false);
+
   const [quote, setQuote] = useState<ethers.BigNumber>();
   const toast = useToast();
 

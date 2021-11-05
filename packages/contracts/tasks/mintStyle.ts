@@ -53,8 +53,7 @@ task('splice:style', 'mints a style')
     const metadata = await nftStorageClient.store(_metadata);
 
     const cid = metadata.ipnft;
-    console.debug('uploaded metadata', metadata.embed());
-    console.log('metadata cid', cid);
+    console.log('uploaded metadata, cid: ', cid);
 
     const minPriceWei = hre.ethers.utils.parseEther(mintPriceEth);
     const priceHex = minPriceWei.toHexString();

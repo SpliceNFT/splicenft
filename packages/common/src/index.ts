@@ -11,3 +11,14 @@ export { NFTIndexer } from './types/NFTIndexer';
 export { NFTPort } from './indexers/NFTPort';
 export { OnChain, KnownCollections, ERC721ABI } from './indexers/OnChain';
 export { Style } from './Style';
+
+import { ERC721, ERC721__factory } from '@splicenft/contracts';
+import { providers, Signer } from 'ethers';
+
+export { ERC721 };
+export function erc721(
+  provider: providers.Provider | Signer,
+  address: string
+): ERC721 {
+  return ERC721__factory.connect(address, provider);
+}

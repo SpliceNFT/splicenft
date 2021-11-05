@@ -99,6 +99,19 @@ export const ERC721ABI = [
     type: 'function'
   },
   {
+    inputs: [],
+    name: 'name',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
     anonymous: false,
     inputs: [
       {
