@@ -5,11 +5,11 @@ import rgbHex from 'rgb-hex';
 import { extractColors } from '@splicenft/common';
 
 export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
-  <Flex direction="row" w="100%" align="center" height="10px" gridGap={1}>
+  <Flex direction="row" w="80%" align="center" height="10px" gridGap={0}>
     {colors.map((color) => {
       const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
       return (
-        <Flex key={colorHex} flex="1 1 0px" background={colorHex}>
+        <Flex key={colorHex} flex="1" background={colorHex}>
           &nbsp;
         </Flex>
       );

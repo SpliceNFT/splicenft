@@ -32,6 +32,7 @@ import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { CreativePanel } from '../organisms/CreativePanel';
 import {
   MetaDataDisplay,
+  MetaDataItem,
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
 
@@ -80,7 +81,7 @@ export const NFTPage = () => {
     if (!heritage || !splice || spliceStyles.length == 0) return;
     (async () => {
       splice.ownerOf(heritage.splice_token_id).then(setSpliceOwner);
-      const metadata = await splice.fetchMetadata(heritage);
+      const metadata = await splice.getMetadata(heritage);
 
       setSelectedStyle(
         spliceStyles.find(
@@ -229,10 +230,11 @@ export const NFTPage = () => {
       >
         <NFTDescription
           nftMetadata={nftMetadata}
+          spliceMetadata={spliceMetadata}
           styleNFT={selectedStyle?.getMetadata()}
         />
 
-        <Flex boxShadow="xl" direction="column" p={5} gridGap={5}>
+        <Flex boxShadow="xl" direction="column" p={5} gridGap={3}>
           {spliceMetadata && (
             <>
               <Heading size="md"> Splice attributes</Heading>
@@ -246,7 +248,12 @@ export const NFTPage = () => {
           {nftMetadata && (
             <>
               <Heading size="md"> Origin attributes</Heading>
-              <DominantColorsDisplay colors={dominantColors} />
+              {!heritage && (
+                <MetaDataItem
+                  label="colors"
+                  value={<DominantColorsDisplay colors={dominantColors} />}
+                />
+              )}
               <MetaDataDisplay
                 contractAddress={collection}
                 tokenId={tokenId}

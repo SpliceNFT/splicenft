@@ -2,53 +2,43 @@ import {
   Alert,
   Container,
   Flex,
+  Heading,
   LinkBox,
   LinkOverlay,
+  Text,
   useToast,
   VStack
 } from '@chakra-ui/react';
 import {
-  ipfsGW,
   NFTMetaData,
   resolveImage,
-  SpliceNFT
+  SpliceNFT,
+  TokenMetadataResponse
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import axios from 'axios';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
-import { SpliceCard } from '../atoms/SpliceCard';
 import { SpliceArtwork } from '../molecules/Splice/SpliceArtwork';
-import { SpliceMetadata } from '../molecules/Splice/SpliceMetadataDisplay';
+import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
-type MySplice = {
-  tokenId: string;
-  metadataUrl: string; //SpliceNFT;
-};
-
-const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
-  const { indexer } = useSplice();
-  const [origin, setOrigin] =
-    useState<{ nftMetadata: NFTMetaData; imageUrl: string }>();
-  const [metadata, setMetadata] =
-    useState<{ metadata: SpliceNFT; imageUrl: string }>();
-
+const SpliceCardDisplay = ({
+  mySplice
+}: {
+  mySplice: TokenMetadataResponse;
+}) => {
+  const { indexer, splice } = useSplice();
   const toast = useToast();
+
+  const [origin, setOrigin] = useState<NFTMetaData | null>();
+  const [metadata, setMetadata] = useState<SpliceNFT>();
+
   useEffect(() => {
+    if (!splice) return;
     (async () => {
       try {
-        const _metadata = await (
-          await axios.get<SpliceNFT>(ipfsGW(mySplice.metadataUrl), {
-            responseType: 'json'
-          })
-        ).data;
-
-        setMetadata({
-          metadata: _metadata,
-          imageUrl: resolveImage(_metadata)
-        });
+        setMetadata(await splice.fetchMetadata(mySplice.metadataUrl));
       } catch (e: any) {
         toast({
           status: 'error',
@@ -56,45 +46,45 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: MySplice }) => {
         });
       }
     })();
-  }, []);
+  }, [splice]);
 
   useEffect(() => {
     if (!indexer || !metadata) return;
     (async () => {
-      const { origin_collection, origin_token_id } =
-        metadata.metadata.properties;
-      const nftMetadata = await indexer.getAssetMetadata(
-        origin_collection,
-        origin_token_id
+      const { origin_collection, origin_token_id } = metadata.splice;
+      setOrigin(
+        await indexer.getAssetMetadata(origin_collection, origin_token_id)
       );
-      if (nftMetadata) {
-        setOrigin({
-          nftMetadata,
-          imageUrl: resolveImage(nftMetadata)
-        });
-      }
     })();
   }, [indexer, metadata]);
 
   return (
-    <SpliceCard direction={['column', null, null, 'row']}>
-      <LinkBox as={Flex}>
-        <LinkOverlay
-          as={NavLink}
-          to={`/nft/${metadata?.metadata.properties.origin_collection}/${metadata?.metadata.properties.origin_token_id}`}
-        >
-          <SpliceArtwork
-            originImageUrl={origin?.imageUrl}
-            spliceImageUrl={metadata?.imageUrl}
-          />
-        </LinkOverlay>
+    <Flex gridGap={2} flexDirection={['column', null, null, 'row']}>
+      <LinkBox as={Flex} flex="2">
+        {metadata && origin && (
+          <LinkOverlay
+            as={NavLink}
+            to={`/nft/${metadata.splice.origin_collection}/${metadata.splice.origin_token_id}`}
+          >
+            <SpliceArtwork
+              originImageUrl={resolveImage(origin)}
+              spliceImageUrl={resolveImage(metadata)}
+            />
+          </LinkOverlay>
+        )}
       </LinkBox>
-      <SpliceMetadata
-        tokenId={mySplice.tokenId}
-        metadata={metadata?.metadata}
-        metadataUrl={mySplice.metadataUrl}
-      ></SpliceMetadata>
-    </SpliceCard>
+
+      <Flex gridGap={2} direction="column" flex="1" p={3}>
+        <Heading size="md">Splice #{mySplice.tokenId}</Heading>
+
+        {metadata && (
+          <>
+            <Text>{metadata.description}</Text>
+            <SpliceMetadataDisplay spliceMetadata={metadata} />
+          </>
+        )}
+      </Flex>
+    </Flex>
   );
 };
 
@@ -103,28 +93,15 @@ export const MySplicesPage = () => {
   const { splice } = useSplice();
   const [buzy, setBuzy] = useState<boolean>(false);
 
-  const [splices, setSplices] = useState<MySplice[]>([]);
+  const [splices, setSplices] = useState<TokenMetadataResponse[]>([]);
   const toast = useToast();
 
   useEffect(() => {
     if (!account || !splice) return;
     (async () => {
-      try {
-        setBuzy(true);
-        const _spl = await splice.getAllSplices(account);
-
-        setSplices(_spl);
-        setBuzy(false);
-        toast({
-          status: 'success',
-          title: 'fetched all splices'
-        });
-      } catch (e) {
-        toast({
-          status: 'error',
-          title: "couldn't fetch splices"
-        });
-      }
+      setBuzy(true);
+      setSplices(await splice.getAllSplices(account));
+      setBuzy(false);
     })();
   }, [splice, account]);
 
@@ -139,7 +116,7 @@ export const MySplicesPage = () => {
         <Alert status="info">We're loading your splices, standby.</Alert>
       )}
       <VStack gridGap={10}>
-        {splices.map((spliceResult: MySplice) => (
+        {splices.map((spliceResult: TokenMetadataResponse) => (
           <Flex
             bg="white"
             w="100%"

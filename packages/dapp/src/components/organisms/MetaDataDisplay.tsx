@@ -1,9 +1,10 @@
-import { Divider, Flex, Link, Text } from '@chakra-ui/react';
+import { Flex, Link, Text } from '@chakra-ui/react';
 import { ipfsGW, NFTMetaData, SpliceNFT } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React from 'react';
+import { DominantColorsDisplay } from '../molecules/DominantColors';
 
-const MetaDataItem = ({
+export const MetaDataItem = ({
   label,
   value,
   link,
@@ -11,7 +12,7 @@ const MetaDataItem = ({
   fontSize = 'md'
 }: {
   label: string;
-  value: string | number;
+  value: string | number | React.ReactNode;
   link?: string | undefined | null;
   color?: string | undefined;
   fontSize?: string;
@@ -19,20 +20,24 @@ const MetaDataItem = ({
   return (
     <Flex
       direction="row"
+      align="center"
       justify="space-between"
       gridGap={5}
       fontSize={fontSize}
     >
       <Text fontWeight="bold">{label}</Text>
-      <Text fontWeight="normal" textColor={color} isTruncated>
-        {link ? (
-          <Link href={ipfsGW(link)} isExternal>
-            {value}
-          </Link>
-        ) : (
-          value
-        )}
-      </Text>
+
+      {link ? (
+        <Link href={ipfsGW(link)} isExternal isTruncated>
+          {value}
+        </Link>
+      ) : 'string' === typeof value ? (
+        <Text fontWeight="normal" textColor={color} isTruncated>
+          {value}
+        </Text>
+      ) : (
+        value
+      )}
     </Flex>
   );
 };
@@ -41,30 +46,34 @@ export const SpliceMetadataDisplay = ({
   owner,
   spliceMetadata
 }: {
-  owner: string | undefined;
+  owner?: string;
   spliceMetadata: SpliceNFT;
 }) => {
   const { account } = useWeb3React();
-
-  const splMetaDataProps: Record<string, any> = spliceMetadata.properties
-    ? spliceMetadata.properties
-    : {};
   return (
     <>
+      {owner && (
+        <MetaDataItem label="Owner" value={owner === account ? 'You' : owner} />
+      )}
+      {spliceMetadata.splice.metadataUrl && (
+        <MetaDataItem
+          label="Metadata"
+          value={spliceMetadata.splice.metadataUrl}
+          link={spliceMetadata.splice.metadataUrl}
+        />
+      )}
       <MetaDataItem
-        label="Owner"
-        value={!owner ? '' : owner === account ? 'You' : owner}
+        label="Style"
+        value={spliceMetadata.properties.style_name}
       />
       <MetaDataItem
-        label="Metadata"
-        value={spliceMetadata.external_url || ''}
-        link={spliceMetadata.external_url}
+        label="Randomness"
+        value={spliceMetadata.splice.randomness}
       />
-
-      {Object.keys(splMetaDataProps).map((prop) => {
-        const val = splMetaDataProps[prop];
-        return <MetaDataItem key={`prop-${prop}`} label={prop} value={val} />;
-      })}
+      <MetaDataItem
+        label="Colors"
+        value={<DominantColorsDisplay colors={spliceMetadata.splice.colors} />}
+      />
     </>
   );
 };
@@ -85,7 +94,7 @@ export const MetaDataDisplay = ({
       <MetaDataItem label="collection" value={contractAddress} />
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
-      <Divider />
+
       {nftMetadata.attributes?.map((attr) => {
         return (
           <MetaDataItem

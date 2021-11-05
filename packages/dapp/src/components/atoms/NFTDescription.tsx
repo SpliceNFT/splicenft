@@ -6,16 +6,18 @@ import {
   SkeletonText,
   Text
 } from '@chakra-ui/react';
-import { NFTMetaData, StyleNFT } from '@splicenft/common';
+import { NFTMetaData, SpliceNFT, StyleNFT } from '@splicenft/common';
 import React from 'react';
 import { FaTwitter } from 'react-icons/fa';
 
 export const NFTDescription = ({
   nftMetadata,
-  styleNFT
+  styleNFT,
+  spliceMetadata
 }: {
   nftMetadata?: NFTMetaData;
   styleNFT?: StyleNFT;
+  spliceMetadata?: SpliceNFT;
 }) => {
   const props = styleNFT?.properties;
   return (
@@ -23,9 +25,11 @@ export const NFTDescription = ({
       {styleNFT && (
         <Flex direction="column" mb={12}>
           <Heading size="xl" mb={2}>
-            {styleNFT.name}
+            {spliceMetadata ? spliceMetadata.name : styleNFT.name}
           </Heading>
-          <Text>{styleNFT.description}</Text>
+          <Text>
+            {spliceMetadata?.description} {styleNFT.description}
+          </Text>
           <Flex my={4} py={2}>
             {props && (
               <Flex direction="column" gridGap={2}>
@@ -63,10 +67,10 @@ export const NFTDescription = ({
 
       {nftMetadata ? (
         <>
-          <Heading size="lg" mb={2}>
+          <Heading size="md" mb={2}>
             {nftMetadata.name}
           </Heading>
-          <Text>{nftMetadata.description}</Text>
+          <Text fontSize="sm">{nftMetadata.description}</Text>
         </>
       ) : (
         <SkeletonText noOfLines={3} />
