@@ -42,7 +42,7 @@ task('splice:style', 'mints a style')
       type: 'image/png'
     });
 
-    _metadata.properties.code = new File([code], 'code.js', {
+    _metadata.code = new File([code], 'code.js', {
       type: 'application/javascript'
     });
 

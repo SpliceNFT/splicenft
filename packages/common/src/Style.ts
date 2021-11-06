@@ -50,7 +50,7 @@ export class Style {
     return renderer;
   }
 
-  async getCachedCode(
+  async getCodeFromBackend(
     baseUrl: string,
     networkId: string | number
   ): Promise<string> {
@@ -70,19 +70,14 @@ export class Style {
 
   async getCode(): Promise<string> {
     if (this.code) return this.code;
-
-    const codeUrl = this.metadata.properties.code;
-    const gwUrl = ipfsGW(codeUrl);
+    //todo: deprecated
+    const codeLocation = this.metadata.code || this.metadata.properties.code;
+    const gwUrl = ipfsGW(codeLocation);
     console.debug(`fetching code for ${this.tokenId} at ${gwUrl}`);
-    try {
-      const code = await (await axios.get(gwUrl)).data;
-      console.debug(`code for ${this.tokenId} fetched`);
-      this.code = code;
-      return code;
-    } catch (err: any) {
-      console.error('failed fetching code', err);
-    }
 
-    return '';
+    const code = await (await axios.get(gwUrl)).data;
+    console.debug(`code for ${this.tokenId} fetched`);
+    this.code = code;
+    return code;
   }
 }

@@ -44,35 +44,55 @@ export class StyleMetadataCache {
         if (!metadata) {
           const gwUrl = ipfsGW(metadataUrl);
           console.debug(
-            `[%s] fetching style metadata from network`,
-            this.networkId
+            `[%s] fetching style metadata [%s] from ipfs`,
+            this.networkId,
+            tokenId
           );
           metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+          //todo: remove this translation for mainnet
+          if (!metadata.splice) {
+            console.info('translating old metadata schema to newer one');
+            //translate "legacy" metadata
+            metadata.code = metadata.properties.code;
+            metadata.splice = metadata.properties as unknown as {
+              code_library: string;
+              code_library_version: string;
+              license: string;
+            };
+            metadata.properties = {};
+          }
           Cache.store(cacheKey, metadata);
         }
 
-        const styleData = new Style(
+        const style = new Style(
           styleCollection.address,
           tokenId,
           metadataUrl,
           metadata
         );
-        styleData.getCode();
-        return styleData;
+
+        const codeCacheKey = `${this.network}/styles/${tokenId}/code.js`;
+        let code = await Cache.lookupString(codeCacheKey);
+        if (!code) {
+          code = await style.getCode();
+          Cache.store(codeCacheKey, code);
+        }
+
+        return style;
       })();
     });
 
-    const resv = Promise.all(promises);
-    resv.then((styles) => {
+    Promise.all(promises).then((styles: Style[]) => {
       this.styles = styles;
-      styles.map((styleData) => {
-        const { name, properties } = styleData.getMetadata();
+      styles.map((style) => {
+        const { name, splice } = style.getMetadata();
         console.log(
           '[%s] style %d ready: %s by %s',
           this.networkId,
-          styleData.tokenId,
+          style.tokenId,
           name,
-          properties.creator_name
+          //todo: remove compat "?." (earlier these props have been part of "properties")
+          splice?.creator_name
         );
       });
     });

@@ -19,7 +19,7 @@ export const NFTDescription = ({
   styleNFT?: StyleNFT;
   spliceMetadata?: SpliceNFT;
 }) => {
-  const props = styleNFT?.properties;
+  const props = styleNFT?.splice;
   return (
     <Flex direction="column" pt={6}>
       {styleNFT && (
