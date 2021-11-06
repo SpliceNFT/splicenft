@@ -52,7 +52,7 @@ export const AboutPage = () => {
             <CarouselProvider
               naturalSlideWidth={1500}
               naturalSlideHeight={500}
-              totalSlides={4}
+              totalSlides={3}
               interval={3500}
               visibleSlides={1}
               infinite={true}
