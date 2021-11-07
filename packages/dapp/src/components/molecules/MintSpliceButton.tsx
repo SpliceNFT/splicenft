@@ -16,13 +16,7 @@ export const MintSpliceButton = ({
   collection: string;
   originTokenId: string;
   selectedStyle: Style;
-  onMinted: ({
-    transactionHash,
-    spliceTokenId
-  }: {
-    transactionHash: string;
-    spliceTokenId: number | undefined;
-  }) => unknown;
+  onMinted: (spliceTokenId: number) => unknown;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
@@ -51,7 +45,7 @@ export const MintSpliceButton = ({
         recipient: account,
         mintingFee: quote
       });
-      onMinted(mintingResult);
+      onMinted(mintingResult.spliceTokenId);
     } catch (e: any) {
       console.error(e);
       toast({

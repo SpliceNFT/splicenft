@@ -4,7 +4,6 @@ import {
   BreadcrumbLink,
   Button,
   Container,
-  Divider,
   Flex,
   Heading,
   Link,
@@ -22,7 +21,7 @@ import {
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
@@ -72,8 +71,10 @@ export const NFTPage = () => {
       const _heritage = await splice.findHeritage(collection, tokenId);
       if (_heritage) {
         setMintingState(MintingState.MINTED);
+        setHeritage(_heritage);
+      } else {
+        setMintingState(MintingState.UNMINTED);
       }
-      setHeritage(_heritage);
     })();
   }, [splice]);
 
@@ -104,50 +105,45 @@ export const NFTPage = () => {
     })();
   }, [indexer]);
 
-  const onSketched = (dataUrl: string) => {
-    //setSketch(dataUrl);
-    if (mintingState < MintingState.MINTED) {
-      setMintingState(MintingState.GENERATED);
-    }
-  };
+  const onSketched = useCallback(
+    (dataUrl: string) => {
+      setSketch(dataUrl);
+      if (mintingState < MintingState.MINTED) {
+        setMintingState(MintingState.GENERATED);
+      }
+    },
+    [mintingState]
+  );
 
-  const onMinted = async ({
-    transactionHash,
-    spliceTokenId
-  }: {
-    transactionHash: string;
-    spliceTokenId: number | undefined;
-  }) => {
-    if (!spliceTokenId) {
-      toast({
-        status: 'info',
-        title: `the minting transaction is on its way`,
-        description: transactionHash
-      });
-    } else {
+  const onMinted = useCallback(
+    async (spliceTokenId: number) => {
+      if (!splice) {
+        console.error('no splice?!');
+        return;
+      }
+
       setMintingState(MintingState.MINTED);
       toast({
         status: 'success',
         title: `Hooray, Splice #${spliceTokenId} is yours now!`
       });
 
-      if (splice) {
-        const _heritage = await splice.getHeritage(spliceTokenId);
-        console.log('heritage after minting: ', _heritage);
-        if (_heritage) {
-          setHeritage(_heritage);
-        }
-      }
-    }
-  };
+      const _heritage = await splice.getHeritage(spliceTokenId);
 
-  const _isDownloadable = () => {
+      if (_heritage) {
+        setHeritage(_heritage);
+      }
+    },
+    [mintingState, heritage]
+  );
+
+  const _isDownloadable = useMemo<boolean>(() => {
     return (
       mintingState === MintingState.MINTED &&
-      spliceOwner &&
+      spliceOwner !== undefined &&
       spliceOwner === account
     );
-  };
+  }, [mintingState, spliceOwner, account]);
 
   return (
     <Container maxW="container.xl">
@@ -164,23 +160,24 @@ export const NFTPage = () => {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {nftImageUrl && (
-        <Flex position="relative" justify="center" mt={6}>
+      {nftImageUrl && mintingState > MintingState.UNKNOWN && (
+        <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
+            spliceDataUrl={sketch}
             nftImageUrl={nftImageUrl}
             style={selectedStyle}
             randomness={randomness}
             onSketched={onSketched}
-            spliceDataUrl={sketch}
             onDominantColors={setDominantColors}
           />
 
           <Flex
-            position="absolute"
+            position={['relative', 'absolute']}
             bottom="-1.5em"
             gridGap={[2, 6]}
-            right={[null, null, 2]}
+            right={[null, 2]}
             direction={['column', 'row']}
+            align="center"
           >
             {mintingState < MintingState.MINTED && dominantColors && (
               <ArtworkStyleChooser
@@ -204,7 +201,7 @@ export const NFTPage = () => {
               />
             )}
 
-            {_isDownloadable() && (
+            {_isDownloadable && (
               <Button
                 as={Link}
                 href={sketch}

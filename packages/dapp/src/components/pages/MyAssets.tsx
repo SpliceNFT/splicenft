@@ -2,11 +2,9 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
   Container,
   Flex,
+  Heading,
   SimpleGrid,
   useToast
 } from '@chakra-ui/react';
@@ -14,7 +12,6 @@ import { NFTItemInTransit } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { MintButton } from '../molecules/MintButton';
 import { NFTCard } from '../molecules/NFTCard';
@@ -68,16 +65,6 @@ export const MyAssetsPage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      {chainId && (
-        <Breadcrumb>
-          <BreadcrumbItem isCurrentPage>
-            <BreadcrumbLink as={NavLink} to="/my-assets">
-              Your Assets
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-      )}
-
       {loading && (
         <Alert status="info">
           <AlertTitle>loading</AlertTitle>
@@ -111,26 +98,36 @@ export const MyAssetsPage = () => {
       )}
 
       {chainId && (
-        <SimpleGrid columns={[1, 2, 3, 4]} spacingX={5} spacingY="20px" mt={6}>
-          {nfts.map((nft: NFTItemInTransit) => (
-            <NFTCard
-              key={`${nft.contract_address}/${nft.token_id}`}
-              nft={nft}
-            />
-          ))}
-          {chainId !== 1 && (
-            <Flex
-              background="gray.200"
-              width="100%"
-              minH="80"
-              rounded="lg"
-              align="center"
-              justify="center"
-            >
-              <MintButton onMinted={onNFTMinted} />
-            </Flex>
+        <>
+          {nfts.length > 0 && (
+            <Heading size="md">choose an asset to splice:</Heading>
           )}
-        </SimpleGrid>
+          <SimpleGrid
+            columns={[1, 2, 3, 4]}
+            spacingX={5}
+            spacingY="20px"
+            mt={6}
+          >
+            {nfts.map((nft: NFTItemInTransit) => (
+              <NFTCard
+                key={`${nft.contract_address}/${nft.token_id}`}
+                nft={nft}
+              />
+            ))}
+            {chainId !== 1 && (
+              <Flex
+                background="gray.200"
+                width="100%"
+                minH="80"
+                rounded="lg"
+                align="center"
+                justify="center"
+              >
+                <MintButton onMinted={onNFTMinted} />
+              </Flex>
+            )}
+          </SimpleGrid>
+        </>
       )}
     </Container>
   );

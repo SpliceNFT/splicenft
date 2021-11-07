@@ -49,7 +49,6 @@ export const extractPixels = async (
     }
   } else {
     image.crossOrigin = 'anonymous';
-    console.log('getting colors from loaded image');
     pixels = ImageToColors.get(image, {
       setImageCrossOriginToAnonymous: true
     });
