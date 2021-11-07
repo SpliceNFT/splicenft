@@ -1,7 +1,8 @@
 {
   "name": "The Garden Of Earthly Delights",
   "description": "The Garden Of Earthly Delights generates a mildly post-apocalyptic landscape, of towers and barbed wires, whose shapes are defined by L-systems.",
-  "properties": {
+  "properties": {},
+  "splice": {
     "creator_name": "Emily Weil",
     "creator_twitter": "https://twitter.com/emilyaweil",
     "creator_url": "https://www.studioemilyweil.com",

@@ -24,12 +24,15 @@ export type SpliceNFT = NFTMetaData & {
  * metadata structure of Splice Style NFTs
  */
 export type StyleNFT = NFTMetaData & {
-  properties: {
-    code: string;
-    code_library: string;
-    code_library_version: string;
+  properties: Record<string, never>;
+  code: string;
+  splice: {
     creator_name?: string;
     creator_twitter?: string;
+    creator_url?: string;
+    code_library: string;
+    code_library_version: string;
+    license: string;
   };
 };
 

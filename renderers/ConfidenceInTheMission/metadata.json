@@ -1,7 +1,8 @@
 {
   "name": "Confidence In The Mission",
   "description": "Confidence In The Mission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.",
-  "properties": {
+  "properties": {},
+  "splice": {
     "creator_name": "Emily Weil",
     "creator_twitter": "https://twitter.com/emilyaweil",
     "creator_url": "https://www.studioemilyweil.com",

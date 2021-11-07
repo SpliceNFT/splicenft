@@ -1,7 +1,8 @@
 {
   "name": "A Beginning Is A Very Delicate Time",
   "description": "A Beginning Is A Very Delicate Time is a nod to the otherworldly landscape of the book (and movie!) Dune.",
-  "properties": {
+  "properties": {},
+  "splice": {
     "creator_name": "Emily Weil",
     "creator_twitter": "https://twitter.com/emilyaweil",
     "creator_url": "https://www.studioemilyweil.com",

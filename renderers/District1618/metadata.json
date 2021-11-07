@@ -1,7 +1,8 @@
 {
   "name": "District 1618",
   "description": "District 1618 generates a pattern based on the droste effect and golden mean (1.618).",
-  "properties": {
+  "properties": {},
+  "splice": {
     "creator_name": "Emily Weil",
     "creator_twitter": "https://twitter.com/emilyaweil",
     "creator_url": "https://www.studioemilyweil.com",

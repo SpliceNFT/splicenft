@@ -29,7 +29,7 @@ const Preview = ({
   useEffect(() => {
     if (!style || !chainId) return;
     (async () => {
-      const _code = await style.getCachedCode(
+      const _code = await style.getCodeFromBackend(
         process.env.REACT_APP_VALIDATOR_BASEURL as string,
         chainId
       );
