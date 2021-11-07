@@ -6,7 +6,10 @@ import { NFTMetaData } from './types/NFT';
 const IPFS_GATEWAY = 'https://dweb.link/ipfs/';
 
 export const resolveImage = (nftMetaData: NFTMetaData): string => {
-  const imgUrl = nftMetaData.image ? nftMetaData.image : nftMetaData.image_url;
+  const imgUrl =
+    nftMetaData.google_image || nftMetaData.image_url || nftMetaData.image;
+
+  //console.log(imgUrl);
   return imgUrl ? ipfsGW(imgUrl) : '';
 };
 

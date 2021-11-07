@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { providers } from 'ethers';
 import {
   CHAINS,
+  FallbackIndexer,
   NFTIndexer,
   NFTPort,
   OnChain,
@@ -55,7 +56,15 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     switch (chain) {
       case 'ethereum':
         setIndexer(
-          new NFTPort(chain, process.env.REACT_APP_NFTPORT_AUTH as string)
+          new FallbackIndexer(
+            new NFTPort(chain, process.env.REACT_APP_NFTPORT_AUTH as string),
+            new OnChain(
+              chain,
+              library,
+              knownCollections,
+              process.env.REACT_APP_CORS_PROXY
+            )
+          )
         );
         break;
 

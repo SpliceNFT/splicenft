@@ -8,6 +8,7 @@ import {
 import {
   NFTItemInTransit,
   NFTMetaData,
+  NFTPortNFTItem,
   TokenHeritage
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
@@ -22,12 +23,16 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   //const [mintingState, setMintingState] = useState<MintingState>();
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
 
-  const { splice } = useSplice();
+  const { splice, indexer } = useSplice();
 
   useEffect(() => {
     (async () => {
-      const metadata = await nft.metadata;
-      if (metadata) setNftMetadata(metadata);
+      try {
+        const metadata = await nft.metadata;
+        if (metadata) setNftMetadata(metadata);
+      } catch (e: any) {
+        console.error('error loading metadata', e);
+      }
     })();
   }, []);
 

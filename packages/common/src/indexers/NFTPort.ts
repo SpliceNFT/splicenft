@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { ChainOpt } from '../types/Chains';
-import { NFTItem, NFTMetaData } from '../types/NFT';
+import { NFTItem, NFTMetaData, NFTPortNFTItem } from '../types/NFT';
 import { NFTIndexer } from '../types/NFTIndexer';
 
 type NftPortAccountResponse = {
   response: string;
   error: unknown | null;
-  nfts: NFTItem[];
+  nfts: NFTPortNFTItem[];
   total: number;
 };
 
@@ -38,7 +38,9 @@ export class NFTPort implements NFTIndexer {
     this.nftPortAuth = auth;
   }
 
-  public async getAllAssetsOfOwner(ownerAddress: string): Promise<NFTItem[]> {
+  public async getAllAssetsOfOwner(
+    ownerAddress: string
+  ): Promise<NFTPortNFTItem[]> {
     const url = `${BASE_URI}/accounts/${ownerAddress}`;
     const _resp = await axios.get<NftPortAccountResponse>(url, {
       params: {
@@ -49,6 +51,7 @@ export class NFTPort implements NFTIndexer {
         Authorization: this.nftPortAuth
       }
     });
+
     return _resp.data.nfts;
   }
 

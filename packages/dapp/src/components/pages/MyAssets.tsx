@@ -12,11 +12,14 @@ import { NFTItemInTransit } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import { useSplice } from '../../context/SpliceContext';
 import { MintButton } from '../molecules/MintButton';
 import { NFTCard } from '../molecules/NFTCard';
 
 export const MyAssetsPage = () => {
+  const { accountAddress } =
+    useParams<{ accountAddress: string | undefined }>();
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
   const { indexer } = useSplice();
 
@@ -32,11 +35,10 @@ export const MyAssetsPage = () => {
       try {
         setLoading(true);
         //todo: either use global state or cache the assets somehow.
-        setNFTs(await indexer.getAllAssetsOfOwner(account));
-        toast({
-          status: 'success',
-          title: 'fetched all assets'
-        });
+        const _nfts = await indexer.getAllAssetsOfOwner(
+          accountAddress || account
+        );
+        setNFTs(_nfts);
       } catch (e) {
         toast({
           status: 'error',

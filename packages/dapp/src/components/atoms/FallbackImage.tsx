@@ -26,7 +26,6 @@ export const FallbackImage = (
       src={imageUrl}
       title={imageUrl}
       fit="cover"
-      crossOrigin="anonymous"
       onLoad={onNFTImageLoaded}
       fallback={<Image src={SplicePFPLogo} />}
       {...rest}

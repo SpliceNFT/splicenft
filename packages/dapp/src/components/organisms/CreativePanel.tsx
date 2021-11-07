@@ -112,11 +112,31 @@ export const CreativePanel = ({
   const onNFTImageLoaded = useCallback(
     (event: SyntheticEvent<HTMLImageElement, Event>): void => {
       if (spliceDataUrl || dominantColors?.length > 0) return;
-      console.log('extract');
-      extractColors(event.currentTarget, {}).then((colors) => {
+
+      const xOptions = {
+        proxy: process.env.REACT_APP_CORS_PROXY
+      };
+      const onExtracted = (colors: RGB[]) => {
         setDominantColors(colors);
         if (onDominantColors) onDominantColors(colors);
-      });
+      };
+
+      extractColors(event.currentTarget, xOptions)
+        .then(onExtracted)
+        .catch((e: any) => {
+          console.log(
+            'extracting failed, trying again with cors proxy. Reason:',
+            e.message
+          );
+          extractColors((event as any).path[0].src, xOptions)
+            .then(onExtracted)
+            .catch((e) => {
+              console.error(
+                'fetching image data ultimatively failed: ',
+                e.message
+              );
+            });
+        });
     },
     [dominantColors, spliceDataUrl]
   );

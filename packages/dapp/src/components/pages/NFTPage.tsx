@@ -44,7 +44,7 @@ export const NFTPage = () => {
   const randomness = Splice.computeRandomness(collection, tokenId);
 
   const { splice, indexer, spliceStyles } = useSplice();
-  const { account } = useWeb3React();
+  const { account, chainId } = useWeb3React();
 
   const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNFTImageUrl] = useState<string>();
@@ -160,7 +160,7 @@ export const NFTPage = () => {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {nftImageUrl && mintingState > MintingState.UNKNOWN && (
+      {nftImageUrl && (
         <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
             spliceDataUrl={sketch}
@@ -181,7 +181,7 @@ export const NFTPage = () => {
           >
             {mintingState < MintingState.MINTED && dominantColors && (
               <ArtworkStyleChooser
-                disabled={dominantColors.length == 0 || buzy}
+                disabled={chainId === 1 || dominantColors.length == 0 || buzy}
                 selectedStyle={selectedStyle}
                 onStyleChanged={(style: Style) => {
                   setSelectedStyle(style);

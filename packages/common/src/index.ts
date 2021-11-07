@@ -9,6 +9,7 @@ export * from './types/Renderers';
 export { NFTIndexer } from './types/NFTIndexer';
 
 export { NFTPort } from './indexers/NFTPort';
+export { Fallback as FallbackIndexer } from './indexers/Fallback';
 export { OnChain, KnownCollections, ERC721ABI } from './indexers/OnChain';
 export { Style } from './Style';
 
