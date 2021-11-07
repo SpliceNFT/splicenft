@@ -1,6 +1,7 @@
 import { extendTheme } from '@chakra-ui/react';
 
 import Button from './Button';
+import Alert from './Alert';
 
 export default extendTheme({
   fonts: {
@@ -23,6 +24,7 @@ export default extendTheme({
   },
   colors: {},
   components: {
+    Alert,
     Button,
     Input: {
       variants: {

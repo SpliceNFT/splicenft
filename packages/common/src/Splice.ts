@@ -232,7 +232,7 @@ export class Splice {
             BigNumber.from(i)
           );
           const metadataUrl = await this.contract.tokenURI(tokenId);
-
+          console.log(metadataUrl);
           return { tokenId: tokenId.toString(), metadataUrl };
         })()
       );

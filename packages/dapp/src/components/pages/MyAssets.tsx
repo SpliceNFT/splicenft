@@ -1,6 +1,6 @@
 import {
   Alert,
-  AlertDescription,
+  AlertIcon,
   AlertTitle,
   Breadcrumb,
   BreadcrumbItem,
@@ -11,10 +11,10 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { NFTItemInTransit } from '@splicenft/common';
-import { NavLink } from 'react-router-dom';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { MintButton } from '../molecules/MintButton';
 import { NFTCard } from '../molecules/NFTCard';
@@ -68,16 +68,30 @@ export const MyAssetsPage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      <Breadcrumb>
-        <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink as={NavLink} to="/my-assets">
-            Your Assets
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
-      {loading ? (
-        'loading'
-      ) : nfts.length === 0 ? (
+      {chainId && (
+        <Breadcrumb>
+          <BreadcrumbItem isCurrentPage>
+            <BreadcrumbLink as={NavLink} to="/my-assets">
+              Your Assets
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
+      )}
+
+      {loading && (
+        <Alert status="info">
+          <AlertTitle>loading</AlertTitle>
+        </Alert>
+      )}
+      {!chainId && (
+        <Alert status="warning" variant="subtle">
+          <AlertIcon />
+          <AlertTitle>
+            please connect with an Ethereum account (Rinkeby works best atm)
+          </AlertTitle>
+        </Alert>
+      )}
+      {chainId && nfts.length === 0 && (
         <Alert status="info" overflow="visible" mt={6}>
           <Flex
             align="center"
@@ -85,19 +99,18 @@ export const MyAssetsPage = () => {
             justify="space-between"
             width="100%"
           >
-            <AlertTitle>
-              {chainId
-                ? `it seems you don't have any assets on chain ${chainId}`
-                : `please connect with an Ethereum account (Rinkeby works best atm)`}
-            </AlertTitle>
-            <AlertDescription>
-              {chainId && chainId !== 1 && (
-                <MintButton onMinted={onNFTMinted} />
-              )}
-            </AlertDescription>
+            <Flex>
+              <AlertIcon />
+              <AlertTitle>
+                it seems you don't have any assets on chain {chainId}
+              </AlertTitle>
+            </Flex>
+            {chainId && chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
           </Flex>
         </Alert>
-      ) : (
+      )}
+
+      {chainId && (
         <SimpleGrid columns={[1, 2, 3, 4]} spacingX={5} spacingY="20px" mt={6}>
           {nfts.map((nft: NFTItemInTransit) => (
             <NFTCard
