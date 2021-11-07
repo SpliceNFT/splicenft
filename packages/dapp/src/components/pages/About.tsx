@@ -11,7 +11,6 @@ import {
   SimpleGrid,
   Text
 } from '@chakra-ui/react';
-import { useWeb3React } from '@web3-react/core';
 import {
   CarouselProvider,
   Image as SlImage,
@@ -22,18 +21,13 @@ import 'pure-react-carousel/dist/react-carousel.es.css';
 import React from 'react';
 import { FaTwitter } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
-import { useSplice } from '../../context/SpliceContext';
 import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetadata.png';
 import emily from '../../img/team/emily.jpg';
 import stefan from '../../img/team/stefan.jpg';
 import timothy from '../../img/team/timothy.jpg';
-import { injected } from '../../modules/connectors';
 import { ContainerHero, Hero } from '../atoms/Hero';
 
 export const AboutPage = () => {
-  const { splice } = useSplice();
-  const { active, activate, chainId } = useWeb3React();
-
   return (
     <>
       <Hero bg="black" color="white" py={12}>
@@ -82,35 +76,16 @@ export const AboutPage = () => {
           </Box>
         </Container>
         <Container maxW="container.lg" align="center">
-          {active ? (
-            <Button
-              w="75%"
-              as={NavLink}
-              to="/my-assets"
-              variant="white"
-              size="md"
-              disabled={!splice}
-              fontSize="xl"
-            >
-              Try it!
-            </Button>
-          ) : (
-            <>
-              <Button
-                w="75%"
-                onClick={() => activate(injected, console.error)}
-                variant="white"
-                size="md"
-              >
-                Connect your wallet to try Splice.
-              </Button>
-            </>
-          )}
-          {active && !splice && (
-            <Text textAlign="center">
-              network {chainId} not supported. Choose <em>Rinkeby Testnet</em>.
-            </Text>
-          )}
+          <Button
+            w="75%"
+            as={NavLink}
+            to="/my-assets"
+            variant="white"
+            size="md"
+            fontSize="xl"
+          >
+            Try it!
+          </Button>
         </Container>
       </Hero>
 

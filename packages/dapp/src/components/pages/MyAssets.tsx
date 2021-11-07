@@ -1,17 +1,14 @@
 import {
   Alert,
-  AlertDescription,
+  AlertIcon,
   AlertTitle,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
   Container,
   Flex,
+  Heading,
   SimpleGrid,
   useToast
 } from '@chakra-ui/react';
 import { NFTItemInTransit } from '@splicenft/common';
-import { NavLink } from 'react-router-dom';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -68,16 +65,20 @@ export const MyAssetsPage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      <Breadcrumb>
-        <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink as={NavLink} to="/my-assets">
-            Your Assets
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
-      {loading ? (
-        'loading'
-      ) : nfts.length === 0 ? (
+      {loading && (
+        <Alert status="info">
+          <AlertTitle>loading</AlertTitle>
+        </Alert>
+      )}
+      {!chainId && (
+        <Alert status="warning" variant="subtle">
+          <AlertIcon />
+          <AlertTitle>
+            please connect with an Ethereum account (Rinkeby works best atm)
+          </AlertTitle>
+        </Alert>
+      )}
+      {chainId && nfts.length === 0 && (
         <Alert status="info" overflow="visible" mt={6}>
           <Flex
             align="center"
@@ -85,39 +86,48 @@ export const MyAssetsPage = () => {
             justify="space-between"
             width="100%"
           >
-            <AlertTitle>
-              {chainId
-                ? `it seems you don't have any assets on chain ${chainId}`
-                : `please connect with an Ethereum account (Rinkeby works best atm)`}
-            </AlertTitle>
-            <AlertDescription>
-              {chainId && chainId !== 1 && (
-                <MintButton onMinted={onNFTMinted} />
-              )}
-            </AlertDescription>
+            <Flex>
+              <AlertIcon />
+              <AlertTitle>
+                it seems you don't have any assets on chain {chainId}
+              </AlertTitle>
+            </Flex>
+            {chainId && chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
           </Flex>
         </Alert>
-      ) : (
-        <SimpleGrid columns={[1, 2, 3, 4]} spacingX={5} spacingY="20px" mt={6}>
-          {nfts.map((nft: NFTItemInTransit) => (
-            <NFTCard
-              key={`${nft.contract_address}/${nft.token_id}`}
-              nft={nft}
-            />
-          ))}
-          {chainId !== 1 && (
-            <Flex
-              background="gray.200"
-              width="100%"
-              minH="80"
-              rounded="lg"
-              align="center"
-              justify="center"
-            >
-              <MintButton onMinted={onNFTMinted} />
-            </Flex>
+      )}
+
+      {chainId && (
+        <>
+          {nfts.length > 0 && (
+            <Heading size="md">choose an asset to splice:</Heading>
           )}
-        </SimpleGrid>
+          <SimpleGrid
+            columns={[1, 2, 3, 4]}
+            spacingX={5}
+            spacingY="20px"
+            mt={6}
+          >
+            {nfts.map((nft: NFTItemInTransit) => (
+              <NFTCard
+                key={`${nft.contract_address}/${nft.token_id}`}
+                nft={nft}
+              />
+            ))}
+            {chainId !== 1 && (
+              <Flex
+                background="gray.200"
+                width="100%"
+                minH="80"
+                rounded="lg"
+                align="center"
+                justify="center"
+              >
+                <MintButton onMinted={onNFTMinted} />
+              </Flex>
+            )}
+          </SimpleGrid>
+        </>
       )}
     </Container>
   );

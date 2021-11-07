@@ -19,8 +19,8 @@ export const SPLICE_ADDRESSES: Record<number, string> = {
 
 export enum MintingState {
   UNKNOWN,
+  UNMINTED,
   GENERATED,
-  VALIDATED,
   MINTED,
   FAILED
 }
@@ -97,7 +97,7 @@ export class Splice {
     style_token_id: string | number;
     recipient: string;
     mintingFee: ethers.BigNumber;
-  }): Promise<{ transactionHash: string; spliceTokenId: number | undefined }> {
+  }): Promise<{ transactionHash: string; spliceTokenId: number }> {
     const tx = await this.contract.mint(
       origin_collection,
       origin_token_id,
@@ -108,15 +108,16 @@ export class Splice {
       }
     );
     const result = await tx.wait();
-    console.log(result);
 
     const transferEvent: TransferEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       result.events?.find((evt) => evt.event === 'Transfer') as TransferEvent;
-
+    if (!transferEvent) {
+      throw new Error('no Transfer event captured in minting transaction');
+    }
     return {
       transactionHash: result.transactionHash,
-      spliceTokenId: transferEvent?.args.tokenId.toNumber()
+      spliceTokenId: transferEvent.args.tokenId.toNumber()
     };
   }
 
@@ -232,7 +233,6 @@ export class Splice {
             BigNumber.from(i)
           );
           const metadataUrl = await this.contract.tokenURI(tokenId);
-
           return { tokenId: tokenId.toString(), metadataUrl };
         })()
       );

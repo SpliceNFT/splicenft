@@ -2,25 +2,45 @@ import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
 import { extractColors, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
-import React, { SyntheticEvent, useEffect, useState } from 'react';
+import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 
+const PreviewBase = ({
+  nftImage,
+  children
+}: {
+  nftImage: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <Flex
+    position="relative"
+    minHeight="20vw"
+    borderBottomWidth="1px"
+    borderBottomStyle="solid"
+    borderBottomColor="gray.200"
+  >
+    <Center width="100%" height="100%" position="relative">
+      {children}
+    </Center>
+    <Center position="absolute" width="100%" height="100%">
+      <Circle size="15%">{nftImage}</Circle>
+    </Center>
+  </Flex>
+);
 const Preview = ({
   nftImage,
-  spliceDataUrl,
   nftExtractedProps,
   style,
   onSketched
 }: {
   nftImage: React.ReactNode;
-  spliceDataUrl?: string | undefined;
   nftExtractedProps: {
     randomness: number;
     dominantColors: RGB[];
   };
-  style?: Style;
-  onSketched?: (dataUrl: string) => void;
+  style: Style;
+  onSketched: (dataUrl: string) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
   const [code, setCode] = useState<string>();
@@ -38,46 +58,45 @@ const Preview = ({
   }, [style]);
 
   return (
-    <Flex
-      position="relative"
-      minHeight="20vw"
-      borderBottomWidth="1px"
-      borderBottomStyle="solid"
-      borderBottomColor="gray.200"
-    >
-      <Center width="100%" height="100%" position="relative">
-        {dominantColors && onSketched && !spliceDataUrl && style ? (
-          <P5Sketch
-            randomness={randomness}
-            dim={{ w: 1500, h: 500 }}
-            colors={dominantColors}
-            onSketched={onSketched}
-            code={code}
-          />
-        ) : (
-          <Image src={spliceDataUrl} />
-        )}
-      </Center>
-      <Center position="absolute" width="100%" height="100%">
-        <Circle size="15%">{nftImage}</Circle>
-      </Center>
-    </Flex>
+    <PreviewBase nftImage={nftImage}>
+      <P5Sketch
+        randomness={randomness}
+        dim={{ w: 1500, h: 500 }}
+        colors={dominantColors}
+        onSketched={onSketched}
+        code={code}
+      />
+    </PreviewBase>
+  );
+};
+
+const DataSketch = ({
+  nftImage,
+  spliceDataUrl
+}: {
+  nftImage: React.ReactNode;
+  spliceDataUrl: string;
+}) => {
+  return (
+    <PreviewBase nftImage={nftImage}>
+      <Image src={spliceDataUrl} />
+    </PreviewBase>
   );
 };
 
 export const CreativePanel = ({
+  spliceDataUrl,
   nftImageUrl,
   onSketched,
   randomness,
-  spliceDataUrl,
   style,
   onDominantColors
 }: {
   nftImageUrl: string;
-  onSketched?: (dataUrl: string) => void;
+  onSketched: (dataUrl: string) => void;
   randomness: number;
   spliceDataUrl?: string;
-  style?: Style;
+  style: Style | undefined;
   onDominantColors?: (colors: RGB[]) => void;
 }) => {
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
@@ -90,14 +109,17 @@ export const CreativePanel = ({
     dominantColors
   };
 
-  const onNFTImageLoaded = (
-    event: SyntheticEvent<HTMLImageElement, Event>
-  ): void => {
-    extractColors(event.currentTarget, {}).then((colors) => {
-      setDominantColors(colors);
-      if (onDominantColors) onDominantColors(colors);
-    });
-  };
+  const onNFTImageLoaded = useCallback(
+    (event: SyntheticEvent<HTMLImageElement, Event>): void => {
+      if (spliceDataUrl || dominantColors?.length > 0) return;
+      console.log('extract');
+      extractColors(event.currentTarget, {}).then((colors) => {
+        setDominantColors(colors);
+        if (onDominantColors) onDominantColors(colors);
+      });
+    },
+    [dominantColors, spliceDataUrl]
+  );
 
   const nftImage = (
     <FallbackImage
@@ -119,16 +141,10 @@ export const CreativePanel = ({
       />
     );
   } else if (spliceDataUrl) {
-    return (
-      <Preview
-        nftImage={nftImage}
-        spliceDataUrl={spliceDataUrl}
-        nftExtractedProps={nftExtractedProps}
-      />
-    );
+    return <DataSketch nftImage={nftImage} spliceDataUrl={spliceDataUrl} />;
   } else {
     return (
-      <Container width="lg" py={20}>
+      <Container py={[null, 5, 20]}>
         <FallbackImage
           boxShadow="lg"
           imgUrl={nftImageUrl}
