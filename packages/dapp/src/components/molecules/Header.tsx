@@ -38,7 +38,6 @@ const Header = () => {
     const previousConnection = localStorage.getItem('prvConnectedWith');
     if (previousConnection) {
       const connector = connectors.find((c) => c.name === previousConnection);
-      console.debug(connector);
       if (!connector) {
         localStorage.removeItem('prvConnectedWith');
       } else {

@@ -1,4 +1,4 @@
-import { Flex, Circle, Image } from '@chakra-ui/react';
+import { Circle, Flex } from '@chakra-ui/react';
 import React from 'react';
 import { FallbackImage } from '../../atoms/FallbackImage';
 

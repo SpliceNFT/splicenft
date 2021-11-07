@@ -11,7 +11,6 @@ import {
   SimpleGrid,
   Text
 } from '@chakra-ui/react';
-import { useWeb3React } from '@web3-react/core';
 import {
   CarouselProvider,
   Image as SlImage,
@@ -22,7 +21,6 @@ import 'pure-react-carousel/dist/react-carousel.es.css';
 import React from 'react';
 import { FaTwitter } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
-import { useSplice } from '../../context/SpliceContext';
 import extractsColorsAndMetadataImg from '../../img/SpliceExtractsColorsAndMetadata.png';
 import emily from '../../img/team/emily.jpg';
 import stefan from '../../img/team/stefan.jpg';

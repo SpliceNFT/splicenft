@@ -94,7 +94,6 @@ export const MySplicesPage = () => {
   const [buzy, setBuzy] = useState<boolean>(false);
 
   const [splices, setSplices] = useState<TokenMetadataResponse[]>([]);
-  const toast = useToast();
 
   useEffect(() => {
     if (!account || !splice) return;
