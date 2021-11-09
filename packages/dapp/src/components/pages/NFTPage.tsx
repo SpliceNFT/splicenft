@@ -21,6 +21,7 @@ import {
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
+import { FaCloudDownloadAlt } from 'react-icons/fa';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
@@ -206,7 +207,9 @@ export const NFTPage = () => {
                 as={Link}
                 href={sketch}
                 disabled={!sketch}
+                leftIcon={<FaCloudDownloadAlt />}
                 boxShadow="md"
+                size="lg"
                 isExternal
                 variant="white"
               >

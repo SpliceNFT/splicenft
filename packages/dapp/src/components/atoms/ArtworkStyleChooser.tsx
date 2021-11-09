@@ -8,6 +8,7 @@ import {
   MenuList,
   Text
 } from '@chakra-ui/react';
+import { FaPaintBrush } from 'react-icons/fa';
 import { Style } from '@splicenft/common';
 import React from 'react';
 import { useSplice } from '../../context/SpliceContext';
@@ -29,15 +30,24 @@ export const ArtworkStyleChooser = ({
         <MenuButton
           as={Button}
           variant="white"
+          leftIcon={<FaPaintBrush />}
           disabled={disabled}
           boxShadow="md"
           textAlign="left"
+          size="lg"
           rightIcon={<ChevronDownIcon />}
         >
-          <Text fontWeight="normal" fontSize={selectedStyle ? 'xs' : 'md'}>
-            choose a style
+          <Text
+            fontWeight={selectedStyle ? 'bold' : 'medium'}
+            fontSize={selectedStyle ? 'sm' : 'xl'}
+          >
+            {selectedStyle ? 'change the style' : 'choose a style'}
           </Text>
-          {selectedStyle && selectedStyle.getMetadata().name}
+          {selectedStyle && (
+            <Text fontWeight="medium" fontSize="md">
+              {selectedStyle.getMetadata().name}
+            </Text>
+          )}
         </MenuButton>
         <MenuList>
           {spliceStyles.map((style: Style) => (

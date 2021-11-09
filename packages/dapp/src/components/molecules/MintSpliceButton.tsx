@@ -4,6 +4,7 @@ import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useSplice } from '../../context/SpliceContext';
+import { FaBirthdayCake } from 'react-icons/fa';
 
 export const MintSpliceButton = ({
   collection,
@@ -62,7 +63,9 @@ export const MintSpliceButton = ({
       <Button
         disabled={!quote || !splice || buzy}
         onClick={mint}
+        leftIcon={<FaBirthdayCake />}
         variant="white"
+        size="lg"
         boxShadow="md"
         isLoading={buzy}
         loadingText="Minting"
@@ -70,7 +73,7 @@ export const MintSpliceButton = ({
         <Flex direction="column">
           <Text fontWeight="strong">Mint this Splice</Text>
           {quote && (
-            <Text fontWeight="normal" fontSize="sm">
+            <Text fontWeight="normal" fontSize="md">
               for {ethers.utils.formatUnits(quote, 'ether')}Eth
             </Text>
           )}

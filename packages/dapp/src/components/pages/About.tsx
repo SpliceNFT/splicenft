@@ -28,6 +28,9 @@ import timothy from '../../img/team/timothy.jpg';
 import { ContainerHero, Hero } from '../atoms/Hero';
 
 export const AboutPage = () => {
+  const buttonGradient =
+    'linear(to-r, red.300, yellow.300, green.300, blue.300)';
+  const buttonGradientWhite = 'linear(to-r, white, white)';
   return (
     <>
       <Hero bg="black" color="white" py={12}>
@@ -80,7 +83,15 @@ export const AboutPage = () => {
             w="75%"
             as={NavLink}
             to="/my-assets"
-            variant="white"
+            bgGradient={buttonGradientWhite}
+            transition="all .25s ease"
+            _hover={{
+              color: 'white',
+
+              fontWeight: 'bolder',
+              transform: 'scale(1.05)',
+              bgGradient: buttonGradient
+            }}
             size="md"
             fontSize="xl"
           >
