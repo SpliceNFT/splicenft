@@ -34,3 +34,9 @@ export type NFTItem = BaseNFTItem & {
 export type NFTItemInTransit = BaseNFTItem & {
   metadata: null | NFTMetaData | Promise<NFTMetaData | null>;
 };
+
+export type NFTPortNFTItem = NFTItem & {
+  cached_file_url: string;
+  creator_address: string;
+  file_url: string;
+};

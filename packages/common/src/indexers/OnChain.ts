@@ -1,9 +1,10 @@
+import { ERC721, ERC721Enumerable } from '@splicenft/contracts';
 import axios from 'axios';
 import { ethers } from 'ethers';
-import { ipfsGW } from '..';
+import { erc721Enumerable, ipfsGW } from '..';
 import { ChainOpt } from '../types/Chains';
 import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
-import { NFTIndexer } from '../types/NFTIndexer';
+import { NFTIndexer } from './NFTIndexer';
 
 export type KnownCollections = Record<ChainOpt, string[]>;
 
@@ -16,151 +17,31 @@ export interface MetadataResponse {
   metadata: NFTMetaData;
 }
 
-export const ERC721ABI = [
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'tokenId',
-        type: 'uint256'
-      }
-    ],
-    name: 'tokenURI',
-    outputs: [
-      {
-        internalType: 'string',
-        name: '',
-        type: 'string'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'owner',
-        type: 'address'
-      }
-    ],
-    name: 'balanceOf',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'owner',
-        type: 'address'
-      },
-      {
-        internalType: 'uint256',
-        name: 'index',
-        type: 'uint256'
-      }
-    ],
-    name: 'tokenOfOwnerByIndex',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'to',
-        type: 'address'
-      }
-    ],
-    name: 'mint',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256'
-      }
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'name',
-    outputs: [
-      {
-        internalType: 'string',
-        name: '',
-        type: 'string'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'from',
-        type: 'address'
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'to',
-        type: 'address'
-      },
-      {
-        indexed: true,
-        internalType: 'uint256',
-        name: 'tokenId',
-        type: 'uint256'
-      }
-    ],
-    name: 'Transfer',
-    type: 'event'
-  }
-];
-
 type ProviderOrSigner = ethers.providers.BaseProvider | ethers.Signer;
 
 export class OnChain implements NFTIndexer {
   private proxyAddress: string | undefined;
 
-  private collections: Record<string, ethers.Contract> = {};
+  private collections: Record<string, ERC721Enumerable> = {};
 
   private provider: ProviderOrSigner;
 
+  public getCollections(): ERC721Enumerable[] {
+    return Object.values(this.collections);
+  }
+
   constructor(
-    chain: ChainOpt,
     provider: ProviderOrSigner,
-    knownCollections: KnownCollections,
+    addressList: string[],
     proxyAddress?: string
   ) {
     this.proxyAddress = proxyAddress;
     this.provider = provider;
 
-    knownCollections[chain].forEach((contractAddress) => {
-      this.collections[contractAddress] = new ethers.Contract(
-        contractAddress,
-        ERC721ABI,
-        provider
+    addressList.forEach((knownCollection) => {
+      this.collections[knownCollection] = erc721Enumerable(
+        provider,
+        knownCollection
       );
     });
   }
@@ -187,17 +68,17 @@ export class OnChain implements NFTIndexer {
   ): Promise<Array<NFTItemInTransit | null>> {
     const contract =
       this.collections[collection] ||
-      new ethers.Contract(collection, ERC721ABI, this.provider);
-    const bal = await contract.balanceOf(ownerAddress);
+      erc721Enumerable(this.provider, collection);
+    const bal = (await contract.balanceOf(ownerAddress)).toNumber();
     const promises: Array<Promise<NFTItemInTransit>> = [];
     for (let i = 0; i < bal; i++) {
       promises.push(
         (async () => {
           const tokenId = await contract.tokenOfOwnerByIndex(ownerAddress, i);
-          const metaData = this._getAssetMetadata(contract, tokenId);
+          const metaData = this._getAssetMetadata(contract, tokenId.toString());
           return {
             contract_address: contract.address,
-            token_id: tokenId,
+            token_id: tokenId.toString(),
             metadata: metaData
           };
         })()
@@ -207,10 +88,10 @@ export class OnChain implements NFTIndexer {
   }
 
   public async _getAssetMetadata(
-    c: ethers.Contract,
+    e721: ERC721,
     tokenId: string
   ): Promise<NFTMetaData | null> {
-    const tokenUrl: string = ipfsGW(await c.tokenURI(tokenId));
+    const tokenUrl: string = ipfsGW(await e721.tokenURI(tokenId));
 
     let metaData: NFTMetaData | null = null;
 
@@ -240,7 +121,7 @@ export class OnChain implements NFTIndexer {
   ): Promise<NFTMetaData | null> {
     const contract =
       this.collections[collection] ||
-      new ethers.Contract(collection, ERC721ABI, this.provider);
+      erc721Enumerable(this.provider, collection);
     return this._getAssetMetadata(contract, tokenId);
   }
 }

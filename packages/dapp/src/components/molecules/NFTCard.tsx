@@ -19,15 +19,18 @@ import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [heritage, setHeritage] = useState<TokenHeritage>();
-  //const [mintingState, setMintingState] = useState<MintingState>();
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
 
   const { splice } = useSplice();
 
   useEffect(() => {
     (async () => {
-      const metadata = await nft.metadata;
-      if (metadata) setNftMetadata(metadata);
+      try {
+        const metadata = await nft.metadata;
+        if (metadata) setNftMetadata(metadata);
+      } catch (e: any) {
+        console.error('error loading metadata', e);
+      }
     })();
   }, []);
 
@@ -41,7 +44,6 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
       );
       if (_heritage) {
         setHeritage(_heritage);
-        //setMintingState(Splice.translateJobStatus(_mintJob.job));
       }
     })();
   }, [splice]);

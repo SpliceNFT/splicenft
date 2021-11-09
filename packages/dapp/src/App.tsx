@@ -38,7 +38,8 @@ function App() {
               <Route path="/my-splices">
                 <MySplicesPage />
               </Route>
-              <Route path="/my-assets">
+
+              <Route path={['/my-assets/:accountAddress', '/my-assets']}>
                 <MyAssetsPage />
               </Route>
               <Route path="/create">
