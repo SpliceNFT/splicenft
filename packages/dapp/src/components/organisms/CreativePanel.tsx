@@ -120,15 +120,19 @@ export const CreativePanel = ({
         setDominantColors(colors);
         if (onDominantColors) onDominantColors(colors);
       };
+      const target: HTMLImageElement = (event.target ||
+        event.currentTarget) as HTMLImageElement;
 
-      extractColors(event.currentTarget, xOptions)
+      extractColors(target, xOptions)
         .then(onExtracted)
         .catch((e: any) => {
           console.log(
             'extracting failed, trying again with cors proxy. Reason:',
             e.message
           );
-          extractColors((event as any).path[0].src, xOptions)
+          //console.log(event);
+          //try again with plain source
+          extractColors(target.src, xOptions)
             .then(onExtracted)
             .catch((e) => {
               console.error(

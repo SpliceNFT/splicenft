@@ -1,6 +1,6 @@
 import { NFTPort } from '..';
 import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
-import { NFTIndexer } from '../types/NFTIndexer';
+import { NFTIndexer } from './NFTIndexer';
 
 export class Fallback implements NFTIndexer {
   constructor(private primary: NFTPort, private fallback: NFTIndexer) {}

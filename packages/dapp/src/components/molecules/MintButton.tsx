@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from '@chakra-ui/icons';
 import {
   Button,
   Menu,
@@ -6,13 +7,11 @@ import {
   MenuList,
   useToast
 } from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { OnChain } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { providers } from 'ethers';
+import { BigNumber, Contract, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { CHAINS } from '@splicenft/common';
-import { knownCollections } from '../../modules/chains';
-import { Contract, BigNumber } from 'ethers';
+import { useSplice } from '../../context/SpliceContext';
 
 const MintingABI = [
   {
@@ -61,20 +60,39 @@ const MintingABI = [
   }
 ];
 
+type MintableCollection = { name: string; address: string };
+
 export const MintButton = ({
   onMinted
 }: {
   onMinted: (collection: string, tokenId: string) => void;
 }) => {
-  const { library, account, chainId } = useWeb3React<providers.Web3Provider>();
+  const { indexer } = useSplice();
+  const { library, account } = useWeb3React<providers.Web3Provider>();
   const [buzy, setBuzy] = useState<boolean>(false);
 
-  const [mintableNFTs, setMintableNFTs] = useState<string[]>([]);
+  const [mintableNFTs, setMintableNFTs] = useState<MintableCollection[]>([]);
   const toast = useToast();
   useEffect(() => {
-    if (!chainId) return;
-    setMintableNFTs(knownCollections[CHAINS[chainId]]);
-  }, [chainId]);
+    if (!indexer) return;
+    if (!(indexer instanceof OnChain)) return;
+    (async () => {
+      setMintableNFTs(
+        await Promise.all(
+          indexer.getCollections().map((erc721) => {
+            return new Promise<MintableCollection>((resolve) => {
+              erc721.name().then((name) =>
+                resolve({
+                  name,
+                  address: erc721.address
+                })
+              );
+            });
+          })
+        )
+      );
+    })();
+  }, [indexer]);
 
   const mintTestnetNFT = async (collection: string) => {
     if (!library) return;
@@ -115,9 +133,12 @@ export const MintButton = ({
         mint a testnet NFT
       </MenuButton>
       <MenuList>
-        {mintableNFTs.map((addr) => (
-          <MenuItem key={`mint-${addr}`} onClick={() => mintTestnetNFT(addr)}>
-            {addr}
+        {mintableNFTs.map((mintableCollection) => (
+          <MenuItem
+            key={`mint-${mintableCollection.address}`}
+            onClick={() => mintTestnetNFT(mintableCollection.address)}
+          >
+            {mintableCollection.name}
           </MenuItem>
         ))}
       </MenuList>

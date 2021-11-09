@@ -14,6 +14,8 @@ export const resolveImage = (nftMetaData: NFTMetaData): string => {
 };
 
 export const ipfsGW = (url: string) => {
+  if (url.startsWith('ipfs://ipfs/'))
+    return url.replace('ipfs://ipfs/', IPFS_GATEWAY);
   if (url.startsWith('ipfs://')) {
     return url.replace('ipfs://', IPFS_GATEWAY);
   } else {

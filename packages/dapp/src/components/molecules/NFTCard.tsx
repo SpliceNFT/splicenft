@@ -8,7 +8,6 @@ import {
 import {
   NFTItemInTransit,
   NFTMetaData,
-  NFTPortNFTItem,
   TokenHeritage
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
@@ -20,10 +19,9 @@ import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [heritage, setHeritage] = useState<TokenHeritage>();
-  //const [mintingState, setMintingState] = useState<MintingState>();
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
 
-  const { splice, indexer } = useSplice();
+  const { splice } = useSplice();
 
   useEffect(() => {
     (async () => {
@@ -46,7 +44,6 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
       );
       if (_heritage) {
         setHeritage(_heritage);
-        //setMintingState(Splice.translateJobStatus(_mintJob.job));
       }
     })();
   }, [splice]);

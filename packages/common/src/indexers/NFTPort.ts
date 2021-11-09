@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ChainOpt } from '../types/Chains';
 import { NFTItem, NFTMetaData, NFTPortNFTItem } from '../types/NFT';
-import { NFTIndexer } from '../types/NFTIndexer';
+import { NFTIndexer } from './NFTIndexer';
 
 type NftPortAccountResponse = {
   response: string;

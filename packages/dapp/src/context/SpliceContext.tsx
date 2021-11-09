@@ -59,9 +59,8 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
           new FallbackIndexer(
             new NFTPort(chain, process.env.REACT_APP_NFTPORT_AUTH as string),
             new OnChain(
-              chain,
               library,
-              knownCollections,
+              knownCollections['ethereum'],
               process.env.REACT_APP_CORS_PROXY
             )
           )
@@ -71,9 +70,8 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
       default:
         setIndexer(
           new OnChain(
-            chain,
             library,
-            knownCollections,
+            knownCollections[chain],
             process.env.REACT_APP_CORS_PROXY
           )
         );
