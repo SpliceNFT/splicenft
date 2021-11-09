@@ -1,20 +1,22 @@
-import { Flex, Skeleton } from '@chakra-ui/react';
+import { Flex, SkeletonText, Skeleton, Text } from '@chakra-ui/react';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
 import { extractColors } from '@splicenft/common';
 
 export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
-  <Flex direction="row" w="80%" align="center" height="10px" gridGap={0}>
-    {colors.map((color) => {
-      const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
-      return (
-        <Flex key={colorHex} flex="1" background={colorHex}>
-          &nbsp;
-        </Flex>
-      );
-    })}
-  </Flex>
+  <Skeleton isLoaded={colors.length > 0} w="70%" size="lg">
+    <Flex direction="row" align="center" height="1.5em" gridGap={0}>
+      {colors.map((color) => {
+        const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
+        return (
+          <Flex key={colorHex} flex="1" background={colorHex}>
+            &nbsp;
+          </Flex>
+        );
+      })}
+    </Flex>
+  </Skeleton>
 );
 
 /**
@@ -40,9 +42,12 @@ export const DominantColors = ({
     })();
   }, [imageUrl]);
 
-  return dominantColors.length > 0 ? (
-    <DominantColorsDisplay colors={dominantColors} />
+  return dominantColors.length > 1 ? (
+    <Flex>
+      <Text>fff</Text>
+      <DominantColorsDisplay colors={dominantColors} />
+    </Flex>
   ) : (
-    <Skeleton height="20px" />
+    <>fdooo</>
   );
 };
