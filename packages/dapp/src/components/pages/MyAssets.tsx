@@ -102,7 +102,7 @@ export const MyAssetsPage = () => {
       {chainId && (
         <>
           {nfts.length > 0 && (
-            <Heading size="md">choose an asset to splice:</Heading>
+            <Heading size="md">choose an NFT to splice:</Heading>
           )}
           <SimpleGrid
             columns={[1, 2, 3, 4]}
