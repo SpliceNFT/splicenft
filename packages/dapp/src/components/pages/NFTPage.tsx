@@ -151,12 +151,13 @@ export const NFTPage = () => {
       <Breadcrumb>
         <BreadcrumbItem>
           <BreadcrumbLink as={NavLink} to="/my-assets">
-            Your NFTs
+             <Heading size="md">Your NFTs</Heading>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
           <BreadcrumbLink>
-            {heritage ? '' : 'Mint'} Splice for {nftMetadata?.name}
+            <Heading size="md">{heritage ? '' : 'Mint'} Splice for {nftMetadata?.name}</Heading>
+            
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
