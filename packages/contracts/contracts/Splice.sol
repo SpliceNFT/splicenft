@@ -1,6 +1,6 @@
 // contracts/Splice.sol
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
@@ -13,7 +13,6 @@ import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
 import 'hardhat/console.sol';
 
@@ -27,32 +26,31 @@ contract Splice is
   PausableUpgradeable,
   ReentrancyGuardUpgradeable
 {
-  using CountersUpgradeable for CountersUpgradeable.Counter;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
   error InsufficientFees();
   error NotOwningOrigin();
+  error OriginAlreadyUsed();
   error MintingCapOnStyleReached();
+  error SpliceNotFound();
 
-  struct TokenHeritage {
+  struct TokenProvenance {
     address requestor;
     IERC721 origin_collection;
     uint256 origin_token_id;
-    uint256 style_token_id;
+    uint32 style_token_id;
   }
-
-  CountersUpgradeable.Counter private _tokenIds;
 
   uint8 public ARTIST_SHARE;
 
   string private baseUri;
 
   //lookup table
-  //keccack(0xcollection + origin_token_id) => splice token ID
-  mapping(uint256 => uint256) public originToTokenId;
+  //keccack(0xcollection + origin_token_id + style_token_id)  => token_id
+  mapping(bytes32 => uint64) public provenanceToTokenId;
 
-  //splice token ID => heritage
-  mapping(uint256 => TokenHeritage) public tokenHeritage;
+  //splice token ID => provenance
+  mapping(uint64 => TokenProvenance) public tokenProvenance;
 
   /**
    * Validators are trusted accounts that must sign minting
@@ -166,34 +164,40 @@ contract Splice is
     platformBeneficiary = newAddress;
   }
 
-  function findHeritage(IERC721 nft, uint256 token_id)
+  function findProvenance(
+    IERC721 nft,
+    uint256 origin_token_id,
+    uint32 style_token_id
+  )
     public
     view
-    returns (uint256 splice_token_id, TokenHeritage memory heritage)
+    returns (uint64 splice_token_id, TokenProvenance memory provenance)
   {
-    require(
-      nft.ownerOf(token_id) != address(0),
-      'the token is not minted or belongs to 0x0'
-    );
-    uint256 originHash = uint256(heritageHash(address(nft), token_id));
-    splice_token_id = originToTokenId[originHash];
-    heritage = tokenHeritage[splice_token_id];
+    splice_token_id = provenanceToTokenId[
+      provenanceHash(address(nft), origin_token_id, style_token_id)
+    ];
+
+    if (splice_token_id == 0x0) {
+      revert SpliceNotFound();
+    }
+
+    provenance = tokenProvenance[splice_token_id];
   }
 
-  function heritageHash(address nft, uint256 token_id)
-    public
-    pure
-    returns (bytes32)
-  {
-    return keccak256(abi.encodePacked(nft, token_id));
+  function provenanceHash(
+    address nft,
+    uint256 origin_token_id,
+    uint32 style_token_id
+  ) public pure returns (bytes32) {
+    return keccak256(abi.encodePacked(nft, origin_token_id, style_token_id));
   }
 
-  function randomness(bytes32 _heritageHash) public pure returns (uint32) {
-    bytes memory rm = abi.encodePacked(_heritageHash);
+  function randomness(bytes32 _provenanceHash) public pure returns (uint32) {
+    bytes memory rm = abi.encodePacked(_provenanceHash);
     return BytesLib.toUint32(rm, 0);
   }
 
-  function quote(IERC721 nft, uint256 style_token_id)
+  function quote(IERC721 nft, uint32 style_token_id)
     public
     view
     returns (uint256 fee)
@@ -205,7 +209,7 @@ contract Splice is
     return styleNFT.quoteFee(nft, style_token_id);
   }
 
-  function splitMintFee(uint256 amount, uint256 style_token_id) internal {
+  function splitMintFee(uint256 amount, uint32 style_token_id) internal {
     uint256 feeForArtist = ARTIST_SHARE * (amount / 100);
     uint256 feeForPlatform = amount - feeForArtist; //Splice takes a 15% cut
 
@@ -237,12 +241,13 @@ contract Splice is
   function mint(
     IERC721 origin_collection,
     uint256 origin_token_id,
-    uint256 style_token_id,
+    bytes calldata input_params,
+    uint32 style_token_id,
     address recipient
-  ) public payable whenNotPaused nonReentrant returns (uint256 token_id) {
+  ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     require(saleIsActive);
 
-    //checks
+    //CHECKS
     //we only allow the owner of an NFT to mint a splice of it.
     if (origin_collection.ownerOf(origin_token_id) != msg.sender)
       revert NotOwningOrigin();
@@ -252,31 +257,36 @@ contract Splice is
     uint256 fee = quote(origin_collection, style_token_id);
     if (msg.value < fee) revert InsufficientFees();
 
-    //effects
-    splitMintFee(fee, style_token_id);
+    bytes32 _provenance = provenanceHash(
+      address(origin_collection),
+      origin_token_id,
+      style_token_id
+    );
 
-    _tokenIds.increment();
-    token_id = _tokenIds.current();
+    if (provenanceToTokenId[_provenance] != 0x0) {
+      revert OriginAlreadyUsed();
+    }
 
-    _safeMint(recipient, token_id);
+    //EFFECTS
+    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(style_token_id);
 
-    tokenHeritage[token_id] = TokenHeritage(
+    token_id = BytesLib.toUint64(
+      abi.encodePacked(style_token_id, nextStyleMintId),
+      0
+    );
+
+    tokenProvenance[token_id] = TokenProvenance(
       msg.sender,
       origin_collection,
       origin_token_id,
       style_token_id
     );
 
-    bytes32 _heritageHash = heritageHash(
-      address(origin_collection),
-      origin_token_id
-    );
-    originToTokenId[uint256(_heritageHash)] = token_id;
+    provenanceToTokenId[_provenance] = token_id;
 
-    //interactions
-    //todo: important: check that this only can called by us.
-    //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
-    styleNFT.incrementMintedPerStyle(style_token_id);
+    //INTERACTIONS
+    splitMintFee(fee, style_token_id);
+    _safeMint(recipient, token_id);
 
     return token_id;
   }
