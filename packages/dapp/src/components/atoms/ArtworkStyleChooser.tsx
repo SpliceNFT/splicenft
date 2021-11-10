@@ -38,10 +38,10 @@ export const ArtworkStyleChooser = ({
           rightIcon={<ChevronDownIcon />}
         >
           <Text
-            fontWeight={selectedStyle ? 'bold' : 'medium'}
-            fontSize={selectedStyle ? 'sm' : 'xl'}
+            fontWeight={selectedStyle ? 'bold' : 'bold'}
+            fontSize={selectedStyle ? 'xl' : 'xl'}
           >
-            {selectedStyle ? 'change the style' : 'choose a style'}
+            {selectedStyle ? 'Change the style' : 'Choose a style'}
           </Text>
           {selectedStyle && (
             <Text fontWeight="medium" fontSize="md">
