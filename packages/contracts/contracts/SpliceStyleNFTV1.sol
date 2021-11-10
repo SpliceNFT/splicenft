@@ -1,8 +1,9 @@
 // contracts/StyleNFT.sol
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './ISpliceStyleNFT.sol';
@@ -11,11 +12,12 @@ import './StyleSettings.sol';
 
 contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
   using Counters for Counters.Counter;
+  using SafeCast for uint256;
 
-  Counters.Counter private _tokenIds;
+  Counters.Counter private _styleTokenIds;
 
   mapping(address => bool) public isArtist;
-  mapping(uint256 => StyleSettings) styleSettings;
+  mapping(uint32 => StyleSettings) styleSettings;
 
   address public spliceNFT;
 
@@ -60,51 +62,46 @@ contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
     return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  function tokenURI(uint256 tokenId)
-    public
-    view
-    override
-    returns (string memory)
-  {
+  function tokenURI(uint32 tokenId) public view returns (string memory) {
     require(
       _exists(tokenId),
       'ERC721Metadata: URI query for nonexistent token'
     );
     string memory metadataCID = styleSettings[tokenId].styleCID;
     require((bytes(metadataCID).length > 0), 'no CID stored');
-    return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
+    return _metadataURI(metadataCID);
   }
 
-  function quoteFee(IERC721 nft, uint256 style_token_id)
+  function quoteFee(IERC721 nft, uint32 style_token_id)
     external
     view
     override
-    returns (uint256)
+    returns (uint256 fee)
   {
     StyleSettings memory settings = styleSettings[style_token_id];
-    return settings.priceStrategy.quote(this, nft, style_token_id, settings);
+    fee = settings.priceStrategy.quote(this, nft, style_token_id, settings);
   }
 
-  function getSettings(uint256 token_id)
+  function getSettings(uint32 style_token_id)
     public
     view
     override
     returns (StyleSettings memory)
   {
-    return styleSettings[token_id];
+    return styleSettings[style_token_id];
   }
 
-  function mintsLeft(uint256 style_token_id)
+  function mintsLeft(uint32 style_token_id)
     public
     view
     override
-    returns (uint16)
+    returns (uint32)
   {
     StyleSettings memory settings = styleSettings[style_token_id];
     return settings.cap - settings.mintedOfStyle;
   }
 
-  function canMintOnStyle(uint256 style_token_id)
+  function canMintOnStyle(uint32 style_token_id)
     public
     view
     override
@@ -116,29 +113,28 @@ contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
   //todo: IMPORTANT check that this really can only be called by the Splice contract!
   //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
   //https://medium.com/@houzier.saurav/calling-functions-of-other-contracts-on-solidity-9c80eed05e0f
-  function incrementMintedPerStyle(uint256 style_token_id)
+  function incrementMintedPerStyle(uint32 style_token_id)
     external
     override
     onlySplice
-    returns (uint16)
+    returns (uint32)
   {
     require(canMintOnStyle(style_token_id), 'the style has been fully minted');
-    styleSettings[style_token_id].mintedOfStyle += 1; // = styleSettings[style_token_id] + 1;
+    styleSettings[style_token_id].mintedOfStyle += 1;
     return styleSettings[style_token_id].mintedOfStyle;
   }
 
   function mint(
-    uint16 _cap,
+    uint32 _cap,
     string memory _metadataCID,
     ISplicePriceStrategy _priceStrategy,
     bytes32 _priceStrategyParameters
-  ) external override onlyArtist returns (uint256) {
-    _tokenIds.increment();
-    uint256 newItemId = _tokenIds.current();
+  ) external override onlyArtist returns (uint32 style_token_id) {
+    //EFFECTS
+    _styleTokenIds.increment();
+    style_token_id = _styleTokenIds.current().toUint32();
 
-    _safeMint(msg.sender, newItemId);
-
-    styleSettings[newItemId] = StyleSettings({
+    styleSettings[style_token_id] = StyleSettings({
       cap: _cap,
       styleCID: _metadataCID,
       priceStrategy: _priceStrategy,
@@ -146,6 +142,7 @@ contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
       mintedOfStyle: 0
     });
 
-    return newItemId;
+    //INTERACTIONS
+    _safeMint(msg.sender, style_token_id);
   }
 }
