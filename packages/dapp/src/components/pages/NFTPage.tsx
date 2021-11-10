@@ -151,7 +151,7 @@ export const NFTPage = () => {
       <Breadcrumb>
         <BreadcrumbItem>
           <BreadcrumbLink as={NavLink} to="/my-assets">
-            Your Assets
+            Your NFTs
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
