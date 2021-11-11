@@ -25,7 +25,7 @@ export enum MintingState {
   FAILED
 }
 
-export type TokenHeritage = {
+export type TokenProvenance = {
   requestor: string;
   origin_collection: string;
   origin_token_id: BigNumber;
@@ -93,7 +93,7 @@ export class Splice {
     mintingFee
   }: {
     origin_collection: string;
-    origin_token_id: string | number;
+    origin_token_id: string | BigNumber;
     style_token_id: string | number;
     recipient: string;
     mintingFee: ethers.BigNumber;
@@ -101,6 +101,7 @@ export class Splice {
     const tx = await this.contract.mint(
       origin_collection,
       origin_token_id,
+      '0x0', //todo add calldata inputParams
       style_token_id,
       recipient,
       {
@@ -141,11 +142,11 @@ export class Splice {
     return this.contract.ownerOf(tokenId);
   }
 
-  public async findHeritage(
+  public async findProvenance(
     collectionAddress: string,
     tokenId: string | number
-  ): Promise<TokenHeritage | null> {
-    const heritageResult = await this.contract.findHeritage(
+  ): Promise<TokenProvenance | null> {
+    const heritageResult = await this.contract.findProvenance(
       collectionAddress,
       tokenId
     );
@@ -156,7 +157,7 @@ export class Splice {
     };
   }
 
-  public async getHeritage(tokenId: number): Promise<TokenHeritage | null> {
+  public async getHeritage(tokenId: number): Promise<TokenProvenance | null> {
     const result = await this.contract.tokenHeritage(tokenId);
 
     if (
@@ -181,7 +182,7 @@ export class Splice {
   public async getMetadataUrl(tokenId: number | string): Promise<string> {
     return await this.contract.tokenURI(tokenId);
   }
-  public async getMetadata(heritage: TokenHeritage): Promise<SpliceNFT> {
+  public async getMetadata(heritage: TokenProvenance): Promise<SpliceNFT> {
     const _metadataUrl = await this.getMetadataUrl(
       heritage.splice_token_id.toString()
     );

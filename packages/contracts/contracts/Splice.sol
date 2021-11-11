@@ -1,5 +1,23 @@
 // contracts/Splice.sol
 // SPDX-License-Identifier: MIT
+
+/*
+     LCL  SSL      CSL  SSL      LCI       ISL       LCL  ISL        CI  ISL
+     PEE  EEL      EES LEEL      IEE       EEI       PEE  EES       LEEL EES
+     PEE  EEL      EES LEEL      IEE       EEI       PEE  EES       LEEL EES
+     PEE  EEL      EES LEEL      IEE       LL        PEE  EES       LEEL LL 
+     PEE  EEL      EES LEEL      IEE                 PEE  EES       LEEL    
+     PEE  EEL      EES LEEL      IEE                 PEE  EES       LEEL LLL
+     PEE  LL       EES LEEL      IEE       IPL       PEE  LLL       LEEL EES
+LLL  PEE           EES  SSL      IEE       PEC       PEE  LLL       LEEL EES
+SEE  PEE           EES           IEE       PEC       PEE  EES       LEEL LLL
+SEE  PEE           EES           IEE       PEC       PEE  EES       LEEL    
+SEE  PEE           EES           IEE       PEC       PEE  EES       LEEL LL 
+SEE  PEE           EES           IEE       PEC       PEE  EES       LEEL EES
+SEE  PEE           EES           IEE       PEC       PEE  EES       LEEL EES
+LSI  LSI           LCL           LSS       ISL       LSI  ISL       LSS  ISL
+*/
+
 pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -10,8 +28,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol'
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol';
+
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
 import 'hardhat/console.sol';
@@ -20,25 +37,36 @@ import './BytesLib.sol';
 import './ISpliceStyleNFT.sol';
 import './SpliceStyleNFTV1.sol';
 
+/// @title Splice is a protocol to mint NFTs out of origin NFTs
+/// @author Stefan Adolf @elmariachi111
 contract Splice is
   ERC721EnumerableUpgradeable,
   OwnableUpgradeable,
   PausableUpgradeable,
   ReentrancyGuardUpgradeable
 {
-  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
-
+  /// @notice you didn't send sufficient fees along
   error InsufficientFees();
+
+  /// @notice you're not owning the origin NFT
   error NotOwningOrigin();
-  error OriginAlreadyUsed();
+
+  /// @notice The combination of origin and style already has been minted
+  error ProvenanceAlreadyUsed();
+
+  /// @notice The style cap has been reached. You can't mint more items using that style
   error MintingCapOnStyleReached();
+
+  /// @notice That token hasn't been minted (yet)
   error SpliceNotFound();
 
+  /// @notice Sales is not active on the splice contract
+  error SaleNotActive();
+
+  /// @notice token provenance describes where a splice token came from.
   struct TokenProvenance {
-    address requestor;
     IERC721 origin_collection;
     uint256 origin_token_id;
-    uint32 style_token_id;
   }
 
   uint8 public ARTIST_SHARE;
@@ -46,37 +74,34 @@ contract Splice is
   string private baseUri;
 
   //lookup table
-  //keccack(0xcollection + origin_token_id + style_token_id)  => token_id
+  //keccak(0xcollection + origin_token_id + style_token_id)  => token_id
   mapping(bytes32 => uint64) public provenanceToTokenId;
 
   //splice token ID => provenance
   mapping(uint64 => TokenProvenance) public tokenProvenance;
 
-  /**
-   * Validators are trusted accounts that must sign minting
-   * requests offchain before we allow minting them.
-   */
-  EnumerableSetUpgradeable.AddressSet private validators;
+  //keccak(0xcollection + origin_token_id)  => splice token ids
+  mapping(bytes32 => uint64[]) public originToTokenId;
 
   /**
-   * the contract that manages all styles as NFTs.
+   * @notice the contract that manages all styles as NFTs.
    * Styles are owned by artists and manage fee quoting.
    * Style NFTs are transferrable (you can sell your style to others)
    */
-  ISpliceStyleNFT private styleNFT;
+  ISpliceStyleNFT public styleNFT;
 
   /**
-   * the SPLICE platform account, i.e. a Gnosis Safe / DAO Vault etc.
+   * @notice the splice platform account, i.e. a Gnosis Safe / DAO Treasury etc.
    */
   address payable public platformBeneficiary;
 
   /**
-   * an Escrow that keeps funds safe (hope so),
-   * check: https://medium.com/[at]ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
+   * @dev an Escrow that keeps funds safe
+   * @dev check: https://medium.com/[at]ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
    */
   EscrowUpgradeable private feesEscrow;
 
-  //separate killswitch than Pauseable.
+  /// @notice separate killswitch than Pauseable.
   bool public saleIsActive;
 
   function initialize(
@@ -89,7 +114,7 @@ contract Splice is
     ARTIST_SHARE = 85;
     //todo: unsure if a gnosis safe is payable...
     platformBeneficiary = payable(msg.sender);
-    //todo check that the escrow now belongs to this contract.
+
     //todo ensure that the escrow can also support collection's accounts
     feesEscrow = new EscrowUpgradeable();
     feesEscrow.initialize();
@@ -138,24 +163,8 @@ contract Splice is
     ARTIST_SHARE = share;
   }
 
-  function addValidator(address _validator) public onlyOwner {
-    validators.add(_validator);
-  }
-
-  function removeValidator(address _validator) public onlyOwner {
-    validators.remove(_validator);
-  }
-
-  function getValidators() public view returns (address[] memory) {
-    return validators.values();
-  }
-
   function setStyleNFT(ISpliceStyleNFT _styleNFT) public onlyOwner {
     styleNFT = _styleNFT;
-  }
-
-  function getStyleNFT() public view returns (address) {
-    return address(styleNFT);
   }
 
   //todo: the platform benef. should be the only one to name a new beneficiary, not the owner.
@@ -164,24 +173,12 @@ contract Splice is
     platformBeneficiary = newAddress;
   }
 
-  function findProvenance(
-    IERC721 nft,
-    uint256 origin_token_id,
-    uint32 style_token_id
-  )
+  function spliceCountForOrigin(bytes32 _originHash)
     public
     view
-    returns (uint64 splice_token_id, TokenProvenance memory provenance)
+    returns (uint256)
   {
-    splice_token_id = provenanceToTokenId[
-      provenanceHash(address(nft), origin_token_id, style_token_id)
-    ];
-
-    if (splice_token_id == 0x0) {
-      revert SpliceNotFound();
-    }
-
-    provenance = tokenProvenance[splice_token_id];
+    return originToTokenId[_originHash].length;
   }
 
   function provenanceHash(
@@ -192,9 +189,17 @@ contract Splice is
     return keccak256(abi.encodePacked(nft, origin_token_id, style_token_id));
   }
 
-  function randomness(bytes32 _provenanceHash) public pure returns (uint32) {
-    bytes memory rm = abi.encodePacked(_provenanceHash);
-    return BytesLib.toUint32(rm, 0);
+  function originHash(address nft, uint256 origin_token_id)
+    public
+    pure
+    returns (bytes32)
+  {
+    return keccak256(abi.encodePacked(nft, origin_token_id));
+  }
+
+  /// @dev the randomness is defined as the first 32 bit of an origin hash
+  function randomness(bytes32 _originHash) public pure returns (uint32) {
+    return BytesLib.toUint32(abi.encodePacked(_originHash), 0);
   }
 
   function quote(IERC721 nft, uint32 style_token_id)
@@ -202,6 +207,10 @@ contract Splice is
     view
     returns (uint256 fee)
   {
+    if (!saleIsActive) {
+      revert SaleNotActive();
+    }
+
     if (!styleNFT.canMintOnStyle(style_token_id)) {
       revert MintingCapOnStyleReached();
     }
@@ -242,8 +251,7 @@ contract Splice is
     IERC721 origin_collection,
     uint256 origin_token_id,
     bytes calldata input_params,
-    uint32 style_token_id,
-    address recipient
+    uint32 style_token_id
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     require(saleIsActive);
 
@@ -257,14 +265,14 @@ contract Splice is
     uint256 fee = quote(origin_collection, style_token_id);
     if (msg.value < fee) revert InsufficientFees();
 
-    bytes32 _provenance = provenanceHash(
+    bytes32 _provenanceHash = provenanceHash(
       address(origin_collection),
       origin_token_id,
       style_token_id
     );
 
-    if (provenanceToTokenId[_provenance] != 0x0) {
-      revert OriginAlreadyUsed();
+    if (provenanceToTokenId[_provenanceHash] != 0x0) {
+      revert ProvenanceAlreadyUsed();
     }
 
     //EFFECTS
@@ -276,17 +284,17 @@ contract Splice is
     );
 
     tokenProvenance[token_id] = TokenProvenance(
-      msg.sender,
       origin_collection,
-      origin_token_id,
-      style_token_id
+      origin_token_id
     );
 
-    provenanceToTokenId[_provenance] = token_id;
+    provenanceToTokenId[_provenanceHash] = token_id;
+    originToTokenId[originHash(address(origin_collection), origin_token_id)]
+      .push(token_id);
 
     //INTERACTIONS
     splitMintFee(fee, style_token_id);
-    _safeMint(recipient, token_id);
+    _safeMint(msg.sender, token_id);
 
     return token_id;
   }
