@@ -62,12 +62,18 @@ contract SpliceStyleNFTV1 is ERC721Enumerable, Ownable, ISpliceStyleNFT {
     return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  function tokenURI(uint32 tokenId) public view returns (string memory) {
+  //todo: check the 256 => 32 downcast
+  function tokenURI(uint256 tokenId)
+    public
+    view
+    override
+    returns (string memory)
+  {
     require(
       _exists(tokenId),
       'ERC721Metadata: URI query for nonexistent token'
     );
-    string memory metadataCID = styleSettings[tokenId].styleCID;
+    string memory metadataCID = styleSettings[uint32(tokenId)].styleCID;
     require((bytes(metadataCID).length > 0), 'no CID stored');
     return _metadataURI(metadataCID);
   }

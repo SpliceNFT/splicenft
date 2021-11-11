@@ -1,48 +1,58 @@
 import { expect } from 'chai';
-import { Signer } from 'ethers';
-import { ethers, upgrades } from 'hardhat';
+import { Signer, Event, ContractReceipt } from 'ethers';
+import { ethers } from 'hardhat';
+
 import {
   Splice,
-  Splice__factory,
-  TestnetNFT,
-  TestnetNFT__factory
+  SplicePriceStrategyStatic,
+  SpliceStyleNFTV1,
+  SpliceStyleNFTV1__factory,
+  TestnetNFT
 } from '../typechain';
 import { TransferEvent } from '../typechain/ERC721';
-import { MintRequestedEvent } from '../typechain/Splice';
+import {
+  deploySplice,
+  deployStaticPriceStrategy,
+  deployTestnetNFT
+} from './lib/deployContracts';
+import { mintStyle, tokenIdToStyleAndToken } from './lib/helpers';
 
 describe('Splice', function () {
-  let nft: TestnetNFT;
+  let testNft: TestnetNFT;
   let splice: Splice;
+  let priceStrategy: SplicePriceStrategyStatic;
+  let styleNFT: SpliceStyleNFTV1;
+
   let signers: Signer[];
+  let _artist: Signer;
+  let _user: Signer;
+  let _owner: Signer;
 
   beforeEach(async function () {
     signers = await ethers.getSigners();
+    _owner = signers[0];
+    _artist = signers[18];
+    _user = signers[19];
   });
 
-  it('deploys nft and splice', async function () {
-    const TestnetNFTFactory = (await ethers.getContractFactory(
-      'TestnetNFT'
-    )) as TestnetNFT__factory;
-    nft = (await TestnetNFTFactory.deploy(
-      'TestnetNFT',
-      'COOL',
-      'https://api.coolcatsnft.com/cat/',
-      10000
-    )) as TestnetNFT;
+  it('deploys nft, splice & creates a style', async function () {
+    splice = await deploySplice();
+    testNft = await deployTestnetNFT();
+    priceStrategy = await deployStaticPriceStrategy();
+    const styleNftAddress = await splice.styleNFT();
+    styleNFT = SpliceStyleNFTV1__factory.connect(styleNftAddress, signers[0]);
 
-    const SpliceFactory = (await ethers.getContractFactory(
-      'Splice'
-    )) as Splice__factory;
-    splice = (await upgrades.deployProxy(SpliceFactory, [
-      'Splice',
-      'SPLICE'
-    ])) as Splice;
+    const artistAddress = await _artist.getAddress();
+    await (await styleNFT.allowArtist(artistAddress)).wait();
+
+    const _styleNft = styleNFT.connect(_artist);
+    await mintStyle(_styleNft, priceStrategy.address, '0.1');
   });
 
   it('gets an nft on the test collection', async function () {
-    const requestor = await signers[19].getAddress();
-    nft.connect(signers[19]);
-    const transaction = await nft.mint(requestor);
+    const _nft = testNft.connect(_user);
+
+    const transaction = await _nft.mint(await _user.getAddress());
     const result = await transaction.wait();
     expect(result.events).to.exist;
 
@@ -50,68 +60,232 @@ describe('Splice', function () {
     expect(transferEvent.args.tokenId).to.eq(1);
   });
 
-  // it('can not mint on non whitelisted collections', async function () {
-  //   const requestor = await signers[19].getAddress();
-  //   splice.connect(signers[19]);
+  it('quotes the minting fee', async function () {
+    const saleIsActive = await splice.saleIsActive();
+    expect(saleIsActive).to.be.false;
+    try {
+      const fee = await splice.quote(testNft.address, 1);
+      expect.fail("quoting shouldn't be possible when sale is not active");
+    } catch (e: any) {
+      expect(e.message).contains('SaleNotActive');
+    }
 
-  //   const tx = await splice.requestMint(
-  //     nft.address,
-  //     1,
-  //     '0xabcdef',
-  //     '0xff3300ee99ff333344',
-  //     requestor
-  //   );
-  // });
-
-  it('can request a mint job and stores its metadata url on chain', async function () {
-    await splice.allowCollection(nft.address, 3);
-
-    const requestor = await signers[19].getAddress();
-    splice = splice.connect(signers[19]);
-
-    //it would be great to save data like this
-    //but that's definitely harder with cid v1
-    // const content = 'this is a text file.\n';
-    // const cid = await IpfsHash.of(content);
-    // expect(cid).to.equal('QmfBAZkuu5DLDcPztFHzsaV3UDourKqqPsqm2x1KYFULSY');
-    // const bcid = CID.parse(cid);
-    // const cidBytes = Buffer.from(bcid.bytes.slice(2));
-    // const cidHex = `0x${cidBytes.toString('hex')}`;
-
-    //this is what nft.storage returns:
-    const metadataUrl =
-      'ipfs://bafyreigzd5kddqovnuocdro4ck27yemkd3p565mqiixpkpyiub6ww56xhm/metadata.json';
-
-    let cid = metadataUrl.replace('ipfs://', '');
-    cid = cid.replace('/metadata.json', '');
-
-    const tx = await splice.requestMint(nft.address, 1, cid, requestor);
-    const result = await tx.wait();
-    const requestedEvent: MintRequestedEvent =
-      result.events![0] as MintRequestedEvent;
-    const jobId = requestedEvent.args.jobId;
-
-    expect(jobId).to.equal(0);
+    await (await splice.toggleSaleIsActive(true)).wait();
+    const fee = await splice.quote(testNft.address, 1);
+    const weiFee = ethers.utils.formatUnits(fee, 'ether');
+    expect(weiFee).to.equal('0.1');
   });
 
-  it('can retrieve a mint job and read the metadata from chain', async function () {
-    const mintJob = await splice.getMintJob(0);
-    expect(mintJob.token_id).to.equal(1);
-    expect(mintJob.collection).to.equal(nft.address);
-    expect(mintJob.requestor).to.equal(await signers[19].getAddress());
+  it('reverts when youre not sending sufficient fees along', async function () {
+    const _splice = splice.connect(_user);
 
-    const jobMetaDataURI = await splice.getJobMetadataURI(0);
+    try {
+      const receipt = await (
+        await _splice.mint(testNft.address, 1, ethers.constants.HashZero, 1)
+      ).wait();
+      expect.fail('shouldnt work because no fees have been sent along');
+    } catch (e: any) {
+      expect(e.message).contains('InsufficientFees');
+    }
+  });
 
-    expect(jobMetaDataURI).to.be.equal(
-      'ipfs://bafyreigzd5kddqovnuocdro4ck27yemkd3p565mqiixpkpyiub6ww56xhm/metadata.json'
+  it('mints a splice from an origin', async function () {
+    const _splice = splice.connect(_user);
+    const fee = await splice.quote(testNft.address, 1);
+    const receipt = await (
+      await _splice.mint(testNft.address, 1, ethers.constants.HashZero, 1, {
+        value: fee
+      })
+    ).wait();
+
+    const transferEvent = receipt.events?.find(
+      (e: Event) => e.event === 'Transfer'
+    );
+
+    expect(transferEvent).to.not.be.undefined;
+    const combinedTokenId = (transferEvent as TransferEvent).args.tokenId;
+
+    const { token_id, style_token_id } =
+      tokenIdToStyleAndToken(combinedTokenId);
+
+    expect(token_id).to.equal(1);
+    expect(style_token_id).to.equal(1);
+  });
+
+  it('cannot mint another splice from the same origin and style', async function () {
+    const _splice = splice.connect(_user);
+    const fee = await _splice.quote(testNft.address, 1);
+    try {
+      await _splice.mint(testNft.address, 1, [], 1, {
+        value: fee
+      });
+
+      expect.fail('contract should fail because provenance has been used');
+    } catch (e: any) {
+      expect(e.message).contains('ProvenanceAlreadyUsed');
+    }
+  });
+
+  it('can mint another splice from the same origin and different style', async function () {
+    const _splice = splice.connect(_user);
+
+    await mintStyle(styleNFT.connect(_artist), priceStrategy.address, '0.2');
+
+    const fee = await splice.quote(testNft.address, 2);
+
+    const receipt = await (
+      await _splice.mint(testNft.address, 1, [], 2, {
+        value: fee
+      })
+    ).wait();
+
+    const transferEvent = receipt.events?.find(
+      (e: Event) => e.event === 'Transfer'
+    );
+
+    expect(transferEvent).to.not.be.undefined;
+    const combinedTokenId = (transferEvent as TransferEvent).args.tokenId;
+
+    const { token_id, style_token_id } =
+      tokenIdToStyleAndToken(combinedTokenId);
+
+    expect(token_id).to.equal(1);
+    expect(style_token_id).to.equal(2);
+  });
+
+  it('can lookup splices of an origin', async function () {
+    const originHash = await splice.originHash(testNft.address, 1);
+    const spliceCount = await splice.spliceCountForOrigin(originHash);
+    expect(spliceCount).to.equal(2);
+
+    const firstSpliceId = await splice.originToTokenId(originHash, 0);
+    const first = tokenIdToStyleAndToken(firstSpliceId);
+    expect(first.style_token_id).to.equal(1);
+    expect(first.token_id).to.equal(1);
+
+    const secondSpliceId = await splice.originToTokenId(originHash, 1);
+    const second = tokenIdToStyleAndToken(secondSpliceId);
+    expect(second.style_token_id).to.equal(2);
+    expect(second.token_id).to.equal(1);
+    try {
+      const unknownSpliceId = await splice.originToTokenId(originHash, 2);
+      expect.fail('it mustnt be possible to read outside array bounds');
+    } catch (e: any) {
+      expect(e.message).to.contain('Transaction reverted');
+    }
+  });
+
+  it('withdraws shared funds from escrow', async function () {
+    const artistCollectedFees = await splice.shareBalanceOf(
+      await _artist.getAddress()
+    );
+    const artistEth = ethers.utils.formatUnits(artistCollectedFees, 'ether');
+    const expected = (0.1 + 0.2) * 0.85; //1 mint for 0.1, 1 mint for 0.2 times 85% share
+    expect(expected.toString()).to.equal(artistEth);
+
+    const curBalance = await _artist.getBalance();
+    const _splice = splice.connect(_artist);
+    await (await _splice.withdrawShares()).wait();
+    const newBalance = await _artist.getBalance();
+    const diff = parseFloat(
+      ethers.utils.formatUnits(newBalance.sub(curBalance), 'ether')
+    );
+    expect(expected - diff).to.be.lessThan(0.001); //gas fees ;)
+
+    const ownerCurBalance = await _owner.getBalance();
+    await (await splice.withdrawShares()).wait();
+    const ownerNewBalance = await _owner.getBalance();
+    const ownerDiff = parseFloat(
+      ethers.utils.formatUnits(ownerNewBalance.sub(ownerCurBalance), 'ether')
+    );
+    const ownerExpected = (0.1 + 0.2) * 0.15;
+    expect(ownerExpected - ownerDiff).to.be.lessThan(0.001);
+  });
+
+  it('reallocates funds to new owners of the style token', async function () {
+    const _styleNFT = styleNFT.connect(_artist);
+    const anotherArtist = (await ethers.getSigners())[15];
+    const _anotherArtistAddress = await anotherArtist.getAddress();
+    await (
+      await _styleNFT.transferFrom(
+        await _artist.getAddress(),
+        await _anotherArtistAddress,
+        2
+      )
+    ).wait();
+
+    expect(await _styleNFT.ownerOf(2)).to.be.equal(_anotherArtistAddress);
+    const _nft = testNft.connect(_user);
+    await (await _nft.mint(await _user.getAddress())).wait();
+
+    const _splice = splice.connect(_user);
+    const fee = await splice.quote(testNft.address, 2);
+
+    await (
+      await _splice.mint(testNft.address, 2, [], 2, {
+        value: fee
+      })
+    ).wait();
+
+    const artistShares = await _splice.shareBalanceOf(
+      await _artist.getAddress()
+    );
+    expect(artistShares.isZero()).to.be.true;
+
+    const anotherArtistShares = await _splice.shareBalanceOf(
+      _anotherArtistAddress
+    );
+    const expected = 0.2 * 0.85;
+    expect(ethers.utils.formatUnits(anotherArtistShares, 'ether')).to.be.equal(
+      expected.toString()
     );
   });
+  it('disallows writing on or replacing the style nft', async function () {
+    try {
+      await styleNFT.incrementMintedPerStyle(2);
+      expect.fail(
+        "it shouldn't be possible to access the style contract directly"
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('only callable by Splice');
+    }
 
-  // it('can compute randomness on and offchain', async () => {
-  //   //import { Splice as CSplice } from '@splicenft/common';
-  //   const rnd = await splice.randomness(nft.address, 1);
-  //   const rndLocal = CSplice.computeRandomnessLocally(nft.address, 1);
+    try {
+      const _splice = splice.connect(_user);
+      await (await _splice.setStyleNFT(ethers.constants.AddressZero)).wait();
+      expect.fail(
+        'no one other than owner should be able to set the style nft'
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('Ownable: caller is not the owner');
+    }
+  });
+  it('can not mint when paused', async function () {
+    const fee = await splice.quote(testNft.address, 2);
 
-  //   expect(rnd).to.be.equal(rndLocal);
-  // });
+    await splice.pause();
+    const _splice = splice.connect(_user);
+    try {
+      await (
+        await _splice.mint(testNft.address, 2, [], 2, {
+          value: fee
+        })
+      ).wait();
+      expect.fail('minting shouldnt be possible when paused');
+    } catch (e: any) {
+      expect(e.message).to.contain('Pausable: paused');
+    }
+    await splice.unpause();
+  });
+  it('can not withdraw from escrow when paused', async function () {
+    await splice.pause();
+    try {
+      await (await splice.withdrawShares()).wait();
+      expect.fail('it shouldnt be possible to withdraw shares when paused');
+    } catch (e: any) {
+      expect(e.message).to.contain('Pausable: paused');
+    }
+  });
+  it.skip('withdraws ERC20 tokens that have been transferred to it');
+  it.skip('allows any account to trigger a withdrawal'); // not implemented
 });
