@@ -57,7 +57,7 @@ export const NFTDescription = ({
                   <Text>
                     Built on: {props.code_library} {props.code_library_version}
                   </Text>
-                  {props.license && <Text>{props.license}</Text>}
+                  License: {props.license && <Text>{props.license}</Text>}
                 </Flex>
               </Flex>
             )}
