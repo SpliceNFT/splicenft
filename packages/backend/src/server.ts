@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 app.use(cors());
 
-const styleCache = new StyleCache([4, 31337]);
+const styleCache = new StyleCache([31337]);
 styleCache.init();
 
 const GRAYSCALE_COLORS: RGB[] = [
@@ -59,7 +59,7 @@ const ImageCallback = (res: Response) => {
 //generic renderer
 app.get('/render/:network/:style_token_id', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  const styleTokenId = req.params.style_token_id;
+  const styleTokenId = parseInt(req.params.style_token_id);
 
   const cache = styleCache.getCache(networkId);
   if (!cache) return res.status(500).send(`network ${networkId} not supported`);
@@ -90,7 +90,7 @@ app.get('/render/:network/:style_token_id', async (req, res) => {
 
 app.get('/styles/:network/:style_token_id', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  const styleTokenId = req.params.style_token_id;
+  const styleTokenId = parseInt(req.params.style_token_id);
 
   const cache = styleCache.getCache(networkId);
   if (!cache) return res.status(500).send(`network ${networkId} not supported`);

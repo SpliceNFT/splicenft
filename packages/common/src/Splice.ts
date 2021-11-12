@@ -125,7 +125,7 @@ export class Splice {
 
   public async quote(
     collection: string,
-    styleTokenId: string
+    styleTokenId: number
   ): Promise<BigNumber> {
     const quoteWei = await this.contract.quote(collection, styleTokenId);
     return quoteWei;
@@ -143,7 +143,7 @@ export class Splice {
     style_token_id: string | number;
     additionalData?: Uint8Array;
     mintingFee: ethers.BigNumber;
-  }): Promise<{ transactionHash: string; spliceTokenId: number }> {
+  }): Promise<{ transactionHash: string; spliceTokenId: BigNumber }> {
     const inputParams = ethers.utils.hexlify(additionalData || []);
     const tx = await this.contract.mint(
       origin_collection,
@@ -164,7 +164,7 @@ export class Splice {
     }
     return {
       transactionHash: result.transactionHash,
-      spliceTokenId: transferEvent.args.tokenId.toNumber()
+      spliceTokenId: transferEvent.args.tokenId
     };
   }
 
@@ -174,7 +174,7 @@ export class Splice {
   public async findProvenances(
     collectionAddress: string,
     tokenId: string
-  ): Promise<TokenProvenance[] | null> {
+  ): Promise<TokenProvenance[]> {
     const originHash = Splice.originHash(collectionAddress, tokenId);
     const spliceCount = (
       await this.contract.spliceCountForOrigin(originHash)
