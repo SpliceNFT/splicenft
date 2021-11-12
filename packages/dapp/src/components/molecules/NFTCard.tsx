@@ -8,7 +8,7 @@ import {
 import {
   NFTItemInTransit,
   NFTMetaData,
-  TokenHeritage
+  TokenProvenance
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -18,7 +18,7 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
-  const [heritage, setHeritage] = useState<TokenHeritage>();
+  const [provenances, setProvenances] = useState<TokenProvenance[]>([]);
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
 
   const { splice } = useSplice();
@@ -36,15 +36,10 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
 
   useEffect(() => {
     if (!splice) return;
-
     (async () => {
-      const _heritage = await splice.findHeritage(
-        nft.contract_address,
-        nft.token_id
+      setProvenances(
+        await splice.findProvenances(nft.contract_address, nft.token_id)
       );
-      if (_heritage) {
-        setHeritage(_heritage);
-      }
     })();
   }, [splice]);
 
@@ -77,9 +72,9 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
               <Text color="white">{truncateAddress(nft.contract_address)}</Text>
             </Flex>
 
-            {heritage && (
+            {provenances.length > 0 && (
               <Flex direction="column">
-                <Text color="white">Minted</Text>
+                <Text color="white">Minted {provenances.length}</Text>
               </Flex>
             )}
           </Flex>
