@@ -22,7 +22,7 @@ const Metadata = async (
   );
   const originNftName = await originNftContract.name();
 
-  const style = styleCache.getStyle(provenance.style_token_id.toString());
+  const style = styleCache.getStyle(provenance.style_token_id);
   if (!style) throw new Error(`style token seems corrupt`);
 
   const originMetadata = await getOriginMetadata(
@@ -51,7 +51,7 @@ const Metadata = async (
       origin_token_id: provenance.origin_token_id.toString(),
       style_collection: style.getCollectionAddress(),
       style_metadata_url: style.getMetadataUrl(),
-      style_token_id: style.tokenId.toString()
+      style_token_id: style.tokenId
     }
   };
   Cache.store(key, ret);

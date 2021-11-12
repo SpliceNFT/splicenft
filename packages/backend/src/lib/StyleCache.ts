@@ -22,7 +22,7 @@ export class StyleMetadataCache {
     return this.styles;
   }
 
-  public getStyle(tokenId: string) {
+  public getStyle(tokenId: number) {
     return this.styles.find((s) => s.tokenId === tokenId);
   }
 
@@ -32,8 +32,8 @@ export class StyleMetadataCache {
     console.debug('[%s] fetching style metadata', this.networkId);
 
     const splice = getSplice(this.networkId);
-    const allStyles = await splice.getAllStyles();
     const styleCollection = await splice.getStyleNFT();
+    const allStyles = await splice.getAllStyles();
 
     const promises = allStyles.map((tokenMetadataResponse) => {
       const { tokenId, metadataUrl } = tokenMetadataResponse;
@@ -66,7 +66,7 @@ export class StyleMetadataCache {
 
         const style = new Style(
           styleCollection.address,
-          tokenId,
+          parseInt(tokenId),
           metadataUrl,
           metadata
         );
