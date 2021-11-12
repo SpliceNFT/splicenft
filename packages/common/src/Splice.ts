@@ -26,11 +26,13 @@ export enum MintingState {
 }
 
 export type TokenProvenance = {
-  requestor: string;
   origin_collection: string;
   origin_token_id: BigNumber;
-  style_token_id: BigNumber;
   splice_token_id: BigNumber;
+  //these are contianed in splice_token_id
+  //see tokenIdToStyleAndToken
+  style_token_id: number;
+  style_token_token_id: number;
 };
 
 export type TokenMetadataResponse = { tokenId: string; metadataUrl: string };
@@ -64,7 +66,7 @@ export class Splice {
   public async getStyleNFT(): Promise<StyleNFTContract> {
     if (this.styleNFTContract) return this.styleNFTContract;
 
-    const styleNFTAddress = await this.contract.getStyleNFT();
+    const styleNFTAddress = await this.contract.styleNFT();
 
     this.styleNFTContract = StyleNFTFactory.connect(
       styleNFTAddress,
@@ -77,6 +79,45 @@ export class Splice {
     const network = await this.contract.provider.getNetwork();
     return network.chainId;
   }
+
+  public async ownerOf(tokenId: BigNumber | string): Promise<string> {
+    return this.contract.ownerOf(tokenId);
+  }
+
+  public static tokenIdToStyleAndToken(tokenId: BigNumber): {
+    style_token_id: number;
+    token_id: number;
+  } {
+    const hxToken = utils.arrayify(utils.zeroPad(tokenId.toHexString(), 8));
+    return {
+      style_token_id: BigNumber.from(hxToken.slice(0, 4)).toNumber(),
+      token_id: BigNumber.from(hxToken.slice(4)).toNumber()
+    };
+  }
+
+  /**
+   * same as in solidity
+   */
+  public static originHash(collectionAddress: string, tokenId: string): string {
+    const bnToken = BigNumber.from(tokenId);
+    const hxToken = utils.hexZeroPad(bnToken.toHexString(), 32);
+    const inp = `${collectionAddress}${hxToken.slice(2)}`;
+    return utils.keccak256(inp);
+  }
+
+  //todo: allow tokenId to be BigNumber
+  public static computeRandomness(
+    collectionAddress: string,
+    tokenId: string
+  ): number {
+    //todo: check behaviour between this and solidity (js max int)
+    //keccak256(abi.encodePacked(address(nft), token_id));
+
+    const bytes = utils.arrayify(Splice.originHash(collectionAddress, tokenId));
+    const _randomness = new DataView(bytes.buffer).getUint32(0);
+    return _randomness;
+  }
+
   public async quote(
     collection: string,
     styleTokenId: string
@@ -89,21 +130,21 @@ export class Splice {
     origin_collection,
     origin_token_id,
     style_token_id,
-    recipient,
+    additionalData,
     mintingFee
   }: {
     origin_collection: string;
     origin_token_id: string | BigNumber;
     style_token_id: string | number;
-    recipient: string;
+    additionalData?: Uint8Array;
     mintingFee: ethers.BigNumber;
   }): Promise<{ transactionHash: string; spliceTokenId: number }> {
+    const inputParams = ethers.utils.hexlify(additionalData || []);
     const tx = await this.contract.mint(
       origin_collection,
       origin_token_id,
-      '0x0', //todo add calldata inputParams
       style_token_id,
-      recipient,
+      inputParams,
       {
         value: mintingFee
       }
@@ -122,54 +163,61 @@ export class Splice {
     };
   }
 
-  //todo: allow tokenId to be BigNumber
-  public static computeRandomness(
-    collection: string,
-    token_id: string | number
-  ): number {
-    //todo: check behaviour between this and solidity (js max int)
-    //keccak256(abi.encodePacked(address(nft), token_id));
-    const bnToken = BigNumber.from(token_id);
-    const hxToken = utils.hexZeroPad(bnToken.toHexString(), 32);
-    const inp = `${collection}${hxToken.slice(2)}`;
-    const kecc = utils.keccak256(inp);
-    const bytes = utils.arrayify(kecc);
-    const _randomness = new DataView(bytes.buffer).getUint32(0);
-    return _randomness;
-  }
-
-  public async ownerOf(tokenId: BigNumber | string): Promise<string> {
-    return this.contract.ownerOf(tokenId);
-  }
-
-  public async findProvenance(
+  /**
+   * @description find all splices for an origin
+   */
+  public async findProvenances(
     collectionAddress: string,
-    tokenId: string | number
-  ): Promise<TokenProvenance | null> {
-    const heritageResult = await this.contract.findProvenance(
-      collectionAddress,
-      tokenId
-    );
-    if (heritageResult.splice_token_id.isZero()) return null;
-    return {
-      ...heritageResult.heritage,
-      splice_token_id: heritageResult.splice_token_id
-    };
+    tokenId: string
+  ): Promise<TokenProvenance[] | null> {
+    const originHash = Splice.originHash(collectionAddress, tokenId);
+    const spliceCount = (
+      await this.contract.spliceCountForOrigin(originHash)
+    ).toNumber();
+    const ret: TokenProvenance[] = [];
+
+    if (spliceCount === 0) return [];
+    for (let i = 0; i < spliceCount; i++) {
+      const spliceTokenId = await this.contract.originToTokenId(originHash, i);
+      const { style_token_id, token_id: style_token_token_id } =
+        Splice.tokenIdToStyleAndToken(spliceTokenId);
+      ret.push({
+        origin_collection: collectionAddress,
+        origin_token_id: ethers.BigNumber.from(tokenId),
+        splice_token_id: spliceTokenId,
+        style_token_id,
+        style_token_token_id
+      });
+    }
+    return ret;
   }
 
-  public async getHeritage(tokenId: number): Promise<TokenProvenance | null> {
-    const result = await this.contract.tokenHeritage(tokenId);
+  public async getProvenance(
+    spliceTokenId: string | BigNumber
+  ): Promise<TokenProvenance | null> {
+    const bnTokenId: BigNumber =
+      'string' === typeof spliceTokenId
+        ? BigNumber.from(spliceTokenId)
+        : spliceTokenId;
 
+    const { style_token_id, token_id: style_token_token_id } =
+      Splice.tokenIdToStyleAndToken(bnTokenId);
+
+    const provenance = await this.contract.tokenProvenance(spliceTokenId);
     if (
-      result.origin_token_id.isZero() ||
-      result.origin_collection === ethers.constants.AddressZero
+      provenance.origin_token_id.isZero() ||
+      provenance.origin_collection === ethers.constants.AddressZero
     ) {
       return null;
-    } else
-      return {
-        ...result,
-        splice_token_id: BigNumber.from(tokenId)
-      };
+    }
+
+    return {
+      origin_collection: provenance.origin_collection,
+      origin_token_id: provenance.origin_token_id,
+      splice_token_id: bnTokenId,
+      style_token_id,
+      style_token_token_id
+    };
   }
 
   public getOriginNftContract(address: string) {
@@ -179,16 +227,20 @@ export class Splice {
     );
   }
 
-  public async getMetadataUrl(tokenId: number | string): Promise<string> {
+  public async getMetadataUrl(
+    tokenId: BigNumber | number | string
+  ): Promise<string> {
     return await this.contract.tokenURI(tokenId);
   }
-  public async getMetadata(heritage: TokenProvenance): Promise<SpliceNFT> {
-    const _metadataUrl = await this.getMetadataUrl(
-      heritage.splice_token_id.toString()
-    );
+
+  public async getMetadata(provenance: TokenProvenance): Promise<SpliceNFT> {
+    const _metadataUrl = await this.getMetadataUrl(provenance.splice_token_id);
     return this.fetchMetadata(_metadataUrl);
   }
 
+  /**
+   * adds the metadata url to the metadata result
+   */
   public async fetchMetadata(metadataUrl: string): Promise<SpliceNFT> {
     const metadata = (await (
       await axios.get(ipfsGW(metadataUrl))
@@ -197,7 +249,7 @@ export class Splice {
     return metadata;
   }
 
-  //todo: this might get highly expensive
+  //todo: this might become highly expensive
   //needs a subgraph!
   public async getAllStyles(): Promise<TokenMetadataResponse[]> {
     const styleNFT = await this.getStyleNFT();
@@ -217,7 +269,10 @@ export class Splice {
     return Promise.all(promises);
   }
 
-  //todo: this also could be provided by an API or NFTPort
+  /**
+   * @description gets all splices an user owns.
+   * @todo: this also could be provided by an API or NFTPort
+   */
   public async getAllSplices(
     address: string,
     splicesPerPage = 20
