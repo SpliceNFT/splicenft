@@ -81,7 +81,7 @@ describe('Splice', function () {
 
     try {
       const receipt = await (
-        await _splice.mint(testNft.address, 1, ethers.constants.HashZero, 1)
+        await _splice.mint(testNft.address, 1, 1, ethers.constants.HashZero)
       ).wait();
       expect.fail('shouldnt work because no fees have been sent along');
     } catch (e: any) {
@@ -93,7 +93,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await splice.quote(testNft.address, 1);
     const receipt = await (
-      await _splice.mint(testNft.address, 1, ethers.constants.HashZero, 1, {
+      await _splice.mint(testNft.address, 1, 1, ethers.constants.HashZero, {
         value: fee
       })
     ).wait();
@@ -116,7 +116,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await _splice.quote(testNft.address, 1);
     try {
-      await _splice.mint(testNft.address, 1, [], 1, {
+      await _splice.mint(testNft.address, 1, 1, [], {
         value: fee
       });
 
@@ -134,7 +134,7 @@ describe('Splice', function () {
     const fee = await splice.quote(testNft.address, 2);
 
     const receipt = await (
-      await _splice.mint(testNft.address, 1, [], 2, {
+      await _splice.mint(testNft.address, 1, 2, [], {
         value: fee
       })
     ).wait();
@@ -168,7 +168,7 @@ describe('Splice', function () {
     expect(second.style_token_id).to.equal(2);
     expect(second.token_id).to.equal(1);
     try {
-      const unknownSpliceId = await splice.originToTokenId(originHash, 2);
+      await splice.originToTokenId(originHash, 2);
       expect.fail('it mustnt be possible to read outside array bounds');
     } catch (e: any) {
       expect(e.message).to.contain('Transaction reverted');
@@ -222,7 +222,7 @@ describe('Splice', function () {
     const fee = await splice.quote(testNft.address, 2);
 
     await (
-      await _splice.mint(testNft.address, 2, [], 2, {
+      await _splice.mint(testNft.address, 2, 2, [], {
         value: fee
       })
     ).wait();
@@ -267,7 +267,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     try {
       await (
-        await _splice.mint(testNft.address, 2, [], 2, {
+        await _splice.mint(testNft.address, 2, 2, [], {
           value: fee
         })
       ).wait();

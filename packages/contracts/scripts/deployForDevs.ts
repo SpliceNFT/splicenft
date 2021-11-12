@@ -85,9 +85,6 @@ const deployTestnetNFT = async (
 
   await splice.toggleSaleIsActive(true);
 
-  await splice.addValidator(accounts[0].address);
-  console.log('added validator', accounts[0].address);
-
   for await (const style of [
     'ConfidenceInTheMission',
     'ABeginningIsAVeryDelicateTime',
