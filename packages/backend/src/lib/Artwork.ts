@@ -6,17 +6,17 @@ import { StyleMetadataCache } from './StyleCache';
 
 export default async function Artwork(
   styleCache: StyleMetadataCache,
-  tokenId: number,
+  spliceTokenId: string,
   callback: (err: any | null, stream: Readable) => unknown
 ) {
-  const key = `${styleCache.network}/splice/images/${tokenId}.png`;
+  const key = `${styleCache.network}/splice/images/${spliceTokenId}.png`;
 
   const stream = await Cache.lookupBinary(key);
   if (stream) {
     return callback(null, stream);
   }
 
-  const spliceMetadata = await Metadata(styleCache, tokenId);
+  const spliceMetadata = await Metadata(styleCache, spliceTokenId);
   const style = styleCache.getStyle(spliceMetadata.splice.style_token_id);
   if (!style) throw new Error('no style on metadata ?!');
   const renderer = await style.getRenderer();

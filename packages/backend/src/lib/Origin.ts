@@ -6,7 +6,7 @@ import {
   resolveImage,
   RGB,
   Splice,
-  TokenHeritage
+  TokenProvenance
 } from '@splicenft/common';
 import axios from 'axios';
 import { ethers } from 'ethers';
@@ -42,15 +42,15 @@ export async function getOriginMetadata(
 }
 
 export async function extractOriginFeatures(
-  heritage: TokenHeritage,
+  provenance: TokenProvenance,
   originMetadata: NFTMetaData
 ): Promise<{ palette: RGB[]; randomness: number }> {
   const originPixels = await extractOriginImage(resolveImage(originMetadata));
   const palette = extractPalette(new Uint8Array(originPixels));
 
   const randomness = Splice.computeRandomness(
-    heritage.origin_collection,
-    heritage.origin_token_id.toNumber()
+    provenance.origin_collection,
+    provenance.origin_token_id.toString()
   );
 
   return {

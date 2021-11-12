@@ -6,46 +6,49 @@ import { StyleMetadataCache } from './StyleCache';
 
 const Metadata = async (
   styleCache: StyleMetadataCache,
-  tokenId: number
+  spliceTokenId: string
 ): Promise<SpliceNFT> => {
-  const key = `${styleCache.network}/splice/metadata/${tokenId}.json`;
+  const key = `${styleCache.network}/splice/metadata/${spliceTokenId}.json`;
 
   const cached = await Cache.lookupJSON<SpliceNFT>(key);
   if (cached) {
     return cached;
   }
   const splice = getSplice(styleCache.network);
-  const heritage = await splice.getHeritage(tokenId);
-  if (!heritage) throw new Error(`no heritage for token ${tokenId}`);
+  const provenance = await splice.getProvenance(spliceTokenId);
+  if (!provenance) throw new Error(`no provenance for token ${spliceTokenId}`);
   const originNftContract = splice.getOriginNftContract(
-    heritage.origin_collection
+    provenance.origin_collection
   );
   const originNftName = await originNftContract.name();
 
-  const style = styleCache.getStyle(heritage.style_token_id.toString());
+  const style = styleCache.getStyle(provenance.style_token_id.toString());
   if (!style) throw new Error(`style token seems corrupt`);
 
   const originMetadata = await getOriginMetadata(
     originNftContract,
-    heritage.origin_token_id
+    provenance.origin_token_id
   );
   if (!originMetadata) throw new Error(`couldnt get origin metadata`);
-  const originFeatures = await extractOriginFeatures(heritage, originMetadata);
+  const originFeatures = await extractOriginFeatures(
+    provenance,
+    originMetadata
+  );
   const ret = {
-    name: `Splice of ${originNftName} #${heritage.origin_token_id}`,
+    name: `Splice of ${originNftName} #${provenance.origin_token_id}`,
     description: `This Splice was created from ${originNftName} #${
-      heritage.origin_token_id
+      provenance.origin_token_id
     } using style "${style.getMetadata().name}".`,
-    image: `${process.env.SERVER_BASE_URL}/splice/${styleCache.network}/${tokenId}/image.png`,
-    external_url: `${process.env.SPLICE_BASE_URL}/#/nft/${heritage.origin_collection}/${heritage.origin_token_id}`,
+    image: `${process.env.SERVER_BASE_URL}/splice/${styleCache.network}/${spliceTokenId}/image.png`,
+    external_url: `${process.env.SPLICE_BASE_URL}/#/nft/${provenance.origin_collection}/${provenance.origin_token_id}`,
     properties: {
       style_name: style.getMetadata().name
     },
     splice: {
       colors: originFeatures.palette,
       randomness: originFeatures.randomness,
-      origin_collection: heritage.origin_collection,
-      origin_token_id: heritage.origin_token_id.toString(),
+      origin_collection: provenance.origin_collection,
+      origin_token_id: provenance.origin_token_id.toString(),
       style_collection: style.getCollectionAddress(),
       style_metadata_url: style.getMetadataUrl(),
       style_token_id: style.tokenId.toString()
