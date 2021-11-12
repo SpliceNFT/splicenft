@@ -98,8 +98,11 @@ export class Splice {
   /**
    * same as in solidity
    */
-  public static originHash(collectionAddress: string, tokenId: string): string {
-    const bnToken = BigNumber.from(tokenId);
+  public static originHash(
+    collectionAddress: string,
+    originTokenId: string
+  ): string {
+    const bnToken = BigNumber.from(originTokenId);
     const hxToken = utils.hexZeroPad(bnToken.toHexString(), 32);
     const inp = `${collectionAddress}${hxToken.slice(2)}`;
     return utils.keccak256(inp);
@@ -108,12 +111,14 @@ export class Splice {
   //todo: allow tokenId to be BigNumber
   public static computeRandomness(
     collectionAddress: string,
-    tokenId: string
+    originTokenId: string
   ): number {
     //todo: check behaviour between this and solidity (js max int)
     //keccak256(abi.encodePacked(address(nft), token_id));
 
-    const bytes = utils.arrayify(Splice.originHash(collectionAddress, tokenId));
+    const bytes = utils.arrayify(
+      Splice.originHash(collectionAddress, originTokenId)
+    );
     const _randomness = new DataView(bytes.buffer).getUint32(0);
     return _randomness;
   }

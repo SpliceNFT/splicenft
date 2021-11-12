@@ -136,7 +136,7 @@ app.get('/styles/:network', async (req, res) => {
 
 app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  const tokenId = parseInt(req.params.tokenid);
+  const tokenId = req.params.tokenid;
   const cache = styleCache.getCache(networkId);
 
   if (!cache) return res.status(500).send(`network ${networkId} not supported`);
@@ -151,7 +151,7 @@ app.get('/splice/:network/:tokenid/image.png', async (req, res) => {
 //this is the token metadata URI:  /1/1
 app.get('/splice/:network/:tokenid', async (req, res) => {
   const networkId = parseInt(req.params.network);
-  const tokenId = parseInt(req.params.tokenid);
+  const tokenId = req.params.tokenid;
 
   const cache = styleCache.getCache(networkId);
 
