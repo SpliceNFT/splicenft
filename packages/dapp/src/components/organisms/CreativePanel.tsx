@@ -1,4 +1,4 @@
-import { Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
+import { Box, Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
 import { extractColors, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
@@ -24,7 +24,9 @@ const PreviewBase = ({
       {children}
     </Center>
     <Center position="absolute" width="100%" height="100%">
-      <Circle size="15%">{nftImage}</Circle>
+      <Flex rounded="full" border="4px solid white" w="15%" overflow="hidden">
+        {nftImage}
+      </Flex>
     </Center>
   </Flex>
 );
@@ -126,8 +128,8 @@ export const CreativePanel = ({
       extractColors(target, xOptions)
         .then(onExtracted)
         .catch((e: any) => {
-          console.log(
-            'extracting failed, trying again with cors proxy. Reason:',
+          console.debug(
+            'extracting failed, trying again with image source url. Reason:',
             e.message
           );
           //console.log(event);
@@ -147,15 +149,13 @@ export const CreativePanel = ({
 
   const nftImage = (
     <FallbackImage
-      border="4px solid white"
-      rounded="full"
       boxShadow="lg"
       imgUrl={nftImageUrl}
       onNFTImageLoaded={onNFTImageLoaded}
     />
   );
 
-  if (style && !spliceDataUrl) {
+  if (style && !spliceDataUrl && dominantColors.length > 0) {
     return (
       <Preview
         nftImage={nftImage}
@@ -167,14 +167,6 @@ export const CreativePanel = ({
   } else if (spliceDataUrl) {
     return <DataSketch nftImage={nftImage} spliceDataUrl={spliceDataUrl} />;
   } else {
-    return (
-      <Container py={[null, 5, 20]}>
-        <FallbackImage
-          boxShadow="lg"
-          imgUrl={nftImageUrl}
-          onNFTImageLoaded={onNFTImageLoaded}
-        />
-      </Container>
-    );
+    return <Container py={[null, 5, 20]}>{nftImage}</Container>;
   }
 };

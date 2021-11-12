@@ -17,7 +17,7 @@ export const MintSpliceButton = ({
   collection: string;
   originTokenId: string;
   selectedStyle: Style;
-  onMinted: (spliceTokenId: number) => unknown;
+  onMinted: (spliceTokenId: ethers.BigNumber) => unknown;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
@@ -43,7 +43,7 @@ export const MintSpliceButton = ({
         origin_collection: collection,
         origin_token_id: originTokenId,
         style_token_id: selectedStyle.tokenId,
-        recipient: account,
+        additionalData: Uint8Array.from([]),
         mintingFee: quote
       });
       onMinted(mintingResult.spliceTokenId);
