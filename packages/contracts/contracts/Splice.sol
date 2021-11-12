@@ -250,8 +250,8 @@ contract Splice is
   function mint(
     IERC721 origin_collection,
     uint256 origin_token_id,
-    bytes calldata input_params,
-    uint32 style_token_id
+    uint32 style_token_id,
+    bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     require(saleIsActive);
 
