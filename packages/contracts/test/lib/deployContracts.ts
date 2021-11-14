@@ -13,7 +13,7 @@ export async function deploySplice(): Promise<Splice> {
     'Splice'
   )) as Splice__factory;
 
-  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFTV1');
+  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
   const spliceStyleNFT = await SpliceStyleNFT.deploy();
 
   const splice = (await upgrades.deployProxy(SpliceFactory, [
