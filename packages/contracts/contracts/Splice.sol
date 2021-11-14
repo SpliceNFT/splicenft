@@ -34,8 +34,7 @@ import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
 import 'hardhat/console.sol';
 
 import './BytesLib.sol';
-import './ISpliceStyleNFT.sol';
-import './SpliceStyleNFTV1.sol';
+import './SpliceStyleNFT.sol';
 
 /// @title Splice is a protocol to mint NFTs out of origin NFTs
 /// @author Stefan Adolf @elmariachi111
@@ -54,14 +53,11 @@ contract Splice is
   /// @notice The combination of origin and style already has been minted
   error ProvenanceAlreadyUsed();
 
-  /// @notice The style cap has been reached. You can't mint more items using that style
-  error MintingCapOnStyleReached();
-
   /// @notice That token hasn't been minted (yet)
   error SpliceNotFound();
 
-  /// @notice Sales is not active on the splice contract
-  error SaleNotActive();
+  /// @notice only reserved mints are left or not on allowlist
+  error NotAllowedToMint();
 
   /// @notice token provenance describes where a splice token came from.
   struct TokenProvenance {
@@ -88,7 +84,7 @@ contract Splice is
    * Styles are owned by artists and manage fee quoting.
    * Style NFTs are transferrable (you can sell your style to others)
    */
-  ISpliceStyleNFT public styleNFT;
+  SpliceStyleNFT public styleNFT;
 
   /**
    * @notice the splice platform account, i.e. a Gnosis Safe / DAO Treasury etc.
@@ -163,7 +159,7 @@ contract Splice is
     ARTIST_SHARE = share;
   }
 
-  function setStyleNFT(ISpliceStyleNFT _styleNFT) public onlyOwner {
+  function setStyleNFT(SpliceStyleNFT _styleNFT) public onlyOwner {
     styleNFT = _styleNFT;
   }
 
@@ -207,14 +203,6 @@ contract Splice is
     view
     returns (uint256 fee)
   {
-    if (!saleIsActive) {
-      revert SaleNotActive();
-    }
-
-    if (!styleNFT.canMintOnStyle(style_token_id)) {
-      revert MintingCapOnStyleReached();
-    }
-
     return styleNFT.quoteFee(nft, style_token_id);
   }
 
@@ -251,19 +239,35 @@ contract Splice is
     IERC721 origin_collection,
     uint256 origin_token_id,
     uint32 style_token_id,
+    bytes32[] memory allowlistProof,
     bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
-    require(saleIsActive);
-
     //CHECKS
     //we only allow the owner of an NFT to mint a splice of it.
-    if (origin_collection.ownerOf(origin_token_id) != msg.sender)
+    if (origin_collection.ownerOf(origin_token_id) != msg.sender) {
       revert NotOwningOrigin();
+    }
 
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)
     uint256 fee = quote(origin_collection, style_token_id);
     if (msg.value < fee) revert InsufficientFees();
+
+    //CHECKS & EFFECTS
+    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
+      if (
+        allowlistProof.length == 0 ||
+        !styleNFT.verifyAllowlistEntryProof(
+          style_token_id,
+          allowlistProof,
+          msg.sender
+        )
+      ) {
+        revert NotAllowedToMint();
+      } else {
+        styleNFT.decreaseAllowance(style_token_id, msg.sender);
+      }
+    }
 
     bytes32 _provenanceHash = provenanceHash(
       address(origin_collection),
