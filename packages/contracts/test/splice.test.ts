@@ -5,8 +5,8 @@ import { ethers } from 'hardhat';
 import {
   Splice,
   SplicePriceStrategyStatic,
-  SpliceStyleNFTV1,
-  SpliceStyleNFTV1__factory,
+  SpliceStyleNFT,
+  SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
 import { TransferEvent } from '../typechain/ERC721';
@@ -21,7 +21,7 @@ describe('Splice', function () {
   let testNft: TestnetNFT;
   let splice: Splice;
   let priceStrategy: SplicePriceStrategyStatic;
-  let styleNFT: SpliceStyleNFTV1;
+  let styleNFT: SpliceStyleNFT;
 
   let signers: Signer[];
   let _artist: Signer;
@@ -40,7 +40,7 @@ describe('Splice', function () {
     testNft = await deployTestnetNFT();
     priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFTV1__factory.connect(styleNftAddress, signers[0]);
+    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
 
     const artistAddress = await _artist.getAddress();
     await (await styleNFT.allowArtist(artistAddress)).wait();
@@ -81,7 +81,7 @@ describe('Splice', function () {
 
     try {
       const receipt = await (
-        await _splice.mint(testNft.address, 1, 1, ethers.constants.HashZero)
+        await _splice.mint(testNft.address, 1, 1, [], ethers.constants.HashZero)
       ).wait();
       expect.fail('shouldnt work because no fees have been sent along');
     } catch (e: any) {
@@ -93,7 +93,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await splice.quote(testNft.address, 1);
     const receipt = await (
-      await _splice.mint(testNft.address, 1, 1, ethers.constants.HashZero, {
+      await _splice.mint(testNft.address, 1, 1, [], ethers.constants.HashZero, {
         value: fee
       })
     ).wait();
@@ -116,7 +116,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await _splice.quote(testNft.address, 1);
     try {
-      await _splice.mint(testNft.address, 1, 1, [], {
+      await _splice.mint(testNft.address, 1, 1, [], ethers.constants.HashZero, {
         value: fee
       });
 
@@ -134,7 +134,7 @@ describe('Splice', function () {
     const fee = await splice.quote(testNft.address, 2);
 
     const receipt = await (
-      await _splice.mint(testNft.address, 1, 2, [], {
+      await _splice.mint(testNft.address, 1, 2, [], ethers.constants.HashZero, {
         value: fee
       })
     ).wait();
@@ -222,7 +222,7 @@ describe('Splice', function () {
     const fee = await splice.quote(testNft.address, 2);
 
     await (
-      await _splice.mint(testNft.address, 2, 2, [], {
+      await _splice.mint(testNft.address, 2, 2, [], ethers.constants.HashZero, {
         value: fee
       })
     ).wait();
@@ -267,9 +267,16 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     try {
       await (
-        await _splice.mint(testNft.address, 2, 2, [], {
-          value: fee
-        })
+        await _splice.mint(
+          testNft.address,
+          2,
+          2,
+          [],
+          ethers.constants.HashZero,
+          {
+            value: fee
+          }
+        )
       ).wait();
       expect.fail('minting shouldnt be possible when paused');
     } catch (e: any) {

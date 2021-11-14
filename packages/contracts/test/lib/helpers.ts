@@ -1,6 +1,6 @@
 import { BigNumber, utils } from 'ethers';
 import { of as ipfsHashOf } from 'ipfs-only-hash';
-import { SpliceStyleNFTV1 } from '../../typechain';
+import { SpliceStyleNFT } from '../../typechain';
 
 export function tokenIdToStyleAndToken(tokenId: BigNumber): {
   style_token_id: number;
@@ -14,7 +14,7 @@ export function tokenIdToStyleAndToken(tokenId: BigNumber): {
 }
 
 export async function mintStyle(
-  connectedStyleNFT: SpliceStyleNFTV1,
+  connectedStyleNFT: SpliceStyleNFT,
   priceStrategyAddress: string,
   priceInEth: string
 ) {
@@ -25,6 +25,12 @@ export async function mintStyle(
   const priceBytes = utils.hexZeroPad(priceHex, 32);
 
   await (
-    await connectedStyleNFT.mint(100, fakeCid, priceStrategyAddress, priceBytes)
+    await connectedStyleNFT.mint(
+      100,
+      fakeCid,
+      priceStrategyAddress,
+      priceBytes,
+      true
+    )
   ).wait();
 }

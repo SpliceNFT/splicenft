@@ -5,8 +5,8 @@ import { of as ipfsHashOf } from 'ipfs-only-hash';
 import {
   Splice,
   SplicePriceStrategyStatic,
-  SpliceStyleNFTV1,
-  SpliceStyleNFTV1__factory,
+  SpliceStyleNFT,
+  SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
 import { TransferEvent } from '../typechain/ERC721';
@@ -20,7 +20,7 @@ describe('Style NFTs', function () {
   let testNft: TestnetNFT;
   let splice: Splice;
   let priceStrategy: SplicePriceStrategyStatic;
-  let styleNFT: SpliceStyleNFTV1;
+  let styleNFT: SpliceStyleNFT;
 
   let signers: Signer[];
   let _artist: Signer;
@@ -39,7 +39,7 @@ describe('Style NFTs', function () {
     testNft = await deployTestnetNFT();
     priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFTV1__factory.connect(styleNftAddress, signers[0]);
+    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
   });
 
   it('gets an nft on the test collection', async function () {
@@ -95,7 +95,8 @@ describe('Style NFTs', function () {
       100,
       fakeCid,
       priceStrategy.address,
-      priceBytes
+      priceBytes,
+      false
     );
     const receipt = await tx.wait();
 
@@ -125,7 +126,8 @@ describe('Style NFTs', function () {
         100,
         fakeCid,
         priceStrategy.address,
-        priceBytes
+        priceBytes,
+        true
       );
       expect.fail('only artists should be allowed to mint');
     } catch (e: any) {
@@ -145,7 +147,7 @@ describe('Style NFTs', function () {
 
   it('signals to be ready for minting', async function () {
     const _styleNft = styleNFT.connect(_user);
-    expect(await _styleNft.canMintOnStyle(1)).to.be.true;
+    expect(await _styleNft.availableForPublicMinting(1)).to.equal(100);
   });
 
   it('allows minting of "cap" splices', async function () {
