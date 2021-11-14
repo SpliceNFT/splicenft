@@ -53,6 +53,7 @@
     "ipfs-core": "^0.11.1",
     "ipfs-only-hash": "^4.0.0",
     "ipfs-unixfs-importer": "^9.0.6",
+    "merkletreejs": "^0.2.24",
     "multiformats": "^9.4.8",
     "nft.storage": "^3.3.0"
   }
