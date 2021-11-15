@@ -166,7 +166,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
         allowlistProof,
         allowlists[style_token_id].merkleRoot,
         //or maybe: https://ethereum.stackexchange.com/questions/884/how-to-convert-an-address-to-bytes-in-solidity/41356
-        keccak256(abi.encode(requestor))
+        keccak256(abi.encodePacked(requestor))
       );
   }
 
@@ -224,10 +224,11 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint8 _mintsPerAddress,
     bytes32 _merkleRoot,
     uint64 _reservedUntil
-  ) external onlyArtist {
-    //todo: should only be possible when not minted yet?
-
+  ) external {
     //CHECKS
+    if (ownerOf(style_token_id) != msg.sender) {
+      revert NotControllingStyle(style_token_id);
+    }
     uint32 cap = styleSettings[style_token_id].cap;
     if (_numReserved >= cap || _mintsPerAddress > cap) {
       revert BadReservationParameters(_numReserved, cap);
@@ -235,6 +236,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     if (_reservedUntil < block.timestamp + 1 days)
       revert AllowlistDurationTooShort(_reservedUntil);
 
+    //todo: important. Prohibit setting a new Allowlist
+    //or check what happens when Allowlist is overwritten
+    //with contradictory parameters
     //INTERACTION
     allowlists[style_token_id] = Allowlist({
       numReserved: _numReserved,

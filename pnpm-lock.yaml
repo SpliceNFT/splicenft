@@ -137,6 +137,7 @@ importers:
       ipfs-core: ^0.11.1
       ipfs-only-hash: ^4.0.0
       ipfs-unixfs-importer: ^9.0.6
+      keccak256: ^1.0.3
       merkletreejs: ^0.2.24
       multiformats: ^9.4.8
       nft.storage: ^3.3.0
@@ -158,6 +159,7 @@ importers:
       ipfs-core: 0.11.1
       ipfs-only-hash: 4.0.0
       ipfs-unixfs-importer: 9.0.6
+      keccak256: 1.0.3
       merkletreejs: 0.2.24
       multiformats: 9.4.8
       nft.storage: 3.3.0
@@ -14003,6 +14005,13 @@ packages:
       node-gyp-build: 4.3.0
       readable-stream: 3.6.0
 
+  /keccak256/1.0.3:
+    resolution: {integrity: sha512-EkF/4twuPm1V/gn75nejOUrKfDUJn87RMLzDWosXF3pXuOvesiSgX35GcmbqzdImCASEkE/WaklWGWSa+Ha5bQ==}
+    dependencies:
+      bn.js: 4.12.0
+      keccak: 3.0.2
+    dev: false
+
   /keypair/1.0.3:
     resolution: {integrity: sha512-0wjZ2z/SfZZq01+3/8jYLd8aEShSa+aat1zyPGQY3IuKoEAp6DJGvu2zt6snELrQU9jbCkIlCyNOD7RdQbHhkQ==}
     dev: false
@@ -14152,7 +14161,7 @@ packages:
     dependencies:
       inherits: 2.0.4
       level-errors: 1.0.5
-      readable-stream: 1.0.34
+      readable-stream: 1.1.14
       xtend: 4.0.2
 
   /level-iterator-stream/2.0.3:
@@ -18570,7 +18579,6 @@ packages:
       inherits: 2.0.4
       isarray: 0.0.1
       string_decoder: 0.10.31
-    dev: false
 
   /readable-stream/2.3.7:
     resolution: {integrity: sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==}
