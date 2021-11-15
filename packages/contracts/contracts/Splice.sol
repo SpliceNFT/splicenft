@@ -74,9 +74,11 @@ contract Splice is
   mapping(bytes32 => uint64) public provenanceToTokenId;
 
   //splice token ID => provenance
+  //todo: maybe replace with a subgraph
   mapping(uint64 => TokenProvenance) public tokenProvenance;
 
   //keccak(0xcollection + origin_token_id)  => splice token ids
+  //todo: replace this with a subgraph.
   mapping(bytes32 => uint64[]) public originToTokenId;
 
   /**
@@ -209,15 +211,6 @@ contract Splice is
     //todo: later add a share to a beneficiary of the origin collection.
   }
 
-  //todo: this way anyone could initiate the payout for any payee for gas efficiency:
-  // function withdrawSharesFor(address payable payee)
-  //   public
-  //   nonReentrant
-  //   whenNotPaused
-  // {
-  //   feesEscrow.withdraw(payee);
-  // }
-
   function withdrawShares() external nonReentrant whenNotPaused {
     //todo: the payable cast might not be right (msg.sender might be a contract)
     feesEscrow.withdraw(payable(msg.sender));
@@ -235,7 +228,6 @@ contract Splice is
     bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
-    //we only allow the owner of an NFT to mint a splice of it.
     if (origin_collection.ownerOf(origin_token_id) != msg.sender) {
       revert NotOwningOrigin();
     }

@@ -29,6 +29,7 @@ describe('Allowlists', function () {
   let _delegateArtist: Signer;
   let _user: Signer;
   let _owner: Signer;
+  let _allowedUsers: Signer[];
   let _allowedAddresses: string[];
 
   beforeEach(async function () {
@@ -37,8 +38,9 @@ describe('Allowlists', function () {
     _delegateArtist = signers[17];
     _artist = signers[18];
     _user = signers[19];
+    _allowedUsers = [1, 2, 3].map((i) => signers[i]);
     _allowedAddresses = await Promise.all(
-      [1, 2, 3].map((i) => signers[i].getAddress())
+      _allowedUsers.map((u) => u.getAddress())
     );
   });
 
@@ -238,6 +240,177 @@ describe('Allowlists', function () {
     );
   });
 
-  it.skip('lets public users mint up to the unreserved cap');
-  it.skip('lets allowed users mint up to reservation limit');
+  it('lets public users mint up to the unreserved cap', async function () {
+    const _styleNft = styleNFT.connect(_artist);
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
+      cap: 5,
+      saleIsActive: false
+    });
+
+    //3 mints are reserved for 3 users (_allowedUsers)
+    //each of them may mint 2 tokens.
+    const merkleTree = createMerkleProof(_allowedAddresses);
+    await _styleNft.addAllowlist(
+      styleTokenId,
+      3,
+      2,
+      merkleTree.getHexRoot(),
+      new Date().getTime() + ONE_DAY_AND_A_BIT
+    );
+
+    const mintingFee = await splice.quote(testNft.address, styleTokenId);
+    await (await _styleNft.toggleSaleIsActive(styleTokenId, true)).wait();
+
+    expect(await _styleNft.availableForPublicMinting(styleTokenId)).to.equal(2);
+
+    const tokensOfPublicUser = await Promise.all(
+      [0, 1, 2].map((i) => mintTestnetNFT(testNft, _user))
+    );
+
+    //mint 2 public splices
+    const _publicSplice = splice.connect(_user);
+    await (
+      await _publicSplice.mint(
+        testNft.address,
+        tokensOfPublicUser[0],
+        styleTokenId,
+        [],
+        [],
+        {
+          value: mintingFee
+        }
+      )
+    ).wait();
+
+    await (
+      await _publicSplice.mint(
+        testNft.address,
+        tokensOfPublicUser[1],
+        styleTokenId,
+        [],
+        [],
+        {
+          value: mintingFee
+        }
+      )
+    ).wait();
+
+    expect(await _styleNft.availableForPublicMinting(styleTokenId)).to.equal(0);
+
+    try {
+      await _publicSplice.mint(
+        testNft.address,
+        tokensOfPublicUser[2],
+        styleTokenId,
+        [],
+        [],
+        {
+          value: mintingFee
+        }
+      );
+      expect.fail('public mints must respect the reserved token cap');
+    } catch (e: any) {
+      expect(e.message).to.contain('NotAllowedToMint');
+    }
+
+    //lets mint by the reserved users
+    const allowed0Token0 = await mintTestnetNFT(testNft, _allowedUsers[0]);
+    const allowed0Token1 = await mintTestnetNFT(testNft, _allowedUsers[0]);
+    const allowed0Token2 = await mintTestnetNFT(testNft, _allowedUsers[0]);
+    const allowed1Token0 = await mintTestnetNFT(testNft, _allowedUsers[1]);
+    const allowed1Token1 = await mintTestnetNFT(testNft, _allowedUsers[1]);
+
+    const leaf0 = utils.keccak256(await _allowedUsers[0].getAddress());
+    const proof0 = merkleTree.getHexProof(leaf0);
+    const _allowedUser0Splice = splice.connect(_allowedUsers[0]);
+
+    await (
+      await _allowedUser0Splice.mint(
+        testNft.address,
+        allowed0Token0,
+        styleTokenId,
+        proof0,
+        [],
+        {
+          value: mintingFee
+        }
+      )
+    ).wait();
+
+    await (
+      await _allowedUser0Splice.mint(
+        testNft.address,
+        allowed0Token1,
+        styleTokenId,
+        proof0,
+        [],
+        {
+          value: mintingFee
+        }
+      )
+    ).wait();
+
+    try {
+      await _allowedUser0Splice.mint(
+        testNft.address,
+        allowed0Token2,
+        styleTokenId,
+        proof0,
+        [],
+        {
+          value: mintingFee
+        }
+      );
+      expect.fail(
+        'allowed user was able to mint beyond their reservation limit'
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('PersonalReservationLimitExceeded');
+    }
+
+    const leaf1 = utils.keccak256(await _allowedUsers[1].getAddress());
+    const proof1 = merkleTree.getHexProof(leaf1);
+    const _allowedUser1Splice = splice.connect(_allowedUsers[1]);
+
+    await (
+      await _allowedUser1Splice.mint(
+        testNft.address,
+        allowed1Token0,
+        styleTokenId,
+        proof1,
+        [],
+        {
+          value: mintingFee
+        }
+      )
+    ).wait();
+
+    try {
+      await _allowedUser1Splice.mint(
+        testNft.address,
+        allowed1Token1,
+        styleTokenId,
+        proof1,
+        [],
+        {
+          value: mintingFee
+        }
+      );
+      expect.fail('allowed user was able to mint beyond the collection cap');
+    } catch (e: any) {
+      expect(e.message).to.contain('NotEnoughTokensToMatchReservation');
+    }
+
+    expect(await _styleNft.mintsLeft(styleTokenId)).to.equal(0);
+  });
+
+  it('shows 0 reserved tokens when no allowlist exists', async function () {
+    const _styleNft = styleNFT.connect(_artist);
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
+      cap: 5,
+      saleIsActive: false
+    });
+
+    expect(await _styleNft.reservedTokens(styleTokenId)).to.equal(0);
+  });
 });
