@@ -16,8 +16,11 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   using Counters for Counters.Counter;
   using SafeCast for uint256;
 
-  error BadReservationParameters(uint32 reservation, uint32 cap);
-  error AllowlistDurationTooShort(uint64 _days);
+  error BadReservationParameters(uint32 reservation, uint32 mintsLeft);
+  error AllowlistDurationTooShort(uint256 diff);
+
+  /// @notice you wanted to set an allowlist on a style that already got one
+  error AllowlistNotOverridable(uint32 style_token_id);
 
   /// @notice someone wanted to modify the style NFT without owning it.
   error NotControllingStyle(uint32 style_token_id);
@@ -229,16 +232,24 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     if (ownerOf(style_token_id) != msg.sender) {
       revert NotControllingStyle(style_token_id);
     }
-    uint32 cap = styleSettings[style_token_id].cap;
-    if (_numReserved >= cap || _mintsPerAddress > cap) {
-      revert BadReservationParameters(_numReserved, cap);
-    }
-    if (_reservedUntil < block.timestamp + 1 days)
-      revert AllowlistDurationTooShort(_reservedUntil);
 
-    //todo: important. Prohibit setting a new Allowlist
-    //or check what happens when Allowlist is overwritten
-    //with contradictory parameters
+    //todo: Maybe check if makes sense to make Allowlists
+    //overwritable when new parameters don't contradict old ones
+    if (allowlists[style_token_id].reservedUntil != 0) {
+      revert AllowlistNotOverridable(style_token_id);
+    }
+
+    uint32 stillAvailable = mintsLeft(style_token_id);
+    if (
+      _numReserved > stillAvailable || _mintsPerAddress > stillAvailable //that 2nd edge case is actually not important (minting would fail anyway when cap is exceeded)
+    ) {
+      revert BadReservationParameters(_numReserved, stillAvailable);
+    }
+
+    if (_reservedUntil < block.timestamp + 1 days) {
+      revert AllowlistDurationTooShort(_reservedUntil);
+    }
+
     //INTERACTION
     allowlists[style_token_id] = Allowlist({
       numReserved: _numReserved,

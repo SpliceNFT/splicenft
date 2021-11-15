@@ -14,9 +14,9 @@ import {
   deployStaticPriceStrategy,
   deployTestnetNFT
 } from './lib/deployContracts';
-import { createMerkleProof, mintStyle } from './lib/helpers';
+import { createMerkleProof, mintStyle, mintTestnetNFT } from './lib/helpers';
 
-const ONE_DAY = 60 * 60 * 24;
+const ONE_DAY_AND_A_BIT = 60 * 60 * 24 + 60;
 
 describe('Allowlists', function () {
   let testNft: TestnetNFT;
@@ -69,12 +69,7 @@ describe('Allowlists', function () {
 
   it('can add an allowlist to a style', async function () {
     const _styleNft = styleNFT.connect(_artist);
-    const styleTokenId = await mintStyle(
-      _styleNft,
-      priceStrategy.address,
-      '0.1',
-      true
-    );
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address);
 
     const merkleTree = createMerkleProof(_allowedAddresses);
     await _styleNft.addAllowlist(
@@ -82,7 +77,7 @@ describe('Allowlists', function () {
       2,
       1,
       merkleTree.getHexRoot(),
-      new Date().getTime() + ONE_DAY + 1
+      new Date().getTime() + ONE_DAY_AND_A_BIT + 1
     );
   });
 
@@ -116,14 +111,13 @@ describe('Allowlists', function () {
     expect(_verified).to.be.false;
   });
 
-  it('cannot use allowlists that are shorter than 1 day ', async function () {
+  it('cannot use allowlists that are shorter than 1 day', async function () {
     const _styleNft = styleNFT.connect(_artist);
-    const styleTokenId = await mintStyle(
-      _styleNft,
-      priceStrategy.address,
-      '0.2',
-      true
-    );
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
+      priceInEth: '0.2',
+      saleIsActive: true,
+      cap: 100
+    });
 
     const merkleTree = createMerkleProof(_allowedAddresses);
     try {
@@ -140,8 +134,110 @@ describe('Allowlists', function () {
     }
   });
 
-  it('cant add an allowlist that contradicts the style cap', async function () {});
+  it('cant overwrite existing allowlists', async function () {
+    const _styleNft = styleNFT.connect(_artist);
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address);
+    await _styleNft.addAllowlist(
+      styleTokenId,
+      10,
+      1,
+      ethers.constants.HashZero,
+      Math.floor(new Date().getTime() / 1000) + ONE_DAY_AND_A_BIT
+    );
+    try {
+      await _styleNft.addAllowlist(
+        styleTokenId,
+        20,
+        2,
+        ethers.constants.HashZero,
+        Math.floor(new Date().getTime() / 1000) + ONE_DAY_AND_A_BIT
+      );
+      expect.fail('allowlists shouldnt be overwriteable');
+    } catch (e: any) {
+      expect(e.message).to.contain('AllowlistNotOverridable');
+    }
+  });
 
-  it.skip('cant control the allowlist when not owner of the style');
-  it.skip('cant add the allowlist again');
+  it('cant control the allowlist when not owner of the style', async function () {
+    const _styleNft = styleNFT.connect(_artist);
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address);
+    await (
+      await _styleNft.transferFrom(
+        await _artist.getAddress(),
+        await _delegateArtist.getAddress(),
+        styleTokenId
+      )
+    ).wait();
+
+    try {
+      await _styleNft.addAllowlist(
+        styleTokenId,
+        20,
+        2,
+        ethers.constants.HashZero,
+        Math.floor(new Date().getTime() / 1000) + ONE_DAY_AND_A_BIT
+      );
+      expect.fail('allowlists must only be editable by their owner');
+    } catch (e: any) {
+      expect(e.message).to.contain('NotControllingStyle');
+    }
+  });
+
+  it('can add an allowlist after minting has started but only if its parameters fit', async function () {
+    const _styleNft = styleNFT.connect(_artist);
+    const _splice = splice.connect(_user);
+
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
+      saleIsActive: true,
+      priceInEth: '0.1',
+      cap: 5
+    });
+
+    const mintingFee = await _splice.quote(testNft.address, styleTokenId);
+
+    const nftTokenIds = await Promise.all(
+      [0, 1].map((i) =>
+        (async () => {
+          const nftTokenId = await mintTestnetNFT(testNft, _user);
+          await _splice.mint(
+            testNft.address,
+            nftTokenId,
+            styleTokenId,
+            [],
+            [],
+            {
+              value: mintingFee
+            }
+          );
+          return nftTokenId;
+        })()
+      )
+    );
+
+    try {
+      await _styleNft.addAllowlist(
+        styleTokenId,
+        4,
+        2,
+        ethers.constants.HashZero,
+        Math.floor(new Date().getTime() / 1000) + ONE_DAY_AND_A_BIT
+      );
+      expect.fail(
+        'it shouldnt be possible to add an allowlist that exceeds available mints'
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('BadReservationParameters');
+    }
+
+    await _styleNft.addAllowlist(
+      styleTokenId,
+      3,
+      2,
+      ethers.constants.HashZero,
+      Math.floor(new Date().getTime() / 1000) + ONE_DAY_AND_A_BIT
+    );
+  });
+
+  it.skip('lets public users mint up to the unreserved cap');
+  it.skip('lets allowed users mint up to reservation limit');
 });

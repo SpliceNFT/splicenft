@@ -1,8 +1,8 @@
-import { BigNumber, utils, Event } from 'ethers';
+import { BigNumber, utils, Event, Signer } from 'ethers';
 import keccak256 from 'keccak256';
 
 import { of as ipfsHashOf } from 'ipfs-only-hash';
-import { SpliceStyleNFT } from '../../typechain';
+import { SpliceStyleNFT, TestnetNFT } from '../../typechain';
 import { TransferEvent } from '../../typechain/ERC721';
 import { MerkleTree } from 'merkletreejs';
 
@@ -17,28 +17,50 @@ export function tokenIdToStyleAndToken(tokenId: BigNumber): {
   };
 }
 
+interface MintStyleOptions {
+  cap?: number;
+  priceInEth?: string;
+  saleIsActive?: boolean;
+}
+
+export async function mintTestnetNFT(
+  contract: TestnetNFT,
+  to: Signer
+): Promise<number> {
+  const _nft = await contract.connect(to);
+  const toAddress = await to.getAddress();
+
+  const transaction = await _nft.mint(toAddress);
+  const receipt = await transaction.wait();
+
+  const transferEvent = receipt.events?.find(
+    (e: Event) => e.event === 'Transfer'
+  );
+  const tokenId = (transferEvent as TransferEvent).args.tokenId;
+  return tokenId.toNumber();
+}
+
 export async function mintStyle(
   connectedStyleNFT: SpliceStyleNFT,
   priceStrategyAddress: string,
-  options: {
-    cap?: number;
-    priceInEth?: string;
-    saleIsActive?: boolean;
-  } = {
+  options?: MintStyleOptions
+): Promise<number> {
+  const { cap, priceInEth, saleIsActive }: MintStyleOptions = {
     cap: 100,
     priceInEth: '0.1',
-    saleIsActive: true
-  }
-): Promise<number> {
+    saleIsActive: true,
+    ...options
+  };
+
   const fakeCid = await ipfsHashOf(Buffer.from('{this: is: fake}'));
 
-  const minPriceWei = utils.parseEther(options.priceInEth);
+  const minPriceWei = utils.parseEther(priceInEth);
   const priceHex = minPriceWei.toHexString();
   const priceBytes = utils.hexZeroPad(priceHex, 32);
 
   const receipt = await (
     await connectedStyleNFT.mint(
-      100,
+      cap,
       fakeCid,
       priceStrategyAddress,
       priceBytes,
