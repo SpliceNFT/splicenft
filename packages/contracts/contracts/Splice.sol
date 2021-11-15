@@ -97,9 +97,6 @@ contract Splice is
    */
   EscrowUpgradeable private feesEscrow;
 
-  /// @notice separate killswitch than Pauseable.
-  bool public saleIsActive;
-
   function initialize(
     string memory name_,
     string memory symbol_,
@@ -115,7 +112,6 @@ contract Splice is
     feesEscrow = new EscrowUpgradeable();
     feesEscrow.initialize();
     baseUri = baseUri_;
-    saleIsActive = false;
   }
 
   //todo: might be unwanted.
@@ -148,10 +144,6 @@ contract Splice is
 
   function unpause() public onlyOwner {
     _unpause();
-  }
-
-  function toggleSaleIsActive(bool newValue) public onlyOwner {
-    saleIsActive = newValue;
   }
 
   function updateArtistShare(uint8 share) public onlyOwner {
