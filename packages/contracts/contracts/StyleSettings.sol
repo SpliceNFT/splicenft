@@ -3,12 +3,6 @@
 pragma solidity 0.8.10;
 import './ISplicePriceStrategy.sol';
 
-enum MintingPhase {
-  Closed,
-  Presale,
-  Public
-}
-
 struct Allowlist {
   //counting down
   uint32 numReserved;
