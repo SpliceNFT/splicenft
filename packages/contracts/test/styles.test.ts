@@ -191,4 +191,9 @@ describe('Style NFTs', function () {
 
     expect(weiFee).to.equal('0.1');
   });
+
+  it('downcasts the tokenURI token id correctly', async function () {
+    const uri = await styleNFT.tokenURI(1);
+    expect(uri).to.match(/^ipfs:\/\/(.*)\/metadata\.json$/);
+  });
 });

@@ -87,7 +87,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     return string(abi.encodePacked('ipfs://', metadataCID, '/metadata.json'));
   }
 
-  //todo: check the 256 => 32 downcast
   function tokenURI(uint256 tokenId)
     public
     view
@@ -135,7 +134,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     styleSettings[style_token_id].salesIsActive = newValue;
   }
 
-  //todo: ensure that this returns 0 when no allowlist exists
   function reservedTokens(uint32 style_token_id) public view returns (uint32) {
     if (block.timestamp > allowlists[style_token_id].reservedUntil) {
       //reservation period has ended
@@ -144,12 +142,18 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     return allowlists[style_token_id].numReserved;
   }
 
+  function mintsLeft(uint32 style_token_id) public view returns (uint32) {
+    return
+      styleSettings[style_token_id].cap -
+      styleSettings[style_token_id].mintedOfStyle;
+  }
+
   function availableForPublicMinting(uint32 style_token_id)
     public
     view
     returns (uint32)
   {
-    if (!styleSettings[style_token_id].salesIsActive) {
+    if (!isSaleActive(style_token_id)) {
       revert SaleNotActive(style_token_id);
     }
     return
@@ -158,7 +162,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       reservedTokens(style_token_id);
   }
 
-  //todo restrict visibility to internal onlySplice
   function verifyAllowlistEntryProof(
     uint32 style_token_id,
     bytes32[] memory allowlistProof,
@@ -196,15 +199,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       1;
   }
 
-  function mintsLeft(uint32 style_token_id) public view returns (uint32) {
-    return
-      styleSettings[style_token_id].cap -
-      styleSettings[style_token_id].mintedOfStyle;
-  }
-
-  //todo: IMPORTANT check that this really can only be called by the Splice contract!
-  //https://ethereum.org/de/developers/tutorials/interact-with-other-contracts-from-solidity/
-  //https://medium.com/@houzier.saurav/calling-functions-of-other-contracts-on-solidity-9c80eed05e0f
   function incrementMintedPerStyle(uint32 style_token_id)
     external
     onlySplice
@@ -233,8 +227,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       revert NotControllingStyle(style_token_id);
     }
 
-    //todo: Maybe check if makes sense to make Allowlists
-    //overwritable when new parameters don't contradict old ones
     if (allowlists[style_token_id].reservedUntil != 0) {
       revert AllowlistNotOverridable(style_token_id);
     }

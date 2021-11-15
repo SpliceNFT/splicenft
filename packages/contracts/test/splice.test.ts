@@ -268,6 +268,15 @@ describe('Splice', function () {
     }
 
     try {
+      await styleNFT.decreaseAllowance(2, await _user.getAddress());
+      expect.fail(
+        "it shouldn't be possible to access the style contract directly"
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('only callable by Splice');
+    }
+
+    try {
       const _splice = splice.connect(_user);
       await (await _splice.setStyleNFT(ethers.constants.AddressZero)).wait();
       expect.fail(
@@ -310,6 +319,6 @@ describe('Splice', function () {
       expect(e.message).to.contain('Pausable: paused');
     }
   });
+
   it.skip('withdraws ERC20 tokens that have been transferred to it');
-  it.skip('allows any account to trigger a withdrawal'); // not implemented
 });
