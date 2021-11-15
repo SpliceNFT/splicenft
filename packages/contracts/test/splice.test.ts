@@ -46,7 +46,7 @@ describe('Splice', function () {
     await (await styleNFT.allowArtist(artistAddress)).wait();
 
     const _styleNft = styleNFT.connect(_artist);
-    await mintStyle(_styleNft, priceStrategy.address, '0.1');
+    await mintStyle(_styleNft, priceStrategy.address, '0.1', false);
   });
 
   it('gets an nft on the test collection', async function () {
@@ -61,16 +61,6 @@ describe('Splice', function () {
   });
 
   it('quotes the minting fee', async function () {
-    const saleIsActive = await splice.saleIsActive();
-    expect(saleIsActive).to.be.false;
-    try {
-      const fee = await splice.quote(testNft.address, 1);
-      expect.fail("quoting shouldn't be possible when sale is not active");
-    } catch (e: any) {
-      expect(e.message).contains('SaleNotActive');
-    }
-
-    await (await splice.toggleSaleIsActive(true)).wait();
     const fee = await splice.quote(testNft.address, 1);
     const weiFee = ethers.utils.formatUnits(fee, 'ether');
     expect(weiFee).to.equal('0.1');
@@ -86,6 +76,32 @@ describe('Splice', function () {
       expect.fail('shouldnt work because no fees have been sent along');
     } catch (e: any) {
       expect(e.message).contains('InsufficientFees');
+    }
+  });
+
+  it('reverts when sales is not active', async function () {
+    const _splice = splice.connect(_user);
+    const fee = await splice.quote(testNft.address, 1);
+    try {
+      const receipt = await (
+        await _splice.mint(
+          testNft.address,
+          1,
+          1,
+          [],
+          ethers.constants.HashZero,
+          {
+            value: fee
+          }
+        )
+      ).wait();
+      expect.fail('should revert because sale on that style isnt active');
+    } catch (e: any) {
+      expect(e.message).contains('SaleNotActive');
+    } finally {
+      const _styleNFT = styleNFT.connect(_artist);
+      //Activate sales on that style.
+      await _styleNFT.toggleSaleIsActive(1, true);
     }
   });
 
@@ -129,7 +145,12 @@ describe('Splice', function () {
   it('can mint another splice from the same origin and different style', async function () {
     const _splice = splice.connect(_user);
 
-    await mintStyle(styleNFT.connect(_artist), priceStrategy.address, '0.2');
+    await mintStyle(
+      styleNFT.connect(_artist),
+      priceStrategy.address,
+      '0.2',
+      true
+    );
 
     const fee = await splice.quote(testNft.address, 2);
 

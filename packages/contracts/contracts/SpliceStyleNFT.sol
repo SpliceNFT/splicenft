@@ -19,6 +19,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   error BadReservationParameters(uint32 reservation, uint32 cap);
   error AllowlistDurationTooShort(uint64 _days);
 
+  /// @notice someone wanted to modify the style NFT without owning it.
+  error NotControllingStyle(uint32 style_token_id);
+
   /// @notice The style cap has been reached. You can't mint more items using that style
   error MintingCapOnStyleReached();
 
@@ -122,6 +125,13 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     return styleSettings[style_token_id].salesIsActive;
   }
 
+  function toggleSaleIsActive(uint32 style_token_id, bool newValue) public {
+    if (ownerOf(style_token_id) != msg.sender) {
+      revert NotControllingStyle(style_token_id);
+    }
+    styleSettings[style_token_id].salesIsActive = newValue;
+  }
+
   //todo: ensure that this returns 0 when no allowlist exists
   function reservedTokens(uint32 style_token_id) public view returns (uint32) {
     if (block.timestamp > allowlists[style_token_id].reservedUntil) {
@@ -136,6 +146,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     view
     returns (uint32)
   {
+    if (!styleSettings[style_token_id].salesIsActive) {
+      revert SaleNotActive(style_token_id);
+    }
     return
       styleSettings[style_token_id].cap -
       styleSettings[style_token_id].mintedOfStyle -

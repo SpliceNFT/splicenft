@@ -16,7 +16,8 @@ export function tokenIdToStyleAndToken(tokenId: BigNumber): {
 export async function mintStyle(
   connectedStyleNFT: SpliceStyleNFT,
   priceStrategyAddress: string,
-  priceInEth: string
+  priceInEth: string,
+  saleIsActive: boolean
 ) {
   const fakeCid = await ipfsHashOf(Buffer.from('{this: is: fake}'));
 
@@ -30,7 +31,7 @@ export async function mintStyle(
       fakeCid,
       priceStrategyAddress,
       priceBytes,
-      true
+      saleIsActive
     )
   ).wait();
 }

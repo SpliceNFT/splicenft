@@ -112,7 +112,7 @@ describe('Style NFTs', function () {
     expect(metadataUri).to.equal(`ipfs://${fakeCid}/metadata.json`);
   });
 
-  it('allows only arists to mint styles', async function () {
+  it('allows only artists to mint styles', async function () {
     const _styleNft = styleNFT.connect(_user);
 
     const fakeCid = await ipfsHashOf(Buffer.from('{this: is: even more fake}'));
@@ -135,7 +135,7 @@ describe('Style NFTs', function () {
     }
   });
 
-  it('cannot call the internal increment method from an external account', async function () {
+  it('cannot call the internal methods from an external account', async function () {
     const _styleNft = styleNFT.connect(_owner);
     try {
       await _styleNft.incrementMintedPerStyle(1);
@@ -143,10 +143,39 @@ describe('Style NFTs', function () {
     } catch (e: any) {
       expect(e.message).to.contain('only callable by Splice');
     }
+
+    try {
+      await _styleNft.decreaseAllowance(1, await _artist.getAddress());
+      expect.fail('was able to call an internal function');
+    } catch (e: any) {
+      expect(e.message).to.contain('only callable by Splice');
+    }
+  });
+
+  it('only allows the style owner to modify the sales status ', async function () {
+    const _styleNft = styleNFT.connect(_user);
+    try {
+      await _styleNft.toggleSaleIsActive(1, true);
+      expect.fail('only the style owner should be able to modify its settings');
+    } catch (e: any) {
+      expect(e.message).to.contain('NotControllingStyle');
+    }
   });
 
   it('signals to be ready for minting', async function () {
-    const _styleNft = styleNFT.connect(_user);
+    const _styleNft = styleNFT.connect(_artist);
+    try {
+      expect(await _styleNft.availableForPublicMinting(1)).to.equal(100);
+      expect.fail(
+        'availability shouldnt be signalled when sales is not active'
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('SaleNotActive');
+    }
+    await _styleNft.toggleSaleIsActive(1, true);
+    const isSaleActive = await _styleNft.isSaleActive(1);
+    expect(isSaleActive).to.be.true;
+
     expect(await _styleNft.availableForPublicMinting(1)).to.equal(100);
   });
 
