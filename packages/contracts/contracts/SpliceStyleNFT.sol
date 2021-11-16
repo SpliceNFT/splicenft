@@ -37,6 +37,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   /// @notice
   error NotEnoughTokensToMatchReservation(uint32 style_token_id);
 
+  /// @notice
+  error StyleIsFrozen();
+
   Counters.Counter private _styleTokenIds;
 
   mapping(address => bool) public isCurator;
@@ -133,7 +136,17 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     if (ownerOf(style_token_id) != msg.sender) {
       revert NotControllingStyle(style_token_id);
     }
+
+    if (isFrozen(style_token_id)) {
+      revert StyleIsFrozen();
+    }
     styleSettings[style_token_id].salesIsActive = newValue;
+  }
+
+  function mintsLeft(uint32 style_token_id) public view returns (uint32) {
+    return
+      styleSettings[style_token_id].cap -
+      styleSettings[style_token_id].mintedOfStyle;
   }
 
   function reservedTokens(uint32 style_token_id) public view returns (uint32) {
@@ -142,12 +155,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       return 0;
     }
     return allowlists[style_token_id].numReserved;
-  }
-
-  function mintsLeft(uint32 style_token_id) public view returns (uint32) {
-    return
-      styleSettings[style_token_id].cap -
-      styleSettings[style_token_id].mintedOfStyle;
   }
 
   function availableForPublicMinting(uint32 style_token_id)
@@ -201,22 +208,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       1;
   }
 
-  function incrementMintedPerStyle(uint32 style_token_id)
-    external
-    onlySplice
-    returns (uint32)
-  {
-    if (!isSaleActive(style_token_id)) {
-      revert SaleNotActive(style_token_id);
-    }
-
-    if (mintsLeft(style_token_id) == 0) {
-      revert MintingCapOnStyleReached();
-    }
-    styleSettings[style_token_id].mintedOfStyle += 1;
-    return styleSettings[style_token_id].mintedOfStyle;
-  }
-
   function addAllowlist(
     uint32 style_token_id,
     uint32 _numReserved,
@@ -258,6 +249,10 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     view
     returns (bool)
   {
+    if (!isSaleActive(style_token_id)) {
+      revert SaleNotActive(style_token_id);
+    }
+
     if (styleSettings[style_token_id].collectionConstrained) {
       return collectionAllowed[style_token_id][collection];
     } else {
@@ -278,6 +273,31 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
   }
 
+  function isFrozen(uint32 style_token_id) public view returns (bool) {
+    return bytes(styleSettings[style_token_id].frozenCID).length > 0;
+  }
+
+  function freeze(uint32 style_token_id, string memory cid) public {
+    toggleSaleIsActive(style_token_id, false); //will revert if not allowed
+    styleSettings[style_token_id].frozenCID = cid;
+  }
+
+  function incrementMintedPerStyle(uint32 style_token_id)
+    external
+    onlySplice
+    returns (uint32)
+  {
+    if (!isSaleActive(style_token_id)) {
+      revert SaleNotActive(style_token_id);
+    }
+
+    if (mintsLeft(style_token_id) == 0) {
+      revert MintingCapOnStyleReached();
+    }
+    styleSettings[style_token_id].mintedOfStyle += 1;
+    return styleSettings[style_token_id].mintedOfStyle;
+  }
+
   function mint(
     uint32 _cap,
     string memory _metadataCID,
@@ -296,7 +316,8 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       priceParameters: _priceStrategyParameters,
       mintedOfStyle: 0,
       salesIsActive: _salesIsActive,
-      collectionConstrained: false
+      collectionConstrained: false,
+      frozenCID: ''
     });
 
     //INTERACTIONS

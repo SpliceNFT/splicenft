@@ -1,8 +1,8 @@
-import { BigNumber, utils, Event, Signer } from 'ethers';
+import { BigNumber, utils, Event, Signer, constants } from 'ethers';
 import keccak256 from 'keccak256';
 
 import { of as ipfsHashOf } from 'ipfs-only-hash';
-import { SpliceStyleNFT, TestnetNFT } from '../../typechain';
+import { Splice, SpliceStyleNFT, TestnetNFT } from '../../typechain';
 import { TransferEvent } from '../../typechain/ERC721';
 import { MerkleTree } from 'merkletreejs';
 
@@ -80,4 +80,31 @@ export function createMerkleProof(allowedAddresses: string[]): MerkleTree {
   return new MerkleTree(leaves, keccak256, {
     sort: true
   });
+}
+
+export async function mintSplice(
+  splice: Splice,
+  nftAddress: string,
+  originTokenId: number,
+  styleTokenId: number
+): Promise<BigNumber> {
+  const fee = splice.quote(nftAddress, styleTokenId);
+  const receipt = await (
+    await splice.mint(
+      nftAddress,
+      originTokenId,
+      styleTokenId,
+      [],
+      constants.HashZero,
+      {
+        value: fee
+      }
+    )
+  ).wait();
+
+  const transferEvent = receipt.events?.find(
+    (e: Event) => e.event === 'Transfer'
+  );
+
+  return (transferEvent as TransferEvent).args.tokenId;
 }

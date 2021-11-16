@@ -60,6 +60,7 @@ contract Splice is
   error NotAllowedToMint(string reason);
 
   /// @notice token provenance describes where a splice token came from.
+  /// @dev we're not storing the style token id because it can be extracted as the first 32 bits from the splice token id
   struct TokenProvenance {
     IERC721 origin_collection;
     uint256 origin_token_id;
@@ -116,6 +117,10 @@ contract Splice is
     baseUri = baseUri_;
   }
 
+  function setStyleNFT(SpliceStyleNFT _styleNFT) public onlyOwner {
+    styleNFT = _styleNFT;
+  }
+
   //todo: might be unwanted.
   function setBaseUri(string memory newBaseUri) public onlyOwner {
     baseUri = newBaseUri;
@@ -123,6 +128,12 @@ contract Splice is
 
   function _baseURI() internal view override returns (string memory) {
     return baseUri;
+  }
+
+  //todo: the platform benef. should be the only one to name a new beneficiary, not the owner.
+  function setPlatformBeneficiary(address payable newAddress) public onlyOwner {
+    require(address(0) != newAddress, 'must be a real address');
+    platformBeneficiary = newAddress;
   }
 
   /**
@@ -148,19 +159,51 @@ contract Splice is
     _unpause();
   }
 
+  function styleAndTokenByTokenId(uint256 tokenId)
+    public
+    pure
+    returns (uint32 style_token_id, uint32 token_token_id)
+  {
+    bytes memory tokenIdBytes = abi.encode(tokenId);
+
+    style_token_id = BytesLib.toUint32(tokenIdBytes, 24);
+    token_token_id = BytesLib.toUint32(tokenIdBytes, 28);
+  }
+
+  function tokenURI(uint256 tokenId)
+    public
+    view
+    override
+    returns (string memory)
+  {
+    require(
+      _exists(tokenId),
+      'ERC721Metadata: URI query for nonexistent token'
+    );
+
+    (uint32 style_token_id, uint32 token_token_id) = styleAndTokenByTokenId(
+      tokenId
+    );
+
+    if (styleNFT.isFrozen(style_token_id)) {
+      StyleSettings memory settings = styleNFT.getSettings(style_token_id);
+      return
+        string(
+          abi.encodePacked(
+            'ipfs://',
+            settings.frozenCID,
+            '/',
+            BytesLib.uintToString(token_token_id)
+          )
+        );
+    } else {
+      return super.tokenURI(tokenId);
+    }
+  }
+
   function updateArtistShare(uint8 share) public onlyOwner {
     require(share > 75, 'we will never take more than 25%');
     ARTIST_SHARE = share;
-  }
-
-  function setStyleNFT(SpliceStyleNFT _styleNFT) public onlyOwner {
-    styleNFT = _styleNFT;
-  }
-
-  //todo: the platform benef. should be the only one to name a new beneficiary, not the owner.
-  function setPlatformBeneficiary(address payable newAddress) public onlyOwner {
-    require(address(0) != newAddress, 'must be a real address');
-    platformBeneficiary = newAddress;
   }
 
   function spliceCountForOrigin(bytes32 _originHash)

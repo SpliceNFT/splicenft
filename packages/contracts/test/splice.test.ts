@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Signer, Event, ContractReceipt } from 'ethers';
+import { Signer, Event, ContractReceipt, BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
 import {
@@ -16,6 +16,7 @@ import {
   deployTestnetNFT
 } from './lib/deployContracts';
 import {
+  mintSplice,
   mintStyle,
   mintTestnetNFT,
   tokenIdToStyleAndToken
@@ -50,7 +51,7 @@ describe('Splice', function () {
     await (await styleNFT.allowCurator(curatorAddress)).wait();
 
     const _styleNft = styleNFT.connect(_curator);
-    await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: false });
+    await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: true });
   });
 
   it('gets an nft on the test collection', async function () {
@@ -80,6 +81,8 @@ describe('Splice', function () {
   it('reverts when sales is not active', async function () {
     const _splice = splice.connect(_user);
     const fee = await splice.quote(testNft.address, 1);
+    const _styleNft = styleNFT.connect(_curator);
+    await _styleNft.toggleSaleIsActive(1, false);
     try {
       await (
         await _splice.mint(
@@ -124,6 +127,33 @@ describe('Splice', function () {
 
     expect(token_id).to.equal(1);
     expect(style_token_id).to.equal(1);
+
+    const tokenUri = await _splice.tokenURI(combinedTokenId);
+    expect(tokenUri).to.equal(
+      'http://localhost:5999/metadata/31337/4294967297'
+    );
+  });
+
+  it('can resolve style and token id from a splice token id', async function () {
+    const oneAndOne =
+      '0x0000000000000000000000000000000000000000000000000000000100000001';
+    let [style, token] = await splice.styleAndTokenByTokenId(oneAndOne);
+    expect(style).to.equal(1);
+    expect(token).to.equal(1);
+
+    const max =
+      '0x000000000000000000000000000000000000000000000000ffffffffffffffff';
+
+    [style, token] = await splice.styleAndTokenByTokenId(max);
+    expect(style).to.equal(4294967295);
+    expect(token).to.equal(4294967295);
+
+    const somethingInBetween =
+      '0x0000000000000000000000000000000000000000000000000000208800000915';
+
+    [style, token] = await splice.styleAndTokenByTokenId(somethingInBetween);
+    expect(style).to.equal(0x2088);
+    expect(token).to.equal(0x0915);
   });
 
   it('cannot mint another splice from the same origin and style', async function () {
@@ -378,5 +408,55 @@ describe('Splice', function () {
       expect(e.message).to.contain('NotAllowedToMint');
     }
   });
+
+  it('can freeze a style #119', async function () {
+    const _styleNFT = styleNFT.connect(_curator);
+    const _splice = splice.connect(_user);
+
+    const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
+      saleIsActive: true,
+      cap: 10
+    });
+
+    const nfts = await Promise.all(
+      [0, 1, 2, 3, 4].map((i) => mintTestnetNFT(testNft, _user))
+    );
+
+    const splices: BigNumber[] = await Promise.all(
+      nfts.map((nftTokenId) =>
+        mintSplice(_splice, testNft.address, nftTokenId, styleTokenId)
+      )
+    );
+
+    expect(await _splice.tokenURI(splices[0])).to.contain(
+      'http://localhost:5999/metadata/31337/'
+    );
+    //in the meanwhile... store the metadata on ipfs... and then...
+    await _styleNFT.freeze(styleTokenId, 'QmSomeIpfsHash');
+
+    for await (const spliceId of splices) {
+      const tokenUri = await _splice.tokenURI(spliceId);
+      const { token_id: tokenTokenId } = tokenIdToStyleAndToken(spliceId);
+      expect(tokenUri).to.equal(`ipfs://QmSomeIpfsHash/${tokenTokenId}`);
+    }
+
+    //once its frozen it can't be thawed or minted
+    try {
+      const anotherNft = await mintTestnetNFT(testNft, _user);
+      await mintSplice(_splice, testNft.address, anotherNft, styleTokenId);
+      expect.fail('it mustnt be possible to mint on a frozen style');
+    } catch (e: any) {
+      expect(e.message).to.contain('SaleNotActive');
+    }
+
+    expect(await _styleNFT.isSaleActive(styleTokenId)).to.be.false;
+    try {
+      await _styleNFT.toggleSaleIsActive(styleTokenId, true);
+      expect.fail('you mustnt be able to reactivate a frozen style');
+    } catch (e: any) {
+      expect(e.message).to.contain('StyleIsFrozen');
+    }
+  });
+
   it.skip('withdraws ERC20 tokens that have been transferred to it');
 });
