@@ -66,6 +66,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     ERC721('Splice Style NFT', 'SPLYLE')
     ERC721Enumerable()
     Ownable()
+    ReentrancyGuard()
   {}
 
   modifier onlyCurator() {

@@ -10,3 +10,5 @@ dist
 
 .ipfs
 .openzeppelin/unknown-*.json
+coverage
+coverage.json

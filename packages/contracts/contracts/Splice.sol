@@ -116,6 +116,8 @@ contract Splice is
   ) public initializer {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
+    __Pausable_init();
+    __ReentrancyGuard_init();
     ARTIST_SHARE = 85;
     //todo: unsure if a gnosis safe is payable...
     platformBeneficiary = payable(msg.sender);
