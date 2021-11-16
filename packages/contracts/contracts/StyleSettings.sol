@@ -19,4 +19,5 @@ struct StyleSettings {
   bool salesIsActive;
   //counting up
   uint32 mintedOfStyle;
+  bool collectionConstrained;
 }

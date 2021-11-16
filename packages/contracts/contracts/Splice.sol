@@ -57,7 +57,7 @@ contract Splice is
   error SpliceNotFound();
 
   /// @notice only reserved mints are left or not on allowlist
-  error NotAllowedToMint();
+  error NotAllowedToMint(string reason);
 
   /// @notice token provenance describes where a splice token came from.
   struct TokenProvenance {
@@ -232,6 +232,15 @@ contract Splice is
       revert NotOwningOrigin();
     }
 
+    if (
+      !styleNFT.canBeMintedOnCollection(
+        style_token_id,
+        address(origin_collection)
+      )
+    ) {
+      revert NotAllowedToMint('style disallows minting on this collection');
+    }
+
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)
     uint256 fee = quote(origin_collection, style_token_id);
@@ -247,7 +256,7 @@ contract Splice is
           msg.sender
         )
       ) {
-        revert NotAllowedToMint();
+        revert NotAllowedToMint('no reservations left or proof failed');
       } else {
         styleNFT.decreaseAllowance(style_token_id, msg.sender);
       }

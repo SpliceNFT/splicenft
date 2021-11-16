@@ -39,10 +39,13 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
   Counters.Counter private _styleTokenIds;
 
-  mapping(address => bool) public isArtist;
+  mapping(address => bool) public isCurator;
   mapping(uint32 => StyleSettings) styleSettings;
   mapping(uint32 => Allowlist) allowlists;
+
+  /// @notice how many pieces has an (allowed) address already minted on a style
   mapping(uint32 => mapping(address => uint8)) mintsAlreadyAllowed;
+  mapping(uint32 => mapping(address => bool)) collectionAllowed;
 
   address public spliceNFT;
 
@@ -52,8 +55,8 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     Ownable()
   {}
 
-  modifier onlyArtist() {
-    require(isArtist[msg.sender] == true, 'only artists can mint styles');
+  modifier onlyCurator() {
+    require(isCurator[msg.sender] == true, 'only curators can mint styles');
     _;
   }
 
@@ -66,13 +69,12 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     spliceNFT = _spliceNFT;
   }
 
-  function allowArtist(address artist) external onlyOwner {
-    isArtist[artist] = true;
+  function allowCurator(address curator) external onlyOwner {
+    isCurator[curator] = true;
   }
 
-  function disallowArtist(address artist) external onlyOwner {
-    require(isArtist[artist], "the artist wasn't allowed anyway");
-    isArtist[artist] = false;
+  function disallowCurator(address curator) external onlyOwner {
+    isCurator[curator] = false;
   }
 
   /**
@@ -251,13 +253,38 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     });
   }
 
+  function canBeMintedOnCollection(uint32 style_token_id, address collection)
+    public
+    view
+    returns (bool)
+  {
+    if (styleSettings[style_token_id].collectionConstrained) {
+      return collectionAllowed[style_token_id][collection];
+    } else {
+      return true;
+    }
+  }
+
+  function restrictToCollections(
+    uint32 style_token_id,
+    address[] memory _collections
+  ) public {
+    if (ownerOf(style_token_id) != msg.sender) {
+      revert NotControllingStyle(style_token_id);
+    }
+    styleSettings[style_token_id].collectionConstrained = true;
+    for (uint256 i = 0; i < _collections.length; i++) {
+      collectionAllowed[style_token_id][_collections[i]] = true;
+    }
+  }
+
   function mint(
     uint32 _cap,
     string memory _metadataCID,
     ISplicePriceStrategy _priceStrategy,
     bytes32 _priceStrategyParameters,
     bool _salesIsActive
-  ) external onlyArtist returns (uint32 style_token_id) {
+  ) external onlyCurator returns (uint32 style_token_id) {
     //EFFECTS
     _styleTokenIds.increment();
     style_token_id = _styleTokenIds.current().toUint32();
@@ -268,7 +295,8 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       priceStrategy: _priceStrategy,
       priceParameters: _priceStrategyParameters,
       mintedOfStyle: 0,
-      salesIsActive: _salesIsActive
+      salesIsActive: _salesIsActive,
+      collectionConstrained: false
     });
 
     //INTERACTIONS

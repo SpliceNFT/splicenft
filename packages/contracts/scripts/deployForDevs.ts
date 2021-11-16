@@ -80,8 +80,8 @@ const deployTestnetNFT = async (
   console.log('connected Splice & StyleNFT');
 
   //set some defaults
-  await spliceStyleNFT.allowArtist(artistAccount.address);
-  console.log('allowed artist: ', artistAccount.address);
+  await spliceStyleNFT.allowCurator(artistAccount.address);
+  console.log('allowed curator: ', artistAccount.address);
 
   for await (const style of [
     'ConfidenceInTheMission',

@@ -26,19 +26,19 @@ task('style:mint', 'mints a style')
     } = taskArgs;
 
     const signers = await hre.ethers.getSigners();
-    const artist = signers[accountIdx];
-    console.log('Artist', artist.address);
+    const curator = signers[accountIdx];
+    console.log('Curator', curator.address);
 
     const StyleNFT = await hre.ethers.getContractFactory('SpliceStyleNFT');
-    const styleNFT = await StyleNFT.attach(styleNftAddress).connect(artist);
+    const styleNFT = await StyleNFT.attach(styleNftAddress).connect(curator);
 
-    const artistMetadata = JSON.parse(
+    const styleMetadata = JSON.parse(
       await fs.promises.readFile(`${directory}/metadata.json`, 'utf-8')
     );
     const code = await fs.promises.readFile(`${directory}/code.js`);
     const previewImg = await fs.promises.readFile(`${directory}/preview.png`);
 
-    const _metadata = { ...artistMetadata };
+    const _metadata = { ...styleMetadata };
 
     _metadata.image = new File([previewImg], 'preview.png', {
       type: 'image/png'
