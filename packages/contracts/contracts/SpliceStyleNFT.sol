@@ -40,6 +40,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   /// @notice
   error StyleIsFrozen();
 
+  //https://docs.opensea.io/docs/metadata-standards#ipfs-and-arweave-uris
+  event PermanentURI(string _value, uint256 indexed _id);
+
   Counters.Counter private _styleTokenIds;
 
   mapping(address => bool) public isCurator;
@@ -274,12 +277,14 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   }
 
   function isFrozen(uint32 style_token_id) public view returns (bool) {
-    return bytes(styleSettings[style_token_id].frozenCID).length > 0;
+    return styleSettings[style_token_id].isFrozen;
   }
 
   function freeze(uint32 style_token_id, string memory cid) public {
     toggleSaleIsActive(style_token_id, false); //will revert if not allowed
-    styleSettings[style_token_id].frozenCID = cid;
+    styleSettings[style_token_id].styleCID = cid;
+    styleSettings[style_token_id].isFrozen = true;
+    emit PermanentURI(tokenURI(style_token_id), style_token_id);
   }
 
   function incrementMintedPerStyle(uint32 style_token_id)
@@ -317,7 +322,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       mintedOfStyle: 0,
       salesIsActive: _salesIsActive,
       collectionConstrained: false,
-      frozenCID: ''
+      isFrozen: false
     });
 
     //INTERACTIONS

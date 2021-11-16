@@ -191,7 +191,7 @@ contract Splice is
         string(
           abi.encodePacked(
             'ipfs://',
-            settings.frozenCID,
+            settings.styleCID,
             '/',
             BytesLib.uintToString(token_token_id)
           )

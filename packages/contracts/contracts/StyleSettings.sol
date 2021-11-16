@@ -20,5 +20,5 @@ struct StyleSettings {
   //counting up
   uint32 mintedOfStyle;
   bool collectionConstrained;
-  string frozenCID;
+  bool isFrozen;
 }
