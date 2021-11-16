@@ -8,6 +8,7 @@ import '@nomiclabs/hardhat-etherscan';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-contract-sizer';
 import './tasks/mintStyle';
+import './tasks/activateSale';
 import './tasks/mint';
 
 import { config as dotenv } from 'dotenv-flow';

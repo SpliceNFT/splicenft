@@ -49,8 +49,9 @@ export const MintSpliceButton = ({
       onMinted(mintingResult.spliceTokenId);
     } catch (e: any) {
       console.error(e);
+      const message = e.data?.message || e.message;
       toast({
-        title: `Mint Transaction failed ${e.message}`,
+        title: `Mint Transaction failed ${message}`,
         status: 'error',
         isClosable: true
       });

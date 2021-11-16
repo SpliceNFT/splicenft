@@ -7,7 +7,7 @@ import { ethers, upgrades } from 'hardhat';
   const staticPriceStrategy = await PriceStrategy.deploy();
   console.log('static price strategy instance:', staticPriceStrategy.address);
 
-  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFTV1');
+  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
   const spliceStyleNFT = await SpliceStyleNFT.deploy();
   console.log('splice style nft:', spliceStyleNFT.address);
 

@@ -63,7 +63,7 @@ const deployTestnetNFT = async (
   const staticPriceStrategy = await PriceStrategy.deploy();
   console.log('static price strategy instance:', staticPriceStrategy.address);
 
-  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFTV1');
+  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
   const spliceStyleNFT = await SpliceStyleNFT.deploy();
   console.log('splice style nft:', spliceStyleNFT.address);
 
@@ -83,20 +83,19 @@ const deployTestnetNFT = async (
   await spliceStyleNFT.allowArtist(artistAccount.address);
   console.log('allowed artist: ', artistAccount.address);
 
-  await splice.toggleSaleIsActive(true);
-
   for await (const style of [
     'ConfidenceInTheMission',
     'ABeginningIsAVeryDelicateTime',
     'District1618'
   ]) {
-    await run('splice:style', {
+    await run('style:mint', {
       styleNftAddress: spliceStyleNFT.address,
       priceStrategyAddress: staticPriceStrategy.address,
       accountIdx: '18',
       directory: `../../renderers/${style}`,
       mintPriceEth: '0.02',
-      cap: '200'
+      cap: '200',
+      sale: 'false'
     });
     console.log(`deployed style ${style}`);
   }

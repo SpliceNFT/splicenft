@@ -1,7 +1,7 @@
 import {
   Splice as SpliceContract,
-  SpliceStyleNFTV1 as StyleNFTContract,
-  SpliceStyleNFTV1__factory as StyleNFTFactory,
+  SpliceStyleNFT as StyleNFTContract,
+  SpliceStyleNFT__factory as StyleNFTFactory,
   Splice__factory as SpliceFactory
 } from '@splicenft/contracts';
 import { TransferEvent } from '@splicenft/contracts/typechain/Splice';
@@ -149,6 +149,7 @@ export class Splice {
       origin_collection,
       origin_token_id,
       style_token_id,
+      [],
       inputParams,
       {
         value: mintingFee
