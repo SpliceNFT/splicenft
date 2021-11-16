@@ -415,7 +415,7 @@ describe('Splice', function () {
 
     const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
       saleIsActive: true,
-      cap: 10
+      cap: 6
     });
 
     const nfts = await Promise.all(
@@ -432,6 +432,24 @@ describe('Splice', function () {
       'http://localhost:5999/metadata/31337/'
     );
     //in the meanwhile... store the metadata on ipfs... and then...
+
+    try {
+      await _styleNFT.freeze(styleTokenId, 'QmSomeIpfsHash');
+      expect.fail('a style mustnt be frozen if its not fully minted');
+    } catch (e: any) {
+      expect(e.message).to.contain(
+        "can't freeze a style that's not fully minted"
+      );
+    }
+
+    const lastNft = await mintTestnetNFT(testNft, _user);
+    const lastSplice = await mintSplice(
+      _splice,
+      testNft.address,
+      lastNft,
+      styleTokenId
+    );
+
     await _styleNFT.freeze(styleTokenId, 'QmSomeIpfsHash');
 
     for await (const spliceId of splices) {

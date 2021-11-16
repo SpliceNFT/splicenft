@@ -100,6 +100,15 @@ contract Splice is
    */
   EscrowUpgradeable private feesEscrow;
 
+  event SharesChanged(uint8 percentage);
+  event Withdrawn(address indexed user, uint256 amount);
+  event Minted(
+    uint32 indexed style_token_id,
+    address indexed origin_collection,
+    uint256 origin_token_id,
+    uint64 indexed token_id
+  );
+
   function initialize(
     string memory name_,
     string memory symbol_,
@@ -204,6 +213,7 @@ contract Splice is
   function updateArtistShare(uint8 share) public onlyOwner {
     require(share > 75, 'we will never take more than 25%');
     ARTIST_SHARE = share;
+    emit SharesChanged(share);
   }
 
   function spliceCountForOrigin(bytes32 _originHash)
@@ -256,7 +266,9 @@ contract Splice is
 
   function withdrawShares() external nonReentrant whenNotPaused {
     //todo: the payable cast might not be right (msg.sender might be a contract)
+    uint256 balance = shareBalanceOf(msg.sender);
     feesEscrow.withdraw(payable(msg.sender));
+    emit Withdrawn(msg.sender, balance);
   }
 
   function shareBalanceOf(address payee) public view returns (uint256) {
@@ -336,6 +348,12 @@ contract Splice is
     splitMintFee(fee, style_token_id);
     _safeMint(msg.sender, token_id);
 
+    emit Minted(
+      style_token_id,
+      address(origin_collection),
+      origin_token_id,
+      token_id
+    );
     return token_id;
   }
 }

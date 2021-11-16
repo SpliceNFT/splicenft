@@ -42,6 +42,13 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
   //https://docs.opensea.io/docs/metadata-standards#ipfs-and-arweave-uris
   event PermanentURI(string _value, uint256 indexed _id);
+  event Minted(uint32 indexed style_token_id, uint32 cap, string metadataCID);
+  event AllowlistInstalled(
+    uint32 indexed style_token_id,
+    uint32 reserved,
+    uint8 mintsPerAddress,
+    uint64 until
+  );
 
   Counters.Counter private _styleTokenIds;
 
@@ -245,6 +252,12 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       reservedUntil: _reservedUntil,
       mintsPerAddress: _mintsPerAddress
     });
+    emit AllowlistInstalled(
+      style_token_id,
+      _numReserved,
+      _mintsPerAddress,
+      _reservedUntil
+    );
   }
 
   function canBeMintedOnCollection(uint32 style_token_id, address collection)
@@ -280,8 +293,12 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     return styleSettings[style_token_id].isFrozen;
   }
 
-  function freeze(uint32 style_token_id, string memory cid) public {
-    toggleSaleIsActive(style_token_id, false); //will revert if not allowed
+  function freeze(uint32 style_token_id, string memory cid) public onlyCurator {
+    require(
+      mintsLeft(style_token_id) == 0,
+      "can't freeze a style that's not fully minted"
+    );
+    styleSettings[style_token_id].salesIsActive = false;
     styleSettings[style_token_id].styleCID = cid;
     styleSettings[style_token_id].isFrozen = true;
     emit PermanentURI(tokenURI(style_token_id), style_token_id);
@@ -327,5 +344,6 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     //INTERACTIONS
     _safeMint(msg.sender, style_token_id);
+    emit Minted(style_token_id, _cap, _metadataCID);
   }
 }
