@@ -42,15 +42,22 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
       console.error(`chain ${chainId} unsupported`);
       return;
     }
-    const splAddress =
-      chain === 'localhost'
-        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
-        : SPLICE_ADDRESSES[chainId];
 
-    if (splAddress) {
-      setSplice(Splice.from(splAddress, library.getSigner()));
+    if (chain === 'localhost') {
+      setSplice(
+        Splice.from(
+          process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string,
+          library.getSigner(),
+          20
+        )
+      );
     } else {
-      setSplice(undefined);
+      const { address, deployedAt } = SPLICE_ADDRESSES[chainId];
+      if (!address) {
+        setSplice(undefined);
+      } else {
+        setSplice(Splice.from(address, library.getSigner(), deployedAt));
+      }
     }
 
     switch (chain) {

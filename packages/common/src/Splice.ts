@@ -11,8 +11,9 @@ import { erc721 } from '.';
 import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
 
-export const SPLICE_ADDRESSES: Record<number, string> = {
-  4: '0x729410F8db69932E38dF158101e60d09aAA6423D'
+type SpliceDeployInfo = { address: string; deployedAt: number };
+export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
+  4: { address: '0x729410F8db69932E38dF158101e60d09aAA6423D', deployedAt: 0 }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
 };
@@ -32,7 +33,7 @@ export type TokenMetadataResponse = { tokenId: string; metadataUrl: string };
 //todo: restrict all filters to start searching from the deployed block number
 export class Splice {
   private contract: SpliceContract;
-
+  private deployedAtBlock: number;
   private styleNFTContract?: StyleNFTContract;
 
   get address() {
@@ -41,6 +42,7 @@ export class Splice {
 
   constructor(splice: SpliceContract) {
     this.contract = splice;
+    this.deployedAtBlock = 0;
   }
 
   get providerOrSigner(): { provider: providers.Provider; signer: Signer } {
@@ -49,10 +51,15 @@ export class Splice {
       signer: this.contract.signer
     };
   }
-  static from(address: string, signer: Signer | providers.Provider) {
+  static from(
+    address: string,
+    signer: Signer | providers.Provider,
+    deployedAt = 0
+  ) {
     const spliceFactory = SpliceFactory.connect(address, signer);
     const contract = spliceFactory.attach(address);
     const spl = new Splice(contract);
+    spl.deployedAtBlock = deployedAt;
     return spl;
   }
 
@@ -180,7 +187,10 @@ export class Splice {
     const originHash = Splice.originHash(collectionAddress, tokenId);
 
     const filter = this.contract.filters.Minted(originHash);
-    const mintedEvents = await this.contract.queryFilter(filter, 0);
+    const mintedEvents = await this.contract.queryFilter(
+      filter,
+      this.deployedAtBlock
+    );
 
     if (mintedEvents.length === 0) return [];
     return mintedEvents.map((ev) => {
@@ -205,7 +215,10 @@ export class Splice {
         : spliceTokenId;
 
     const filter = this.contract.filters.Minted(null, spliceTokenId);
-    const mintedEvents = await this.contract.queryFilter(filter);
+    const mintedEvents = await this.contract.queryFilter(
+      filter,
+      this.deployedAtBlock
+    );
     if (mintedEvents.length == 0) return null;
 
     if (mintedEvents.length > 1)
