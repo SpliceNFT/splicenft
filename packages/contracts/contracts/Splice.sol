@@ -103,10 +103,10 @@ contract Splice is
   event SharesChanged(uint8 percentage);
   event Withdrawn(address indexed user, uint256 amount);
   event Minted(
-    uint32 indexed style_token_id,
     address indexed origin_collection,
     uint256 origin_token_id,
-    uint64 indexed token_id
+    uint64 indexed token_id,
+    uint32 indexed style_token_id
   );
 
   function initialize(
@@ -351,10 +351,10 @@ contract Splice is
     _safeMint(msg.sender, token_id);
 
     emit Minted(
-      style_token_id,
       address(origin_collection),
       origin_token_id,
-      token_id
+      token_id,
+      style_token_id
     );
     return token_id;
   }

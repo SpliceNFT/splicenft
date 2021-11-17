@@ -5,8 +5,6 @@ import './StyleSettings.sol';
 import './SpliceStyleNFT.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
-error QuoteNotImplemented();
-
 /**
  * this is a powerful interface to allow non linear pricing.
  * You could e.g. invent a strategy that increases a base price

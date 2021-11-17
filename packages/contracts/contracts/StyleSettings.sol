@@ -6,19 +6,19 @@ import './ISplicePriceStrategy.sol';
 struct Allowlist {
   //counting down
   uint32 numReserved;
-  bytes32 merkleRoot;
   uint64 reservedUntil;
   uint8 mintsPerAddress;
+  bytes32 merkleRoot;
 }
 
 struct StyleSettings {
+  //counting up
+  uint32 mintedOfStyle;
   uint32 cap;
-  string styleCID;
   ISplicePriceStrategy priceStrategy;
   bytes32 priceParameters;
   bool salesIsActive;
-  //counting up
-  uint32 mintedOfStyle;
   bool collectionConstrained;
   bool isFrozen;
+  string styleCID;
 }
