@@ -1,5 +1,5 @@
 import { useToast, Flex, Text, Button } from '@chakra-ui/react';
-import { Style } from '@splicenft/common';
+import { Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ export const MintSpliceButton = ({
   collection: string;
   originTokenId: string;
   selectedStyle: Style;
-  onMinted: (spliceTokenId: ethers.BigNumber) => unknown;
+  onMinted: (provenance: TokenProvenance) => unknown;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
@@ -46,7 +46,8 @@ export const MintSpliceButton = ({
         additionalData: Uint8Array.from([]),
         mintingFee: quote
       });
-      onMinted(mintingResult.spliceTokenId);
+
+      onMinted(mintingResult.provenance);
     } catch (e: any) {
       console.error(e);
       const message = e.data?.message || e.message;

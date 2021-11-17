@@ -108,3 +108,12 @@ export async function mintSplice(
 
   return (transferEvent as TransferEvent).args.tokenId;
 }
+
+export function originHash(
+  collectionAddress: string,
+  originTokenId: BigNumber
+): string {
+  const hxToken = utils.hexZeroPad(originTokenId.toHexString(), 32);
+  const inp = `${collectionAddress}${hxToken.slice(2)}`;
+  return utils.keccak256(inp);
+}

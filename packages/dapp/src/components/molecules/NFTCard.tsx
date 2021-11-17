@@ -37,9 +37,10 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   useEffect(() => {
     if (!splice) return;
     (async () => {
-      setProvenances(
-        await splice.findProvenances(nft.contract_address, nft.token_id)
-      );
+      //todo: too expensive here.
+      // setProvenances(
+      //   await splice.findProvenances(nft.contract_address, nft.token_id)
+      // );
     })();
   }, [splice]);
 

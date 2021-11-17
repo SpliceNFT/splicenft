@@ -10,6 +10,7 @@ import {
   TestnetNFT
 } from '../typechain';
 import { TransferEvent } from '../typechain/ERC721';
+import { MintedEvent } from '../typechain/Splice';
 import {
   deploySplice,
   deployStaticPriceStrategy,
@@ -19,6 +20,7 @@ import {
   mintSplice,
   mintStyle,
   mintTestnetNFT,
+  originHash,
   tokenIdToStyleAndToken
 } from './lib/helpers';
 
@@ -115,12 +117,12 @@ describe('Splice', function () {
       })
     ).wait();
 
-    const transferEvent = receipt.events?.find(
-      (e: Event) => e.event === 'Transfer'
+    const mintedEvent = receipt.events?.find(
+      (e: Event) => e.event === 'Minted'
     );
 
-    expect(transferEvent).to.not.be.undefined;
-    const combinedTokenId = (transferEvent as TransferEvent).args.tokenId;
+    expect(mintedEvent).to.not.be.undefined;
+    const combinedTokenId = (mintedEvent as MintedEvent).args.token_id;
 
     const { token_id, style_token_id } =
       tokenIdToStyleAndToken(combinedTokenId);
@@ -200,26 +202,67 @@ describe('Splice', function () {
     expect(style_token_id).to.equal(2);
   });
 
-  it('can lookup splices of an origin', async function () {
-    const originHash = await splice.originHash(testNft.address, 1);
-    const spliceCount = await splice.spliceCountForOrigin(originHash);
-    expect(spliceCount).to.equal(2);
+  it('can find all splices of a user', async function () {
+    const _userAddress = await _user.getAddress();
+    const balance = await splice.balanceOf(_userAddress);
+    expect(balance.toNumber()).to.equal(2);
 
-    const firstSpliceId = await splice.originToTokenId(originHash, 0);
+    const filter = splice.filters.Transfer(null, _userAddress);
+    const transfers = await splice.queryFilter(filter);
+    expect(transfers).lengthOf(2);
+
+    const firstEvent = transfers[0];
+    const firstSpliceId = firstEvent.args.tokenId;
     const first = tokenIdToStyleAndToken(firstSpliceId);
     expect(first.style_token_id).to.equal(1);
     expect(first.token_id).to.equal(1);
 
-    const secondSpliceId = await splice.originToTokenId(originHash, 1);
+    const secondEvent = transfers[1];
+    const secondSpliceId = secondEvent.args.tokenId;
     const second = tokenIdToStyleAndToken(secondSpliceId);
     expect(second.style_token_id).to.equal(2);
     expect(second.token_id).to.equal(1);
-    try {
-      await splice.originToTokenId(originHash, 2);
-      expect.fail('it mustnt be possible to read outside array bounds');
-    } catch (e: any) {
-      expect(e.message).to.contain('Transaction reverted');
-    }
+  });
+
+  it('can lookup splices of an origin', async function () {
+    const oHash = originHash(testNft.address, BigNumber.from(1));
+    const filter = splice.filters.Minted(oHash);
+    const mintedEvents = await splice.queryFilter(filter);
+    expect(mintedEvents).lengthOf(2);
+
+    const firstEvent = mintedEvents[0];
+    const firstSpliceId = firstEvent.args.token_id;
+    const first = tokenIdToStyleAndToken(firstSpliceId);
+    expect(first.style_token_id).to.equal(1);
+    expect(first.token_id).to.equal(1);
+
+    const secondEvent = mintedEvents[1];
+    const secondSpliceId = secondEvent.args.token_id;
+    const second = tokenIdToStyleAndToken(secondSpliceId);
+    expect(second.style_token_id).to.equal(2);
+    expect(second.token_id).to.equal(1);
+  });
+
+  it('gets the full provenance by a token id', async function () {
+    const oneAndOne =
+      '0x0000000000000000000000000000000000000000000000000000000100000001';
+
+    const spliceTokenId = BigNumber.from(oneAndOne);
+    const filter = splice.filters.Minted(null, spliceTokenId);
+
+    const mintedEvents = await splice.queryFilter(filter);
+    expect(mintedEvents).lengthOf(1);
+
+    const mintEvent = mintedEvents[0];
+    const tx = await mintEvent.getTransaction();
+    const inputData = splice.interface.decodeFunctionData(
+      splice.interface.functions[
+        'mint(address,uint256,uint32,bytes32[],bytes)'
+      ],
+      tx.data
+    );
+    expect(inputData.origin_collection).to.equal(testNft.address);
+    expect(inputData.origin_token_id).to.equal(1);
   });
 
   it('withdraws shared funds from escrow', async function () {

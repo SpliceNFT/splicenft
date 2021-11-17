@@ -1,3 +1,4 @@
+import { BigNumber } from '.pnpm/@ethersproject+bignumber@5.4.2/node_modules/@ethersproject/bignumber';
 import { SpliceNFT } from '@splicenft/common';
 import * as Cache from './Cache';
 import { extractOriginFeatures, getOriginMetadata } from './Origin';
@@ -15,8 +16,11 @@ const Metadata = async (
     return cached;
   }
   const splice = getSplice(styleCache.network);
-  const provenance = await splice.getProvenance(spliceTokenId);
-  if (!provenance) throw new Error(`no provenance for token ${spliceTokenId}`);
+  const provenance = await splice.getProvenance(BigNumber.from(spliceTokenId));
+  if (!provenance) {
+    throw new Error(`no provenance for token ${spliceTokenId}`);
+  }
+
   const originNftContract = splice.getOriginNftContract(
     provenance.origin_collection
   );

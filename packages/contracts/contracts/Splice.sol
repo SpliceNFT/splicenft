@@ -22,8 +22,6 @@ pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
-import '@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
@@ -39,7 +37,7 @@ import './SpliceStyleNFT.sol';
 /// @title Splice is a protocol to mint NFTs out of origin NFTs
 /// @author Stefan Adolf @elmariachi111
 contract Splice is
-  ERC721EnumerableUpgradeable,
+  ERC721Upgradeable,
   OwnableUpgradeable,
   PausableUpgradeable,
   ReentrancyGuardUpgradeable
@@ -59,13 +57,6 @@ contract Splice is
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
 
-  /// @notice token provenance describes where a splice token came from.
-  /// @dev we're not storing the style token id because it can be extracted as the first 32 bits from the splice token id
-  struct TokenProvenance {
-    IERC721 origin_collection;
-    uint256 origin_token_id;
-  }
-
   uint8 public ARTIST_SHARE;
 
   string private baseUri;
@@ -73,14 +64,6 @@ contract Splice is
   //lookup table
   //keccak(0xcollection + origin_token_id + style_token_id)  => token_id
   mapping(bytes32 => uint64) public provenanceToTokenId;
-
-  //splice token ID => provenance
-  //todo: maybe replace with a subgraph
-  mapping(uint64 => TokenProvenance) public tokenProvenance;
-
-  //keccak(0xcollection + origin_token_id)  => splice token ids
-  //todo: replace this with a subgraph.
-  mapping(bytes32 => uint64[]) public originToTokenId;
 
   /**
    * @notice the contract that manages all styles as NFTs.
@@ -103,8 +86,7 @@ contract Splice is
   event SharesChanged(uint8 percentage);
   event Withdrawn(address indexed user, uint256 amount);
   event Minted(
-    address indexed origin_collection,
-    uint256 origin_token_id,
+    bytes32 indexed origin_hash,
     uint64 indexed token_id,
     uint32 indexed style_token_id
   );
@@ -218,14 +200,6 @@ contract Splice is
     emit SharesChanged(share);
   }
 
-  function spliceCountForOrigin(bytes32 _originHash)
-    public
-    view
-    returns (uint256)
-  {
-    return originToTokenId[_originHash].length;
-  }
-
   function provenanceHash(
     address nft,
     uint256 origin_token_id,
@@ -234,18 +208,11 @@ contract Splice is
     return keccak256(abi.encodePacked(nft, origin_token_id, style_token_id));
   }
 
-  function originHash(address nft, uint256 origin_token_id)
-    public
-    pure
-    returns (bytes32)
-  {
-    return keccak256(abi.encodePacked(nft, origin_token_id));
-  }
-
-  /// @dev the randomness is defined as the first 32 bit of an origin hash
-  function randomness(bytes32 _originHash) public pure returns (uint32) {
-    return BytesLib.toUint32(abi.encodePacked(_originHash), 0);
-  }
+  /// @dev the randomness is the first 32 bit of the provenance hash
+  /// (0xcollection + origin_token_id + style_token_id)
+  // function randomness(bytes32 _provenanceHash) public pure returns (uint32) {
+  //   return BytesLib.toUint32(abi.encodePacked(_provenanceHash), 0);
+  // }
 
   function quote(IERC721 nft, uint32 style_token_id)
     public
@@ -337,22 +304,14 @@ contract Splice is
       0
     );
 
-    tokenProvenance[token_id] = TokenProvenance(
-      origin_collection,
-      origin_token_id
-    );
-
     provenanceToTokenId[_provenanceHash] = token_id;
-    originToTokenId[originHash(address(origin_collection), origin_token_id)]
-      .push(token_id);
 
     //INTERACTIONS
     splitMintFee(fee, style_token_id);
     _safeMint(msg.sender, token_id);
 
     emit Minted(
-      address(origin_collection),
-      origin_token_id,
+      keccak256(abi.encodePacked(address(origin_collection), origin_token_id)),
       token_id,
       style_token_id
     );

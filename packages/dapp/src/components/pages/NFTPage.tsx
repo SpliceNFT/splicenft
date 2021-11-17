@@ -11,7 +11,6 @@ import {
   useToast
 } from '@chakra-ui/react';
 import {
-  MintingState,
   NFTMetaData,
   resolveImage,
   Splice,
@@ -35,7 +34,6 @@ import {
   MetaDataItem,
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
-import { BigNumber } from '.pnpm/@ethersproject+bignumber@5.4.2/node_modules/@ethersproject/bignumber';
 
 export const NFTPage = () => {
   const { collection, token_id: tokenId } =
@@ -59,16 +57,15 @@ export const NFTPage = () => {
   const [provenance, setProvenance] = useState<TokenProvenance>();
   const [spliceOwner, setSpliceOwner] = useState<string>();
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
-  const [mintingState, setMintingState] = useState<MintingState>(
-    MintingState.UNKNOWN
-  );
 
   const [sketch, setSketch] = useState<string>();
   const [buzy, setBuzy] = useState<boolean>(false);
 
   useEffect(() => {
     if (!splice) return;
-    splice.findProvenances(collection, tokenId).then(setAllProvenances);
+    (async () => {
+      await splice.findProvenances(collection, tokenId).then(setAllProvenances);
+    })();
   }, [splice]);
 
   useEffect(() => {
@@ -126,7 +123,7 @@ export const NFTPage = () => {
   }, []);
 
   const onMinted = useCallback(
-    async (spliceTokenId: BigNumber) => {
+    async (provenance: TokenProvenance) => {
       if (!splice) {
         console.error('no splice?!');
         return;
@@ -134,21 +131,17 @@ export const NFTPage = () => {
 
       toast({
         status: 'success',
-        title: `Hooray, Splice #${spliceTokenId} is yours now!`
+        title: `Hooray, Splice #${provenance.splice_token_id} is yours now!`
       });
 
-      const _provenance = await splice.getProvenance(spliceTokenId);
-      if (_provenance) {
-        console.debug('provenance found after minting');
-        setAllProvenances([...(allProvenances || []), _provenance]);
-      }
+      setAllProvenances([...(allProvenances || []), provenance]);
     },
     [allProvenances]
   );
 
   const _isDownloadable = useMemo<boolean>(() => {
     return provenance !== undefined && spliceOwner === account;
-  }, [mintingState, spliceOwner, account]);
+  }, [spliceOwner, account]);
 
   return (
     <Container maxW="container.xl">

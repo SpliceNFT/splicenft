@@ -4,7 +4,7 @@ import {
   SpliceStyleNFT__factory as StyleNFTFactory,
   Splice__factory as SpliceFactory
 } from '@splicenft/contracts';
-import { TransferEvent } from '@splicenft/contracts/typechain/Splice';
+import { MintedEvent } from '@splicenft/contracts/typechain/Splice';
 import axios from 'axios';
 import { BigNumber, ethers, providers, Signer, utils } from 'ethers';
 import { erc721 } from '.';
@@ -16,14 +16,6 @@ export const SPLICE_ADDRESSES: Record<number, string> = {
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
 };
-
-export enum MintingState {
-  UNKNOWN,
-  UNMINTED,
-  GENERATED,
-  MINTED,
-  FAILED
-}
 
 export type TokenProvenance = {
   origin_collection: string;
@@ -37,6 +29,7 @@ export type TokenProvenance = {
 
 export type TokenMetadataResponse = { tokenId: string; metadataUrl: string };
 
+//todo: restrict all filters to start searching from the deployed block number
 export class Splice {
   private contract: SpliceContract;
 
@@ -143,7 +136,7 @@ export class Splice {
     style_token_id: string | number;
     additionalData?: Uint8Array;
     mintingFee: ethers.BigNumber;
-  }): Promise<{ transactionHash: string; spliceTokenId: BigNumber }> {
+  }): Promise<{ transactionHash: string; provenance: TokenProvenance }> {
     const inputParams = ethers.utils.hexlify(additionalData || []);
     const tx = await this.contract.mint(
       origin_collection,
@@ -157,15 +150,23 @@ export class Splice {
     );
     const result = await tx.wait();
 
-    const transferEvent: TransferEvent =
+    const mintedEvent: MintedEvent =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      result.events?.find((evt) => evt.event === 'Transfer') as TransferEvent;
-    if (!transferEvent) {
-      throw new Error('no Transfer event captured in minting transaction');
+      result.events?.find((evt) => evt.event === 'Minted') as MintedEvent;
+    if (!mintedEvent) {
+      throw new Error('no Mint event captured in minting transaction');
     }
+    const { style_token_id: _style_token_id, token_id: style_token_token_id } =
+      Splice.tokenIdToStyleAndToken(mintedEvent.args.token_id);
     return {
       transactionHash: result.transactionHash,
-      spliceTokenId: transferEvent.args.tokenId
+      provenance: {
+        origin_collection: origin_collection,
+        origin_token_id: ethers.BigNumber.from(origin_token_id),
+        splice_token_id: mintedEvent.args.token_id,
+        style_token_id: _style_token_id,
+        style_token_token_id
+      }
     };
   }
 
@@ -177,49 +178,54 @@ export class Splice {
     tokenId: string
   ): Promise<TokenProvenance[]> {
     const originHash = Splice.originHash(collectionAddress, tokenId);
-    const spliceCount = (
-      await this.contract.spliceCountForOrigin(originHash)
-    ).toNumber();
-    const ret: TokenProvenance[] = [];
 
-    if (spliceCount === 0) return [];
-    for (let i = 0; i < spliceCount; i++) {
-      const spliceTokenId = await this.contract.originToTokenId(originHash, i);
+    const filter = this.contract.filters.Minted(originHash);
+    const mintedEvents = await this.contract.queryFilter(filter, 0);
+
+    if (mintedEvents.length === 0) return [];
+    return mintedEvents.map((ev) => {
       const { style_token_id, token_id: style_token_token_id } =
-        Splice.tokenIdToStyleAndToken(spliceTokenId);
-      ret.push({
+        Splice.tokenIdToStyleAndToken(ev.args.token_id);
+      return {
         origin_collection: collectionAddress,
         origin_token_id: ethers.BigNumber.from(tokenId),
-        splice_token_id: spliceTokenId,
+        splice_token_id: ev.args.token_id,
         style_token_id,
         style_token_token_id
-      });
-    }
-    return ret;
+      };
+    });
   }
 
   public async getProvenance(
-    spliceTokenId: string | BigNumber
+    spliceTokenId: BigNumber
   ): Promise<TokenProvenance | null> {
     const bnTokenId: BigNumber =
       'string' === typeof spliceTokenId
         ? BigNumber.from(spliceTokenId)
         : spliceTokenId;
 
-    const { style_token_id, token_id: style_token_token_id } =
-      Splice.tokenIdToStyleAndToken(bnTokenId);
+    const filter = this.contract.filters.Minted(null, spliceTokenId);
+    const mintedEvents = await this.contract.queryFilter(filter);
+    if (mintedEvents.length == 0) return null;
 
-    const provenance = await this.contract.tokenProvenance(spliceTokenId);
-    if (
-      provenance.origin_token_id.isZero() ||
-      provenance.origin_collection === ethers.constants.AddressZero
-    ) {
-      return null;
-    }
+    if (mintedEvents.length > 1)
+      throw new Error('a token can only be minted once');
+
+    const mintEvent = mintedEvents[0];
+    const tx = await mintEvent.getTransaction();
+    const inputData = this.contract.interface.decodeFunctionData(
+      this.contract.interface.functions[
+        'mint(address,uint256,uint32,bytes32[],bytes)'
+      ],
+      tx.data
+    );
+
+    const { style_token_id, token_id: style_token_token_id } =
+      Splice.tokenIdToStyleAndToken(spliceTokenId);
 
     return {
-      origin_collection: provenance.origin_collection,
-      origin_token_id: provenance.origin_token_id,
+      origin_collection: inputData.origin_collection,
+      origin_token_id: inputData.origin_token_id,
       splice_token_id: bnTokenId,
       style_token_id,
       style_token_token_id
@@ -275,30 +281,31 @@ export class Splice {
     return Promise.all(promises);
   }
 
+  public async getBalanceOf(owner: string) {
+    return this.contract.balanceOf(owner);
+  }
+
   /**
    * @description gets all splices an user owns.
    * @todo: this also could be provided by an API or NFTPort
+   * @todo: fixme: this only reads incoming transfers and doesnt consider outgoing ones :D (the real fix is to read this from another protocol)
    */
   public async getAllSplices(
-    address: string,
+    owner: string,
     splicesPerPage = 20
   ): Promise<TokenMetadataResponse[]> {
-    const balance = await this.contract.balanceOf(address);
-
+    const balance = await this.contract.balanceOf(owner);
     if (balance.isZero()) return [];
-    const promises = [];
-    for (let i = 0; i < Math.min(splicesPerPage, balance.toNumber()); i++) {
-      promises.push(
-        (async () => {
-          const tokenId = await this.contract.tokenOfOwnerByIndex(
-            address,
-            BigNumber.from(i)
-          );
-          const metadataUrl = await this.contract.tokenURI(tokenId);
-          return { tokenId: tokenId.toString(), metadataUrl };
-        })()
-      );
-    }
+
+    const filter = this.contract.filters.Transfer(null, owner);
+    const transfers = await this.contract.queryFilter(filter);
+    const promises = transfers.map((e) => {
+      return (async () => {
+        const metadataUrl = await this.contract.tokenURI(e.args.tokenId);
+        return { tokenId: e.args.tokenId.toString(), metadataUrl };
+      })();
+    });
+
     const tokens = await Promise.all(promises);
     return tokens;
   }
