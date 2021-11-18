@@ -78,7 +78,9 @@ export const MintSpliceButton = ({
         loadingText="Minting"
       >
         <Flex direction="column">
-          <Text fontWeight="strong">Mint this Splice</Text>
+          <Text fontWeight="strong" fontSize="lg">
+            Mint this Splice
+          </Text>
           {quote && (
             <Text fontWeight="normal" fontSize="md">
               for {ethers.utils.formatUnits(quote, 'ether')}Eth

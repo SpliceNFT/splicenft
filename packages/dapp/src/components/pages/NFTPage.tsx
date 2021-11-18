@@ -146,14 +146,15 @@ export const NFTPage = () => {
   return (
     <Container maxW="container.xl">
       <Breadcrumb>
-        <BreadcrumbItem>
+        <BreadcrumbItem fontSize="lg" fontWeight="bold">
           <BreadcrumbLink as={NavLink} to="/my-assets">
             Your NFTs
           </BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage>
+        <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
           <BreadcrumbLink>
-            {provenance ? '' : 'Mint'} Splice for {nftMetadata?.name}
+            {provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
+            {nftMetadata?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>

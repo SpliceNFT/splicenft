@@ -39,9 +39,9 @@ export const ArtworkStyleChooser = ({
         >
           <Text
             fontWeight={selectedStyle ? 'bold' : 'medium'}
-            fontSize={selectedStyle ? 'sm' : 'xl'}
+            fontSize={selectedStyle ? 'lg' : 'xl'}
           >
-            {selectedStyle ? 'change the style' : 'choose a style'}
+            {selectedStyle ? 'Change the style' : 'Choose a style'}
           </Text>
           {selectedStyle && (
             <Text fontWeight="medium" fontSize="md">

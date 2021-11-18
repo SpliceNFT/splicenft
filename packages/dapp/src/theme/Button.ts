@@ -5,7 +5,18 @@ const Button = {
     py: '1.5em',
     _hover: {
       transform: 'translateY(-2px)',
-      boxShadow: 'lg'
+      boxShadow: 'lg',
+      _disabled: {
+        opacity: 0.8,
+        bg: 'intial',
+        boxShadow: 'none',
+        transform: 'none'
+      }
+    },
+    _disabled: {
+      opacity: 0.7,
+      cursor: 'not-allowed',
+      boxShadow: 'none'
     }
   },
   variants: {

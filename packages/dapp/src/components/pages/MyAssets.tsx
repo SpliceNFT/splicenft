@@ -91,7 +91,7 @@ export const MyAssetsPage = () => {
             <Flex>
               <AlertIcon />
               <AlertTitle>
-                it seems you don't have any assets on chain {chainId}
+                It appears you don't have any NFTs on chain {chainId}
               </AlertTitle>
             </Flex>
             {chainId && chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
@@ -102,7 +102,7 @@ export const MyAssetsPage = () => {
       {chainId && (
         <>
           {nfts.length > 0 && (
-            <Heading size="md">choose an NFT to splice:</Heading>
+            <Heading size="md">Choose an NFT to splice</Heading>
           )}
           <SimpleGrid
             columns={[1, 2, 3, 4]}

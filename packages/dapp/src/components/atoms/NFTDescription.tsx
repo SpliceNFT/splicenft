@@ -53,12 +53,10 @@ export const NFTDescription = ({
                     </Link>
                   )}
                 </Flex>
-                <Flex gridGap={3}>
-                  <Text>
-                    Built on: {props.code_library} {props.code_library_version}
-                  </Text>
-                  {props.license && <Text>{props.license}</Text>}
-                </Flex>
+                <Text>
+                  Built on: {props.code_library} {props.code_library_version}
+                </Text>
+                <Text>License: {props.license}</Text>
               </Flex>
             )}
           </Flex>
