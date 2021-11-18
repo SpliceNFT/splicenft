@@ -130,12 +130,18 @@ contract Splice is
   }
 
   /**
-   * in case someone drops ERC20 on us accidentally,
+   * in case someone drops ERC20/ERC721 on us accidentally,
    * this will help us withdraw it.
-   * todo: does this need approval?
    */
   function withdrawERC20(IERC20 token) public onlyOwner {
     token.transfer(platformBeneficiary, token.balanceOf(address(this)));
+  }
+
+  function withdrawERC721(IERC721 nftContract, uint256 tokenId)
+    public
+    onlyOwner
+  {
+    nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
 
   //todo: add more interfaces for royalties here.

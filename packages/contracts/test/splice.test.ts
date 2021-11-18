@@ -606,6 +606,40 @@ describe('Splice', function () {
     expect((await erc20.balanceOf(beneficiary)).toNumber()).to.equal(1000);
     expect((await erc20.balanceOf(splice.address)).isZero()).to.be.true;
   });
+
+  it('withdraws ERC721 tokens that have been transferred to it', async function () {
+    const userAddress = await _user.getAddress();
+    const nftId = await mintTestnetNFT(testNft, _user);
+    await testNft
+      .connect(_user)
+      .transferFrom(userAddress, splice.address, nftId); //unsafe transfer!
+
+    expect((await testNft.balanceOf(splice.address)).toNumber()).to.be.equal(1);
+    const beneficiary = await splice.platformBeneficiary();
+    await splice.withdrawERC721(testNft.address, nftId);
+    expect((await testNft.balanceOf(beneficiary)).toNumber()).to.equal(1);
+    expect((await testNft.balanceOf(splice.address)).isZero()).to.be.true;
+  });
+
+  it('refuses safe incoming ERC721 transfers', async function () {
+    const userAddress = await _user.getAddress();
+    try {
+      await testNft
+        .connect(_user)
+        ['safeTransferFrom(address,address,uint256)'](
+          userAddress,
+          splice.address,
+          1
+        );
+
+      expect.fail("Splice shouldn't accept incoming safe ERC721 transfers");
+    } catch (e: any) {
+      expect(e.message).to.contain(
+        'transfer to non ERC721Receiver implementer'
+      );
+    }
+  });
+
   it('the platform beneficiary can be a payable contract', async function () {
     const ChainWallet = (await ethers.getContractFactory(
       'ChainWallet'
