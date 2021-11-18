@@ -55,12 +55,10 @@ describe('Splice', function () {
     const _styleNft = styleNFT.connect(_curator);
     await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: true });
   });
-
   it('gets an nft on the test collection', async function () {
     const nftTokenId = await mintTestnetNFT(testNft, _user);
     expect(nftTokenId).to.eq(1);
   });
-
   it('quotes the minting fee', async function () {
     const fee = await splice.quote(testNft.address, 1);
     const weiFee = ethers.utils.formatUnits(fee, 'ether');
@@ -86,18 +84,7 @@ describe('Splice', function () {
     const _styleNft = styleNFT.connect(_curator);
     await _styleNft.toggleSaleIsActive(1, false);
     try {
-      await (
-        await _splice.mint(
-          testNft.address,
-          1,
-          1,
-          [],
-          ethers.constants.HashZero,
-          {
-            value: fee
-          }
-        )
-      ).wait();
+      await mintSplice(_splice, testNft.address, 1, 1);
       expect.fail('should revert because sale on that style isnt active');
     } catch (e: any) {
       expect(e.message).contains('SaleNotActive');
@@ -175,25 +162,18 @@ describe('Splice', function () {
   it('can mint another splice from the same origin and different style', async function () {
     const _splice = splice.connect(_user);
 
-    await mintStyle(styleNFT.connect(_curator), priceStrategy.address, {
-      priceInEth: '0.2',
-      saleIsActive: true
-    });
-
-    const fee = await splice.quote(testNft.address, 2);
-
-    const receipt = await (
-      await _splice.mint(testNft.address, 1, 2, [], ethers.constants.HashZero, {
-        value: fee
-      })
-    ).wait();
-
-    const transferEvent = receipt.events?.find(
-      (e: Event) => e.event === 'Transfer'
+    const styleId = await mintStyle(
+      styleNFT.connect(_curator),
+      priceStrategy.address,
+      {
+        priceInEth: '0.2',
+        saleIsActive: true
+      }
     );
 
-    expect(transferEvent).to.not.be.undefined;
-    const combinedTokenId = (transferEvent as TransferEvent).args.tokenId;
+    expect(styleId).to.equal(2);
+
+    const combinedTokenId = await mintSplice(_splice, testNft.address, 1, 2);
 
     const { token_id, style_token_id } =
       tokenIdToStyleAndToken(combinedTokenId);
@@ -292,44 +272,89 @@ describe('Splice', function () {
     expect(ownerExpected - ownerDiff).to.be.lessThan(0.001);
   });
 
+  it.skip('the platform beneficiary can be a payable contract');
+
+  it('can change the platform beneficiary', async function () {
+    const signer13 = await signers[13].getAddress();
+    expect((await splice.shareBalanceOf(signer13)).isZero()).to.be.true;
+
+    try {
+      await splice.setPlatformBeneficiary(ethers.constants.AddressZero);
+      expect.fail('the platform beneficiary mustnt be zero');
+    } catch (e: any) {
+      expect(e.message).to.contain('must be a real address');
+    }
+
+    await splice.setPlatformBeneficiary(signer13);
+
+    const nftTokenId = await mintTestnetNFT(testNft, _user);
+    expect(nftTokenId).to.equal(2);
+
+    await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
+
+    const beneficiaryExpected = 0.2 * 0.15;
+    const beneficiaryShares = await splice.shareBalanceOf(signer13);
+    expect(ethers.utils.formatUnits(beneficiaryShares, 'ether')).to.be.equal(
+      beneficiaryExpected.toString()
+    );
+  });
+
   it('reallocates funds to new owners of the style token', async function () {
     const _styleNFT = styleNFT.connect(_curator);
-    const anotherCurator = (await ethers.getSigners())[15];
+    const anotherCurator = signers[15];
+    const _curatorAddress = await _curator.getAddress();
     const _anotherCuratorAddress = await anotherCurator.getAddress();
+    const oldCuratorShares = await splice.shareBalanceOf(_curatorAddress);
+
     await (
       await _styleNFT.transferFrom(
         await _curator.getAddress(),
-        await _anotherCuratorAddress,
+        _anotherCuratorAddress,
         2
       )
     ).wait();
 
     expect(await _styleNFT.ownerOf(2)).to.be.equal(_anotherCuratorAddress);
-    const _nft = testNft.connect(_user);
-    await (await _nft.mint(await _user.getAddress())).wait();
 
-    const _splice = splice.connect(_user);
-    const fee = await splice.quote(testNft.address, 2);
+    const nftTokenId = await mintTestnetNFT(testNft, _user);
+    expect(nftTokenId).to.equal(3);
 
-    await (
-      await _splice.mint(testNft.address, 2, 2, [], ethers.constants.HashZero, {
-        value: fee
-      })
-    ).wait();
+    await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
 
-    const curatorShares = await _splice.shareBalanceOf(
-      await _curator.getAddress()
+    expect(await splice.shareBalanceOf(_curatorAddress)).to.equal(
+      oldCuratorShares
     );
-    expect(curatorShares.isZero()).to.be.true;
 
-    const anotherCuratorShares = await _splice.shareBalanceOf(
+    const anotherCuratorShares = await splice.shareBalanceOf(
       _anotherCuratorAddress
     );
     const expected = 0.2 * 0.85;
     expect(ethers.utils.formatUnits(anotherCuratorShares, 'ether')).to.be.equal(
       expected.toString()
     );
+    await splice.connect(anotherCurator).withdrawShares();
+    expect(await (await splice.shareBalanceOf(_anotherCuratorAddress)).isZero())
+      .to.be.true;
   });
+
+  it('can update the artist share rate', async function () {
+    await splice.updateArtistShare(90);
+    const anotherCurator = signers[15];
+    const _anotherCuratorAddress = await anotherCurator.getAddress();
+
+    const nftTokenId = await mintTestnetNFT(testNft, _user);
+    expect(nftTokenId).to.equal(4);
+    await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
+
+    const anotherCuratorShares = await splice.shareBalanceOf(
+      _anotherCuratorAddress
+    );
+    const expected = (0.2 * 0.9).toFixed(2);
+    expect(ethers.utils.formatUnits(anotherCuratorShares, 'ether')).to.be.equal(
+      expected
+    );
+  });
+
   it('disallows writing on or replacing the style nft', async function () {
     try {
       await styleNFT.incrementMintedPerStyle(2);
@@ -517,6 +542,14 @@ describe('Splice', function () {
     } catch (e: any) {
       expect(e.message).to.contain('StyleIsFrozen');
     }
+  });
+
+  it('lets the owner change the base url', async function () {
+    await splice.setBaseUri('http://foo.bar/');
+    const oneAndOne =
+      '0x0000000000000000000000000000000000000000000000000000000100000001';
+    const mdUrl = await splice.tokenURI(oneAndOne);
+    expect(mdUrl).contains('foo.bar');
   });
 
   it.skip('withdraws ERC20 tokens that have been transferred to it');
