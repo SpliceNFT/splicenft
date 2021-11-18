@@ -42,15 +42,22 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
       console.error(`chain ${chainId} unsupported`);
       return;
     }
-    const splAddress =
-      chain === 'localhost'
-        ? (process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string)
-        : SPLICE_ADDRESSES[chainId];
 
-    if (splAddress) {
-      setSplice(Splice.from(splAddress, library.getSigner()));
+    if (chain === 'localhost') {
+      setSplice(
+        Splice.from(
+          process.env.REACT_APP_SPLICE_CONTRACT_ADDRESS as string,
+          library.getSigner(),
+          20
+        )
+      );
     } else {
-      setSplice(undefined);
+      const { address, deployedAt } = SPLICE_ADDRESSES[chainId];
+      if (!address) {
+        setSplice(undefined);
+      } else {
+        setSplice(Splice.from(address, library.getSigner(), deployedAt));
+      }
     }
 
     switch (chain) {
@@ -84,18 +91,12 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     (async () => {
       const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
       const spliceChain = await splice.getChain();
-      const styleNFTCollection = await splice.getStyleNFT();
+      const styleNFTContract = await splice.getStyleNFT();
       const url = `${baseUrl}/styles/${spliceChain}`;
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
         const _styles = styleRes.map(
-          (r) =>
-            new Style(
-              styleNFTCollection.address,
-              r.style_token_id,
-              url,
-              r.metadata
-            )
+          (r) => new Style(styleNFTContract, r.style_token_id, url, r.metadata)
         );
         setStyles(_styles);
       } catch (e: any) {

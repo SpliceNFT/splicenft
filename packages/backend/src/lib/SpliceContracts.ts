@@ -8,12 +8,20 @@ export function getSplice(networkId: number): Splice {
   if (!provider)
     throw new Error(`Splice is not available for network ${networkId}`);
 
-  const spliceAddress =
-    SPLICE_ADDRESSES[networkId] || process.env.SPLICE_CONTRACT_ADDRESS;
-  if (!spliceAddress) {
-    throw new Error(`Splice is not available for network ${networkId}`);
+  if (networkId === 31337) {
+    return Splice.from(
+      process.env.SPLICE_CONTRACT_ADDRESS as string,
+      provider,
+      0
+    );
+  } else {
+    const { address, deployedAt } = SPLICE_ADDRESSES[networkId];
+    if (!address) {
+      throw new Error(`Splice is not available for network ${networkId}`);
+    } else {
+      return Splice.from(address, provider, deployedAt);
+    }
   }
-  return Splice.from(spliceAddress, provider);
 }
 
 export function providerFor(networkId: number): providers.Provider | undefined {

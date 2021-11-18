@@ -1,8 +1,8 @@
-import { Flex, SkeletonText, Skeleton, Text } from '@chakra-ui/react';
+import { Flex, Skeleton, Text } from '@chakra-ui/react';
+import { extractColors } from '@splicenft/common';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect } from 'react';
 import rgbHex from 'rgb-hex';
-import { extractColors } from '@splicenft/common';
 
 export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => (
   <Skeleton isLoaded={colors.length > 0} w="70%" size="lg">

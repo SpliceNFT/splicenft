@@ -1,5 +1,5 @@
 import { useToast, Flex, Text, Button } from '@chakra-ui/react';
-import { Style } from '@splicenft/common';
+import { Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -11,13 +11,14 @@ export const MintSpliceButton = ({
   originTokenId,
   selectedStyle,
   onMinted,
+
   buzy,
   setBuzy
 }: {
   collection: string;
   originTokenId: string;
   selectedStyle: Style;
-  onMinted: (spliceTokenId: number) => unknown;
+  onMinted: (provenance: TokenProvenance) => unknown;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
@@ -28,10 +29,14 @@ export const MintSpliceButton = ({
   const toast = useToast();
 
   useEffect(() => {
-    if (!splice) return;
     (async () => {
-      const _quoteWei = await splice.quote(collection, selectedStyle.tokenId);
-      setQuote(_quoteWei);
+      const _active = await selectedStyle.isActive();
+      if (_active) {
+        const _quoteWei = await selectedStyle.quote(collection);
+        setQuote(_quoteWei);
+      } else {
+        setQuote(undefined);
+      }
     })();
   }, [selectedStyle]);
 
@@ -43,14 +48,16 @@ export const MintSpliceButton = ({
         origin_collection: collection,
         origin_token_id: originTokenId,
         style_token_id: selectedStyle.tokenId,
-        recipient: account,
+        additionalData: Uint8Array.from([]),
         mintingFee: quote
       });
-      onMinted(mintingResult.spliceTokenId);
+
+      onMinted(mintingResult.provenance);
     } catch (e: any) {
       console.error(e);
+      const message = e.data?.message || e.message;
       toast({
-        title: `Mint Transaction failed ${e.message}`,
+        title: `Mint Transaction failed ${message}`,
         status: 'error',
         isClosable: true
       });

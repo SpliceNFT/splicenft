@@ -7,7 +7,11 @@ import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-contract-sizer';
+import 'hardhat-gas-reporter';
+import 'hardhat-tracer';
+import 'solidity-coverage';
 import './tasks/mintStyle';
+import './tasks/activateSale';
 import './tasks/mint';
 
 import { config as dotenv } from 'dotenv-flow';
@@ -44,7 +48,7 @@ const config: HardhatUserConfig = {
     }
   },
   solidity: {
-    version: '0.8.9',
+    version: '0.8.10',
     settings: {
       optimizer: {
         enabled: true,
@@ -63,6 +67,10 @@ const config: HardhatUserConfig = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: process.env.ETHERSCAN_KEY
+  },
+  gasReporter: {
+    currency: 'EUR',
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY
   }
 };
 

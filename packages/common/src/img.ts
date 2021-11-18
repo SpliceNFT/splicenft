@@ -41,8 +41,10 @@ export const extractPixels = async (
       pixels = await ImageToColors.getFromExternalSource(image, {
         setImageCrossOriginToAnonymous: true
       });
-    } catch (e: unknown) {
-      console.error(e);
+    } catch (e: any) {
+      console.debug(
+        "couldn't load image from external source, trying again with proxy"
+      );
       if (options.proxy && typeof image === 'string') {
         pixels = await ImageToColors.getFromExternalSource(
           `${process.env.REACT_APP_CORS_PROXY}?url=${image}`,

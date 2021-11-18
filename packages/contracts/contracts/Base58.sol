@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.10;
 
 /// https://github.com/MrChico/verifyIPFS/blob/master/contracts/verifyIPFS.sol
 /// @title verifyIPFS
