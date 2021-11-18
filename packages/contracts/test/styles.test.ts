@@ -15,6 +15,7 @@ import {
   deployStaticPriceStrategy,
   deployTestnetNFT
 } from './lib/deployContracts';
+import { mintStyle } from './lib/helpers';
 
 describe('Style NFTs', function () {
   let testNft: TestnetNFT;
@@ -70,7 +71,9 @@ describe('Style NFTs', function () {
   it('can allow a new curator', async function () {
     styleNFT.connect(_owner);
     const curatorAddress = await _curator.getAddress();
-    const tx = await (await styleNFT.allowCurator(curatorAddress)).wait();
+    const tx = await (
+      await styleNFT.toggleCurator(curatorAddress, true)
+    ).wait();
 
     const res = await styleNFT.isCurator(await _curator.getAddress());
     expect(res).to.be.true;
@@ -135,6 +138,16 @@ describe('Style NFTs', function () {
     }
   });
 
+  it('cannot mint a style with a likely bad cid', async function () {
+    try {
+      await mintStyle(styleNFT.connect(_curator), priceStrategy.address, {
+        cid: 'this is not a cid'
+      });
+      expect.fail('a good cid must be provided during minting');
+    } catch (e: any) {
+      expect(e.message).to.contain('InvalidCID()');
+    }
+  });
   it('cannot call the internal methods from an external account', async function () {
     const _styleNft = styleNFT.connect(_owner);
     try {
@@ -195,5 +208,16 @@ describe('Style NFTs', function () {
   it('downcasts the tokenURI token id correctly', async function () {
     const uri = await styleNFT.tokenURI(1);
     expect(uri).to.match(/^ipfs:\/\/(.*)\/metadata\.json$/);
+  });
+
+  it('fails when querying an unminted tokenURI', async function () {
+    try {
+      await styleNFT.tokenURI(10);
+      expect.fail(
+        'it mustnt be possible to query a token uri for a non existent token'
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('nonexistent token');
+    }
   });
 });

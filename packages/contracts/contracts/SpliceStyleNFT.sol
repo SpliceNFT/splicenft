@@ -26,7 +26,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   error NotControllingStyle(uint32 style_token_id);
 
   /// @notice The style cap has been reached. You can't mint more items using that style
-  error MintingCapOnStyleReached();
+  error StyleIsFullyMinted();
 
   /// @notice Sales is not active on the style
   error SaleNotActive(uint32 style_token_id);
@@ -39,6 +39,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
   /// @notice
   error StyleIsFrozen();
+
+  error CantFreezeAnUncompleteCollection(uint32 mintsLeft);
+  error InvalidCID();
 
   //https://docs.opensea.io/docs/metadata-standards#ipfs-and-arweave-uris
   event PermanentURI(string _value, uint256 indexed _id);
@@ -83,12 +86,8 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     spliceNFT = _spliceNFT;
   }
 
-  function allowCurator(address curator) external onlyOwner {
-    isCurator[curator] = true;
-  }
-
-  function disallowCurator(address curator) external onlyOwner {
-    isCurator[curator] = false;
+  function toggleCurator(address curator, bool newValue) external onlyOwner {
+    isCurator[curator] = newValue;
   }
 
   /**
@@ -109,13 +108,8 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     override
     returns (string memory)
   {
-    require(
-      _exists(tokenId),
-      'ERC721Metadata: URI query for nonexistent token'
-    );
-    string memory metadataCID = styleSettings[uint32(tokenId)].styleCID;
-    require((bytes(metadataCID).length > 0), 'no CID stored');
-    return _metadataURI(metadataCID);
+    require(_exists(tokenId), 'nonexistent token');
+    return _metadataURI(styleSettings[uint32(tokenId)].styleCID);
   }
 
   function quoteFee(IERC721 nft, uint32 style_token_id)
@@ -295,10 +289,14 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   }
 
   function freeze(uint32 style_token_id, string memory cid) public onlyCurator {
-    require(
-      mintsLeft(style_token_id) == 0,
-      "can't freeze a style that's not fully minted"
-    );
+    if (bytes(cid).length < 46) {
+      revert InvalidCID();
+    }
+
+    if (mintsLeft(style_token_id) != 0) {
+      revert CantFreezeAnUncompleteCollection(mintsLeft(style_token_id));
+    }
+
     styleSettings[style_token_id].salesIsActive = false;
     styleSettings[style_token_id].styleCID = cid;
     styleSettings[style_token_id].isFrozen = true;
@@ -315,7 +313,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     if (mintsLeft(style_token_id) == 0) {
-      revert MintingCapOnStyleReached();
+      revert StyleIsFullyMinted();
     }
     styleSettings[style_token_id].mintedOfStyle += 1;
     return styleSettings[style_token_id].mintedOfStyle;
@@ -328,6 +326,11 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     bytes32 _priceStrategyParameters,
     bool _salesIsActive
   ) external onlyCurator returns (uint32 style_token_id) {
+    //CHECKS
+    if (bytes(_metadataCID).length < 46) {
+      revert InvalidCID();
+    }
+
     //EFFECTS
     _styleTokenIds.increment();
     style_token_id = _styleTokenIds.current().toUint32();

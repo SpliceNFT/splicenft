@@ -52,7 +52,7 @@ describe('Allowlists', function () {
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
 
     const curatorAddress = await _curator.getAddress();
-    await (await styleNFT.allowCurator(curatorAddress)).wait();
+    await (await styleNFT.toggleCurator(curatorAddress, true)).wait();
 
     const _nft = testNft.connect(_user);
     const transaction = await _nft.mint(await _user.getAddress());

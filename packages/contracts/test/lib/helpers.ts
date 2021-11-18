@@ -21,6 +21,7 @@ interface MintStyleOptions {
   cap?: number;
   priceInEth?: string;
   saleIsActive?: boolean;
+  cid?: string;
 }
 
 export async function mintTestnetNFT(
@@ -45,14 +46,14 @@ export async function mintStyle(
   priceStrategyAddress: string,
   options?: MintStyleOptions
 ): Promise<number> {
-  const { cap, priceInEth, saleIsActive }: MintStyleOptions = {
+  const { cap, priceInEth, saleIsActive, cid }: MintStyleOptions = {
     cap: 100,
     priceInEth: '0.1',
     saleIsActive: true,
     ...options
   };
 
-  const fakeCid = await ipfsHashOf(Buffer.from('{this: is: fake}'));
+  const fakeCid = cid || (await ipfsHashOf(Buffer.from('{this: is: fake}')));
 
   const minPriceWei = utils.parseEther(priceInEth);
   const priceHex = minPriceWei.toHexString();

@@ -3,6 +3,8 @@ import { Signer, Event, ContractReceipt, BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
 import {
+  ChainWallet__factory,
+  GLDToken__factory,
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
@@ -50,7 +52,7 @@ describe('Splice', function () {
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
 
     const curatorAddress = await _curator.getAddress();
-    await (await styleNFT.allowCurator(curatorAddress)).wait();
+    await (await styleNFT.toggleCurator(curatorAddress, true)).wait();
 
     const _styleNft = styleNFT.connect(_curator);
     await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: true });
@@ -271,8 +273,6 @@ describe('Splice', function () {
     const ownerExpected = (0.1 + 0.2) * 0.15;
     expect(ownerExpected - ownerDiff).to.be.lessThan(0.001);
   });
-
-  it.skip('the platform beneficiary can be a payable contract');
 
   it('can change the platform beneficiary', async function () {
     const signer13 = await signers[13].getAddress();
@@ -503,11 +503,19 @@ describe('Splice', function () {
 
     try {
       await _styleNFT.freeze(styleTokenId, 'QmSomeIpfsHash');
+      expect.fail('mustnt freeze with an obviously bad ipfs hash');
+    } catch (e: any) {
+      expect(e.message).to.contain('InvalidCID()');
+    }
+
+    try {
+      await _styleNFT.freeze(
+        styleTokenId,
+        'QmZWpKHVsiNGGGa9GtGvtdXJBTHV3r3eEpmesXhf7MeRZC'
+      );
       expect.fail('a style mustnt be frozen if its not fully minted');
     } catch (e: any) {
-      expect(e.message).to.contain(
-        "can't freeze a style that's not fully minted"
-      );
+      expect(e.message).to.contain('CantFreezeAnUncompleteCollection(1)');
     }
 
     const lastNft = await mintTestnetNFT(testNft, _user);
@@ -518,12 +526,17 @@ describe('Splice', function () {
       styleTokenId
     );
 
-    await _styleNFT.freeze(styleTokenId, 'QmSomeIpfsHash');
+    await _styleNFT.freeze(
+      styleTokenId,
+      'QmZWpKHVsiNGGGa9GtGvtdXJBTHV3r3eEpmesXhf7MeRZC'
+    );
 
     for await (const spliceId of splices) {
       const tokenUri = await _splice.tokenURI(spliceId);
       const { token_id: tokenTokenId } = tokenIdToStyleAndToken(spliceId);
-      expect(tokenUri).to.equal(`ipfs://QmSomeIpfsHash/${tokenTokenId}`);
+      expect(tokenUri).to.equal(
+        `ipfs://QmZWpKHVsiNGGGa9GtGvtdXJBTHV3r3eEpmesXhf7MeRZC/${tokenTokenId}`
+      );
     }
 
     //once its frozen it can't be thawed or minted
@@ -544,6 +557,26 @@ describe('Splice', function () {
     }
   });
 
+  it('cant be minted beyond limits', async function () {
+    const cappedStyleId = await mintStyle(
+      styleNFT.connect(_curator),
+      priceStrategy.address,
+      { cap: 2 }
+    );
+    const _splice = splice.connect(_user);
+    const nfts = await Promise.all(
+      [0, 1, 2].map((i) => mintTestnetNFT(testNft, _user))
+    );
+    await mintSplice(_splice, testNft.address, nfts[0], cappedStyleId);
+    await mintSplice(_splice, testNft.address, nfts[1], cappedStyleId);
+    try {
+      await mintSplice(_splice, testNft.address, nfts[2], cappedStyleId);
+      expect.fail('minted over the cap');
+    } catch (e: any) {
+      expect(e.message).to.contain('NotAllowedToMint');
+    }
+  });
+
   it('lets the owner change the base url', async function () {
     await splice.setBaseUri('http://foo.bar/');
     const oneAndOne =
@@ -552,5 +585,47 @@ describe('Splice', function () {
     expect(mdUrl).contains('foo.bar');
   });
 
-  it.skip('withdraws ERC20 tokens that have been transferred to it');
+  it('withdraws ERC20 tokens that have been transferred to it', async function () {
+    const ERC20Factory = (await ethers.getContractFactory(
+      'GLDToken'
+    )) as GLDToken__factory;
+    const erc20 = await ERC20Factory.deploy(1_000_000);
+
+    const _userAddress = await _user.getAddress();
+    await erc20.transfer(_userAddress, 1000);
+
+    expect((await erc20.balanceOf(_userAddress)).toNumber()).to.equal(1000);
+
+    await erc20.transfer(splice.address, 1000);
+    expect((await erc20.balanceOf(splice.address)).toNumber()).to.equal(1000);
+
+    const beneficiary = await splice.platformBeneficiary();
+    expect((await erc20.balanceOf(beneficiary)).isZero()).to.be.true;
+    await splice.withdrawERC20(erc20.address);
+
+    expect((await erc20.balanceOf(beneficiary)).toNumber()).to.equal(1000);
+    expect((await erc20.balanceOf(splice.address)).isZero()).to.be.true;
+  });
+  it('the platform beneficiary can be a payable contract', async function () {
+    const ChainWallet = (await ethers.getContractFactory(
+      'ChainWallet'
+    )) as ChainWallet__factory;
+    const wallet = await ChainWallet.deploy();
+    splice.setPlatformBeneficiary(wallet.address);
+
+    const nft = await mintTestnetNFT(testNft, _user);
+    const _splice = splice.connect(_user);
+    await mintSplice(_splice, testNft.address, nft, 1);
+    const expected = (0.1 * 0.1).toFixed(2);
+
+    const walletShare = await splice.shareBalanceOf(wallet.address);
+    expect(ethers.utils.formatUnits(walletShare, 'ether')).to.be.equal(
+      expected.toString()
+    );
+    await wallet.withdrawShares(splice.address);
+    const walletBalance = await wallet.provider.getBalance(wallet.address);
+    expect(ethers.utils.formatUnits(walletBalance, 'ether')).to.be.equal(
+      expected.toString()
+    );
+  });
 });
