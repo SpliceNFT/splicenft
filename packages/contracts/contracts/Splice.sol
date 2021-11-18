@@ -188,7 +188,7 @@ contract Splice is
     (uint32 style_token_id, uint32 token_token_id) = styleAndTokenByTokenId(
       tokenId
     );
-
+    //todo: our custom int -> string can be replaced with ozs String.sol
     if (styleNFT.isFrozen(style_token_id)) {
       StyleSettings memory settings = styleNFT.getSettings(style_token_id);
       return

@@ -13,7 +13,10 @@ import { SpliceNFT } from './types/SpliceNFT';
 
 type SpliceDeployInfo = { address: string; deployedAt: number };
 export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
-  4: { address: '0x729410F8db69932E38dF158101e60d09aAA6423D', deployedAt: 0 }
+  4: {
+    address: '0x7b177C1C20B91806258d1E0315b7Ff12e82b0476',
+    deployedAt: 9664612
+  }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
 };
