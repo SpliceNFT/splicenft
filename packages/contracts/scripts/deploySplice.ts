@@ -15,7 +15,7 @@ import { ethers, upgrades } from 'hardhat';
   const splice = await upgrades.deployProxy(Splice, [
     'Splice',
     'SPLICE',
-    'https://validate.getsplice.io/metadata/4/'
+    'https://validate.getsplice.io/splice/4/'
   ]);
   console.log('splice contract:', splice.address);
 
