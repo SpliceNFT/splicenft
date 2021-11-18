@@ -169,6 +169,11 @@ contract Splice is
     token_token_id = BytesLib.toUint32(tokenIdBytes, 28);
   }
 
+  // for OpenSea
+  function contractURI() public pure returns (string memory) {
+    return 'https://getsplice.io/contract-metadata';
+  }
+
   function tokenURI(uint256 tokenId)
     public
     view
