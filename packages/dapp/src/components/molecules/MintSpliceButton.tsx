@@ -11,6 +11,7 @@ export const MintSpliceButton = ({
   originTokenId,
   selectedStyle,
   onMinted,
+
   buzy,
   setBuzy
 }: {
@@ -28,10 +29,14 @@ export const MintSpliceButton = ({
   const toast = useToast();
 
   useEffect(() => {
-    if (!splice) return;
     (async () => {
-      const _quoteWei = await splice.quote(collection, selectedStyle.tokenId);
-      setQuote(_quoteWei);
+      const _active = await selectedStyle.isActive();
+      if (_active) {
+        const _quoteWei = await selectedStyle.quote(collection);
+        setQuote(_quoteWei);
+      } else {
+        setQuote(undefined);
+      }
     })();
   }, [selectedStyle]);
 

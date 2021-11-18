@@ -32,7 +32,7 @@ export class StyleMetadataCache {
     console.debug('[%s] fetching style metadata', this.networkId);
 
     const splice = getSplice(this.networkId);
-    const styleCollection = await splice.getStyleNFT();
+    const styleNFTContract = await splice.getStyleNFT();
     const allStyles = await splice.getAllStyles();
 
     const promises = allStyles.map((tokenMetadataResponse) => {
@@ -65,7 +65,7 @@ export class StyleMetadataCache {
         }
 
         const style = new Style(
-          styleCollection.address,
+          styleNFTContract,
           parseInt(tokenId),
           metadataUrl,
           metadata

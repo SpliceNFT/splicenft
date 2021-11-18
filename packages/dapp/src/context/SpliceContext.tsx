@@ -91,18 +91,12 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     (async () => {
       const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
       const spliceChain = await splice.getChain();
-      const styleNFTCollection = await splice.getStyleNFT();
+      const styleNFTContract = await splice.getStyleNFT();
       const url = `${baseUrl}/styles/${spliceChain}`;
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
         const _styles = styleRes.map(
-          (r) =>
-            new Style(
-              styleNFTCollection.address,
-              r.style_token_id,
-              url,
-              r.metadata
-            )
+          (r) => new Style(styleNFTContract, r.style_token_id, url, r.metadata)
         );
         setStyles(_styles);
       } catch (e: any) {

@@ -1,10 +1,12 @@
+import { SpliceStyleNFT as StyleNFTContract } from '@splicenft/contracts';
 import axios from 'axios';
+import { BigNumber } from 'ethers';
 import { ipfsGW } from './img';
 import { Renderer } from './types/Renderers';
 import { StyleNFT } from './types/SpliceNFT';
 
 export class Style {
-  private _collectionAddress: string;
+  private contract: StyleNFTContract;
   private _tokenId: number;
   private metadataUrl: string;
   private metadata: StyleNFT;
@@ -17,12 +19,12 @@ export class Style {
   }
 
   constructor(
-    collectionAddress: string,
+    contract: StyleNFTContract,
     tokenId: number,
     metadataUrl: string,
     metadata: StyleNFT
   ) {
-    this._collectionAddress = collectionAddress;
+    this.contract = contract;
     this._tokenId = tokenId;
     this.metadata = metadata;
     this.metadataUrl = metadataUrl;
@@ -39,7 +41,7 @@ export class Style {
   }
 
   getCollectionAddress() {
-    return this._collectionAddress;
+    return this.contract.address;
   }
   // eslint-disable-next-line @typescript-eslint/ban-types
   async getRenderer(): Promise<Renderer> {
@@ -48,6 +50,14 @@ export class Style {
     const renderer = Function(`"use strict";return (${code})`)();
     this.renderer = renderer;
     return renderer;
+  }
+
+  async isActive(): Promise<boolean> {
+    return this.contract.isSaleActive(this.tokenId);
+  }
+
+  async quote(collection: string): Promise<BigNumber> {
+    return this.contract.quoteFee(collection, this.tokenId);
   }
 
   async getCodeFromBackend(
