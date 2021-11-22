@@ -62,7 +62,7 @@ export const Footer = () => {
           </Flex>
           <Flex gridGap={8} mt={10} align="flex-end" justify="space-between">
             <Link
-              href="https://github.com/cod1ng-earth/splicenft"
+              href="https://github.com/SpliceNFT/splicenft"
               isExternal
               fontStyle="bold"
             >
