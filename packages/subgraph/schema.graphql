@@ -1,0 +1,10 @@
+type Splice @entity {
+  id: ID!
+  owner: Bytes # address
+  origin_collection: Bytes #address 
+  origin_token_id: BigInt
+  origin_hash: Bytes
+  style_token_id: Int 
+  input_params: Bytes 
+}
+
