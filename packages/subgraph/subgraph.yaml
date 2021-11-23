@@ -7,6 +7,31 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
+    name: SpliceStyleNFT
+    network: rinkeby
+    source:
+      address: "0xC9dE10Efc691c630341a1c89faa73b7144C09089"
+      abi: SpliceStyleNFT
+      startBlock: 9664607
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - PermanentURI
+        - Minted
+      abis:
+        - name: SpliceStyleNFT
+          file: ./abis/SpliceStyleNFT.json
+      eventHandlers:
+        - event: Minted(indexed uint32,uint32,string)
+          handler: handleStyleMinted
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleStyleTransferred
+        - event: PermanentURI(string,indexed uint256)
+          handler: handleStyleFrozen
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
     name: Splice
     network: rinkeby
     source:
@@ -30,6 +55,8 @@ dataSources:
       abis:
         - name: Splice
           file: ./abis/Splice.json
+        - name: ERC721
+          file: ./abis/ERC721.json
       # callHandlers:
       #   - function: mint(address,uint256,uint32,bytes32[],bytes)
       #     handler: handleMinting

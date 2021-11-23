@@ -1,14 +1,21 @@
 POST https://api.thegraph.com/subgraphs/name/elmariachi111/splice HTTP/1.1
 X-Request-Type: GraphQL
 
-query allSplices {
-  spliceice(first: 5) {
-    id
-    owner
-    origin_collection
-    origin_token_id
-    origin_hash
-    style_token_id
-    input_params
-  }
+query allStyles {
+    styles(first: 5) {
+      id
+      owner
+      cap
+      metadata_url
+      minted
+      splices {
+        id
+        owner
+        origin_collection
+        origin_token_id
+        metadata_url
+        origin_metadata_url
+        minting_fee
+      }
+    }
 }
