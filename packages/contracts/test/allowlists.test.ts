@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { Signer, utils } from 'ethers';
 import { ethers } from 'hardhat';
-import { of as ipfsHashOf } from 'ipfs-only-hash';
 import {
   Splice,
   SplicePriceStrategyStatic,
