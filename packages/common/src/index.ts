@@ -12,6 +12,8 @@ export { NFTPort } from './indexers/NFTPort';
 export { OnChain } from './indexers/OnChain';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
+export * as Transfer from './types/TransferObjects';
+
 import {
   ERC721,
   ERC721Enumerable,

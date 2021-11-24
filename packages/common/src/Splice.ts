@@ -10,10 +10,16 @@ import { BigNumber, ethers, providers, Signer, utils } from 'ethers';
 import { erc721 } from '.';
 import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
+import { StyleMetadataResponse, UserSplice } from './types/TransferObjects';
 
-type SpliceDeployInfo = { address: string; deployedAt: number };
+type SpliceDeployInfo = {
+  address: string;
+  deployedAt: number;
+  subgraph?: string;
+};
 export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
   4: {
+    subgraph: 'https://api.thegraph.com/subgraphs/name/elmariachi111/splice',
     address: '0x7b177C1C20B91806258d1E0315b7Ff12e82b0476',
     deployedAt: 9664612
   }
@@ -30,8 +36,6 @@ export type TokenProvenance = {
   style_token_id: number;
   style_token_token_id: number;
 };
-
-export type TokenMetadataResponse = { tokenId: string; metadataUrl: string };
 
 //todo: restrict all filters to start searching from the deployed block number
 export class Splice {
@@ -279,7 +283,7 @@ export class Splice {
 
   //todo: this might become highly expensive
   //needs a subgraph!
-  public async getAllStyles(): Promise<TokenMetadataResponse[]> {
+  public async getAllStyles(): Promise<StyleMetadataResponse[]> {
     const styleNFT = await this.getStyleNFT();
     const totalSupply = await styleNFT.totalSupply();
 
@@ -302,28 +306,29 @@ export class Splice {
   }
 
   /**
-   * @description gets all splices an user owns.
-   * @todo: this also could be provided by an API or NFTPort
-   * @todo: fixme: this only reads incoming transfers and doesnt consider outgoing ones :D (the real fix is to read this from another protocol)
+   * @description gets all splices an user owns *from chain*. Use an api call on the frontend instead.
+   * @todo: fixme: this only reads incoming transfers and doesnt consider outgoing ones :D
    */
   public async getAllSplices(
     owner: string,
     splicesPerPage = 20
-  ): Promise<TokenMetadataResponse[]> {
+  ): Promise<UserSplice[]> {
     const balance = await this.contract.balanceOf(owner);
     if (balance.isZero()) return [];
 
     const filter = this.contract.filters.Transfer(null, owner);
     const transfers = await this.contract.queryFilter(filter);
     const promises = transfers.map((e) => {
-      return (async () => {
+      return (async (): Promise<UserSplice> => {
         const metadataUrl = await this.contract.tokenURI(e.args.tokenId);
-        return { tokenId: e.args.tokenId.toString(), metadataUrl };
+        return {
+          id: e.args.tokenId.toString(),
+          metadata_url: metadataUrl
+        };
       })();
     });
 
-    const tokens = await Promise.all(promises);
-    return tokens;
+    return Promise.all(promises);
   }
 
   public async listenForMintResult() {

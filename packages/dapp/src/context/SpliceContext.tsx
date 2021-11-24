@@ -14,6 +14,12 @@ import {
 } from '@splicenft/common';
 import { knownCollections } from '../modules/chains';
 import axios from 'axios';
+import {
+  ApolloClient,
+  ApolloProvider,
+  InMemoryCache,
+  NormalizedCacheObject
+} from '@apollo/client';
 
 interface ISpliceContext {
   splice?: Splice;
@@ -25,11 +31,18 @@ const SpliceContext = React.createContext<ISpliceContext>({ spliceStyles: [] });
 
 const useSplice = () => useContext(SpliceContext);
 
+type ApolloClientType = ApolloClient<NormalizedCacheObject>;
 const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
   const [indexer, setIndexer] = useState<NFTIndexer>();
   const [spliceStyles, setStyles] = useState<Style[]>([]);
+  const [apolloClient, setApolloClient] = useState<ApolloClientType>(
+    new ApolloClient({
+      uri: '',
+      cache: new InMemoryCache()
+    })
+  );
 
   useEffect(() => {
     if (!library || !chainId) return;
@@ -52,7 +65,15 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
         )
       );
     } else {
-      const { address, deployedAt } = SPLICE_ADDRESSES[chainId];
+      const { address, deployedAt, subgraph } = SPLICE_ADDRESSES[chainId];
+
+      setApolloClient(
+        new ApolloClient({
+          uri: subgraph,
+          cache: new InMemoryCache()
+        })
+      );
+
       if (!address) {
         setSplice(undefined);
       } else {
@@ -89,10 +110,10 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     if (!splice) return;
 
     (async () => {
-      const baseUrl = process.env.REACT_APP_VALIDATOR_BASEURL as string;
       const spliceChain = await splice.getChain();
+
       const styleNFTContract = await splice.getStyleNFT();
-      const url = `${baseUrl}/styles/${spliceChain}`;
+      const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${spliceChain}`;
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
         const _styles = styleRes.map(
@@ -100,14 +121,14 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
         );
         setStyles(_styles);
       } catch (e: any) {
-        console.error("couldn't load splices", e.message);
+        console.error("couldn't load styles", e.message);
       }
     })();
   }, [splice]);
 
   return (
     <SpliceContext.Provider value={{ splice, indexer, spliceStyles }}>
-      {children}
+      <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
     </SpliceContext.Provider>
   );
 };
