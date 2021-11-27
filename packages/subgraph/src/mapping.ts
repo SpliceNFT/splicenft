@@ -39,7 +39,7 @@ export function handleMinted(event: Minted): void {
 
   glog.debug('tx input: {}', [reducedInput.toHexString()]);
 
-  const decoded = ethereum.decode('(address,uint256,uint32)', reducedInput);
+  const decoded = ethereum.decode('(address[],uint256[],uint32)', reducedInput);
   if (!decoded) {
     glog.warning('couldnt decode {}', [reducedInput.toHexString()]);
   }
