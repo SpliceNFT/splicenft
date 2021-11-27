@@ -5,10 +5,11 @@ import {
   Container,
   Flex,
   Heading,
+  Button,
   SimpleGrid,
   useToast
 } from '@chakra-ui/react';
-import { NFTItemInTransit } from '@splicenft/common';
+import { CHAINS, NFTItemInTransit } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -30,11 +31,13 @@ export const MyAssetsPage = () => {
 
   useEffect(() => {
     if (!account || !indexer) return;
-
     (async () => {
       try {
         setLoading(true);
         //todo: either use global state or cache the assets somehow.
+        if (indexer.canBeContinued()) {
+          indexer.reset();
+        }
         const _nfts = await indexer.getAllAssetsOfOwner(
           accountAddress || account
         );
@@ -49,6 +52,15 @@ export const MyAssetsPage = () => {
     })();
   }, [account, indexer]);
 
+  const continueLoading = async () => {
+    const addr = accountAddress || account;
+    if (!addr || !indexer) return;
+    setLoading(true);
+    const _moreNfts = await indexer.getAllAssetsOfOwner(addr);
+    setNFTs([...nfts, ..._moreNfts]);
+
+    setLoading(false);
+  };
   const onNFTMinted = async (collection: string, tokenId: string) => {
     if (!library || !indexer) return;
     const newMetadata = await indexer.getAssetMetadata(collection, tokenId);
@@ -80,7 +92,7 @@ export const MyAssetsPage = () => {
           </AlertTitle>
         </Alert>
       )}
-      {chainId && nfts.length === 0 && (
+      {!loading && chainId && nfts.length === 0 && (
         <Alert status="info" overflow="visible" mt={6}>
           <Flex
             align="center"
@@ -91,10 +103,11 @@ export const MyAssetsPage = () => {
             <Flex>
               <AlertIcon />
               <AlertTitle>
-                It appears you don't have any NFTs on chain {chainId}
+                It appears you don't have any NFTs on{' '}
+                {CHAINS[chainId] || `chain ${chainId}`}
               </AlertTitle>
             </Flex>
-            {chainId && chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
+            {chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
           </Flex>
         </Alert>
       )}
@@ -126,6 +139,11 @@ export const MyAssetsPage = () => {
                 justify="center"
               >
                 <MintButton onMinted={onNFTMinted} />
+              </Flex>
+            )}
+            {indexer?.canBeContinued() && (
+              <Flex width="100%" minH="80" align="center" justify="center">
+                <Button onClick={continueLoading}>load more</Button>
               </Flex>
             )}
           </SimpleGrid>

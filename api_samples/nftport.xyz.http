@@ -34,6 +34,7 @@ Authorization: {{auth}}
 
 ###
 
+@account=0xbf24d26b534a19e4f09c0b698b2cbfff820a452e
 GET https://api.nftport.xyz/v0/accounts/{{account}}?chain=ethereum&include=metadata
 Authorization: {{auth}}
 

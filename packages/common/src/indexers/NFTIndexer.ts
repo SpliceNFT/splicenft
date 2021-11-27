@@ -1,12 +1,16 @@
 import axios from 'axios';
 import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
 
-export interface NFTIndexer {
-  getAllAssetsOfOwner(ownerAddress: string): Promise<NFTItemInTransit[]>;
-  getAssetMetadata(
+export abstract class NFTIndexer {
+  abstract getAllAssetsOfOwner(
+    ownerAddress: string
+  ): Promise<NFTItemInTransit[]>;
+  abstract getAssetMetadata(
     collection: string,
     tokenId: string
   ): Promise<NFTMetaData | null>;
+  abstract reset(): void;
+  abstract canBeContinued(): boolean;
   // getNFTsOfOwner(
   //   collection: string,
   //   ownerAddress: string

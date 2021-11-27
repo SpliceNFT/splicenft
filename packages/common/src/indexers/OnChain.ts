@@ -44,6 +44,12 @@ export class OnChain implements NFTIndexer {
       );
     });
   }
+  canBeContinued(): boolean {
+    return false;
+  }
+  reset() {
+    return;
+  }
 
   public async getAllAssetsOfOwner(
     ownerAddress: string

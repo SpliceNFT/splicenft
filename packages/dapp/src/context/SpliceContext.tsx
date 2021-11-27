@@ -65,19 +65,23 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
         )
       );
     } else {
-      const { address, deployedAt, subgraph } = SPLICE_ADDRESSES[chainId];
-
-      setApolloClient(
-        new ApolloClient({
-          uri: subgraph,
-          cache: new InMemoryCache()
-        })
-      );
-
-      if (!address) {
-        setSplice(undefined);
+      const deployInfo = SPLICE_ADDRESSES[chainId];
+      if (deployInfo) {
+        setApolloClient(
+          new ApolloClient({
+            uri: deployInfo.subgraph,
+            cache: new InMemoryCache()
+          })
+        );
+        setSplice(
+          Splice.from(
+            deployInfo.address,
+            library.getSigner(),
+            deployInfo.deployedAt
+          )
+        );
       } else {
-        setSplice(Splice.from(address, library.getSigner(), deployedAt));
+        setSplice(undefined);
       }
     }
 
