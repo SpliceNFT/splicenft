@@ -19,6 +19,19 @@ export const Footer = () => {
   const { chainId, account } = useWeb3React<providers.Web3Provider>();
   const { splice } = useSplice();
 
+  let explorerRoot = '';
+  switch (chainId) {
+    case undefined:
+    case 31337:
+      break;
+    case 1:
+      explorerRoot = 'etherscan.io';
+      break;
+    default:
+      explorerRoot = `${CHAINS[chainId]}.etherscan.io`;
+      break;
+  }
+
   return (
     <Flex bg="black" p={12} color="white" direction="column">
       <SimpleGrid
@@ -94,16 +107,21 @@ export const Footer = () => {
               <Text>Network: {chainId && CHAINS[chainId]}</Text>
               <Text isTruncated>
                 You:{' '}
-                <Link
-                  href={`https://etherscan.io/address/${account}`}
-                  isExternal
-                >
+                <Link href={`${explorerRoot}/address/${account}`} isExternal>
                   {' '}
                   {account}
                 </Link>
               </Text>
               {splice && (
-                <Text isTruncated>Splice contract: {splice.address} </Text>
+                <Text isTruncated>
+                  Splice contract:
+                  <Link
+                    href={`https://${explorerRoot}/address/${splice.address}`}
+                    isExternal
+                  >
+                    {splice.address}
+                  </Link>
+                </Text>
               )}
             </>
           )}
