@@ -10,9 +10,9 @@ dataSources:
     name: SpliceStyleNFT
     network: rinkeby
     source:
-      address: "0xC9dE10Efc691c630341a1c89faa73b7144C09089"
+      address: "0x25A82392Fd023f741900a3953468d08246204D5c"
       abi: SpliceStyleNFT
-      startBlock: 9664607
+      startBlock: 9726363
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -35,9 +35,9 @@ dataSources:
     name: Splice
     network: rinkeby
     source:
-      address: "0x7b177C1C20B91806258d1E0315b7Ff12e82b0476"
+      address: "0xEa934c468e6c8c0C60E6E62797ae57dBD601970f"
       abi: Splice
-      startBlock: 9664612
+      startBlock: 9726364
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5

@@ -57,6 +57,9 @@ contract Splice is
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
 
+  ///
+  error BadMintInput();
+
   uint8 public ARTIST_SHARE;
 
   string private baseUri;
@@ -255,6 +258,14 @@ contract Splice is
     bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
+    if (
+      origin_collections.length == 0 ||
+      origin_token_ids.length == 0 ||
+      origin_collections.length != origin_token_ids.length
+    ) {
+      revert BadMintInput();
+    }
+
     for (uint256 i = 0; i < origin_collections.length; i++) {
       if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
         revert NotOwningOrigin();
@@ -313,7 +324,7 @@ contract Splice is
     _safeMint(msg.sender, token_id);
 
     emit Minted(
-      keccak256(abi.encodePacked(origin_collections, origin_token_ids)),
+      keccak256(abi.encode(origin_collections, origin_token_ids)),
       token_id,
       style_token_id
     );

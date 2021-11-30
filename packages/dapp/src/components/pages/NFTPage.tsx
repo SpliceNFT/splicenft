@@ -63,9 +63,8 @@ export const NFTPage = () => {
 
   useEffect(() => {
     if (!splice) return;
-    (async () => {
-      await splice.findProvenances(collection, tokenId).then(setAllProvenances);
-    })();
+
+    splice.findProvenances(collection, tokenId).then(setAllProvenances);
   }, [splice]);
 
   useEffect(() => {
@@ -117,9 +116,6 @@ export const NFTPage = () => {
 
   const onSketched = useCallback((dataUrl: string) => {
     setSketch(dataUrl);
-    // if (mintingState < MintingState.MINTED) {
-    //   setMintingState(MintingState.GENERATED);
-    // }
   }, []);
 
   const onMinted = useCallback(
