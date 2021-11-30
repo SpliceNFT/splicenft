@@ -1,66 +1,57 @@
-## Splice creates generative art for the NFT metaverse
+# Splice creates generative art for the NFT metaverse
  
-NFTs make great profile pictures. Showing off your NFT as a profile picture, preferably on the collection communities' Discord channels, makes you part of the gang! Large communities grow around NFT collections and invent derivative value - like $MILK tokens and companion eggs for cool cats, spinoffs on BAYC or puppies for Doges.
+NFTs make great profile pictures. Showing off your NFT as a profile picture, preferably on the collection communities' Discord channels, makes you part of the gang! 
 
-These derivative elements can form a metaverse where NFT communities flourish – a world of playspaces, workplaces, games, tools, accessories, weapons, etc. So that’s a great vision, but currently there aren’t good tools to make it happen.
+These derivative elements can form a metaverse where NFT communities flourish. So that’s a great vision, but currently there aren’t good tools to make it happen. That’s where Splice comes in.
 
-That’s where Splice comes in.
+Splice generates **building blocks for metaverse creation**. When you input your NFT, Splice extracts its features and metadata and generates an array of derivative elements. Right now it's built to create banner images for social profiles. Anyone who owns an NFT can create a matching header image on Splice.
 
-Splice generates building blocks for metaverse creation. When you input your NFT, Splice extracts its features and metadata and generates an array of derivative elements. For the start at EthOnline we've built an MVP to address an immediate need: header images for places like Twitter and Discord where the NFT community currently lives. Anyone who owns an NFT in a collection that we've onboarded can create a matching header image on Splice.
+The full documentation of the Splice protocol can be found here: https://splicenft.github.io/splicenft/
 
-## How it works
+## Setup
 
-First, we (as a DAO) are onboarding dedicated collections to our Splice contract. All pieces of these collections must share a common style and differ e.g. by their color palette and metadata traits. Artists create style algorithms (p5 right now) to generate art based on these input parameters. After our DAO's approval they mint their code as style NFT (code goes to IPFS) and open it up for header minting.
+All relevant code is written in Typescript and Solidity, so to build it the only prerequisite is to have an up to date nodejs installation. We recommend [NVM](https://github.com/nvm-sh/nvm) to set it up.
 
-When owners of collection NFTs - we call them "requestors" - visit our Dapp, it first displays all NFTs they own (we're using NFTPort, Covalent and our own chain scanner for testnets here). They choose one NFT they'd like to get a background image for and choose a render style for it. We're extracting image- and metadata from the chosen piece and render the artwork using deterministic entropy from a hash of the collection's address & the token id inside the requestor's browser. If the requestor is fine with the result, we're uploading its PNG representation to nft.storage, effectively creating preliminary metadata on IPFS, too. The requestor can now already use that image, but isn't owning it yet. Image- and metadata aren't directly verifiable on chain, so to officially mint the header image on the Splice contract we need another trust layer.
+The project is using [pnpm](https://pnpm.io) as a monorepo package manager. Because it's better, faster, slimmer than yarn or npm and supports monorepos without the lerna hassle and yarn incompatibilities right out of the box. Install it globally, before continuing. 
 
-Upon a minting request, requestors initiate a "mint job" on the Splice contract. It contains the IPFS hash of the created image and metadata and the randomness they used to create the image. The metadata contains all generative parameters, including primary colors and the selected render algorithm (e.g. ipfs://bafyreifgr4vqnhg67f7gpfwiipe5wmkvschm52vyzpo74ztlau5272tr2e/metadata.json)
+You can install all dependencies by issuing an 
 
-An (chainlink) oracle independently extracts the same information as the requestor did locally by calling a server side rendering endpoint that we're hosting on a dedicated machine. This validator node renders the artwork using the same algorithm and generative data as the requestor did, compares the final result to the image the requestor suggested and sends back a "green light" to the Splice contract if the render results match. 
+```bash
+pnpm install
+```
 
-Once confirmed, the requestor may initiate the final mint. The contract checks whether the mint request is green lit and allows minting the generated artwort to the requestor.
+in the root folder and pnpm will download and hoist all dependencies for all packages neatly.
 
-### Additional ideas, short term
+### Environment files
 
-We're capping the minting of tokens on an input collection basis. You can't mint as many backgrounds as there are tokens in the origin collection. 
+We're using `dotenv-flow` for `.env` file resolution. Therefore, .env files are unique for **your** environment and mustn't be committed ever. For each package, check the .env.sample files to get an idea what you mus configure for each package.
 
-Requestors must pay a minting fee that's used to 
+## Packages
 
-- pay the oracle fees (LINK)
-- pay royalties to the style artist (sent to the current owner of the style NFT)
-- give back a share to the origin collection (since we're deriving from their original idea)
-- keep a small share to our own DAO
+### Contracts
 
-Once the original piece is sold, the contract transfers the background ownership, too (if this should happen automatically we need some hook that the origin NFT contracts can call back, adding gas fees to their transfer tx)
+contains all smart contracts and a TS based Hardhat configuration that allows you to compile the code, run tests and create typechain information for its dependents. 
 
-### mid term
-the minting fee can be dynamic, using a bonding curve that takes several aspects into account:
+### Common
 
-- the current market price of the requestor's NFT (need an oracle that signals the collection's floor price or, even better, a floor for the tier of the origin NFT (some cats are cooler than others) ). This could be achieved by utilizing rarity.tools as one source for oracle data
-- the background collection's current supply: later pieces are more expensive
-- a fee that's defined by the style artist
+contains all commonly used interface classes, helpers (e.g. color extractors and chain indexers) and types needed to for the frontend and the backend. Depends on contracts being built
 
-If we were to add this, we might define a cap on that fee or (reverse?) auction it proportionally to the time the collection is part of Splice.
+### Backend
+
+To make Splice an enjoyable experience we're running a backend service that caches style code and renderered splices. Depends on common being built.
+
+### Dapp
+
+The Splice frontend, built as a CRA using Chakra UI and ethers.js. Depends on common.
+
+### Subgraph
+
+Code for The Graph indexers. Will create a subgraph instance on the hosted service. Is utilized by Dapp to quickly scan for existing Splices, provenances and an user's items.
 
 
-# How it's made
 
-This project is built on Typescript and Solidity (>0.8)
 
-### NFTPort and Covalent 
-We're using their APIs to get a list of a user's mainnet (testnet) NFTs. But for our demo, we need indexed assets on kovan, and wrote our own chain scanning code for that."One idea of Splice is to let users mint NFTs of existing collections which have to be "registered" on our contract so we can distribute minting fee shares - that's why we would need some query that could get all of a user's NFTs, filtered by a list of collection addresses. 
 
-### ERC721 Test-NFT contracts
-To demonstrate the site's functionality, Splice needs sample collections on the Kovan chain. We've created 2 fake collections representing metadata of Cool Cats and BAYC that everyone is allowed to mint: https://kovan.etherscan.io/token/0x6334d2cbc3294577bb9de58e8b1901d6e3b97681 / https://kovan.etherscan.io/token/0x6d96aAE79399C6f2630d585BBb0FCF31cCa88fa9 
 
-### IPFS & nft.storage
-This was the most helpful tool here: we're pushing the rendered artworks as blobs  + some custom metadata to nft.storage and already got a pinned and accessible version ready, great. On first thought we wanted to validate on our (oraclized) backend that the asset CIDs from the frontend match the ones on the backend, but turns out rendering on the browser and on a server (node-p5) lead to slightly different results. Therefore we're writing plain "string" CIDs for the individual asset metadata into our contract (we have written CIDv0 byte optimized code but that's not compatible to CIDv1 / dag-pb)   
 
-### Chainlink
-To make Splice a trusted system, we're verifying the metadata and generated image data on the server side. We've created a dedicated contract to interact with Chainlink's HttpGet jobs, and even built a clever way to return the token_id and a validness flag (boolean) within one bytes32 response. Unfortunately our backend never got requested by the Kovan Chainlink oracle (even though it got enough LINK) so we had to mock up that part for our demo: right now our backend validator is triggered by the user who wants to mint, and simply greenlights a mint once it has verified that metadata and image are correct.
-
-### Rendering
-For the rendering we're using p5 inside React & p5-node server side + the usual suspects like expressjs (wanted to use vercel but vercel can't compile everything needed for p5 rendering, so atm the validation code runs on one of our DigitalOcean Droplets), pnpm (best pm in the world) and of course Fleek for totally decentralized IPFS hosting.
-
-We're quite proud to have built a true monorepo that can be built (after setting some env vars) using a pnpm install && pnpm run -r build instruction. Some common code to interact with our contracts is extracted to a dedicated package (@splicenft/common) and it even yields typechain information to clients.
 
