@@ -1,6 +1,7 @@
 import {
   BigInt,
   Bytes,
+  ByteArray,
   ethereum,
   Address,
   log as glog
@@ -30,27 +31,41 @@ export function handleMinted(event: Minted): void {
 
   splice.owner = event.transaction.from;
   splice.origin_hash = event.params.origin_hash;
-
-  //1st 4 byte = method keccak hash fragment
-  //3*bytes32 (96 bytes) = values / function args
-  const txInput = event.transaction.input.subarray(4, 100);
-  const reducedInput = Bytes.fromUint8Array(txInput);
   splice.minting_fee = event.transaction.value;
 
-  glog.debug('tx input: {}', [reducedInput.toHexString()]);
+  //1st 4 byte = method keccak hash fragment
+  const functionInput = event.transaction.input.subarray(4);
 
-  const decoded = ethereum.decode('(address,uint256,uint32)', reducedInput);
-  if (!decoded) {
-    glog.warning('couldnt decode {}', [reducedInput.toHexString()]);
-  }
+  //prepend a "tuple" prefix (function params are arrays, not tuples)
+  const tuplePrefix = ByteArray.fromHexString(
+    '0x0000000000000000000000000000000000000000000000000000000000000020'
+  );
 
-  if (decoded) {
+  const functionInputAsTuple = new Uint8Array(
+    tuplePrefix.length + functionInput.length
+  );
+
+  functionInputAsTuple.set(tuplePrefix, 0);
+  functionInputAsTuple.set(functionInput, tuplePrefix.length);
+
+  const tupleInputBytes = Bytes.fromUint8Array(functionInputAsTuple);
+  //glog.debug('tx input: {}', [tupleInputBytes.toHexString()]);
+
+  const decoded = ethereum.decode(
+    '(address[],uint[],uint,bytes32[],bytes)',
+    tupleInputBytes
+  );
+
+  if (decoded === null) {
+    glog.warning('couldnt decode {}', [tupleInputBytes.toHexString()]);
+  } else {
     const t = decoded.toTuple();
-    const originAddress = t[0].toAddress();
-    splice.origin_collection = originAddress;
-    splice.origin_token_id = t[1].toBigInt();
-    if (originAddress && splice.origin_token_id) {
-      const originContract = ERC721Contract.bind(originAddress);
+    const originAddresses = t[0].toAddressArray();
+    const originTokenIds = t[1].toBigIntArray();
+    splice.origin_collection = originAddresses[0];
+    splice.origin_token_id = originTokenIds[0];
+    if (splice.origin_collection && splice.origin_token_id) {
+      const originContract = ERC721Contract.bind(splice.origin_collection);
       splice.origin_metadata_url = originContract.tokenURI(
         splice.origin_token_id as BigInt
       );

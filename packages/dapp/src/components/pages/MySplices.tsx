@@ -69,7 +69,7 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
   return (
     <Flex bg="white" w="100%" direction="row">
       <Flex gridGap={2} flexDirection={['column', null, null, 'row']}>
-        <LinkBox as={Flex} flex="2">
+        <LinkBox as={Flex} w={[null, null, null, '66%']}>
           {metadata && origin && (
             <LinkOverlay
               as={NavLink}
@@ -83,7 +83,12 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           )}
         </LinkBox>
 
-        <Flex gridGap={2} direction="column" flex="1" p={3}>
+        <Flex
+          gridGap={2}
+          direction="column"
+          w={[null, null, null, '33%']}
+          p={3}
+        >
           <Heading size="md">Splice #{mySplice.id}</Heading>
 
           {metadata && (

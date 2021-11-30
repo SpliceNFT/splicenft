@@ -57,6 +57,9 @@ contract Splice is
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
 
+  ///
+  error BadMintInput();
+
   uint8 public ARTIST_SHARE;
 
   string private baseUri;
@@ -211,14 +214,6 @@ contract Splice is
     emit SharesChanged(share);
   }
 
-  function provenanceHash(
-    address nft,
-    uint256 origin_token_id,
-    uint32 style_token_id
-  ) public pure returns (bytes32) {
-    return keccak256(abi.encodePacked(nft, origin_token_id, style_token_id));
-  }
-
   /// @dev the randomness is the first 32 bit of the provenance hash
   /// (0xcollection + origin_token_id + style_token_id)
   // function randomness(bytes32 _provenanceHash) public pure returns (uint32) {
@@ -256,29 +251,38 @@ contract Splice is
   }
 
   function mint(
-    IERC721 origin_collection,
-    uint256 origin_token_id,
+    IERC721[] memory origin_collections,
+    uint256[] memory origin_token_ids,
     uint32 style_token_id,
     bytes32[] memory allowlistProof,
     bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
-    if (origin_collection.ownerOf(origin_token_id) != msg.sender) {
-      revert NotOwningOrigin();
+    if (
+      origin_collections.length == 0 ||
+      origin_token_ids.length == 0 ||
+      origin_collections.length != origin_token_ids.length
+    ) {
+      revert BadMintInput();
     }
 
-    if (
-      !styleNFT.canBeMintedOnCollection(
-        style_token_id,
-        address(origin_collection)
-      )
-    ) {
-      revert NotAllowedToMint('style disallows minting on this collection');
+    for (uint256 i = 0; i < origin_collections.length; i++) {
+      if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
+        revert NotOwningOrigin();
+      }
+      if (
+        !styleNFT.canBeMintedOnCollection(
+          style_token_id,
+          address(origin_collections[i])
+        )
+      ) {
+        revert NotAllowedToMint('style disallows minting on this collection');
+      }
     }
 
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)
-    uint256 fee = quote(origin_collection, style_token_id);
+    uint256 fee = quote(origin_collections[0], style_token_id);
     if (msg.value < fee) revert InsufficientFees();
 
     //CHECKS & EFFECTS
@@ -297,10 +301,8 @@ contract Splice is
       }
     }
 
-    bytes32 _provenanceHash = provenanceHash(
-      address(origin_collection),
-      origin_token_id,
-      style_token_id
+    bytes32 _provenanceHash = keccak256(
+      abi.encodePacked(origin_collections, origin_token_ids, style_token_id)
     );
 
     if (provenanceToTokenId[_provenanceHash] != 0x0) {
@@ -322,7 +324,7 @@ contract Splice is
     _safeMint(msg.sender, token_id);
 
     emit Minted(
-      keccak256(abi.encodePacked(address(origin_collection), origin_token_id)),
+      keccak256(abi.encode(origin_collections, origin_token_ids)),
       token_id,
       style_token_id
     );

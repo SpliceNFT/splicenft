@@ -19,9 +19,10 @@ type SpliceDeployInfo = {
 };
 export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
   4: {
-    subgraph: 'https://api.thegraph.com/subgraphs/name/elmariachi111/splice',
-    address: '0x7b177C1C20B91806258d1E0315b7Ff12e82b0476',
-    deployedAt: 9664612
+    subgraph:
+      'https://api.thegraph.com/subgraphs/name/elmariachi111/splicemultirinkeby',
+    address: '0xEa934c468e6c8c0C60E6E62797ae57dBD601970f',
+    deployedAt: 9726364
   }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
@@ -109,10 +110,15 @@ export class Splice {
     collectionAddress: string,
     originTokenId: string
   ): string {
+    const abiCoder = ethers.utils.defaultAbiCoder;
     const bnToken = BigNumber.from(originTokenId);
     const hxToken = utils.hexZeroPad(bnToken.toHexString(), 32);
-    const inp = `${collectionAddress}${hxToken.slice(2)}`;
-    return utils.keccak256(inp);
+    const encoded = abiCoder.encode(
+      ['address[]', 'uint256[]'],
+      [[collectionAddress], [hxToken]]
+    );
+
+    return ethers.utils.keccak256(encoded);
   }
 
   //todo: allow tokenId to be BigNumber
@@ -153,8 +159,8 @@ export class Splice {
   }): Promise<{ transactionHash: string; provenance: TokenProvenance }> {
     const inputParams = ethers.utils.hexlify(additionalData || []);
     const tx = await this.contract.mint(
-      origin_collection,
-      origin_token_id,
+      [origin_collection],
+      [origin_token_id],
       style_token_id,
       [],
       inputParams,
@@ -235,7 +241,7 @@ export class Splice {
     const tx = await mintEvent.getTransaction();
     const inputData = this.contract.interface.decodeFunctionData(
       this.contract.interface.functions[
-        'mint(address,uint256,uint32,bytes32[],bytes)'
+        'mint(address[],uint256[],uint32,bytes32[],bytes)'
       ],
       tx.data
     );
@@ -244,8 +250,8 @@ export class Splice {
       Splice.tokenIdToStyleAndToken(spliceTokenId);
 
     return {
-      origin_collection: inputData.origin_collection,
-      origin_token_id: inputData.origin_token_id,
+      origin_collection: inputData.origin_collections[0],
+      origin_token_id: inputData.origin_token_ids[0],
       splice_token_id: bnTokenId,
       style_token_id,
       style_token_token_id
@@ -329,11 +335,5 @@ export class Splice {
     });
 
     return Promise.all(promises);
-  }
-
-  public async listenForMintResult() {
-    this.contract.on(this.contract.filters.Transfer(), (jobResult) => {
-      console.log(jobResult);
-    });
   }
 }

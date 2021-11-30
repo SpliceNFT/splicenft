@@ -1,7 +1,6 @@
 import { expect } from 'chai';
-import { Signer, Event, ContractReceipt, BigNumber } from 'ethers';
+import { BigNumber, Event, Signer } from 'ethers';
 import { ethers } from 'hardhat';
-
 import {
   ChainWallet__factory,
   GLDToken__factory,
@@ -11,7 +10,6 @@ import {
   SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
-import { TransferEvent } from '../typechain/ERC721';
 import { MintedEvent } from '../typechain/Splice';
 import {
   deploySplice,
@@ -72,7 +70,13 @@ describe('Splice', function () {
 
     try {
       await (
-        await _splice.mint(testNft.address, 1, 1, [], ethers.constants.HashZero)
+        await _splice.mint(
+          [testNft.address],
+          [1],
+          1,
+          [],
+          ethers.constants.HashZero
+        )
       ).wait();
       expect.fail('shouldnt work because no fees have been sent along');
     } catch (e: any) {
@@ -101,9 +105,16 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await splice.quote(testNft.address, 1);
     const receipt = await (
-      await _splice.mint(testNft.address, 1, 1, [], ethers.constants.HashZero, {
-        value: fee
-      })
+      await _splice.mint(
+        [testNft.address],
+        [1],
+        1,
+        [],
+        ethers.constants.HashZero,
+        {
+          value: fee
+        }
+      )
     ).wait();
 
     const mintedEvent = receipt.events?.find(
@@ -151,9 +162,16 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await _splice.quote(testNft.address, 1);
     try {
-      await _splice.mint(testNft.address, 1, 1, [], ethers.constants.HashZero, {
-        value: fee
-      });
+      await _splice.mint(
+        [testNft.address],
+        [1],
+        1,
+        [],
+        ethers.constants.HashZero,
+        {
+          value: fee
+        }
+      );
 
       expect.fail('contract should fail because provenance has been used');
     } catch (e: any) {
@@ -239,12 +257,13 @@ describe('Splice', function () {
     const tx = await mintEvent.getTransaction();
     const inputData = splice.interface.decodeFunctionData(
       splice.interface.functions[
-        'mint(address,uint256,uint32,bytes32[],bytes)'
+        'mint(address[],uint256[],uint32,bytes32[],bytes)'
       ],
       tx.data
     );
-    expect(inputData.origin_collection).to.equal(testNft.address);
-    expect(inputData.origin_token_id).to.equal(1);
+
+    expect(inputData.origin_collections[0]).to.equal(testNft.address);
+    expect(inputData.origin_token_ids[0]).to.equal(1);
   });
 
   it('withdraws shared funds from escrow', async function () {
@@ -390,23 +409,13 @@ describe('Splice', function () {
     await splice.pause();
     const _splice = splice.connect(_user);
     try {
-      await (
-        await _splice.mint(
-          testNft.address,
-          2,
-          2,
-          [],
-          ethers.constants.HashZero,
-          {
-            value: fee
-          }
-        )
-      ).wait();
+      await mintSplice(_splice, testNft.address, 2, 2);
       expect.fail('minting shouldnt be possible when paused');
     } catch (e: any) {
       expect(e.message).to.contain('Pausable: paused');
+    } finally {
+      await splice.unpause();
     }
-    await splice.unpause();
   });
   it('can not withdraw from escrow when paused', async function () {
     await splice.pause();
@@ -415,8 +424,9 @@ describe('Splice', function () {
       expect.fail('it shouldnt be possible to withdraw shares when paused');
     } catch (e: any) {
       expect(e.message).to.contain('Pausable: paused');
+    } finally {
+      await splice.unpause();
     }
-    await splice.unpause();
   });
   it('cannot mint on an origin using a style with collection constraints', async function () {
     const anotherNFT1 = await deployTestnetNFT();
@@ -449,8 +459,8 @@ describe('Splice', function () {
     //test that the constraints implicitly hold
     await (
       await _splice.mint(
-        anotherNFT1.address,
-        testnetToken1,
+        [anotherNFT1.address],
+        [testnetToken1],
         styleTokenId,
         [],
         ethers.constants.HashZero,
@@ -462,8 +472,8 @@ describe('Splice', function () {
 
     try {
       await _splice.mint(
-        testNft.address,
-        disallowedTestnetToken,
+        [testNft.address],
+        [disallowedTestnetToken],
         styleTokenId,
         [],
         ethers.constants.HashZero,
