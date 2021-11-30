@@ -66,16 +66,16 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
       );
     } else {
       const deployInfo = SPLICE_ADDRESSES[chainId];
-      if (deployInfo.subgraph) {
-        setApolloClient(
-          new ApolloClient({
-            uri: deployInfo.subgraph,
-            cache: new InMemoryCache()
-          })
-        );
-      }
-
       if (deployInfo) {
+        if (deployInfo.subgraph) {
+          setApolloClient(
+            new ApolloClient({
+              uri: deployInfo.subgraph,
+              cache: new InMemoryCache()
+            })
+          );
+        }
+
         setSplice(
           Splice.from(
             deployInfo.address,
