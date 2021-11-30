@@ -10,5 +10,5 @@ data
 
 !.vscode/settings.json
 
-.todo
+.todo*
 _docs/

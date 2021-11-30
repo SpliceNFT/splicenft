@@ -2,6 +2,7 @@
   "name": "@splicenft/dapp",
   "version": "0.1.0",
   "dependencies": {
+    "@apollo/client": "^3.5.4",
     "@chakra-ui/icons": "^1.0.15",
     "@chakra-ui/react": "^1.6.7",
     "@emotion/react": "^11",
@@ -20,6 +21,7 @@
     "ethers": "^5.4.7",
     "framer-motion": "^4",
     "get-rgba-palette": "^2.0.1",
+    "graphql": "^16.0.1",
     "image-to-colors": "^1.0.2",
     "nft.storage": "^3.3.0",
     "p5": "1.1.9",

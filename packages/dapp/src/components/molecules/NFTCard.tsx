@@ -20,14 +20,19 @@ import { SpliceCard } from '../atoms/SpliceCard';
 export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [provenances, setProvenances] = useState<TokenProvenance[]>([]);
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
-
+  const [nftImageUrl, setNftImageUrl] = useState<string>();
   const { splice } = useSplice();
 
   useEffect(() => {
     (async () => {
       try {
-        const metadata = await nft.metadata;
-        if (metadata) setNftMetadata(metadata);
+        if (nft.cached_file_url) {
+          setNftImageUrl(nft.cached_file_url);
+        }
+        const _metadata = await nft.metadata;
+        if (_metadata) {
+          setNftMetadata(_metadata);
+        }
       } catch (e: any) {
         console.error('error loading metadata', e);
       }
@@ -47,7 +52,7 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   return (
     <SpliceCard flexDirection="column">
       <AspectRatio ratio={1}>
-        <FallbackImage metadata={nftMetadata} />
+        <FallbackImage imgUrl={nftImageUrl} metadata={nftMetadata} />
       </AspectRatio>
       <Flex direction="column" flex="1">
         <LinkOverlay

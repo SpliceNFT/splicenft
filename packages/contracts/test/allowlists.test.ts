@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { Signer, utils } from 'ethers';
 import { ethers } from 'hardhat';
-import { of as ipfsHashOf } from 'ipfs-only-hash';
 import {
   Splice,
   SplicePriceStrategyStatic,
@@ -202,8 +201,8 @@ describe('Allowlists', function () {
         (async () => {
           const nftTokenId = await mintTestnetNFT(testNft, _user);
           await _splice.mint(
-            testNft.address,
-            nftTokenId,
+            [testNft.address],
+            [nftTokenId],
             styleTokenId,
             [],
             [],
@@ -271,8 +270,8 @@ describe('Allowlists', function () {
     const _publicSplice = splice.connect(_user);
     await (
       await _publicSplice.mint(
-        testNft.address,
-        tokensOfPublicUser[0],
+        [testNft.address],
+        [tokensOfPublicUser[0]],
         styleTokenId,
         [],
         [],
@@ -284,8 +283,8 @@ describe('Allowlists', function () {
 
     await (
       await _publicSplice.mint(
-        testNft.address,
-        tokensOfPublicUser[1],
+        [testNft.address],
+        [tokensOfPublicUser[1]],
         styleTokenId,
         [],
         [],
@@ -299,8 +298,8 @@ describe('Allowlists', function () {
 
     try {
       await _publicSplice.mint(
-        testNft.address,
-        tokensOfPublicUser[2],
+        [testNft.address],
+        [tokensOfPublicUser[2]],
         styleTokenId,
         [],
         [],
@@ -326,8 +325,8 @@ describe('Allowlists', function () {
 
     await (
       await _allowedUser0Splice.mint(
-        testNft.address,
-        allowed0Token0,
+        [testNft.address],
+        [allowed0Token0],
         styleTokenId,
         proof0,
         [],
@@ -339,8 +338,8 @@ describe('Allowlists', function () {
 
     await (
       await _allowedUser0Splice.mint(
-        testNft.address,
-        allowed0Token1,
+        [testNft.address],
+        [allowed0Token1],
         styleTokenId,
         proof0,
         [],
@@ -352,8 +351,8 @@ describe('Allowlists', function () {
 
     try {
       await _allowedUser0Splice.mint(
-        testNft.address,
-        allowed0Token2,
+        [testNft.address],
+        [allowed0Token2],
         styleTokenId,
         proof0,
         [],
@@ -374,8 +373,8 @@ describe('Allowlists', function () {
 
     await (
       await _allowedUser1Splice.mint(
-        testNft.address,
-        allowed1Token0,
+        [testNft.address],
+        [allowed1Token0],
         styleTokenId,
         proof1,
         [],
@@ -387,8 +386,8 @@ describe('Allowlists', function () {
 
     try {
       await _allowedUser1Splice.mint(
-        testNft.address,
-        allowed1Token1,
+        [testNft.address],
+        [allowed1Token1],
         styleTokenId,
         proof1,
         [],

@@ -92,8 +92,8 @@ export async function mintSplice(
   const fee = splice.quote(nftAddress, styleTokenId);
   const receipt = await (
     await splice.mint(
-      nftAddress,
-      originTokenId,
+      [nftAddress],
+      [originTokenId],
       styleTokenId,
       [],
       constants.HashZero,
@@ -114,7 +114,13 @@ export function originHash(
   collectionAddress: string,
   originTokenId: BigNumber
 ): string {
-  const hxToken = utils.hexZeroPad(originTokenId.toHexString(), 32);
-  const inp = `${collectionAddress}${hxToken.slice(2)}`;
-  return utils.keccak256(inp);
+  const abiCoder = utils.defaultAbiCoder;
+  const bnToken = BigNumber.from(originTokenId);
+  const hxToken = utils.hexZeroPad(bnToken.toHexString(), 32);
+  const encoded = abiCoder.encode(
+    ['address[]', 'uint256[]'],
+    [[collectionAddress], [hxToken]]
+  );
+
+  return utils.keccak256(encoded);
 }

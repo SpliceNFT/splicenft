@@ -1,3 +1,4 @@
+import { useQuery } from '@apollo/client';
 import {
   Alert,
   Container,
@@ -10,24 +11,27 @@ import {
   VStack
 } from '@chakra-ui/react';
 import {
+  ipfsGW,
   NFTMetaData,
   resolveImage,
   SpliceNFT,
-  TokenMetadataResponse
+  Transfer
 } from '@splicenft/common';
+import { fetchMetadataFromUrl } from '@splicenft/common/build/indexers/NFTIndexer';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
+import {
+  UserSplicesData,
+  UserSplicesVars,
+  USER_SPLICES
+} from '../../modules/Queries';
 import { SpliceArtwork } from '../molecules/Splice/SpliceArtwork';
 import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
-const SpliceCardDisplay = ({
-  mySplice
-}: {
-  mySplice: TokenMetadataResponse;
-}) => {
+const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
   const { indexer, splice } = useSplice();
   const toast = useToast();
 
@@ -35,97 +39,132 @@ const SpliceCardDisplay = ({
   const [metadata, setMetadata] = useState<SpliceNFT>();
 
   useEffect(() => {
-    if (!splice) return;
+    if (!splice || !indexer) return;
     (async () => {
       try {
-        setMetadata(await splice.fetchMetadata(mySplice.metadataUrl));
+        const spliceMetadata = await splice.fetchMetadata(
+          mySplice.metadata_url
+        );
+        setMetadata(spliceMetadata);
+        if (mySplice.origin_metadata_url) {
+          fetchMetadataFromUrl(
+            ipfsGW(mySplice.origin_metadata_url),
+            process.env.REACT_APP_CORS_PROXY
+          ).then(setOrigin);
+        } else {
+          const { origin_collection, origin_token_id } = spliceMetadata.splice;
+          indexer
+            .getAssetMetadata(origin_collection, origin_token_id)
+            .then(setOrigin);
+        }
       } catch (e: any) {
         toast({
           status: 'error',
-          title: 'failed loading metadata for splice ' + mySplice.tokenId
+          title: 'failed loading metadata for splice ' + mySplice.id
         });
       }
     })();
-  }, [splice]);
-
-  useEffect(() => {
-    if (!indexer || !metadata) return;
-    (async () => {
-      const { origin_collection, origin_token_id } = metadata.splice;
-      setOrigin(
-        await indexer.getAssetMetadata(origin_collection, origin_token_id)
-      );
-    })();
-  }, [indexer, metadata]);
+  }, [indexer, splice]);
 
   return (
-    <Flex gridGap={2} flexDirection={['column', null, null, 'row']}>
-      <LinkBox as={Flex} flex="2">
-        {metadata && origin && (
-          <LinkOverlay
-            as={NavLink}
-            to={`/nft/${metadata.splice.origin_collection}/${metadata.splice.origin_token_id}`}
-          >
-            <SpliceArtwork
-              originImageUrl={resolveImage(origin)}
-              spliceImageUrl={resolveImage(metadata)}
-            />
-          </LinkOverlay>
-        )}
-      </LinkBox>
+    <Flex bg="white" w="100%" direction="row">
+      <Flex gridGap={2} flexDirection={['column', null, null, 'row']}>
+        <LinkBox as={Flex} w={[null, null, null, '66%']}>
+          {metadata && origin && (
+            <LinkOverlay
+              as={NavLink}
+              to={`/nft/${metadata.splice.origin_collection}/${metadata.splice.origin_token_id}`}
+            >
+              <SpliceArtwork
+                originImageUrl={resolveImage(origin)}
+                spliceImageUrl={resolveImage(metadata)}
+              />
+            </LinkOverlay>
+          )}
+        </LinkBox>
 
-      <Flex gridGap={2} direction="column" flex="1" p={3}>
-        <Heading size="md">Splice #{mySplice.tokenId}</Heading>
+        <Flex
+          gridGap={2}
+          direction="column"
+          w={[null, null, null, '33%']}
+          p={3}
+        >
+          <Heading size="md">Splice #{mySplice.id}</Heading>
 
-        {metadata && (
-          <>
-            <Text>{metadata.description}</Text>
-            <SpliceMetadataDisplay spliceMetadata={metadata} />
-          </>
-        )}
+          {metadata && (
+            <>
+              <Text>{metadata.description}</Text>
+              <SpliceMetadataDisplay spliceMetadata={metadata} />
+            </>
+          )}
+        </Flex>
       </Flex>
     </Flex>
   );
 };
 
-export const MySplicesPage = () => {
-  const { account, chainId } = useWeb3React<providers.Web3Provider>();
-  const { splice } = useSplice();
-  const [buzy, setBuzy] = useState<boolean>(false);
+const GenericSpliceList = ({
+  splices,
+  buzy
+}: {
+  splices: Transfer.UserSplice[];
+  buzy: boolean;
+}) => {
+  return splices.length === 0 && !buzy ? (
+    <Alert status="info">You don't have any Splices</Alert>
+  ) : (
+    <VStack gridGap={10}>
+      {splices.map((splice: Transfer.UserSplice) => (
+        <SpliceCardDisplay mySplice={splice} key={`splice-${splice.id}`} />
+      ))}
+    </VStack>
+  );
+};
 
-  const [splices, setSplices] = useState<TokenMetadataResponse[]>([]);
+const ChainSpliceList = ({ account }: { account: string }) => {
+  const [buzy, setBuzy] = useState<boolean>(false);
+  const { splice } = useSplice();
+  const [splices, setSplices] = useState<Transfer.UserSplice[]>([]);
 
   useEffect(() => {
-    if (!account || !splice) return;
+    if (!splice) return;
+    console.log(`getting all splices from chain`);
     (async () => {
       setBuzy(true);
       setSplices(await splice.getAllSplices(account));
       setBuzy(false);
     })();
-  }, [splice, account]);
+  }, [splice]);
+
+  return <GenericSpliceList splices={splices} buzy={buzy} />;
+};
+
+const SubgraphSpliceList = ({ account }: { account: string }) => {
+  const {
+    loading: buzy,
+    error: gqlErr,
+    data: splices
+  } = useQuery<UserSplicesData, UserSplicesVars>(USER_SPLICES, {
+    variables: { owner: account }
+  });
+
+  return <GenericSpliceList splices={splices?.spliceice || []} buzy={buzy} />;
+};
+
+export const MySplicesPage = () => {
+  const { account, chainId } = useWeb3React<providers.Web3Provider>();
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      {!buzy && splices.length === 0 && (
-        <Alert status="info">
-          You don't have any Splices on chain {chainId}
-        </Alert>
-      )}
-      {buzy && (
+      {account && chainId ? (
+        [1, 4].includes(chainId) ? (
+          <SubgraphSpliceList account={account} />
+        ) : (
+          <ChainSpliceList account={account} />
+        )
+      ) : (
         <Alert status="info">We're loading your splices, standby.</Alert>
       )}
-      <VStack gridGap={10}>
-        {splices.map((spliceResult: TokenMetadataResponse) => (
-          <Flex
-            bg="white"
-            w="100%"
-            direction="row"
-            key={`splice-${spliceResult.tokenId}`}
-          >
-            <SpliceCardDisplay mySplice={spliceResult} />
-          </Flex>
-        ))}
-      </VStack>
     </Container>
   );
 };

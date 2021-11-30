@@ -20,23 +20,25 @@ export type NFTMetaData = {
   animation_url?: string;
 };
 
-type BaseNFTItem = {
+interface BaseNFTItem {
   contract_address: string;
   token_id: string;
   name?: string;
   description?: string;
-};
+}
 
-export type NFTItem = BaseNFTItem & {
+export interface NFTItem extends BaseNFTItem {
   metadata: NFTMetaData;
-};
+}
 
-export type NFTItemInTransit = BaseNFTItem & {
+export interface _NFTPortNFTItem {
+  file_url?: string;
+  cached_file_url?: string;
+  creator_address?: string;
+}
+
+export interface NFTPortNFTItem extends NFTItem, _NFTPortNFTItem {}
+
+export interface NFTItemInTransit extends BaseNFTItem, _NFTPortNFTItem {
   metadata: null | NFTMetaData | Promise<NFTMetaData | null>;
-};
-
-export type NFTPortNFTItem = NFTItem & {
-  cached_file_url: string;
-  creator_address: string;
-  file_url: string;
-};
+}

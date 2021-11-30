@@ -30,6 +30,15 @@ export class Fallback implements NFTIndexer {
     });
   }
 
+  canBeContinued(): boolean {
+    return this.primary.canBeContinued();
+  }
+  reset(): void {
+    if (this.canBeContinued()) {
+      this.primary.reset();
+    }
+  }
+
   public async getAssetMetadata(
     collection: string,
     tokenId: string

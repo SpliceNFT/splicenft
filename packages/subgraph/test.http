@@ -1,0 +1,73 @@
+POST https://api.thegraph.com/subgraphs/name/elmariachi111/splice HTTP/1.1
+X-Request-Type: GraphQL
+
+query allStyles {
+    styles(first: 5) {
+      id
+      owner
+      cap
+      metadata_url
+      minted
+      splices {
+        id
+        owner
+        origin_collection
+        origin_token_id
+        metadata_url
+        origin_metadata_url
+        minting_fee
+      }
+    }
+}
+###
+
+POST https://api.thegraph.com/subgraphs/name/elmariachi111/splice  HTTP/1.1
+X-Request-Type: GraphQL
+#header name: header value
+
+query SplicesOfOwner($owner: String) {
+  spliceice(where: { owner: $owner }) {
+    metadata_url
+    style {
+      id
+      metadata_url
+    }
+    origin_collection
+    origin_token_id
+    origin_metadata_url
+  }
+}
+
+{
+  "owner": "0xd1c8917a37ffd3a9fe11b57cda68ce8153192800"
+}
+
+
+### 
+
+POST https://api.thegraph.com/subgraphs/name/elmariachi111/splice  HTTP/1.1
+X-Request-Type: GraphQL
+#header name: header value
+
+{
+  spliceice(where: {
+    origin_collection: "0xF5aa8981E44a0F218B260C99F9C89Ff7C833D36e",
+    origin_token_id:"26"
+  }) {
+    metadata_url
+      style {
+        id
+        metadata_url
+      }
+      origin_collection
+      origin_token_id
+      origin_metadata_url
+  }
+}
+      
+
+# {
+#   "owner": "0xd1c8917a37ffd3a9fe11b57cda68ce8153192800"
+# }
+
+

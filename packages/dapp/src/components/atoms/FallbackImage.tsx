@@ -1,5 +1,5 @@
 import { Image, SystemProps } from '@chakra-ui/react';
-import { NFTMetaData, resolveImage } from '@splicenft/common';
+import { ipfsGW, NFTMetaData, resolveImage } from '@splicenft/common';
 import React, { SyntheticEvent } from 'react';
 import SplicePFPLogo from '../../img/SpliceLogoPFP.png';
 
@@ -16,7 +16,7 @@ export const FallbackImage = (
   let imageUrl;
 
   if (imgUrl) {
-    imageUrl = imgUrl;
+    imageUrl = ipfsGW(imgUrl);
   } else if (metadata) {
     imageUrl = resolveImage(metadata);
   }
