@@ -65,10 +65,8 @@ export function handleMinted(event: Minted): void {
     splice.origin_collection = originAddresses[0];
     splice.origin_token_id = originTokenIds[0];
     if (splice.origin_collection && splice.origin_token_id) {
-      const originContract = ERC721Contract.bind(splice.origin_collection);
-      splice.origin_metadata_url = originContract.tokenURI(
-        splice.origin_token_id as BigInt
-      );
+      const originContract = ERC721Contract.bind(originAddresses[0]);
+      splice.origin_metadata_url = originContract.tokenURI(originTokenIds[0]);
     }
   }
   const style_id = event.params.style_token_id.toString();
