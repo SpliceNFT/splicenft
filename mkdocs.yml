@@ -1,5 +1,7 @@
 site_name: S P L I C E Docs
 repo_url: https://github.com/SpliceNFT/splicenft
+edit_uri: edit/main/docs/
+site_dir: _docs
 
 nav:
   - Home: index.md
@@ -15,10 +17,13 @@ theme:
     accent: lime
   features:
     - content.tabs.link
+    - toc.integrate
+    - navigation.top
   #    - navigation.tabs
   logo: logo.png
+  font:
+    text: Barlow
 
-site_dir: _docs
 markdown_extensions:
   - tables
   - admonition
