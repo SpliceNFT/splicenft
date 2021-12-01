@@ -1,4 +1,4 @@
-site_name: S P L I C E Docs
+site_name: Splice Docs
 repo_url: https://github.com/SpliceNFT/splicenft
 edit_uri: edit/main/docs/
 site_dir: _docs
@@ -12,9 +12,21 @@ nav:
 
 theme:
   name: material
+
   palette:
-    primary: black
-    accent: lime
+    - scheme: default
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: amber
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
   features:
     - content.tabs.link
     - toc.integrate

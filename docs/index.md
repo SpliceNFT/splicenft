@@ -12,7 +12,7 @@ Splice ties together **building blocks for metaverse creation**. When you input 
 
 First, you choose an NFT item that you own. In theory that can be anything but PFP collections like Cool Cats, Doodles or Bored Apes work best. Next, Splice extracts the dominant colors of the token's palette and computes an entropy base for random number generators out of the origin collection's contract address and the input token's id. 
 
-The actual code that's rendering the Splice results - we're referring to it as "style" - is permanently persisted on IPFS and wrapped in another NFT of a dedicated **splice style contract**. Since [styles are NFTs](https://testnets.opensea.io/collection/splice-style-nft-v2), they can be traded, staked or sold on secondary markets. The minter of a style (usually the artist who wrote its code) defines its minting price behaviour, collection constraints and minting cap. Minting fees that accrue during the minting process are distributed to the current style owner.
+The actual code that's rendering the Splice results - we're referring to it as "style" - is permanently persisted on IPFS and wrapped in another NFT of a dedicated **splice style contract**. Since [Splice styles are NFTs](https://testnets.opensea.io/collection/splice-style-nft-v2), they can be traded, staked or sold on secondary markets. The minter of a style (usually the artist who wrote its code) defines its minting price behaviour, collection constraints and minting cap. Fees accrued during the minting process are distributed to the current style owner.
 
 ![extract](img/extract.png)
 
@@ -22,8 +22,10 @@ To recreate the artwork for a minted Splice token, one simply extracts the origi
 
 ![extract](img/sample.png)
 
-Splices are immutable by design. They only depend on input image data, a code base that's stored on an unique, tamper-proof and unstoppable storage layer (IPFS) and deterministically computable input parameters. Hence, as long as the original images don't change, your Splice will always be programmatically recoverable.
+Splices are immutable by design. They only depend on input image data, a code base that's stored on an unique, tamper-proof and unstoppable storage layer ([IPFS](https://ipfs.io/)) and deterministically computable input parameters. Hence, as long as the original images don't change, your Splice will always be programmatically recoverable.
 
 ## Our Vision
 
-Minting header images is just how Splice gets started. Under the hood it can do much more than that. We actually have prepared our contracts to accept more than one origin NFT, so generative artists could write code that combines two (or more) NFT seeds to breed something completely new. And it's not restricted to PFP collections. Artists could use the Splice protocol to combine a Decentraland estate, a Cool Cat and a Loot token to create a dedicated artwork, a background story or a new character of a cat adventure game. Building this kind of game mechanics usually requires a lot of individual coding but Splice lowers the entry barrier by controlling all proofs of ownership and gives artists a clear idea how to write code that responds to an NFT's origin traits and attributes.
+Minting header images is just how Splice gets started. Under the hood it can do much more than that. We actually have prepared our contracts to accept more than one origin NFT, so generative artists could write code that combines two (or more) NFT seeds to breed something completely new. 
+
+And it's not restricted to PFP collections. Artists could use the Splice protocol to combine a Decentraland estate, a Cool Cat and a Loot token to create a dedicated artwork, a background story or a new character of a cat adventure game. Building this kind of game mechanics usually requires a lot of individual coding but Splice lowers the entry barrier by controlling all proofs of ownership and gives artists a clear idea how to write code that responds to an NFT's origin traits and attributes.
