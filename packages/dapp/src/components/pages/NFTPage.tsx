@@ -142,7 +142,7 @@ export const NFTPage = () => {
   return (
     <Container maxW="container.xl">
       <Breadcrumb>
-        <BreadcrumbItem fontSize="lg" fontWeight="bold">
+        <BreadcrumbItem fontSize="lg">
           <BreadcrumbLink as={NavLink} to="/my-assets">
             Your NFTs
           </BreadcrumbLink>
