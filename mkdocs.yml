@@ -3,7 +3,7 @@ repo_url: https://github.com/SpliceNFT/splicenft
 
 nav:
   - Home: index.md
-  - Samples: samples.md
+  - Users: users.md
   - Developers: developers.md
 
 theme:

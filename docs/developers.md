@@ -4,6 +4,17 @@
 
 ## The Contracts
 
+## Randomness
+
+Each style might rely on a certain randomness that makes it unique. To make the rendering result unique, we're precomputing this entropy seed out of deterministic inputs we've got: the origin collection's address and the chosen origin token id. In detail, this is the secret formula in pseudocode:
+
+```
+rndSeed = uint32(keccak256(abi.encode([origin_address],[origin_token_id])))
+```
+
+Since most Javascript libraries (p5 is no exception) can only deal with 32 bits of numeric precision we're stripping the least significant 32 bits of the 256 bit long keccak hash. In theory that might lead to collisions but we consider that neglectible because the randomness is only one factor that determines the Splice result.
+
+
 ## Style Features
 
 ### Collection constraints
