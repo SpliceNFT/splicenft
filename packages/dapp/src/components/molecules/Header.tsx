@@ -59,7 +59,7 @@ const Header = () => {
       </Flex>
       <Spacer />
       <Flex direction="row" align="center" gridGap={10}>
-        {active && splice && (
+        {active && (
           <Flex direction="row" gridGap={[2, 6]}>
             <Link
               as={ReactLink}
