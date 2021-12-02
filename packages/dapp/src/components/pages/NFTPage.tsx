@@ -148,7 +148,7 @@ export const NFTPage = () => {
         <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
           <BreadcrumbLink>
             {provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
-            {nftItem?.name}
+            {nftItem?.metadata.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
