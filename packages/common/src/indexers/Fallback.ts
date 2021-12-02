@@ -47,7 +47,9 @@ export class Fallback implements NFTIndexer {
   ): Promise<NFTItem | null> {
     const primaryMd = await this.primary.getAsset(collection, tokenId);
     if (primaryMd) {
-      const resolvedImage = resolveImage(primaryMd.metadata);
+      const resolvedImage = primaryMd.metadata
+        ? resolveImage(primaryMd.metadata)
+        : undefined;
       if (!resolvedImage) {
         console.debug(
           'no image data from primary indexer, falling back to on chain lookup'
@@ -55,6 +57,8 @@ export class Fallback implements NFTIndexer {
         const secMd = await this.fallback.getAsset(collection, tokenId);
         if (secMd) {
           return secMd;
+        } else {
+          return null;
         }
       }
       return primaryMd;

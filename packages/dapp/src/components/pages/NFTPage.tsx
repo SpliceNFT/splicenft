@@ -148,12 +148,12 @@ export const NFTPage = () => {
         <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
           <BreadcrumbLink>
             {provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
-            {nftItem?.metadata.name}
+            {nftItem?.metadata?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {nftItem && (
+      {nftItem?.metadata && (
         <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
             spliceDataUrl={sketch}

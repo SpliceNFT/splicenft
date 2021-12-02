@@ -60,11 +60,14 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
           to={`/nft/${nft.contract_address}/${nft.token_id}`}
           p={4}
           background="white"
+          flex="2"
         >
-          {nftMetadata && <Heading size="md">{nftMetadata.name}</Heading>}
+          <Heading size="md" flex="1">
+            {nftMetadata ? nftMetadata.name : nft.name}
+          </Heading>
         </LinkOverlay>
 
-        <Flex background="black" direction="row" p={6}>
+        <Flex background="black" direction="row" p={6} flex="2">
           <Flex
             direction="row"
             align="center"

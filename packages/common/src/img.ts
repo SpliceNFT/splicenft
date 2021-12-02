@@ -35,7 +35,7 @@ export const extractPalette = (flatPixels: number[] | Uint8Array): RGB[] => {
 
 export const extractPaletteFromSvg = (svg: string): RGB[] => {
   const matches = svg.matchAll(SVG_FILL_REGEX);
-  console.log(matches);
+
   const ret: Record<string, number> = {};
   for (const match of matches) {
     if (ret[match[1]]) {
@@ -100,7 +100,6 @@ export const extractColors = async (
     (typeof image === 'string' && image.startsWith(SVG_DATA_PREFIX)) ||
     (typeof image === 'object' && image.src.startsWith(SVG_DATA_PREFIX))
   ) {
-    console.warn('an SVG image !!!');
     const dataUrl = decodeURIComponent(
       typeof image === 'string' ? image : image.src
     );

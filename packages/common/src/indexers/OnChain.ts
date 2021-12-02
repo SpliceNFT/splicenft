@@ -112,9 +112,11 @@ export class OnChain implements NFTIndexer {
     const contract =
       this.collections[collection] ||
       erc721Enumerable(this.provider, collection);
+
     try {
+      const metadataUrl = ipfsGW(await contract.tokenURI(tokenId));
       const metadata = await fetchMetadataFromUrl(
-        ipfsGW(await contract.tokenURI(tokenId)),
+        metadataUrl,
         this.proxyAddress
       );
 
@@ -127,7 +129,7 @@ export class OnChain implements NFTIndexer {
       };
     } catch (e: any) {
       console.error(
-        `failed loading on chain metadata for ${collection}/${tokenId}`
+        `failed loading on chain metadata for ${collection}/${tokenId} (${e.message})`
       );
       return null;
     }
