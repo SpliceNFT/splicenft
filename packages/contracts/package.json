@@ -59,6 +59,6 @@
     "keccak256": "^1.0.3",
     "merkletreejs": "^0.2.24",
     "multiformats": "^9.4.8",
-    "nft.storage": "^3.3.0"
+    "nft.storage": "^5.0.0"
   }
 }
