@@ -76,10 +76,10 @@ export class NFTPort implements NFTIndexer {
     return _resp.data.nfts;
   }
 
-  public async getAssetMetadata(
+  public async getAsset(
     collection: string,
     tokenId: string
-  ): Promise<NFTMetaData | null> {
+  ): Promise<NFTItem | null> {
     const url = `${BASE_URI}/nfts/${collection}/${tokenId}`;
     const _resp = await axios.get<NftPortNftMetadataResponse>(url, {
       params: {
@@ -89,7 +89,7 @@ export class NFTPort implements NFTIndexer {
         Authorization: this.nftPortAuth
       }
     });
-    return _resp.data.nft.metadata;
+    return _resp.data.nft;
   }
 }
 

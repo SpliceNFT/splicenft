@@ -1,5 +1,5 @@
-import { Box, Center, Circle, Container, Flex, Image } from '@chakra-ui/react';
-import { extractColors, Style } from '@splicenft/common';
+import { Center, Container, Flex, Image } from '@chakra-ui/react';
+import { extractColors, NFTItem, resolveImage, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
 import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
@@ -88,13 +88,13 @@ const DataSketch = ({
 
 export const CreativePanel = ({
   spliceDataUrl,
-  nftImageUrl,
+  nftItem,
   onSketched,
   randomness,
   style,
   onDominantColors
 }: {
-  nftImageUrl: string;
+  nftItem: NFTItem;
   onSketched: (dataUrl: string) => void;
   randomness: number;
   spliceDataUrl?: string;
@@ -150,7 +150,8 @@ export const CreativePanel = ({
   const nftImage = (
     <FallbackImage
       boxShadow="lg"
-      imgUrl={nftImageUrl}
+      imgUrl={resolveImage(nftItem.metadata)}
+      metadata={nftItem.metadata}
       onNFTImageLoaded={onNFTImageLoaded}
     />
   );

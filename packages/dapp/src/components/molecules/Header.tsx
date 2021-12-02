@@ -58,23 +58,26 @@ const Header = () => {
         <Logo />
       </Flex>
       <Spacer />
-      <Flex direction="row" align="center" gridGap={3}>
+      <Flex direction="row" align="center" gridGap={10}>
         {active && splice && (
-          <Flex direction="row" gridGap={[5, 10]}>
+          <Flex direction="row" gridGap={[2, 6]}>
             <Link
               as={ReactLink}
               to="/my-assets"
               exact
-              activeStyle={{ fontWeight: 800 }}
+              activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
             >
               My NFTs
             </Link>
             <Link
               as={ReactLink}
               to="/my-splices"
-              activeStyle={{ fontWeight: 800 }}
+              activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
             >
               My splices
+            </Link>
+            <Link href="https://splicenft.github.io/splicenft/" isExternal>
+              Docs
             </Link>
             {/*<Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
               Create

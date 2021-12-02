@@ -1,5 +1,5 @@
-import { NFTPort } from '..';
-import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
+import { NFTPort, resolveImage } from '..';
+import { NFTItemInTransit, NFTMetaData, NFTItem } from '../types/NFT';
 import { NFTIndexer } from './NFTIndexer';
 
 export class Fallback implements NFTIndexer {
@@ -10,23 +10,25 @@ export class Fallback implements NFTIndexer {
   ): Promise<NFTItemInTransit[]> {
     const allAssets = await this.primary.getAllAssetsOfOwner(ownerAddress);
     return allAssets.map((nftportNftItem) => {
-      const ret: NFTItemInTransit = {
-        ...nftportNftItem
-      };
-
       if (!nftportNftItem.metadata) {
-        ret.metadata = this.fallback.getAssetMetadata(
-          nftportNftItem.contract_address,
-          nftportNftItem.token_id
-        );
+        return {
+          ...nftportNftItem,
+          metadata: new Promise<NFTMetaData | null>((resolve, reject) => {
+            this.fallback
+              .getAsset(
+                nftportNftItem.contract_address,
+                nftportNftItem.token_id
+              )
+              .then((nftItem) => resolve(nftItem?.metadata || null));
+          })
+        };
       } else {
-        ret.metadata = {
-          ...nftportNftItem.metadata,
+        return {
+          ...nftportNftItem,
           name: nftportNftItem.name || nftportNftItem.metadata.name,
           google_image: nftportNftItem.cached_file_url
         };
       }
-      return ret;
     });
   }
 
@@ -39,14 +41,24 @@ export class Fallback implements NFTIndexer {
     }
   }
 
-  public async getAssetMetadata(
+  public async getAsset(
     collection: string,
     tokenId: string
-  ): Promise<NFTMetaData | null> {
-    return this.primary.getAssetMetadata(collection, tokenId);
+  ): Promise<NFTItem | null> {
+    const primaryMd = await this.primary.getAsset(collection, tokenId);
+    if (primaryMd) {
+      const resolvedImage = resolveImage(primaryMd.metadata);
+      if (!resolvedImage) {
+        console.debug(
+          'no image data from primary indexer, falling back to on chain lookup'
+        );
+        const secMd = await this.fallback.getAsset(collection, tokenId);
+        if (secMd) {
+          return secMd;
+        }
+      }
+      return primaryMd;
+    }
+    return null;
   }
 }
-
-/**
- * https://docs.nftport.xyz/docs/nftport/b3A6MTc0MDA0NDI-return-nf-ts-owned-by-account
- */

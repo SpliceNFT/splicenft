@@ -2,7 +2,7 @@ import { ERC721Enumerable } from '@splicenft/contracts';
 import { ethers } from 'ethers';
 import { erc721Enumerable, ipfsGW } from '..';
 import { ChainOpt } from '../types/Chains';
-import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
+import { NFTItemInTransit, NFTItem, NFTMetaData } from '../types/NFT';
 import { fetchMetadataFromUrl, NFTIndexer } from './NFTIndexer';
 
 export type KnownCollections = Record<ChainOpt, string[]>;
@@ -105,17 +105,31 @@ export class OnChain implements NFTIndexer {
     return Promise.all(promises);
   }
 
-  public async getAssetMetadata(
+  public async getAsset(
     collection: string,
     tokenId: string
-  ): Promise<NFTMetaData | null> {
+  ): Promise<NFTItem | null> {
     const contract =
       this.collections[collection] ||
       erc721Enumerable(this.provider, collection);
+    try {
+      const metadata = await fetchMetadataFromUrl(
+        ipfsGW(await contract.tokenURI(tokenId)),
+        this.proxyAddress
+      );
 
-    return fetchMetadataFromUrl(
-      ipfsGW(await contract.tokenURI(tokenId)),
-      this.proxyAddress
-    );
+      return {
+        contract_address: collection,
+        token_id: tokenId,
+        name: metadata.name,
+        description: metadata.description,
+        metadata
+      };
+    } catch (e: any) {
+      console.error(
+        `failed loading on chain metadata for ${collection}/${tokenId}`
+      );
+      return null;
+    }
   }
 }

@@ -14,6 +14,7 @@ export type NFTMetaData = {
   home_url?: string;
   image_url?: string;
   image?: string;
+  image_data?: string; //contains an encoded representation, generated on chain
   google_image?: string;
   ipfs_image?: string;
   external_url?: string;

@@ -20,6 +20,8 @@ export const Footer = () => {
   const { splice } = useSplice();
 
   let explorerRoot = '';
+  let openseaLink = null;
+
   switch (chainId) {
     case undefined:
     case 31337:
@@ -29,6 +31,7 @@ export const Footer = () => {
       break;
     default:
       explorerRoot = `${CHAINS[chainId]}.etherscan.io`;
+      openseaLink = 'https://testnets.opensea.io/collection/splice-v2';
       break;
   }
 
@@ -122,6 +125,12 @@ export const Footer = () => {
                     {splice.address}
                   </Link>
                 </Text>
+              )}
+
+              {openseaLink && (
+                <Link href={openseaLink} isExternal>
+                  OpenSea
+                </Link>
               )}
             </>
           )}

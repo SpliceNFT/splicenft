@@ -19,6 +19,11 @@ export const FallbackImage = (
     imageUrl = ipfsGW(imgUrl);
   } else if (metadata) {
     imageUrl = resolveImage(metadata);
+    if (!imageUrl && metadata.image_data) {
+      imageUrl = `data:image/svg+xml;utf8,${encodeURIComponent(
+        metadata.image_data
+      )}`;
+    }
   }
 
   return (
@@ -27,7 +32,6 @@ export const FallbackImage = (
       title={imageUrl}
       fit="cover"
       onLoad={onNFTImageLoaded}
-      fallback={<Image src={SplicePFPLogo} />}
       {...rest}
       /*opacity={buzy ? 0.2 : 1}*/
     />
