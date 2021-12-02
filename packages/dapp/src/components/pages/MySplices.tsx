@@ -53,9 +53,11 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           ).then(setOrigin);
         } else {
           const { origin_collection, origin_token_id } = spliceMetadata.splice;
-          indexer
-            .getAssetMetadata(origin_collection, origin_token_id)
-            .then(setOrigin);
+          const nftItem = await indexer.getAsset(
+            origin_collection,
+            origin_token_id
+          );
+          setOrigin(nftItem?.metadata);
         }
       } catch (e: any) {
         toast({

@@ -28,14 +28,10 @@ const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
     if (!indexer || !collection || !tokenId) return;
     console.log(collection, tokenId);
 
-    const nftMetadata = await indexer.getAssetMetadata(collection, tokenId);
+    const nftItem = await indexer.getAsset(collection, tokenId);
 
-    if (nftMetadata) {
-      onNFT({
-        contract_address: collection,
-        token_id: tokenId,
-        metadata: nftMetadata
-      });
+    if (nftItem?.metadata) {
+      onNFT(nftItem);
     }
   };
 

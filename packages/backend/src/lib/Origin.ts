@@ -8,6 +8,7 @@ import {
   Splice,
   TokenProvenance
 } from '@splicenft/common';
+import { extractPaletteFromSvg } from '@splicenft/common/build/img';
 import axios from 'axios';
 import { ethers } from 'ethers';
 import FileType from 'file-type';
@@ -45,8 +46,15 @@ export async function extractOriginFeatures(
   provenance: TokenProvenance,
   originMetadata: NFTMetaData
 ): Promise<{ palette: RGB[]; randomness: number }> {
-  const originPixels = await extractOriginImage(resolveImage(originMetadata));
-  const palette = extractPalette(new Uint8Array(originPixels));
+  const originImageUrl = resolveImage(originMetadata);
+  let palette: RGB[] = [];
+  if (originImageUrl) {
+    const originPixels = await extractOriginImage(originImageUrl);
+    palette = extractPalette(new Uint8Array(originPixels));
+  } else if (originMetadata.image_data) {
+    //todo: this is not necessarily an svg ;)
+    palette = extractPaletteFromSvg(originMetadata.image_data);
+  }
 
   const randomness = Splice.computeRandomness(
     provenance.origin_collection,

@@ -1,14 +1,14 @@
 import axios from 'axios';
-import { NFTItemInTransit, NFTMetaData } from '../types/NFT';
+import { NFTItemInTransit, NFTItem, NFTMetaData } from '../types/NFT';
 
 export abstract class NFTIndexer {
   abstract getAllAssetsOfOwner(
     ownerAddress: string
   ): Promise<NFTItemInTransit[]>;
-  abstract getAssetMetadata(
+  abstract getAsset(
     collection: string,
     tokenId: string
-  ): Promise<NFTMetaData | null>;
+  ): Promise<NFTItem | null>;
   abstract reset(): void;
   abstract canBeContinued(): boolean;
   // getNFTsOfOwner(
@@ -20,14 +20,13 @@ export abstract class NFTIndexer {
 export async function fetchMetadataFromUrl(
   tokenUrl: string,
   proxyAddress?: string
-): Promise<NFTMetaData | null> {
-  let metaData: NFTMetaData | null = null;
+): Promise<NFTMetaData> {
   try {
     const xres = await axios.get<NFTMetaData>(tokenUrl, {
       responseType: 'json'
     });
-    if (xres.status === 500) throw new Error('server error');
-    metaData = xres.data;
+    if (xres.status === 500) throw new Error('metadata server: server error');
+    return xres.data;
   } catch (e: any) {
     if (e.message === 'Network Error' && proxyAddress) {
       const res = await axios.get<NFTMetaData>(proxyAddress, {
@@ -36,8 +35,9 @@ export async function fetchMetadataFromUrl(
         },
         responseType: 'json'
       });
-      metaData = res.data;
+      return res.data;
     }
+
+    throw new Error('couldnt load metadata from url ');
   }
-  return metaData;
 }

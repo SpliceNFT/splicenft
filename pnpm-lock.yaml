@@ -90,9 +90,9 @@ importers:
       axios: ^0.21.4
       ethers: ^5.4.7
       get-rgba-palette: ^2.0.1
+      hex-rgb: ^4.3.0
       image-to-colors: ^1.0.2
       multiformats: ^9.4.8
-      nft.storage: ^3.3.0
       p5: 1.1.9
       rgb-hex: ^4.0.0
       typescript: ^4.4.3
@@ -101,9 +101,9 @@ importers:
       axios: 0.21.4
       ethers: 5.4.7
       get-rgba-palette: 2.0.1
+      hex-rgb: 4.3.0
       image-to-colors: 1.0.2
       multiformats: 9.4.8
-      nft.storage: 3.3.0
       p5: 1.1.9
       rgb-hex: 4.0.0
     devDependencies:
@@ -12246,6 +12246,11 @@ packages:
 
   /hex-color-regex/1.1.0:
     resolution: {integrity: sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==}
+    dev: false
+
+  /hex-rgb/4.3.0:
+    resolution: {integrity: sha512-Ox1pJVrDCyGHMG9CFg1tmrRUMRPRsAWYc/PinY0XzJU4K7y7vjNoLKIQ7BR5UJMCxNN8EM1MNDmHWA/B3aZUuw==}
+    engines: {node: '>=6'}
     dev: false
 
   /hey-listen/1.0.8:

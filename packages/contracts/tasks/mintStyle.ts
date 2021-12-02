@@ -65,7 +65,8 @@ task('style:mint', 'mints a style')
       _cap: cap,
       _metadataCID: cid,
       _priceStrategy: priceStrategyAddress,
-      _priceStrategyParameters: priceBytes
+      _priceStrategyParameters: priceBytes,
+      _sale: sale
     };
     console.log('minting NFT with:', mintArgs);
 

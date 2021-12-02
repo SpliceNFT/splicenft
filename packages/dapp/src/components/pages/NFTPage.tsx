@@ -11,7 +11,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import {
-  NFTMetaData,
+  NFTItem,
   resolveImage,
   Splice,
   SpliceNFT,
@@ -20,8 +20,8 @@ import {
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
-import { FaCloudDownloadAlt } from 'react-icons/fa';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
@@ -46,8 +46,7 @@ export const NFTPage = () => {
   const { splice, indexer, spliceStyles } = useSplice();
   const { account, chainId } = useWeb3React();
 
-  const [nftMetadata, setNFTMetadata] = useState<NFTMetaData>();
-  const [nftImageUrl, setNFTImageUrl] = useState<string>();
+  const [nftItem, setNFTItem] = useState<NFTItem>();
 
   const [dominantColors, setDominantColors] = useState<RGB[]>([]);
 
@@ -106,11 +105,10 @@ export const NFTPage = () => {
   useEffect(() => {
     if (!indexer) return;
     (async () => {
-      const _nftMetadata = await indexer.getAssetMetadata(collection, tokenId);
-      if (!_nftMetadata) return;
+      const _nftItem = await indexer.getAsset(collection, tokenId);
+      if (!_nftItem) return;
 
-      setNFTMetadata(_nftMetadata);
-      setNFTImageUrl(resolveImage(_nftMetadata));
+      setNFTItem(_nftItem);
     })();
   }, [indexer]);
 
@@ -150,16 +148,16 @@ export const NFTPage = () => {
         <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
           <BreadcrumbLink>
             {provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
-            {nftMetadata?.name}
+            {nftItem?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {nftImageUrl && (
+      {nftItem && (
         <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
             spliceDataUrl={sketch}
-            nftImageUrl={nftImageUrl}
+            nftItem={nftItem}
             style={selectedStyle}
             randomness={randomness}
             onSketched={onSketched}
@@ -221,7 +219,7 @@ export const NFTPage = () => {
         mt={[6, null, 1]}
       >
         <NFTDescription
-          nftMetadata={nftMetadata}
+          nftMetadata={nftItem?.metadata}
           spliceMetadata={spliceMetadata}
           styleNFT={selectedStyle?.getMetadata()}
         />
@@ -241,7 +239,7 @@ export const NFTPage = () => {
               />
             </Flex>
           )}
-          {nftMetadata && (
+          {nftItem && (
             <Flex
               boxShadow="xl"
               direction="column"
@@ -259,7 +257,7 @@ export const NFTPage = () => {
               <MetaDataDisplay
                 contractAddress={collection}
                 tokenId={tokenId}
-                nftMetadata={nftMetadata}
+                nftMetadata={nftItem.metadata}
                 randomness={randomness}
               />
             </Flex>

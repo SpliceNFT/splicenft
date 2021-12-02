@@ -63,17 +63,10 @@ export const MyAssetsPage = () => {
   };
   const onNFTMinted = async (collection: string, tokenId: string) => {
     if (!library || !indexer) return;
-    const newMetadata = await indexer.getAssetMetadata(collection, tokenId);
+    const newNft = await indexer.getAsset(collection, tokenId);
 
-    if (newMetadata) {
-      setNFTs([
-        ...nfts,
-        {
-          contract_address: collection,
-          token_id: tokenId,
-          metadata: newMetadata
-        }
-      ]);
+    if (newNft) {
+      setNFTs([...nfts, newNft]);
     }
   };
 
