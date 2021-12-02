@@ -26,7 +26,7 @@ Since most Javascript libraries can only deal with 32 bits of numeric precision 
 
 ### Provenance
 
-The Splice contract has been written with gas efficiency in mind, hence we kept all bookkeeping structures to an absolute minimum. Foremost, Splice is intentionally **not** inheriting OpenZeppelin's Enumerable base which saves us a lot of gas. Additionally, we're not mapping plain origins to token ids directly, but rather use a *provenance* hash that allows the contract to figure out if a combination of inputs has been minted before. The provenance hash is computed out as
+The Splice contract has been written with gas efficiency in mind, hence we kept all bookkeeping structures to an absolute minimum. Foremost, Splice is intentionally **not** inheriting OpenZeppelin's Enumerable base which saves us a lot of gas. Additionally, we're not mapping plain origins to token ids directly, but rather use a *provenance* hash that allows the contract to figure out if a combination of inputs has been minted before. The provenance hash is computed as
 
 ```solidity
 bytes32 _provenanceHash = keccak256(
@@ -143,13 +143,13 @@ The owner of a style token may choose to restrict minting of their style to cert
 
 ### Allowlists
 
-You can't predict success in the NFT space, can you? Before opening up a deployed style to be spliced, it must be marked as "on sale". On the other hand you might feel tempted to restrict its mints to a rather low cap (like 1000) to make it a rare asset. So, what's happening if suddenly half of the NFT space races towards your style and it's minted out within seconds? That happened before and it will happen again, so we decided to add an allowlist feature to the style contract that makes it possible to reserve mints for the artist's best friends, family or community. 
+We've added an allowlist feature to our style contract that makes it possible for an artist (or whoever mints an artist's style) to reserve mints for friends, family or a community. That way an artist can set a low cap for a style (like cap of 500), but still be sure certain collectors get access to mint before her collection's sold out.
 
 Instead of going with a plain allowlist array we decided to make use of [Merkle tree proofs](https://docs.openzeppelin.com/contracts/4.x/api/utils#MerkleProof). We haven't implemented a nice snapshotting / tree creation tool as of now, but you can checkout the `contracts` packages' `allowlist.test.ts` tests to see how it's supposed to work. 
 
 ## Dynamic Pricing
 
-The first styles we're launching will request a static minting fee that's set by the curator who mints the style NFT on behalf of an artist. When we started Splice in September 2021 we had far more sophisticated ideas on how to set an ideal price point for mints, including Dutch auctions, bonding curves or even oracle based price indicators based on a collection's current floor price. 
+The first styles we're launching will require a static minting fee that's set by the curator who mints the style NFT on behalf of an artist. We plan to implement more sophisticated approaches to pricing of mints, including Dutch auctions, bonding curves or even oracle based price indicators based on a collection's current floor price. 
 
 To be flexible in terms of mint price indication we've decoupled price computations from the main contracts: upon minting the curator decides which pricing strategy should be in effect for the new style. Each strategy is implemented as a dedicated smart contract that must implement the `ISplicePriceStrategy` interface to return a price denoted in wei: 
 
@@ -164,11 +164,11 @@ interface ISplicePriceStrategy {
 }
 ```
 
-Since each implementation will receive the full `styleSettings` struct of the requesting style, it can determine a price point unique for each style. That struct's `priceParameters` field may contain implementation specific information, e.g. a minimum and a maximum price. So far we only implemented a static pricing strategy that simply returns the `priceParameters` content which effectively becomes a fixed price parameter.
+Since each implementation will receive the full `styleSettings` struct of the requesting style, it can determine a price point unique for each style. That struct's `priceParameters` field may contain implementation specific information, e.g. a minimum and a maximum price. So far we only implemented a static pricing strategy that simply returns the `priceParameters` content, which effectively becomes a fixed price parameter.
 
 ## Subgraphs
 
-We tried to build the splice contract as gas efficient as possible, so we've reduced the bookkeeping on chain to a minimum: each splice NFT contains a hash to quickly prove its origins and the style token id that had been chosen for minting. As hinted in the [Provenance](#provenance) section, the `subgraph` package contains a subgraph definition that's deployed on [The Graph protocol's hosted service](https://thegraph.com/hosted-service/). It reads all `Mint` and `Transfer` events, extracts the minting parameters by using the transaction inputs and provides a GraphQL API to query certain aspects of the Splice contracts' current state. Here's an example of how to get all splices of an user:
+We've built the splice contract as gas efficient as possible, reducing bookkeeping on chain to a minimum: each splice NFT contains a hash to quickly prove its origins and the style token id that had been chosen for minting. As mentioned in the [Provenance](#provenance) section, the `subgraph` package contains a subgraph definition that's deployed on [The Graph protocol's hosted service](https://thegraph.com/hosted-service/). It reads all `Mint` and `Transfer` events, extracts the minting parameters by using the transaction inputs, and provides a GraphQL API to query certain aspects of the Splice contracts' current state. Here's an example of how to get all splices of an user:
 
 === "GQL Query"
 
@@ -213,9 +213,9 @@ We tried to build the splice contract as gas efficient as possible, so we've red
 
 ## Common package
 
-the `common` package contains code that's shared between our Dapp and the backend. Most importantly we must make sure that serverside and frontend renderers use *exactly* the same code so we're not irritating our users with different results. 
+The `common` package contains code that's shared between our Dapp and the backend. Most importantly we make sure  serverside and frontend renderers use *exactly* the same code so as not to confuse users with varying visual results. 
 
-If you look at the `extractPalette` export from `img.ts` you'll notice that the code that computes an image's predominant colors is used on the frontend (`dapp/src/components/organisms/CreativePanel:extractPixels`) and on the backend (`backend/src/lib/Origin.ts`). 
+If you look at the `extractPalette` export from `img.ts` you'll notice that the code to compute an image's predominant colors is used on the frontend (`dapp/src/components/organisms/CreativePanel:extractPixels`) and on the backend (`backend/src/lib/Origin.ts`). 
 
 Other exports that are exposed by the `common` package are
 
@@ -225,11 +225,11 @@ Other exports that are exposed by the `common` package are
 
 - `types/NFTs`: contains type definitions for NFT metadata and secondary services.
 
-- `indexers`: contains code to read existing NFTs from chain and extract their metadata in an abstract way: if you know which collections you'd like to read and you have access to a web3 provider, you can use the `OnChain` indexer. If you need to find all assets owned by an user on mainnet you instead can use the `NFTPort` indexer class. Our dapp uses the `Fallback` indexer that tries reading from NFTPort and falls back to the on chain implementation if NFTPort hasn't fully indexed the collection yet.
+- `indexers`: contains code to read existing NFTs from chain and extract their metadata in an abstract way: if you know which collections you'd like to read and you have access to a web3 provider, you can use the `OnChain` indexer. If you need to find all assets owned by an user on mainnet, you can use the `NFTPort` indexer class instead. Our dapp uses the `Fallback` indexer that tries reading from NFTPort and falls back to the on chain implementation if NFTPort hasn't fully indexed the collection yet.
 
 ## Backend
 
-The basic Splice concept doesn't depend on a backend at all: since styles and their code are stored on IPFS and one can recover origin minting parameters from the Splice contract, you can rebuild your Splice NFT anytime (if you know what you're doing, we're going to provide dedicated tools for this soon). 
+The basic Splice concept doesn't depend on a backend at all: since styles and their code are stored on IPFS and one can recover origin minting parameters from the Splice contract, you can rebuild your Splice NFT anytime. (We'll be providing dedicated tools for rebuilding soon). 
 
 Since IPFS lookups and chain queries are usually related to high latencies or aren't free (Infura's free tier is high, but their RPC timeouts are rather low), we're providing a backend service that speeds up many use cases significantly.
 
@@ -241,7 +241,7 @@ Our backend package is a rather plain express server that responds to 5 API endp
 - `GET /splice/:network/:tokenid` returns the metadata for Splice `tokenid`
 - `GET /splice/:network/:tokenid/image.png` returns the Splice image for `tokenid` on `network`
 
-What makes the backend so powerful is its caching mechanism: Instead of fetching origins, extracting colors and rerendering NFT metadata on every request we're caching all results once they have been created for the first time. There's an [open issue](https://github.com/SpliceNFT/splicenft/issues/122) to align the cache layout in a way that it's suitable for simple style freezing, too. 
+What makes the backend so powerful is its caching mechanism: Instead of fetching origins, extracting colors and rerendering NFT metadata on every request, we're caching all results once they have been created for the first time. There's an [open issue](https://github.com/SpliceNFT/splicenft/issues/122) to align the cache layout in a way that's suitable for simple style freezing, too. 
 
 ### Dapp
 
@@ -251,4 +251,4 @@ Our dapp is building on a plain and simple [CRA + Typescript](https://create-rea
 pnpm run start
 ```
 
-An important word of notice: since we're trying to adhere to web3 principles as closely as possible the build output is hosted on a decentralized network. We don't want to bother with IPNS and DNSLink details and that's why we've decided to hand over the final build and deployment process to the [awesome services of Fleek.co](https://fleek.co)
+An important word of notice: since we're trying to adhere to web3 principles as closely as possible, the build output is hosted on a decentralized network. We don't want to bother with IPNS and DNSLink details, and that's why we've decided to hand over the final build and deployment process to the [awesome services of Fleek.co](https://fleek.co)
