@@ -59,33 +59,36 @@ const Header = () => {
       </Flex>
       <Spacer />
       <Flex direction="row" align="center" gridGap={10}>
-        {active && (
-          <Flex direction="row" gridGap={[2, 6]}>
-            <Link
-              as={ReactLink}
-              to="/my-assets"
-              exact
-              activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
-            >
-              My NFTs
-            </Link>
-            {splice && (
+        <Flex direction="row" gridGap={[2, 6]}>
+          {active && (
+            <>
               <Link
                 as={ReactLink}
-                to="/my-splices"
+                to="/my-assets"
+                exact
                 activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
               >
-                My splices
+                My NFTs
               </Link>
-            )}
-            <Link href="https://splicenft.github.io/splicenft/" isExternal>
-              Docs
-            </Link>
-            {/*<Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
+              {splice && (
+                <Link
+                  as={ReactLink}
+                  to="/my-splices"
+                  activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
+                >
+                  My splices
+                </Link>
+              )}
+
+              {/*<Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
               Create
         </Link>*/}
-          </Flex>
-        )}
+            </>
+          )}
+          <Link href="https://splicenft.github.io/splicenft/" isExternal>
+            Docs
+          </Link>
+        </Flex>
         {!active && (
           <Menu>
             <MenuButton
