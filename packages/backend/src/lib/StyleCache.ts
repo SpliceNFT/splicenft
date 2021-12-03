@@ -64,11 +64,8 @@ export class StyleMetadataCache {
           Cache.store(cacheKey, metadata);
         }
 
-        const style = new Style(
-          styleNFTContract,
-          parseInt(tokenId),
-          metadataUrl,
-          metadata
+        const style = new Style(parseInt(tokenId), metadataUrl, metadata).bind(
+          styleNFTContract
         );
 
         const codeCacheKey = `${this.network}/styles/${tokenId}/code.js`;

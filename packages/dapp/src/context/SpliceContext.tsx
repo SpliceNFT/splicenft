@@ -1,6 +1,9 @@
-import { useWeb3React } from '@web3-react/core';
-import React, { useContext, useEffect, useState } from 'react';
-import { providers } from 'ethers';
+import {
+  ApolloClient,
+  ApolloProvider,
+  InMemoryCache,
+  NormalizedCacheObject
+} from '@apollo/client';
 import {
   CHAINS,
   FallbackIndexer,
@@ -12,14 +15,11 @@ import {
   Style,
   StyleNFTResponse
 } from '@splicenft/common';
-import { knownCollections } from '../modules/chains';
+import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
-import {
-  ApolloClient,
-  ApolloProvider,
-  InMemoryCache,
-  NormalizedCacheObject
-} from '@apollo/client';
+import { providers } from 'ethers';
+import React, { useContext, useEffect, useState } from 'react';
+import { knownCollections } from '../modules/chains';
 
 interface ISpliceContext {
   splice?: Splice;
@@ -114,24 +114,26 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [library, chainId]);
 
   useEffect(() => {
-    if (!splice) return;
+    if (!chainId) return;
 
     (async () => {
-      const spliceChain = await splice.getChain();
+      const styleNFTContract = splice ? await splice.getStyleNFT() : null;
 
-      const styleNFTContract = await splice.getStyleNFT();
-      const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${spliceChain}`;
+      const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${
+        chainId === 1 ? 4 : chainId
+      }`;
+
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
-        const _styles = styleRes.map(
-          (r) => new Style(styleNFTContract, r.style_token_id, url, r.metadata)
+        const _styles = styleRes.map((r) =>
+          new Style(r.style_token_id, url, r.metadata).bind(styleNFTContract)
         );
         setStyles(_styles);
       } catch (e: any) {
         console.error("couldn't load styles", e.message);
       }
     })();
-  }, [splice]);
+  }, [chainId, splice]);
 
   return (
     <SpliceContext.Provider value={{ splice, indexer, spliceStyles }}>

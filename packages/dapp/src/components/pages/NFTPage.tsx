@@ -173,7 +173,7 @@ export const NFTPage = () => {
             align="center"
           >
             <ArtworkStyleChooser
-              disabled={chainId === 1 || dominantColors?.length == 0 || buzy}
+              disabled={dominantColors?.length == 0 || buzy}
               selectedStyle={selectedStyle}
               onStyleChanged={(style: Style) => {
                 setSelectedStyle(style);
