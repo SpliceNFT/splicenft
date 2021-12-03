@@ -1,35 +1,34 @@
 import { SpliceStyleNFT as StyleNFTContract } from '@splicenft/contracts';
 import axios from 'axios';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { ipfsGW } from './img';
 import { Renderer } from './types/Renderers';
 import { StyleNFT } from './types/SpliceNFT';
 
 export class Style {
-  private contract: StyleNFTContract;
-  private _tokenId: number;
-  private metadataUrl: string;
-  private metadata: StyleNFT;
-  private code: string | null;
+  private contract: StyleNFTContract | null = null;
+  protected _tokenId: number;
+  protected metadataUrl: string;
+  protected metadata: StyleNFT;
+  protected code: string | null;
   // eslint-disable-next-line @typescript-eslint/ban-types
-  private renderer: Renderer | null;
+  protected renderer: Renderer | null;
 
   public get tokenId() {
     return this._tokenId;
   }
 
-  constructor(
-    contract: StyleNFTContract,
-    tokenId: number,
-    metadataUrl: string,
-    metadata: StyleNFT
-  ) {
-    this.contract = contract;
+  constructor(tokenId: number, metadataUrl: string, metadata: StyleNFT) {
     this._tokenId = tokenId;
     this.metadata = metadata;
     this.metadataUrl = metadataUrl;
     this.code = null;
     this.renderer = null;
+  }
+
+  bind(contract: StyleNFTContract | null) {
+    this.contract = contract;
+    return this;
   }
 
   getMetadata() {
@@ -41,8 +40,9 @@ export class Style {
   }
 
   getCollectionAddress() {
-    return this.contract.address;
+    return this.contract ? this.contract.address : ethers.constants.AddressZero;
   }
+
   // eslint-disable-next-line @typescript-eslint/ban-types
   async getRenderer(): Promise<Renderer> {
     if (this.renderer) return this.renderer;
@@ -53,11 +53,15 @@ export class Style {
   }
 
   async isActive(): Promise<boolean> {
-    return this.contract.isSaleActive(this.tokenId);
+    return this.contract
+      ? this.contract.isSaleActive(this.tokenId)
+      : Promise.resolve(false);
   }
 
   async quote(collection: string): Promise<BigNumber> {
-    return this.contract.quoteFee(collection, this.tokenId);
+    return this.contract
+      ? this.contract.quoteFee(collection, this.tokenId)
+      : Promise.resolve(ethers.BigNumber.from(0));
   }
 
   async getCodeFromBackend(

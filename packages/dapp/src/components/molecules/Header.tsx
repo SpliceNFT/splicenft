@@ -69,13 +69,15 @@ const Header = () => {
             >
               My NFTs
             </Link>
-            <Link
-              as={ReactLink}
-              to="/my-splices"
-              activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
-            >
-              My splices
-            </Link>
+            {splice && (
+              <Link
+                as={ReactLink}
+                to="/my-splices"
+                activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
+              >
+                My splices
+              </Link>
+            )}
             <Link href="https://splicenft.github.io/splicenft/" isExternal>
               Docs
             </Link>
