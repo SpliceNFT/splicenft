@@ -26,6 +26,7 @@ import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
+import { AddToAllowlistButton } from '../molecules/AddToAllowlistButton';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { CreativePanel } from '../organisms/CreativePanel';
@@ -180,8 +181,14 @@ export const NFTPage = () => {
                 setSketch(undefined);
               }}
             />
-
-            {provenance === undefined && selectedStyle && sketch && (
+            {chainId === 1 && selectedStyle && (
+              <AddToAllowlistButton
+                collection={collection}
+                originTokenId={tokenId}
+                selectedStyle={selectedStyle}
+              />
+            )}
+            {provenance === undefined && splice && selectedStyle && sketch && (
               <MintSpliceButton
                 buzy={buzy}
                 setBuzy={setBuzy}
