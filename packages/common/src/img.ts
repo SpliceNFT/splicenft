@@ -4,7 +4,8 @@ import ImageToColors, { Color } from 'image-to-colors';
 import { NFTMetaData } from './types/NFT';
 
 //const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
-const IPFS_GATEWAY = 'https://dweb.link/ipfs/';
+//const IPFS_GATEWAY = 'https://dweb.link/ipfs/';
+const IPFS_GATEWAY = 'https://ipfs.getsplice.io/ipfs/';
 const SVG_DATA_PREFIX = 'data:image/svg';
 const SVG_FILL_REGEX = new RegExp(
   `fill\s*[:=]\s*['"](\#[A-Fa-f0-9]{6})['"]`,
