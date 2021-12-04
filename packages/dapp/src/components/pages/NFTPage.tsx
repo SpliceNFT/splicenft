@@ -89,10 +89,10 @@ export const NFTPage = () => {
 
   useEffect(() => {
     (async () => {
-      if (!splice) return;
-      if (!provenance) {
+      if (!splice || !provenance) {
         setSpliceMetadata(undefined);
         setSpliceOwner(undefined);
+        console.log('boo');
         return;
       }
       await splice.ownerOf(provenance.splice_token_id).then(setSpliceOwner);

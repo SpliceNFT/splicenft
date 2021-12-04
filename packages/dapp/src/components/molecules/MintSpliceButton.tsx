@@ -1,5 +1,5 @@
 import { useToast, Flex, Text, Button } from '@chakra-ui/react';
-import { Style, TokenProvenance } from '@splicenft/common';
+import { erc721, Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -22,11 +22,27 @@ export const MintSpliceButton = ({
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
-  const { account } = useWeb3React();
+  const { account, library } = useWeb3React();
   const { splice } = useSplice();
+  const [spliceOwner, setSpliceOwner] = useState<string>();
 
   const [quote, setQuote] = useState<ethers.BigNumber>();
   const toast = useToast();
+
+  useEffect(() => {
+    if (!library || !account) {
+      setSpliceOwner(undefined);
+      return;
+    }
+    (async () => {
+      erc721(library, collection)
+        .ownerOf(originTokenId)
+        .then(setSpliceOwner)
+        .catch((e: any) => {
+          setSpliceOwner(undefined);
+        });
+    })();
+  }, [library, account]);
 
   useEffect(() => {
     (async () => {
@@ -67,8 +83,9 @@ export const MintSpliceButton = ({
 
   return (
     <Flex direction="column" align="center">
+      {spliceOwner}
       <Button
-        disabled={!quote || !splice || buzy}
+        disabled={!quote || !splice || spliceOwner !== account || buzy}
         onClick={mint}
         leftIcon={<FaBirthdayCake />}
         variant="white"
