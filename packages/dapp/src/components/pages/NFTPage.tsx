@@ -11,6 +11,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import {
+  erc721,
   NFTItem,
   resolveImage,
   Splice,
@@ -26,6 +27,7 @@ import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
+import { AddToAllowlistButton } from '../molecules/AddToAllowlistButton';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { CreativePanel } from '../organisms/CreativePanel';
@@ -44,7 +46,7 @@ export const NFTPage = () => {
   const randomness = Splice.computeRandomness(collection, tokenId);
 
   const { splice, indexer, spliceStyles } = useSplice();
-  const { account, chainId } = useWeb3React();
+  const { library: web3, account, chainId } = useWeb3React();
 
   const [nftItem, setNFTItem] = useState<NFTItem>();
 
@@ -56,9 +58,25 @@ export const NFTPage = () => {
   const [provenance, setProvenance] = useState<TokenProvenance>();
   const [spliceOwner, setSpliceOwner] = useState<string>();
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
+  const [ownsOrigin, setOwnsOrigin] = useState<boolean>(false);
 
   const [sketch, setSketch] = useState<string>();
   const [buzy, setBuzy] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!web3 || !account) {
+      setOwnsOrigin(false);
+      return;
+    }
+    (async () => {
+      erc721(web3, collection)
+        .ownerOf(tokenId)
+        .then((owner) => setOwnsOrigin(owner === account))
+        .catch((e: any) => {
+          setOwnsOrigin(false);
+        });
+    })();
+  }, [web3, account]);
 
   useEffect(() => {
     if (!splice) return;
@@ -88,8 +106,7 @@ export const NFTPage = () => {
 
   useEffect(() => {
     (async () => {
-      if (!splice) return;
-      if (!provenance) {
+      if (!splice || !provenance) {
         setSpliceMetadata(undefined);
         setSpliceOwner(undefined);
         return;
@@ -180,14 +197,20 @@ export const NFTPage = () => {
                 setSketch(undefined);
               }}
             />
-
-            {provenance === undefined && selectedStyle && sketch && (
+            {chainId === 1 && selectedStyle && (
+              <AddToAllowlistButton
+                selectedStyle={selectedStyle}
+                ownsOrigin={ownsOrigin}
+              />
+            )}
+            {provenance === undefined && splice && selectedStyle && sketch && (
               <MintSpliceButton
                 buzy={buzy}
                 setBuzy={setBuzy}
                 collection={collection}
                 originTokenId={tokenId}
                 selectedStyle={selectedStyle}
+                ownsOrigin={ownsOrigin}
                 onMinted={onMinted}
               />
             )}

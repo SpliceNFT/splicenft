@@ -1,5 +1,5 @@
 import { useToast, Flex, Text, Button } from '@chakra-ui/react';
-import { Style, TokenProvenance } from '@splicenft/common';
+import { erc721, Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -11,7 +11,7 @@ export const MintSpliceButton = ({
   originTokenId,
   selectedStyle,
   onMinted,
-
+  ownsOrigin,
   buzy,
   setBuzy
 }: {
@@ -19,11 +19,13 @@ export const MintSpliceButton = ({
   originTokenId: string;
   selectedStyle: Style;
   onMinted: (provenance: TokenProvenance) => unknown;
+  ownsOrigin: boolean;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
-  const { account } = useWeb3React();
+  const { account, library } = useWeb3React();
   const { splice } = useSplice();
+  const [spliceOwner, setSpliceOwner] = useState<string>();
 
   const [quote, setQuote] = useState<ethers.BigNumber>();
   const toast = useToast();
@@ -67,8 +69,9 @@ export const MintSpliceButton = ({
 
   return (
     <Flex direction="column" align="center">
+      {spliceOwner}
       <Button
-        disabled={!quote || !splice || buzy}
+        disabled={!quote || !splice || !ownsOrigin || buzy}
         onClick={mint}
         leftIcon={<FaBirthdayCake />}
         variant="white"

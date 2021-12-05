@@ -1,3 +1,6 @@
 .vercel
 build
 .splice.cache
+tmp/
+temp/
+splice.sqlite

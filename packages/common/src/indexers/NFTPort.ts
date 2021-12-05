@@ -13,6 +13,9 @@ type NftPortAccountResponse = {
 
 type NftPortNftMetadataResponse = {
   error: unknown | null;
+  response: string;
+  status: string;
+  status_message: string;
   nft: NFTItem & {
     asset_metadata: {
       height: number;
@@ -89,7 +92,11 @@ export class NFTPort implements NFTIndexer {
         Authorization: this.nftPortAuth
       }
     });
-    return _resp.data.nft;
+    if (_resp.data.error) {
+      throw new Error(_resp.data.status_message);
+    } else {
+      return _resp.data.nft;
+    }
   }
 }
 

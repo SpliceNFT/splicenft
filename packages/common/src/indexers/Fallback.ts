@@ -45,7 +45,13 @@ export class Fallback implements NFTIndexer {
     collection: string,
     tokenId: string
   ): Promise<NFTItem | null> {
-    const primaryMd = await this.primary.getAsset(collection, tokenId);
+    let primaryMd;
+    try {
+      primaryMd = await this.primary.getAsset(collection, tokenId);
+    } catch (e: any) {
+      console.error(e.message);
+    }
+
     if (primaryMd) {
       const resolvedImage = primaryMd.metadata
         ? resolveImage(primaryMd.metadata)
