@@ -24,3 +24,13 @@ http://validate.getsplice.io/splice/4/1/image.png
 
 
 ### 
+
+POST http://localhost:5999/allowlist
+Content-Type: application/json
+
+{
+  "address": "0xabcde",
+  "style_token_id": "3",
+  "signature": "0xf00d",
+  "chain_id": 1
+}

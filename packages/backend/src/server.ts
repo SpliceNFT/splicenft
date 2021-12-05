@@ -2,14 +2,16 @@ import cors from 'cors';
 import express, { Express } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { StyleCache } from './lib/StyleCache';
+import { createConnection } from 'typeorm';
 import {
+  allowlist,
   allStyles,
   renderGeneric,
   renderSplice,
   spliceMetadata,
   styleDetails
 } from './controllers';
+import { StyleCache } from './lib/StyleCache';
 
 const app: Express = express();
 
@@ -39,5 +41,14 @@ app.get('/styles/:network', allStyles(styleCache));
 app.get('/splice/:network/:tokenid/image.png', renderSplice(styleCache));
 //this is the token metadata URI:  /1/1
 app.get('/splice/:network/:tokenid', spliceMetadata(styleCache));
+
+createConnection({
+  type: 'sqlite',
+  database: 'splice.sqlite',
+  entities: [__dirname + '/entity/*.js'],
+  synchronize: true
+}).then((sqlite) => {
+  app.post('/allowlist', allowlist());
+});
 
 export default app;

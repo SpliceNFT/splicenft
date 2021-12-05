@@ -199,8 +199,6 @@ export const NFTPage = () => {
             />
             {chainId === 1 && selectedStyle && (
               <AddToAllowlistButton
-                collection={collection}
-                originTokenId={tokenId}
                 selectedStyle={selectedStyle}
                 ownsOrigin={ownsOrigin}
               />

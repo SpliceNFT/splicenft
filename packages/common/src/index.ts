@@ -36,4 +36,4 @@ export function erc721Enumerable(
   return ERC721Enumerable__factory.connect(address, provider);
 }
 
-export * as AllowList from './allowlists';
+export { AllowlistTypes, verifyAllowlistEntry } from './allowlists';
