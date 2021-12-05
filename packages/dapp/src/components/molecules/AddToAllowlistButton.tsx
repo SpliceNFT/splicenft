@@ -13,25 +13,59 @@ import {
   useDisclosure,
   UseDisclosureProps
 } from '@chakra-ui/react';
-import { Style } from '@splicenft/common';
+import { Style, AllowList } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { providers } from 'ethers';
+import { ethers, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { FaScroll } from 'react-icons/fa';
+import { FaKey, FaScroll } from 'react-icons/fa';
 
 interface ModalProps {
   isOpen: boolean;
   onClose(): void;
+  selectedStyle: Style;
 }
 
 const SignupModal = (props: ModalProps) => {
-  const { isOpen, onClose } = props;
-  const { account, library: web3 } = useWeb3React();
+  const { isOpen, onClose, selectedStyle } = props;
+  const {
+    account,
+    chainId,
+    library: web3
+  } = useWeb3React<providers.Web3Provider>();
   const toast = useToast();
 
   const signAllowlistRequest = async () => {
+    if (!web3) return;
     try {
-      console.log('foo');
+      const signer = web3.getSigner();
+      const signature = await signer._signTypedData(
+        {
+          chainId: chainId,
+          name: 'Splice Allowlist',
+          version: '1'
+        },
+        AllowList.AllowlistTypes,
+        {
+          styleId: selectedStyle.tokenId.toString(),
+          from: account
+        }
+      );
+      // const signed = await signer.signMessage(
+      //   `Put me on the SPLICE allowlist for ${selectedStyle.getMetadata().name}`
+      // );
+      const verifiedAddress = ethers.utils.verifyTypedData(
+        {
+          chainId: chainId,
+          name: 'Splice Allowlist',
+          version: '1'
+        },
+        AllowList.AllowlistTypes,
+        {
+          styleId: selectedStyle.tokenId.toString(),
+          from: account
+        },
+        signature
+      );
     } catch (e: any) {
       console.error(e);
       const message = e.data?.message || e.message;
@@ -49,10 +83,22 @@ const SignupModal = (props: ModalProps) => {
       <ModalContent>
         <ModalHeader>Modal Title</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>{account}</ModalBody>
+        <ModalBody>
+          <Text>
+            To reserve a slot for your account on our allow list, hit the "Sign"
+            button{' '}
+          </Text>
+        </ModalBody>
 
         <ModalFooter>
-          <Button onClick={signAllowlistRequest}>Sign the message</Button>
+          <Button
+            disabled={!web3}
+            onClick={signAllowlistRequest}
+            variant="black"
+            leftIcon={<FaKey />}
+          >
+            Sign
+          </Button>
           <Button mr={3} onClick={onClose}>
             Close
           </Button>
@@ -64,25 +110,21 @@ const SignupModal = (props: ModalProps) => {
 export const AddToAllowlistButton = ({
   collection,
   originTokenId,
-  selectedStyle
+  selectedStyle,
+  ownsOrigin
 }: {
   collection: string;
   originTokenId: string;
   selectedStyle: Style;
+  ownsOrigin: boolean;
 }) => {
   const [buzy, setBuzy] = useState<boolean>(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  useEffect(() => {
-    (async () => {
-      console.log('foo');
-    })();
-  }, [selectedStyle]);
-
   return (
     <Flex direction="column" align="center">
       <Button
-        disabled={!selectedStyle}
+        disabled={!selectedStyle || !ownsOrigin}
         onClick={onOpen}
         leftIcon={<FaScroll />}
         variant="white"
@@ -101,7 +143,13 @@ export const AddToAllowlistButton = ({
           </Text>
         </Flex>
       </Button>
-      <SignupModal onClose={onClose} isOpen={isOpen} />
+      {selectedStyle && ownsOrigin && (
+        <SignupModal
+          onClose={onClose}
+          isOpen={isOpen}
+          selectedStyle={selectedStyle}
+        />
+      )}
     </Flex>
   );
 };

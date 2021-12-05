@@ -11,7 +11,7 @@ export const MintSpliceButton = ({
   originTokenId,
   selectedStyle,
   onMinted,
-
+  ownsOrigin,
   buzy,
   setBuzy
 }: {
@@ -19,6 +19,7 @@ export const MintSpliceButton = ({
   originTokenId: string;
   selectedStyle: Style;
   onMinted: (provenance: TokenProvenance) => unknown;
+  ownsOrigin: boolean;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
@@ -28,21 +29,6 @@ export const MintSpliceButton = ({
 
   const [quote, setQuote] = useState<ethers.BigNumber>();
   const toast = useToast();
-
-  useEffect(() => {
-    if (!library || !account) {
-      setSpliceOwner(undefined);
-      return;
-    }
-    (async () => {
-      erc721(library, collection)
-        .ownerOf(originTokenId)
-        .then(setSpliceOwner)
-        .catch((e: any) => {
-          setSpliceOwner(undefined);
-        });
-    })();
-  }, [library, account]);
 
   useEffect(() => {
     (async () => {
@@ -85,7 +71,7 @@ export const MintSpliceButton = ({
     <Flex direction="column" align="center">
       {spliceOwner}
       <Button
-        disabled={!quote || !splice || spliceOwner !== account || buzy}
+        disabled={!quote || !splice || !ownsOrigin || buzy}
         onClick={mint}
         leftIcon={<FaBirthdayCake />}
         variant="white"

@@ -11,6 +11,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import {
+  erc721,
   NFTItem,
   resolveImage,
   Splice,
@@ -45,7 +46,7 @@ export const NFTPage = () => {
   const randomness = Splice.computeRandomness(collection, tokenId);
 
   const { splice, indexer, spliceStyles } = useSplice();
-  const { account, chainId } = useWeb3React();
+  const { library: web3, account, chainId } = useWeb3React();
 
   const [nftItem, setNFTItem] = useState<NFTItem>();
 
@@ -57,9 +58,25 @@ export const NFTPage = () => {
   const [provenance, setProvenance] = useState<TokenProvenance>();
   const [spliceOwner, setSpliceOwner] = useState<string>();
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
+  const [ownsOrigin, setOwnsOrigin] = useState<boolean>(false);
 
   const [sketch, setSketch] = useState<string>();
   const [buzy, setBuzy] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!web3 || !account) {
+      setOwnsOrigin(false);
+      return;
+    }
+    (async () => {
+      erc721(web3, collection)
+        .ownerOf(tokenId)
+        .then((owner) => setOwnsOrigin(owner === account))
+        .catch((e: any) => {
+          setOwnsOrigin(false);
+        });
+    })();
+  }, [web3, account]);
 
   useEffect(() => {
     if (!splice) return;
@@ -92,7 +109,6 @@ export const NFTPage = () => {
       if (!splice || !provenance) {
         setSpliceMetadata(undefined);
         setSpliceOwner(undefined);
-        console.log('boo');
         return;
       }
       await splice.ownerOf(provenance.splice_token_id).then(setSpliceOwner);
@@ -186,6 +202,7 @@ export const NFTPage = () => {
                 collection={collection}
                 originTokenId={tokenId}
                 selectedStyle={selectedStyle}
+                ownsOrigin={ownsOrigin}
               />
             )}
             {provenance === undefined && splice && selectedStyle && sketch && (
@@ -195,6 +212,7 @@ export const NFTPage = () => {
                 collection={collection}
                 originTokenId={tokenId}
                 selectedStyle={selectedStyle}
+                ownsOrigin={ownsOrigin}
                 onMinted={onMinted}
               />
             )}
