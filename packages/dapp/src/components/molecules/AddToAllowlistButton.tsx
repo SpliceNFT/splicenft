@@ -3,7 +3,7 @@ import { AllowlistTypes, Style, verifyAllowlistEntry } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
 import { providers } from 'ethers';
-import React, { useState } from 'react';
+import React from 'react';
 import { FaScroll } from 'react-icons/fa';
 
 export const AddToAllowlistButton = ({
@@ -78,7 +78,7 @@ export const AddToAllowlistButton = ({
       >
         <Flex direction="column">
           <Text fontWeight="strong" fontSize="lg">
-            Request Allowlist slot
+            Request Allowlist Slot
           </Text>
 
           <Text fontWeight="normal" fontSize="md">

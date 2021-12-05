@@ -1,10 +1,10 @@
-import { useToast, Flex, Text, Button } from '@chakra-ui/react';
-import { erc721, Style, TokenProvenance } from '@splicenft/common';
+import { Button, Flex, Text, useToast } from '@chakra-ui/react';
+import { Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { useSplice } from '../../context/SpliceContext';
 import { FaBirthdayCake } from 'react-icons/fa';
+import { useSplice } from '../../context/SpliceContext';
 
 export const MintSpliceButton = ({
   collection,
@@ -23,9 +23,8 @@ export const MintSpliceButton = ({
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
-  const { account, library } = useWeb3React();
+  const { account } = useWeb3React();
   const { splice } = useSplice();
-  const [spliceOwner, setSpliceOwner] = useState<string>();
 
   const [quote, setQuote] = useState<ethers.BigNumber>();
   const toast = useToast();
@@ -69,7 +68,6 @@ export const MintSpliceButton = ({
 
   return (
     <Flex direction="column" align="center">
-      {spliceOwner}
       <Button
         disabled={!quote || !splice || !ownsOrigin || buzy}
         onClick={mint}
@@ -91,11 +89,6 @@ export const MintSpliceButton = ({
           )}
         </Flex>
       </Button>
-      {/*
-    <Text color="red.500">
-      minting NFTs of this collection is not allowed right now
-    </Text>
-  */}
     </Flex>
   );
 };
