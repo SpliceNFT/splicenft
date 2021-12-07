@@ -147,6 +147,12 @@ contract Splice is
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
 
+  function withdrawEth() public onlyOwner {
+    platformBeneficiary.transfer(address(this).balance);
+  }
+
+  receive() external payable {}
+
   //todo: add more interfaces for royalties here.
   //https://eips.ethereum.org/EIPS/eip-2981
   // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
