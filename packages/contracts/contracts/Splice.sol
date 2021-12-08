@@ -234,7 +234,7 @@ contract Splice is
   }
 
   function updateRoyalties(uint8 royaltyPercentage) public onlyOwner {
-    require(royaltyPercentage <= 10, 'royalties will never exceed 10%');
+    require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
     ROYALTY_PERCENT = royaltyPercentage;
   }
 

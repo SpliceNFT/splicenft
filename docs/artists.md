@@ -57,6 +57,10 @@ That means as an artist, you (or someone you choose, like a curator) can mint yo
 
 Our Splice contract distributes 85% of primary sales to the artist (or whoever owns the style NFT) and 15% to the platform protocol. On secondary sales, the artist (or whoever owns the style NFT) takes 10%.
 
+On a sidenote, the Splice contract implements the [EIP-2981 NFT Royalty Standard](https://eips.ethereum.org/EIPS/eip-2981) that signals secondary marketplaces who should receive royalties. EIP 2981 is a rather new, non-binding way that's not picked up by major platforms like OpenSea yet but likely will lead the effort to streamline royalty payments. 
+
+All royalty payouts that happen to be paid to the contract owner directly (which is the Splice protocol) in the old-fashioned way will be forwarded to artists on a monthly basis.
+
 ## Now and Upcoming
 
 Until now (Dec 2021), we've concentrated on building the backend and contract logic behind Splice. After going live on mainnet, we'll focus on tools that simplify the process of making styles, making it just that much easier for artists to build with us.
