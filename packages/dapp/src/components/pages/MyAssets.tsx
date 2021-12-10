@@ -55,12 +55,14 @@ export const MyAssetsPage = () => {
       setLoading(false);
     })();
   }, [account, indexer]);
+
   useEffect(() => {
     if (!library || !account || !chainId) return;
     (async () => {
       setBalance(await library.getBalance(account));
     })();
   }, [library, account, chainId]);
+
   const continueLoading = async () => {
     const addr = accountAddress || account;
     if (!addr || !indexer) return;
@@ -87,6 +89,7 @@ export const MyAssetsPage = () => {
       });
     }
   };
+
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
       {loading && (

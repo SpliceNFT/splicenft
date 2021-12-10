@@ -19,18 +19,20 @@ export const MetaDataItem = ({
 }) => {
   return (
     <Flex
-      direction="row"
-      align="center"
+      direction={['column', 'row']}
+      align={['start', 'center']}
       justify="space-between"
-      gridGap={5}
+      gridGap={[null, 5]}
       fontSize={fontSize}
     >
       <Text fontWeight="bold">{label}</Text>
 
       {link ? (
-        <Link href={ipfsGW(link)} isExternal isTruncated>
-          {value}
-        </Link>
+        <Text isTruncated>
+          <Link href={ipfsGW(link)} isExternal>
+            {value}
+          </Link>
+        </Text>
       ) : 'string' === typeof value ? (
         <Text fontWeight="normal" textColor={color} isTruncated>
           {value}
@@ -55,13 +57,7 @@ export const SpliceMetadataDisplay = ({
       {owner && (
         <MetaDataItem label="Owner" value={owner === account ? 'You' : owner} />
       )}
-      {spliceMetadata.splice.metadataUrl && (
-        <MetaDataItem
-          label="Metadata"
-          value={spliceMetadata.splice.metadataUrl}
-          link={spliceMetadata.splice.metadataUrl}
-        />
-      )}
+
       <MetaDataItem
         label="Style"
         value={spliceMetadata.properties.style_name}

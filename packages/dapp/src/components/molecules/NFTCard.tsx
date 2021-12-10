@@ -1,13 +1,16 @@
 import {
   AspectRatio,
+  Center,
   Flex,
   Heading,
+  Image,
   LinkOverlay,
   Text
 } from '@chakra-ui/react';
 import {
   NFTItemInTransit,
   NFTMetaData,
+  SpliceNFT,
   TokenProvenance
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
@@ -18,7 +21,8 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
 
 export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
-  const [provenances, setProvenances] = useState<TokenProvenance[]>([]);
+  const [provenance, setProvenance] = useState<TokenProvenance>();
+  const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNftImageUrl] = useState<string>();
   const { splice } = useSplice();
@@ -43,16 +47,42 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
     if (!splice) return;
     (async () => {
       //todo: too expensive here.
-      // setProvenances(
-      //   await splice.findProvenances(nft.contract_address, nft.token_id)
-      // );
+      const _provenances = await splice.findProvenances(
+        nft.contract_address,
+        nft.token_id
+      );
+      if (_provenances.length > 0) {
+        setProvenance(_provenances[0]);
+      }
     })();
   }, [splice]);
-
+  useEffect(() => {
+    if (!splice || !provenance) return;
+    (async () => {
+      setSpliceMetadata(await splice.getMetadata(provenance));
+    })();
+  }, [splice, provenance]);
   return (
     <SpliceCard flexDirection="column">
       <AspectRatio ratio={1}>
-        <FallbackImage imgUrl={nftImageUrl} metadata={nftMetadata} />
+        {spliceMetadata ? (
+          <Flex position="relative" overflow="hidden">
+            <Image src={spliceMetadata.image} fit="cover" boxSize="100%" />
+            <Center position="absolute" width="100%" height="100%">
+              <Flex
+                rounded="full"
+                border="4px solid white"
+                w="75%"
+                overflow="hidden"
+                boxShadow="md"
+              >
+                <FallbackImage imgUrl={nftImageUrl} metadata={nftMetadata} />
+              </Flex>
+            </Center>
+          </Flex>
+        ) : (
+          <FallbackImage imgUrl={nftImageUrl} metadata={nftMetadata} />
+        )}
       </AspectRatio>
       <Flex direction="column" flex="1">
         <LinkOverlay
@@ -81,9 +111,15 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
               <Text color="white">{truncateAddress(nft.contract_address)}</Text>
             </Flex>
 
-            {provenances.length > 0 && (
+            {provenance && (
               <Flex direction="column">
-                <Text color="white">Minted {provenances.length}</Text>
+                <Text color="gray.200" fontWeight="bold">
+                  Splice
+                </Text>
+
+                <Text color="white">
+                  {provenance.style_token_id}/{provenance.style_token_token_id}
+                </Text>
               </Flex>
             )}
           </Flex>

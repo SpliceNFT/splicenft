@@ -52,3 +52,18 @@ export const SPLICES_OF_ORIGIN = gql`
     }
   }
 `;
+
+// export const SPLICES_OF_COLLECTIONS = gql`
+//   query SplicesOfCollections($collections: String[]) {
+//     spliceice(where: {origin_collection_in: $collections }) {
+//       id
+//       metadata_url
+//       owner
+//       origin_metadata_url
+//       input_params
+//       style {
+//         id
+//       }
+//     }
+//   }
+// `;
