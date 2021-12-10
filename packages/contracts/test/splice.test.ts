@@ -633,6 +633,33 @@ describe('Splice', function () {
     expect((await testNft.balanceOf(splice.address)).isZero()).to.be.true;
   });
 
+  it('withdraws eth that has been sent to it', async function () {
+    const web3 = splice.provider;
+    const spliceBalance = await web3.getBalance(splice.address);
+    expect(spliceBalance?.isZero()).to.be.true;
+
+    const tx = await _user.sendTransaction({
+      to: splice.address,
+      value: ethers.utils.parseEther('0.123')
+    });
+    await tx.wait();
+
+    const newBalance = await web3.getBalance(splice.address);
+    expect(ethers.utils.formatEther(newBalance)).to.equal('0.123');
+    const _beneficiary = await signers[7].getAddress();
+
+    await splice.setPlatformBeneficiary(_beneficiary);
+    const bBalance = await web3.getBalance(_beneficiary);
+
+    await splice.withdrawEth();
+    const newBBalance = await web3.getBalance(_beneficiary);
+    expect(ethers.utils.formatEther(newBBalance.sub(bBalance))).to.equal(
+      '0.123'
+    );
+
+    expect((await web3.getBalance(splice.address)).isZero()).to.be.true;
+  });
+
   it('refuses safe incoming ERC721 transfers', async function () {
     const userAddress = await _user.getAddress();
     try {
@@ -641,7 +668,7 @@ describe('Splice', function () {
         ['safeTransferFrom(address,address,uint256)'](
           userAddress,
           splice.address,
-          1
+          BigNumber.from(1)
         );
 
       expect.fail("Splice shouldn't accept incoming safe ERC721 transfers");

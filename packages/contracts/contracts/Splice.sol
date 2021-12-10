@@ -170,7 +170,10 @@ contract Splice is
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
 
-  //todo fallback function & withdrawal for eth for owner
+
+  //todo: add more interfaces for royalties here.
+  //https://eips.ethereum.org/EIPS/eip-2981
+  // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
 
   function pause() public onlyOwner {
     _pause();
