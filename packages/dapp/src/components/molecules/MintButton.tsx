@@ -4,12 +4,13 @@ import {
   Menu,
   MenuButton,
   MenuItem,
+  Link,
   MenuList,
   useToast
 } from '@chakra-ui/react';
 import { OnChain } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { BigNumber, Contract, providers } from 'ethers';
+import { BigNumber, Contract, ethers, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useSplice } from '../../context/SpliceContext';
 
@@ -63,9 +64,11 @@ const MintingABI = [
 type MintableCollection = { name: string; address: string };
 
 export const MintButton = ({
-  onMinted
+  onMinted,
+  balance
 }: {
   onMinted: (collection: string, tokenId: string) => void;
+  balance: ethers.BigNumber | undefined;
 }) => {
   const { indexer } = useSplice();
   const { library, account } = useWeb3React<providers.Web3Provider>();
@@ -119,29 +122,42 @@ export const MintButton = ({
     setBuzy(false);
   };
 
-  return (
-    <Menu enabled={mintableNFTs.length > 0}>
-      <MenuButton
-        disabled={buzy}
-        boxShadow="md"
-        isLoading={buzy}
-        loadingText="Minting"
-        as={Button}
-        rightIcon={<ChevronDownIcon />}
-        variant="black"
+  if (!balance || balance.isZero()) {
+    return (
+      <Button
+        as={Link}
+        href="https://faucet.paradigm.xyz/"
+        isExternal
+        variant="white"
       >
-        mint a testnet NFT
-      </MenuButton>
-      <MenuList>
-        {mintableNFTs.map((mintableCollection) => (
-          <MenuItem
-            key={`mint-${mintableCollection.address}`}
-            onClick={() => mintTestnetNFT(mintableCollection.address)}
-          >
-            {mintableCollection.name}
-          </MenuItem>
-        ))}
-      </MenuList>
-    </Menu>
-  );
+        get testnet eth
+      </Button>
+    );
+  } else {
+    return (
+      <Menu enabled={mintableNFTs.length > 0}>
+        <MenuButton
+          disabled={buzy}
+          boxShadow="md"
+          isLoading={buzy}
+          loadingText="Minting"
+          as={Button}
+          rightIcon={<ChevronDownIcon />}
+          variant="black"
+        >
+          mint a testnet NFT
+        </MenuButton>
+        <MenuList>
+          {mintableNFTs.map((mintableCollection) => (
+            <MenuItem
+              key={`mint-${mintableCollection.address}`}
+              onClick={() => mintTestnetNFT(mintableCollection.address)}
+            >
+              {mintableCollection.name}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    );
+  }
 };

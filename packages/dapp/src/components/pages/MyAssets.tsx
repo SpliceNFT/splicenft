@@ -4,14 +4,16 @@ import {
   AlertTitle,
   Container,
   Flex,
+  Text,
   Heading,
+  Link,
   Button,
   SimpleGrid,
   useToast
 } from '@chakra-ui/react';
 import { CHAINS, NFTItemInTransit } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { providers } from 'ethers';
+import { ethers, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useSplice } from '../../context/SpliceContext';
@@ -23,7 +25,9 @@ export const MyAssetsPage = () => {
     useParams<{ accountAddress: string | undefined }>();
   const { account, library, chainId } = useWeb3React<providers.Web3Provider>();
   const { indexer } = useSplice();
-
+  const [balance, setBalance] = useState<ethers.BigNumber>(
+    ethers.BigNumber.from(0)
+  );
   const [loading, setLoading] = useState<boolean>(false);
 
   const [nfts, setNFTs] = useState<NFTItemInTransit[]>([]);
@@ -51,7 +55,12 @@ export const MyAssetsPage = () => {
       setLoading(false);
     })();
   }, [account, indexer]);
-
+  useEffect(() => {
+    if (!library || !account || !chainId) return;
+    (async () => {
+      setBalance(await library.getBalance(account));
+    })();
+  }, [library, account, chainId]);
   const continueLoading = async () => {
     const addr = accountAddress || account;
     if (!addr || !indexer) return;
@@ -70,6 +79,14 @@ export const MyAssetsPage = () => {
     }
   };
 
+  const switchToRinkeby = async () => {
+    if (library?.provider.request) {
+      library.provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x4' }]
+      });
+    }
+  };
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
       {loading && (
@@ -96,11 +113,23 @@ export const MyAssetsPage = () => {
             <Flex>
               <AlertIcon />
               <AlertTitle>
-                It appears you don't have any NFTs on{' '}
-                {CHAINS[chainId] || `chain ${chainId}`}
+                <Text>
+                  It appears you don't have any NFTs on{' '}
+                  {CHAINS[chainId] || `chain ${chainId}`}.{' '}
+                  {chainId !== 0x4 && (
+                    <>
+                      You can test Splice for free{' '}
+                      <Link onClick={switchToRinkeby} fontWeight="bold">
+                        on Rinkeby
+                      </Link>
+                    </>
+                  )}
+                </Text>
               </AlertTitle>
             </Flex>
-            {chainId !== 1 && <MintButton onMinted={onNFTMinted} />}
+            {chainId !== 1 && (
+              <MintButton onMinted={onNFTMinted} balance={balance} />
+            )}
           </Flex>
         </Alert>
       )}
@@ -131,7 +160,7 @@ export const MyAssetsPage = () => {
                 align="center"
                 justify="center"
               >
-                <MintButton onMinted={onNFTMinted} />
+                <MintButton onMinted={onNFTMinted} balance={balance} />
               </Flex>
             )}
             {indexer?.canBeContinued() && (
