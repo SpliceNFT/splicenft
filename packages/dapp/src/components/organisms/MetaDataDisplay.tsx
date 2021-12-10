@@ -85,13 +85,18 @@ export const MetaDataDisplay = ({
   contractAddress: string;
   tokenId: string | number;
 }) => {
+  //some collections might return attributes as object :roll_eyes:
+  //https://opensea.io/assets/0x031920cc2d9f5c10b444fd44009cd64f829e7be2/13318
+  //todo: move this to the indexers
+  const attributes = nftMetadata.attributes;
+  const _attrs = attributes?.map ? attributes : [];
   return (
     <Flex direction="column" gridGap={3}>
       <MetaDataItem label="collection" value={contractAddress} />
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
 
-      {nftMetadata.attributes?.map((attr) => {
+      {_attrs.map((attr) => {
         return (
           <MetaDataItem
             fontSize="sm"
