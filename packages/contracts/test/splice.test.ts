@@ -4,6 +4,8 @@ import { ethers } from 'hardhat';
 import {
   ChainWallet__factory,
   GLDToken__factory,
+  IERC165__factory,
+  IERC2981Upgradeable__factory,
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
@@ -698,5 +700,28 @@ describe('Splice', function () {
     expect(ethers.utils.formatUnits(walletBalance, 'ether')).to.be.equal(
       expected.toString()
     );
+  });
+
+  it('signals EIP-165 support on mandatory interfaces', async function () {
+    const ifc = IERC165__factory.createInterface();
+    const ERC165_INTERFACE = ifc.getSighash(
+      ifc.functions['supportsInterface(bytes4)']
+    );
+    expect(ERC165_INTERFACE).to.equal('0x01ffc9a7');
+
+    const royaltyIfc = IERC2981Upgradeable__factory.createInterface();
+    const ERC2981_INTERFACE = royaltyIfc.getSighash(
+      royaltyIfc.functions['royaltyInfo(uint256,uint256)']
+    );
+
+    const ERC721_INTERFACE = '0x80ac58cd';
+    const ERC721_ENUMERABLE = '0x780e9d63';
+    const ERC721_METADATA = '0x5b5e139f';
+
+    expect(await splice.supportsInterface(ERC165_INTERFACE)).to.be.true;
+    expect(await splice.supportsInterface(ERC721_INTERFACE)).to.be.true;
+    expect(await splice.supportsInterface(ERC721_METADATA)).to.be.true;
+    expect(await splice.supportsInterface(ERC2981_INTERFACE)).to.be.true;
+    expect(await splice.supportsInterface(ERC721_ENUMERABLE)).to.be.false;
   });
 });

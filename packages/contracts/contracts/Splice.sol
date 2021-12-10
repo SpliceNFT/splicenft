@@ -24,9 +24,10 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/interfaces/IERC165Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
-
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
 import 'hardhat/console.sol';
@@ -36,11 +37,13 @@ import './SpliceStyleNFT.sol';
 
 /// @title Splice is a protocol to mint NFTs out of origin NFTs
 /// @author Stefan Adolf @elmariachi111
+
 contract Splice is
   ERC721Upgradeable,
   OwnableUpgradeable,
   PausableUpgradeable,
-  ReentrancyGuardUpgradeable
+  ReentrancyGuardUpgradeable,
+  IERC2981Upgradeable
 {
   /// @notice you didn't send sufficient fees along
   error InsufficientFees();
@@ -61,6 +64,7 @@ contract Splice is
   error BadMintInput();
 
   uint8 public ARTIST_SHARE;
+  uint8 public ROYALTY_PERCENT;
 
   string private baseUri;
 
@@ -104,6 +108,7 @@ contract Splice is
     __Pausable_init();
     __ReentrancyGuard_init();
     ARTIST_SHARE = 85;
+    ROYALTY_PERCENT = 10;
     //todo: unsure if a gnosis safe is payable...
     platformBeneficiary = payable(msg.sender);
 
@@ -132,10 +137,28 @@ contract Splice is
     platformBeneficiary = newAddress;
   }
 
+  receive() external payable {}
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC721Upgradeable, IERC165Upgradeable)
+    returns (bool)
+  {
+    return
+      interfaceId == type(IERC2981Upgradeable).interfaceId ||
+      super.supportsInterface(interfaceId);
+  }
+
   /**
-   * in case someone drops ERC20/ERC721 on us accidentally,
+   * in case someone drops ETH/ERC20/ERC721 on us accidentally,
    * this will help us withdraw it.
    */
+  function withdrawEth() public onlyOwner {
+    platformBeneficiary.transfer(address(this).balance);
+  }
+
   function withdrawERC20(IERC20 token) public onlyOwner {
     token.transfer(platformBeneficiary, token.balanceOf(address(this)));
   }
@@ -147,17 +170,10 @@ contract Splice is
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
 
-  function withdrawEth() public onlyOwner {
-    platformBeneficiary.transfer(address(this).balance);
-  }
-
-  receive() external payable {}
 
   //todo: add more interfaces for royalties here.
   //https://eips.ethereum.org/EIPS/eip-2981
   // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
-
-  //todo fallback function & withdrawal for eth for owner
 
   function pause() public onlyOwner {
     _pause();
@@ -218,6 +234,24 @@ contract Splice is
     require(share > 75, 'we will never take more than 25%');
     ARTIST_SHARE = share;
     emit SharesChanged(share);
+  }
+
+  function updateRoyalties(uint8 royaltyPercentage) public onlyOwner {
+    require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
+    ROYALTY_PERCENT = royaltyPercentage;
+  }
+
+  // https://eips.ethereum.org/EIPS/eip-2981
+  // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
+  // https://forum.openzeppelin.com/t/how-do-eip-2891-royalties-work/17177
+  function royaltyInfo(uint256 tokenId, uint256 salePrice)
+    external
+    view
+    returns (address receiver, uint256 royaltyAmount)
+  {
+    (uint32 style_token_id, ) = styleAndTokenByTokenId(tokenId);
+    receiver = styleNFT.ownerOf(style_token_id);
+    royaltyAmount = ROYALTY_PERCENT * (salePrice / 100);
   }
 
   /// @dev the randomness is the first 32 bit of the provenance hash
