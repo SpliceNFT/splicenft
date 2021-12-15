@@ -1,12 +1,14 @@
 import palette, { RGB } from 'get-rgba-palette';
 import { default as hexRgb } from 'hex-rgb';
+import b64 from 'base64-js';
+
 import ImageToColors, { Color } from 'image-to-colors';
 import { NFTMetaData } from './types/NFT';
 
 //const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 //const IPFS_GATEWAY = 'https://dweb.link/ipfs/';
 const IPFS_GATEWAY = 'https://ipfs.getsplice.io/ipfs/';
-const SVG_DATA_PREFIX = 'data:image/svg';
+const SVG_DATA_PREFIX = 'data:image/svg+xml;';
 const SVG_FILL_REGEX = new RegExp(
   `fill\s*[:=]\s*['"](\#[A-Fa-f0-9]{6})['"]`,
   'gi'
@@ -101,9 +103,14 @@ export const extractColors = async (
     (typeof image === 'string' && image.startsWith(SVG_DATA_PREFIX)) ||
     (typeof image === 'object' && image.src.startsWith(SVG_DATA_PREFIX))
   ) {
-    const dataUrl = decodeURIComponent(
+    let dataUrl = decodeURIComponent(
       typeof image === 'string' ? image : image.src
     );
+    dataUrl = dataUrl.replace(SVG_DATA_PREFIX, '');
+    if (dataUrl.startsWith('base64,')) {
+      const arr = b64.toByteArray(dataUrl.replace('base64,', ''));
+      dataUrl = new TextDecoder().decode(arr);
+    }
     return extractPaletteFromSvg(dataUrl);
   } else {
     const px = await extractPixels(image, options);
