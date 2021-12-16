@@ -20,19 +20,24 @@ LSI  LSI           LCL           LSS       ISL       LSI  ISL       LSS  ISL
 
 pragma solidity 0.8.10;
 
-import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
-import '@openzeppelin/contracts/utils/math/SafeCast.sol';
-import '@openzeppelin/contracts/utils/Counters.sol';
-import '@openzeppelin/contracts/utils/cryptography/MerkleProof.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './ISplicePriceStrategy.sol';
 import './StyleSettings.sol';
 
-contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
-  using Counters for Counters.Counter;
-  using SafeCast for uint256;
+contract SpliceStyleNFT is
+  ERC721EnumerableUpgradeable,
+  OwnableUpgradeable,
+  ReentrancyGuardUpgradeable
+{
+  using CountersUpgradeable for CountersUpgradeable.Counter;
+  using SafeCastUpgradeable for uint256;
 
   error BadReservationParameters(uint32 reservation, uint32 mintsLeft);
   error AllowlistDurationTooShort(uint256 diff);
@@ -71,7 +76,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint64 until
   );
 
-  Counters.Counter private _styleTokenIds;
+  CountersUpgradeable.Counter private _styleTokenIds;
 
   mapping(address => bool) public isCurator;
   mapping(uint32 => StyleSettings) styleSettings;
@@ -83,12 +88,12 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
   address public spliceNFT;
 
-  constructor()
-    ERC721('Splice Style NFT', 'SPLYLE')
-    ERC721Enumerable()
-    Ownable()
-    ReentrancyGuard()
-  {}
+  function initialize() public initializer {
+    __ERC721_init('Splice Style NFT', 'SPLYLE');
+    __ERC721Enumerable_init_unchained();
+    __Ownable_init_unchained();
+    __ReentrancyGuard_init();
+  }
 
   modifier onlyCurator() {
     require(isCurator[msg.sender] == true, 'only curators can mint styles');
@@ -101,7 +106,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   }
 
   function setSplice(address _spliceNFT) external onlyOwner {
-    require(spliceNFT == address(0), 'can only be called once.');
+    if (spliceNFT != address(0)) {
+      revert('can only be called once.');
+    }
     spliceNFT = _spliceNFT;
   }
 
@@ -201,7 +208,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     address requestor
   ) public view returns (bool) {
     return
-      MerkleProof.verify(
+      MerkleProofUpgradeable.verify(
         allowlistProof,
         allowlists[style_token_id].merkleRoot,
         //or maybe: https://ethereum.stackexchange.com/questions/884/how-to-convert-an-address-to-bytes-in-solidity/41356

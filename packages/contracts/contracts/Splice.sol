@@ -104,12 +104,10 @@ contract Splice is
   );
 
   function initialize(
-    string memory name_,
-    string memory symbol_,
     string memory baseUri_,
     SpliceStyleNFT initializedStyleNFT_
   ) public initializer {
-    __ERC721_init(name_, symbol_);
+    __ERC721_init('Splice', 'SPLICE');
     __Ownable_init();
     __Pausable_init();
     __ReentrancyGuard_init();

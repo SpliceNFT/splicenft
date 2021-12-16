@@ -40,7 +40,7 @@ describe('Style NFTs', function () {
     testNft = await deployTestnetNFT();
     priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
+    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
   });
 
   it('gets an nft on the test collection', async function () {
@@ -71,9 +71,7 @@ describe('Style NFTs', function () {
   it('can allow a new curator', async function () {
     styleNFT.connect(_owner);
     const curatorAddress = await _curator.getAddress();
-    const tx = await (
-      await styleNFT.toggleCurator(curatorAddress, true)
-    ).wait();
+    await (await styleNFT.toggleCurator(curatorAddress, true)).wait();
 
     const res = await styleNFT.isCurator(await _curator.getAddress());
     expect(res).to.be.true;

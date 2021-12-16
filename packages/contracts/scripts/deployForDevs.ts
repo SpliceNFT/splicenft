@@ -64,19 +64,18 @@ const deployTestnetNFT = async (
   console.log('static price strategy instance:', staticPriceStrategy.address);
 
   const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
-  const spliceStyleNFT = await SpliceStyleNFT.deploy();
+  const spliceStyleNFT = await upgrades.deployProxy(SpliceStyleNFT, []);
+
   console.log('splice style nft:', spliceStyleNFT.address);
 
   const Splice = await ethers.getContractFactory('Splice');
   const splice = await upgrades.deployProxy(Splice, [
-    'Splice',
-    'SPLICE',
     'http://localhost:5999/splice/31337/',
     spliceStyleNFT.address
   ]);
   console.log('splice contract:', splice.address);
 
-  const q = await spliceStyleNFT.setSplice(splice.address);
+  await spliceStyleNFT.setSplice(splice.address);
   console.log('connected Splice & StyleNFT');
 
   //set some defaults

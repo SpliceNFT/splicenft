@@ -3,6 +3,7 @@ import { ethers, upgrades } from 'hardhat';
 import {
   Splice,
   SplicePriceStrategyStatic,
+  SpliceStyleNFT,
   Splice__factory,
   TestnetNFT,
   TestnetNFT__factory
@@ -13,12 +14,16 @@ export async function deploySplice(): Promise<Splice> {
     'Splice'
   )) as Splice__factory;
 
-  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
-  const spliceStyleNFT = await SpliceStyleNFT.deploy();
+  const SpliceStyleNFTFactory = await ethers.getContractFactory(
+    'SpliceStyleNFT'
+  );
+
+  const spliceStyleNFT = (await upgrades.deployProxy(
+    SpliceStyleNFTFactory,
+    []
+  )) as SpliceStyleNFT;
 
   const splice = (await upgrades.deployProxy(SpliceFactory, [
-    'Splice',
-    'SPLICE',
     'http://localhost:5999/metadata/31337/',
     spliceStyleNFT.address
   ])) as Splice;

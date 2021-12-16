@@ -13,6 +13,7 @@ import 'solidity-coverage';
 import './tasks/mintStyle';
 import './tasks/activateSale';
 import './tasks/mint';
+import './tasks/upgrades';
 
 import { config as dotenv } from 'dotenv-flow';
 dotenv();
