@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 interface Withdrawable {
-  function withdrawShares() external;
+  function claimShares(address payable) external;
 }
 
 contract ChainWallet {
@@ -14,6 +14,6 @@ contract ChainWallet {
   }
 
   function withdrawShares(address splice) public {
-    Withdrawable(splice).withdrawShares();
+    Withdrawable(splice).claimShares(payable(this));
   }
 }

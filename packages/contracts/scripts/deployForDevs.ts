@@ -71,11 +71,11 @@ const deployTestnetNFT = async (
   const splice = await upgrades.deployProxy(Splice, [
     'Splice',
     'SPLICE',
-    'http://localhost:5999/splice/31337/'
+    'http://localhost:5999/splice/31337/',
+    spliceStyleNFT.address
   ]);
   console.log('splice contract:', splice.address);
 
-  const r = await splice.setStyleNFT(spliceStyleNFT.address);
   const q = await spliceStyleNFT.setSplice(splice.address);
   console.log('connected Splice & StyleNFT');
 

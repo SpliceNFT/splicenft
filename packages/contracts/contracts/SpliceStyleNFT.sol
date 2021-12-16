@@ -101,6 +101,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   }
 
   function setSplice(address _spliceNFT) external onlyOwner {
+    require(spliceNFT == address(0), 'can only be called once.');
     spliceNFT = _spliceNFT;
   }
 

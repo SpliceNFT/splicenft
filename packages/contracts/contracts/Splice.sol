@@ -22,6 +22,8 @@ pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol';
@@ -45,6 +47,9 @@ contract Splice is
   ReentrancyGuardUpgradeable,
   IERC2981Upgradeable
 {
+  using SafeMathUpgradeable for uint256;
+  using AddressUpgradeable for address payable;
+
   /// @notice you didn't send sufficient fees along
   error InsufficientFees();
 
@@ -101,7 +106,8 @@ contract Splice is
   function initialize(
     string memory name_,
     string memory symbol_,
-    string memory baseUri_
+    string memory baseUri_,
+    SpliceStyleNFT initializedStyleNFT_
   ) public initializer {
     __ERC721_init(name_, symbol_);
     __Ownable_init();
@@ -109,20 +115,13 @@ contract Splice is
     __ReentrancyGuard_init();
     ARTIST_SHARE = 85;
     ROYALTY_PERCENT = 10;
-    //todo: unsure if a gnosis safe is payable...
     platformBeneficiary = payable(msg.sender);
-
-    //todo ensure that the escrow can also support collection's accounts
     feesEscrow = new EscrowUpgradeable();
     feesEscrow.initialize();
     baseUri = baseUri_;
+    styleNFT = initializedStyleNFT_;
   }
 
-  function setStyleNFT(SpliceStyleNFT _styleNFT) public onlyOwner {
-    styleNFT = _styleNFT;
-  }
-
-  //todo: might be unwanted.
   function setBaseUri(string memory newBaseUri) public onlyOwner {
     baseUri = newBaseUri;
   }
@@ -137,8 +136,6 @@ contract Splice is
     platformBeneficiary = newAddress;
   }
 
-  receive() external payable {}
-
   function supportsInterface(bytes4 interfaceId)
     public
     view
@@ -152,7 +149,7 @@ contract Splice is
   }
 
   /**
-   * in case someone drops ETH/ERC20/ERC721 on us accidentally,
+   * in case anything drops ETH/ERC20/ERC721 on us accidentally,
    * this will help us withdraw it.
    */
   function withdrawEth() public onlyOwner {
@@ -169,7 +166,6 @@ contract Splice is
   {
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
-
 
   //todo: add more interfaces for royalties here.
   //https://eips.ethereum.org/EIPS/eip-2981
@@ -251,7 +247,7 @@ contract Splice is
   {
     (uint32 style_token_id, ) = styleAndTokenByTokenId(tokenId);
     receiver = styleNFT.ownerOf(style_token_id);
-    royaltyAmount = ROYALTY_PERCENT * (salePrice / 100);
+    royaltyAmount = ROYALTY_PERCENT * salePrice.div(100);
   }
 
   /// @dev the randomness is the first 32 bit of the provenance hash
@@ -269,8 +265,8 @@ contract Splice is
   }
 
   function splitMintFee(uint256 amount, uint32 style_token_id) internal {
-    uint256 feeForArtist = ARTIST_SHARE * (amount / 100);
-    uint256 feeForPlatform = amount - feeForArtist; //Splice takes a 15% cut
+    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
+    uint256 feeForPlatform = amount.sub(feeForArtist); //Splice takes a 15% cut
 
     address beneficiaryArtist = styleNFT.ownerOf(style_token_id);
     //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
@@ -279,14 +275,18 @@ contract Splice is
     //todo: later add a share to a beneficiary of the origin collection.
   }
 
-  function withdrawShares() external nonReentrant whenNotPaused {
+  function claimShares(address payable beneficiary)
+    external
+    nonReentrant
+    whenNotPaused
+  {
+    uint256 balance = escrowedBalanceOf(beneficiary);
     //todo: the payable cast might not be right (msg.sender might be a contract)
-    uint256 balance = shareBalanceOf(msg.sender);
-    feesEscrow.withdraw(payable(msg.sender));
+    feesEscrow.withdraw(beneficiary);
     emit Withdrawn(msg.sender, balance);
   }
 
-  function shareBalanceOf(address payee) public view returns (uint256) {
+  function escrowedBalanceOf(address payee) public view returns (uint256) {
     return feesEscrow.depositsOf(payee);
   }
 
@@ -295,6 +295,7 @@ contract Splice is
     uint256[] memory origin_token_ids,
     uint32 style_token_id,
     bytes32[] memory allowlistProof,
+    //stays in calldata and can be used to later prove aspects of the user facing inputs
     bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
@@ -324,6 +325,9 @@ contract Splice is
     //than what the artist expects, (when using a bonded price strategy)
     uint256 fee = quote(origin_collections[0], style_token_id);
     if (msg.value < fee) revert InsufficientFees();
+
+    //if someone sent too much, we're sending it back to them
+    uint256 surplus = msg.value.sub(fee);
 
     //CHECKS & EFFECTS
     if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
@@ -362,6 +366,10 @@ contract Splice is
     //INTERACTIONS
     splitMintFee(fee, style_token_id);
     _safeMint(msg.sender, token_id);
+
+    if (surplus > 0) {
+      payable(msg.sender).sendValue(surplus);
+    }
 
     emit Minted(
       keccak256(abi.encode(origin_collections, origin_token_ids)),

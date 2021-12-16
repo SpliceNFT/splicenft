@@ -269,16 +269,16 @@ describe('Splice', function () {
   });
 
   it('withdraws shared funds from escrow', async function () {
-    const curatorCollectedFees = await splice.shareBalanceOf(
-      await _curator.getAddress()
-    );
+    const curatorAddress = await _curator.getAddress();
+    const ownerAddress = await _owner.getAddress();
+    const curatorCollectedFees = await splice.escrowedBalanceOf(curatorAddress);
     const curatorEth = ethers.utils.formatUnits(curatorCollectedFees, 'ether');
     const expected = (0.1 + 0.2) * 0.85; //1 mint for 0.1, 1 mint for 0.2 times 85% share
     expect(expected.toString()).to.equal(curatorEth);
 
     const curBalance = await _curator.getBalance();
     const _splice = splice.connect(_curator);
-    await (await _splice.withdrawShares()).wait();
+    await (await _splice.claimShares(curatorAddress)).wait();
     const newBalance = await _curator.getBalance();
     const diff = parseFloat(
       ethers.utils.formatUnits(newBalance.sub(curBalance), 'ether')
@@ -286,7 +286,7 @@ describe('Splice', function () {
     expect(expected - diff).to.be.lessThan(0.001); //gas fees ;)
 
     const ownerCurBalance = await _owner.getBalance();
-    await (await splice.withdrawShares()).wait();
+    await (await splice.claimShares(ownerAddress)).wait();
     const ownerNewBalance = await _owner.getBalance();
     const ownerDiff = parseFloat(
       ethers.utils.formatUnits(ownerNewBalance.sub(ownerCurBalance), 'ether')
@@ -297,7 +297,7 @@ describe('Splice', function () {
 
   it('can change the platform beneficiary', async function () {
     const signer13 = await signers[13].getAddress();
-    expect((await splice.shareBalanceOf(signer13)).isZero()).to.be.true;
+    expect((await splice.escrowedBalanceOf(signer13)).isZero()).to.be.true;
 
     try {
       await splice.setPlatformBeneficiary(ethers.constants.AddressZero);
@@ -314,7 +314,7 @@ describe('Splice', function () {
     await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
 
     const beneficiaryExpected = 0.2 * 0.15;
-    const beneficiaryShares = await splice.shareBalanceOf(signer13);
+    const beneficiaryShares = await splice.escrowedBalanceOf(signer13);
     expect(ethers.utils.formatUnits(beneficiaryShares, 'ether')).to.be.equal(
       beneficiaryExpected.toString()
     );
@@ -325,7 +325,7 @@ describe('Splice', function () {
     const anotherCurator = signers[15];
     const _curatorAddress = await _curator.getAddress();
     const _anotherCuratorAddress = await anotherCurator.getAddress();
-    const oldCuratorShares = await splice.shareBalanceOf(_curatorAddress);
+    const oldCuratorShares = await splice.escrowedBalanceOf(_curatorAddress);
 
     await (
       await _styleNFT.transferFrom(
@@ -342,20 +342,21 @@ describe('Splice', function () {
 
     await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
 
-    expect(await splice.shareBalanceOf(_curatorAddress)).to.equal(
+    expect(await splice.escrowedBalanceOf(_curatorAddress)).to.equal(
       oldCuratorShares
     );
 
-    const anotherCuratorShares = await splice.shareBalanceOf(
+    const anotherCuratorShares = await splice.escrowedBalanceOf(
       _anotherCuratorAddress
     );
     const expected = 0.2 * 0.85;
     expect(ethers.utils.formatUnits(anotherCuratorShares, 'ether')).to.be.equal(
       expected.toString()
     );
-    await splice.connect(anotherCurator).withdrawShares();
-    expect(await (await splice.shareBalanceOf(_anotherCuratorAddress)).isZero())
-      .to.be.true;
+    await splice.connect(anotherCurator).claimShares(_anotherCuratorAddress);
+    expect(
+      await (await splice.escrowedBalanceOf(_anotherCuratorAddress)).isZero()
+    ).to.be.true;
   });
 
   it('can update the artist share rate', async function () {
@@ -367,7 +368,7 @@ describe('Splice', function () {
     expect(nftTokenId).to.equal(4);
     await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
 
-    const anotherCuratorShares = await splice.shareBalanceOf(
+    const anotherCuratorShares = await splice.escrowedBalanceOf(
       _anotherCuratorAddress
     );
     const expected = (0.2 * 0.9).toFixed(2);
@@ -394,20 +395,9 @@ describe('Splice', function () {
     } catch (e: any) {
       expect(e.message).to.contain('only callable by Splice');
     }
-
-    try {
-      const _splice = splice.connect(_user);
-      await (await _splice.setStyleNFT(ethers.constants.AddressZero)).wait();
-      expect.fail(
-        'no one other than owner should be able to set the style nft'
-      );
-    } catch (e: any) {
-      expect(e.message).to.contain('Ownable: caller is not the owner');
-    }
   });
-  it('can not mint when paused', async function () {
-    const fee = await splice.quote(testNft.address, 2);
 
+  it('can not mint when paused', async function () {
     await splice.pause();
     const _splice = splice.connect(_user);
     try {
@@ -419,10 +409,12 @@ describe('Splice', function () {
       await splice.unpause();
     }
   });
+
   it('can not withdraw from escrow when paused', async function () {
     await splice.pause();
+    const _ownerAddress = await _owner.getAddress();
     try {
-      await (await splice.withdrawShares()).wait();
+      await (await splice.claimShares(_ownerAddress)).wait();
       expect.fail('it shouldnt be possible to withdraw shares when paused');
     } catch (e: any) {
       expect(e.message).to.contain('Pausable: paused');
@@ -430,6 +422,7 @@ describe('Splice', function () {
       await splice.unpause();
     }
   });
+
   it('cannot mint on an origin using a style with collection constraints', async function () {
     const anotherNFT1 = await deployTestnetNFT();
     const anotherNFT2 = await deployTestnetNFT();
@@ -633,31 +626,19 @@ describe('Splice', function () {
     expect((await testNft.balanceOf(splice.address)).isZero()).to.be.true;
   });
 
-  it('withdraws eth that has been sent to it', async function () {
+  it('cannot send eth directly (no fallback function)', async function () {
     const web3 = splice.provider;
     const spliceBalance = await web3.getBalance(splice.address);
     expect(spliceBalance?.isZero()).to.be.true;
-
-    const tx = await _user.sendTransaction({
-      to: splice.address,
-      value: ethers.utils.parseEther('0.123')
-    });
-    await tx.wait();
-
-    const newBalance = await web3.getBalance(splice.address);
-    expect(ethers.utils.formatEther(newBalance)).to.equal('0.123');
-    const _beneficiary = await signers[7].getAddress();
-
-    await splice.setPlatformBeneficiary(_beneficiary);
-    const bBalance = await web3.getBalance(_beneficiary);
-
-    await splice.withdrawEth();
-    const newBBalance = await web3.getBalance(_beneficiary);
-    expect(ethers.utils.formatEther(newBBalance.sub(bBalance))).to.equal(
-      '0.123'
-    );
-
-    expect((await web3.getBalance(splice.address)).isZero()).to.be.true;
+    try {
+      await _user.sendTransaction({
+        to: splice.address,
+        value: ethers.utils.parseEther('0.123')
+      });
+      expect.fail('the contract must reject incoming eth tx');
+    } catch (e: any) {
+      expect(e.message).to.contain('no fallback nor receive function');
+    }
   });
 
   it('refuses safe incoming ERC721 transfers', async function () {
@@ -691,7 +672,7 @@ describe('Splice', function () {
     await mintSplice(_splice, testNft.address, nft, 1);
     const expected = (0.1 * 0.1).toFixed(2);
 
-    const walletShare = await splice.shareBalanceOf(wallet.address);
+    const walletShare = await splice.escrowedBalanceOf(wallet.address);
     expect(ethers.utils.formatUnits(walletShare, 'ether')).to.be.equal(
       expected.toString()
     );
@@ -723,5 +704,35 @@ describe('Splice', function () {
     expect(await splice.supportsInterface(ERC721_METADATA)).to.be.true;
     expect(await splice.supportsInterface(ERC2981_INTERFACE)).to.be.true;
     expect(await splice.supportsInterface(ERC721_ENUMERABLE)).to.be.false;
+  });
+
+  it('sends back surplus fees to the minter', async function () {
+    const nftTokenId = await mintTestnetNFT(testNft, _user);
+    const _splice = splice.connect(_user);
+    const oldBalance = await _user.getBalance();
+
+    const fee = await splice.quote(testNft.address, 2);
+
+    //sending 5 Eth along instead of required 0.2
+    const surplusFee = fee.add(ethers.utils.parseEther('5'));
+
+    await (
+      await _splice.mint(
+        [testNft.address],
+        [nftTokenId],
+        2,
+        [],
+        ethers.constants.HashZero,
+        {
+          value: surplusFee
+        }
+      )
+    ).wait();
+
+    const newBalance = await _user.getBalance();
+    const diff = oldBalance.sub(newBalance);
+    const flEth = parseFloat(ethers.utils.formatEther(diff));
+
+    expect(flEth).to.be.lt(0.2005);
   });
 });

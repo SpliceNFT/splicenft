@@ -19,10 +19,10 @@ export async function deploySplice(): Promise<Splice> {
   const splice = (await upgrades.deployProxy(SpliceFactory, [
     'Splice',
     'SPLICE',
-    'http://localhost:5999/metadata/31337/'
+    'http://localhost:5999/metadata/31337/',
+    spliceStyleNFT.address
   ])) as Splice;
 
-  await splice.setStyleNFT(spliceStyleNFT.address);
   await spliceStyleNFT.setSplice(splice.address);
 
   return splice;
