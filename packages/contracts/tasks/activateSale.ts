@@ -5,7 +5,7 @@ import { task } from 'hardhat/config';
 
 task('style:sales', 'toggles style sales')
   .addParam('styleNftAddress')
-  .addOptionalParam('accountIdx', "the curator's account index", '0')
+  .addOptionalParam('accountIdx', "the style minter's account index", '0')
   .addPositionalParam('styleTokenId')
   .addPositionalParam('salesIsActive')
   .setAction(async (taskArgs, hre) => {
@@ -13,10 +13,12 @@ task('style:sales', 'toggles style sales')
       taskArgs;
 
     const signers = await hre.ethers.getSigners();
-    const curator = signers[accountIdx];
+    const styleMinter = signers[accountIdx];
 
     const StyleNFT = await hre.ethers.getContractFactory('SpliceStyleNFT');
-    const styleNFT = await StyleNFT.attach(styleNftAddress).connect(curator);
+    const styleNFT = await StyleNFT.attach(styleNftAddress).connect(
+      styleMinter
+    );
 
     const receipt = await styleNFT.toggleSaleIsActive(
       styleTokenId,

@@ -60,15 +60,15 @@ Splice tries to become an open ecosystem for derivative generative art. We discu
 
 ### Owner
 
-Right now all contracts are owned by us as maintainers. The most important right the owner role bears is to **pause** the Splice contract, effectively disabling new mints and transfers. This is necessary (and a very common practice) to be able to stop operations and upgrade contracts when attackers abuse flaws they found in our source code. Besides that important technical implication, the contract owner bears two additional rights: she can decide which account receives or loses the *curator* role. The owner of the Splice protocol also decides about the share of minting fees between artists and the platform beneficiary. 
+Right now all contracts are owned by us as maintainers. The most important right the owner role bears is to **pause** the Splice contract, effectively disabling new mints and transfers. This is necessary (and a very common practice) to be able to stop operations and upgrade contracts when attackers abuse flaws they found in our source code. Besides that important technical implication, the contract owner bears two additional rights: she can decide which account receives or loses the *style minter* role. The owner of the Splice protocol also decides about the share of minting fees between artists and the platform beneficiary. 
 
 ### Curator
 
-An account bearing the curator role may mint new style NFTs at any time. Style minting is a non trivial and "dangerous" task since once minted many characteristics of a style can never be changed again (e.g. the overall cap of a style). We've been orienting on the curation aspects of other generative art platforms here which decide together with their artist which styles will be available to mint on their protocols (e.g. ArtBlocks).
+An account bearing the styke minter role may mint new style NFTs at any time. Style minting is a non trivial and "dangerous" task since once minted many characteristics of a style can never be changed again (e.g. the overall cap of a style). We've been orienting on the curation aspects of other generative art platforms here which decide together with their artist which styles will be available to mint on their protocols (e.g. ArtBlocks).
 
 ### Artist
 
-Artists are writing the generative code for Splice. Their code can only be minted as a style NFT by curators. Together with their curator artists decide about the aspects of their style collection: together they decide about pricing and cap (max. amount of mints) of a style. An artist becomes the first owner of a style token after its minted. 
+Artists are writing the generative code for Splice. Their code can only be minted as a style NFT by style minters. Together with their style minter artists decide about the aspects of their style collection: together they decide about pricing and cap (max. amount of mints) of a style. An artist becomes the first owner of a style token after its minted. 
 
 ### Style Owner
 
@@ -86,5 +86,5 @@ Minting fees are **not** transferred to the beneficiaries upon minting. Instead 
 
 ## Freezing styles
 
-We have implemented a freeze feature on the style contract that can be called by curators when the cap of a collection has been reached (i.e. it's fully minted). The curator will first have to create a directory containing all metadata and splice renderings and add (ideally pin) it to IPFS. The resulting directory hash is then used by the Splice contract's `tokenURI` method. Frozen styles cannot be unfrozen again so all metadata can be considered final and unchangeable from that point.
+We have implemented a freeze feature on the style contract that can be called by style minters when the cap of a collection has been reached (i.e. it's fully minted). The style minter will first have to create a directory containing all metadata and splice renderings and add (ideally pin) it to IPFS. The resulting directory hash is then used by the Splice contract's `tokenURI` method. Frozen styles cannot be unfrozen again so all metadata can be considered final and unchangeable from that point.
 

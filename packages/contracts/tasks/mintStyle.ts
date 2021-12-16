@@ -26,11 +26,13 @@ task('style:mint', 'mints a style')
     } = taskArgs;
 
     const signers = await hre.ethers.getSigners();
-    const curator = signers[accountIdx];
-    console.log('Curator', curator.address);
+    const styleMinter = signers[accountIdx];
+    console.log('Style Minter: ', styleMinter.address);
 
     const StyleNFT = await hre.ethers.getContractFactory('SpliceStyleNFT');
-    const styleNFT = await StyleNFT.attach(styleNftAddress).connect(curator);
+    const styleNFT = await StyleNFT.attach(styleNftAddress).connect(
+      styleMinter
+    );
 
     const styleMetadata = JSON.parse(
       await fs.promises.readFile(`${directory}/metadata.json`, 'utf-8')

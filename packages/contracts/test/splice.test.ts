@@ -33,14 +33,14 @@ describe('Splice', function () {
   let styleNFT: SpliceStyleNFT;
 
   let signers: Signer[];
-  let _curator: Signer;
+  let _styleMinter: Signer;
   let _user: Signer;
   let _owner: Signer;
 
   beforeEach(async function () {
     signers = await ethers.getSigners();
     _owner = signers[0];
-    _curator = signers[18];
+    _styleMinter = signers[18];
     _user = signers[19];
   });
 
@@ -51,10 +51,10 @@ describe('Splice', function () {
     const styleNftAddress = await splice.styleNFT();
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
 
-    const curatorAddress = await _curator.getAddress();
-    await (await styleNFT.toggleCurator(curatorAddress, true)).wait();
+    const styleMinterAddress = await _styleMinter.getAddress();
+    await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
 
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: true });
   });
   it('gets an nft on the test collection', async function () {
@@ -89,7 +89,7 @@ describe('Splice', function () {
   it('reverts when sales is not active', async function () {
     const _splice = splice.connect(_user);
     const fee = await splice.quote(testNft.address, 1);
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     await _styleNft.toggleSaleIsActive(1, false);
     try {
       await mintSplice(_splice, testNft.address, 1, 1);
@@ -97,7 +97,7 @@ describe('Splice', function () {
     } catch (e: any) {
       expect(e.message).contains('SaleNotActive');
     } finally {
-      const _styleNFT = styleNFT.connect(_curator);
+      const _styleNFT = styleNFT.connect(_styleMinter);
       //Activate sales on that style.
       await _styleNFT.toggleSaleIsActive(1, true);
     }
@@ -185,7 +185,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
 
     const styleId = await mintStyle(
-      styleNFT.connect(_curator),
+      styleNFT.connect(_styleMinter),
       priceStrategy.address,
       {
         priceInEth: '0.2',
@@ -269,17 +269,19 @@ describe('Splice', function () {
   });
 
   it('withdraws shared funds from escrow', async function () {
-    const curatorAddress = await _curator.getAddress();
+    const styleMinterAddress = await _styleMinter.getAddress();
     const ownerAddress = await _owner.getAddress();
-    const curatorCollectedFees = await splice.escrowedBalanceOf(curatorAddress);
+    const curatorCollectedFees = await splice.escrowedBalanceOf(
+      styleMinterAddress
+    );
     const curatorEth = ethers.utils.formatUnits(curatorCollectedFees, 'ether');
     const expected = (0.1 + 0.2) * 0.85; //1 mint for 0.1, 1 mint for 0.2 times 85% share
     expect(expected.toString()).to.equal(curatorEth);
 
-    const curBalance = await _curator.getBalance();
-    const _splice = splice.connect(_curator);
-    await (await _splice.claimShares(curatorAddress)).wait();
-    const newBalance = await _curator.getBalance();
+    const curBalance = await _styleMinter.getBalance();
+    const _splice = splice.connect(_styleMinter);
+    await (await _splice.claimShares(styleMinterAddress)).wait();
+    const newBalance = await _styleMinter.getBalance();
     const diff = parseFloat(
       ethers.utils.formatUnits(newBalance.sub(curBalance), 'ether')
     );
@@ -321,55 +323,61 @@ describe('Splice', function () {
   });
 
   it('reallocates funds to new owners of the style token', async function () {
-    const _styleNFT = styleNFT.connect(_curator);
+    const _styleNFT = styleNFT.connect(_styleMinter);
     const anotherCurator = signers[15];
-    const _curatorAddress = await _curator.getAddress();
-    const _anotherCuratorAddress = await anotherCurator.getAddress();
-    const oldCuratorShares = await splice.escrowedBalanceOf(_curatorAddress);
+    const _styleMinterAddress = await _styleMinter.getAddress();
+    const _anotherstyleMinterAddress = await anotherCurator.getAddress();
+    const oldCuratorShares = await splice.escrowedBalanceOf(
+      _styleMinterAddress
+    );
 
     await (
       await _styleNFT.transferFrom(
-        await _curator.getAddress(),
-        _anotherCuratorAddress,
+        await _styleMinter.getAddress(),
+        _anotherstyleMinterAddress,
         2
       )
     ).wait();
 
-    expect(await _styleNFT.ownerOf(2)).to.be.equal(_anotherCuratorAddress);
+    expect(await _styleNFT.ownerOf(2)).to.be.equal(_anotherstyleMinterAddress);
 
     const nftTokenId = await mintTestnetNFT(testNft, _user);
     expect(nftTokenId).to.equal(3);
 
     await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
 
-    expect(await splice.escrowedBalanceOf(_curatorAddress)).to.equal(
+    expect(await splice.escrowedBalanceOf(_styleMinterAddress)).to.equal(
       oldCuratorShares
     );
 
     const anotherCuratorShares = await splice.escrowedBalanceOf(
-      _anotherCuratorAddress
+      _anotherstyleMinterAddress
     );
     const expected = 0.2 * 0.85;
     expect(ethers.utils.formatUnits(anotherCuratorShares, 'ether')).to.be.equal(
       expected.toString()
     );
-    await splice.connect(anotherCurator).claimShares(_anotherCuratorAddress);
+    await splice
+      .connect(anotherCurator)
+      .claimShares(_anotherstyleMinterAddress);
     expect(
-      await (await splice.escrowedBalanceOf(_anotherCuratorAddress)).isZero()
+      await (
+        await splice.escrowedBalanceOf(_anotherstyleMinterAddress)
+      ).isZero()
     ).to.be.true;
   });
 
   it('can update the artist share rate', async function () {
     await splice.updateArtistShare(90);
     const anotherCurator = signers[15];
-    const _anotherCuratorAddress = await anotherCurator.getAddress();
+    const _anotherstyleMinterAddress = await anotherCurator.getAddress();
 
     const nftTokenId = await mintTestnetNFT(testNft, _user);
     expect(nftTokenId).to.equal(4);
     await mintSplice(splice.connect(_user), testNft.address, nftTokenId, 2);
 
     const anotherCuratorShares = await splice.escrowedBalanceOf(
-      _anotherCuratorAddress
+      _anotherstyleMinterAddress
     );
     const expected = (0.2 * 0.9).toFixed(2);
     expect(ethers.utils.formatUnits(anotherCuratorShares, 'ether')).to.be.equal(
@@ -427,7 +435,7 @@ describe('Splice', function () {
     const anotherNFT1 = await deployTestnetNFT();
     const anotherNFT2 = await deployTestnetNFT();
 
-    const _styleNFT = styleNFT.connect(_curator);
+    const _styleNFT = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
       saleIsActive: true
     });
@@ -483,7 +491,7 @@ describe('Splice', function () {
   });
 
   it('can freeze a style #119', async function () {
-    const _styleNFT = styleNFT.connect(_curator);
+    const _styleNFT = styleNFT.connect(_styleMinter);
     const _splice = splice.connect(_user);
 
     const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
@@ -564,7 +572,7 @@ describe('Splice', function () {
 
   it('cant be minted beyond limits', async function () {
     const cappedStyleId = await mintStyle(
-      styleNFT.connect(_curator),
+      styleNFT.connect(_styleMinter),
       priceStrategy.address,
       { cap: 2 }
     );

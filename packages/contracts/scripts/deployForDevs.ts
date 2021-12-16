@@ -79,8 +79,8 @@ const deployTestnetNFT = async (
   console.log('connected Splice & StyleNFT');
 
   //set some defaults
-  await spliceStyleNFT.toggleCurator(artistAccount.address, true);
-  console.log('allowed curator: ', artistAccount.address);
+  await spliceStyleNFT.toggleStyleMinter(artistAccount.address, true);
+  console.log('allowed style minter: ', artistAccount.address);
 
   for await (const style of [
     'ConfidenceInTheMission',

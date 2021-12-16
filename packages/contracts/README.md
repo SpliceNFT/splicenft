@@ -40,7 +40,7 @@ pnpx hardhat --network localhost splice:tnft --address 0x8626f6940e2eb28930efb4c
 pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200 false
 ```
 
-`account-idx` (optional): the account index of your wallet that must be an active "curator" of the Style NFT contract (only curators may mint Style NFTs). If not provided we use the first one. On Public Testnets we're using private keys that you can provide in your .env file (`DEPLOYER_PRIVATEKEY`).
+`account-idx` (optional): the account index of your wallet that must be an active style minter of the Style NFT contract (only accounts with this role may mint Style NFTs). If not provided we use the first one. On Public Testnets we're using private keys that you can provide in your .env file (`DEPLOYER_PRIVATEKEY`).
 
 the positional parameters are 
 - the location of a style code / metadata bundle (see this repository's `/renderers` folder)

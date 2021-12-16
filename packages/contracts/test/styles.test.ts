@@ -24,14 +24,14 @@ describe('Style NFTs', function () {
   let styleNFT: SpliceStyleNFT;
 
   let signers: Signer[];
-  let _curator: Signer;
+  let _styleMinter: Signer;
   let _user: Signer;
   let _owner: Signer;
 
   beforeEach(async function () {
     signers = await ethers.getSigners();
     _owner = signers[0];
-    _curator = signers[18];
+    _styleMinter = signers[18];
     _user = signers[19];
   });
 
@@ -68,22 +68,22 @@ describe('Style NFTs', function () {
   //   );
   // });
 
-  it('can allow a new curator', async function () {
+  it('can allow a new style minter', async function () {
     styleNFT.connect(_owner);
-    const curatorAddress = await _curator.getAddress();
-    await (await styleNFT.toggleCurator(curatorAddress, true)).wait();
+    const styleMinterAddress = await _styleMinter.getAddress();
+    await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
 
-    const res = await styleNFT.isCurator(await _curator.getAddress());
+    const res = await styleNFT.isStyleMinter(styleMinterAddress);
     expect(res).to.be.true;
   });
 
   it('can mint a new style', async function () {
-    const curatorAddress = await _curator.getAddress();
+    const styleMinterAddress = await _styleMinter.getAddress();
 
-    const _styleNft = styleNFT.connect(_curator);
-    expect(await _styleNft.signer.getAddress()).to.equal(curatorAddress);
+    const _styleNft = styleNFT.connect(_styleMinter);
+    expect(await _styleNft.signer.getAddress()).to.equal(styleMinterAddress);
 
-    const res = await _styleNft.isCurator(curatorAddress);
+    const res = await _styleNft.isStyleMinter(styleMinterAddress);
     expect(res).to.be.true;
 
     const fakeCid = await ipfsHashOf(Buffer.from('{this: is: fake}'));
@@ -113,7 +113,7 @@ describe('Style NFTs', function () {
     expect(metadataUri).to.equal(`ipfs://${fakeCid}/metadata.json`);
   });
 
-  it('only curators can mint styles', async function () {
+  it('only style minters can mint styles', async function () {
     const _styleNft = styleNFT.connect(_user);
 
     const fakeCid = await ipfsHashOf(Buffer.from('{this: is: even more fake}'));
@@ -130,15 +130,15 @@ describe('Style NFTs', function () {
         priceBytes,
         true
       );
-      expect.fail('only curators should be allowed to mint');
+      expect.fail('only style minters should be allowed to mint');
     } catch (e: any) {
-      expect(e.message).to.contain('only curators can mint styles');
+      expect(e.message).to.contain('not allowed to mint styles');
     }
   });
 
   it('cannot mint a style with a likely bad cid', async function () {
     try {
-      await mintStyle(styleNFT.connect(_curator), priceStrategy.address, {
+      await mintStyle(styleNFT.connect(_styleMinter), priceStrategy.address, {
         cid: 'this is not a cid'
       });
       expect.fail('a good cid must be provided during minting');
@@ -156,7 +156,7 @@ describe('Style NFTs', function () {
     }
 
     try {
-      await _styleNft.decreaseAllowance(1, await _curator.getAddress());
+      await _styleNft.decreaseAllowance(1, await _styleMinter.getAddress());
       expect.fail('was able to call an internal function');
     } catch (e: any) {
       expect(e.message).to.contain('only callable by Splice');
@@ -174,7 +174,7 @@ describe('Style NFTs', function () {
   });
 
   it('signals to be ready for minting', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     try {
       expect(await _styleNft.availableForPublicMinting(1)).to.equal(100);
       expect.fail(

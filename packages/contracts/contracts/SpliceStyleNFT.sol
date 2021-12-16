@@ -78,7 +78,7 @@ contract SpliceStyleNFT is
 
   CountersUpgradeable.Counter private _styleTokenIds;
 
-  mapping(address => bool) public isCurator;
+  mapping(address => bool) public isStyleMinter;
   mapping(uint32 => StyleSettings) styleSettings;
   mapping(uint32 => Allowlist) allowlists;
 
@@ -95,8 +95,8 @@ contract SpliceStyleNFT is
     __ReentrancyGuard_init();
   }
 
-  modifier onlyCurator() {
-    require(isCurator[msg.sender] == true, 'only curators can mint styles');
+  modifier onlyStyleMinter() {
+    require(isStyleMinter[msg.sender] == true, 'not allowed to mint styles');
     _;
   }
 
@@ -112,8 +112,8 @@ contract SpliceStyleNFT is
     spliceNFT = _spliceNFT;
   }
 
-  function toggleCurator(address curator, bool newValue) external onlyOwner {
-    isCurator[curator] = newValue;
+  function toggleStyleMinter(address minter, bool newValue) external onlyOwner {
+    isStyleMinter[minter] = newValue;
   }
 
   /**
@@ -314,7 +314,10 @@ contract SpliceStyleNFT is
     return styleSettings[style_token_id].isFrozen;
   }
 
-  function freeze(uint32 style_token_id, string memory cid) public onlyCurator {
+  function freeze(uint32 style_token_id, string memory cid)
+    public
+    onlyStyleMinter
+  {
     if (bytes(cid).length < 46) {
       revert InvalidCID();
     }
@@ -351,7 +354,7 @@ contract SpliceStyleNFT is
     ISplicePriceStrategy _priceStrategy,
     bytes32 _priceStrategyParameters,
     bool _salesIsActive
-  ) external onlyCurator returns (uint32 style_token_id) {
+  ) external onlyStyleMinter returns (uint32 style_token_id) {
     //CHECKS
     if (bytes(_metadataCID).length < 46) {
       revert InvalidCID();
