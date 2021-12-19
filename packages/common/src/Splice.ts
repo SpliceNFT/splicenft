@@ -137,10 +137,15 @@ export class Splice {
   }
 
   public async quote(
+    styleTokenId: number,
     collection: string,
-    styleTokenId: number
+    tokenId: ethers.BigNumberish
   ): Promise<BigNumber> {
-    const quoteWei = await this.contract.quote(collection, styleTokenId);
+    const quoteWei = await this.contract.quote(
+      styleTokenId,
+      [collection],
+      [tokenId]
+    );
     return quoteWei;
   }
 

@@ -33,7 +33,7 @@ export const MintSpliceButton = ({
     (async () => {
       const _active = await selectedStyle.isActive();
       if (_active) {
-        const _quoteWei = await selectedStyle.quote(collection);
+        const _quoteWei = await selectedStyle.quote(collection, originTokenId);
         setQuote(_quoteWei);
       } else {
         setQuote(undefined);

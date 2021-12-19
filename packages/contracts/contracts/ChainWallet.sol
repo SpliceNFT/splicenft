@@ -7,7 +7,7 @@ interface Withdrawable {
 }
 
 contract ChainWallet {
-  event Received(address, uint256);
+  event Received(address by, uint256 val);
 
   receive() external payable {
     emit Received(msg.sender, msg.value);

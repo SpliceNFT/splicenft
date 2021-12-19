@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import '@nomiclabs/hardhat-waffle';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import '@typechain/hardhat';
@@ -6,14 +7,16 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
 import '@openzeppelin/hardhat-upgrades';
+
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
 import 'hardhat-tracer';
 import 'solidity-coverage';
-import './tasks/mintStyle';
+
 import './tasks/activateSale';
-import './tasks/mint';
 import './tasks/upgrades';
+import './tasks/mintStyle';
+import './tasks/mint';
 
 import { config as dotenv } from 'dotenv-flow';
 dotenv();

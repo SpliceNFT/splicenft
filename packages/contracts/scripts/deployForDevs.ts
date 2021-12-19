@@ -60,13 +60,16 @@ const deployTestnetNFT = async (
   const PriceStrategy = await ethers.getContractFactory(
     'SplicePriceStrategyStatic'
   );
-  const staticPriceStrategy = await PriceStrategy.deploy();
-  console.log('static price strategy instance:', staticPriceStrategy.address);
 
   const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
   const spliceStyleNFT = await upgrades.deployProxy(SpliceStyleNFT, []);
 
   console.log('splice style nft:', spliceStyleNFT.address);
+
+  const staticPriceStrategy = await PriceStrategy.deploy(
+    spliceStyleNFT.address
+  );
+  console.log('static price strategy instance:', staticPriceStrategy.address);
 
   const Splice = await ethers.getContractFactory('Splice');
   const splice = await upgrades.deployProxy(Splice, [
