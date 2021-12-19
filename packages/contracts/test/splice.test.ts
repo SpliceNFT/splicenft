@@ -47,9 +47,10 @@ describe('Splice', function () {
   it('deploys nft, splice & creates a style', async function () {
     splice = await deploySplice();
     testNft = await deployTestnetNFT();
-    priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
+
+    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
 
     const styleMinterAddress = await _styleMinter.getAddress();
     await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
@@ -62,7 +63,7 @@ describe('Splice', function () {
     expect(nftTokenId).to.eq(1);
   });
   it('quotes the minting fee', async function () {
-    const fee = await splice.quote(testNft.address, 1);
+    const fee = await splice.quote(1, [testNft.address], [1]);
     const weiFee = ethers.utils.formatUnits(fee, 'ether');
     expect(weiFee).to.equal('0.1');
   });
@@ -88,7 +89,7 @@ describe('Splice', function () {
 
   it('reverts when sales is not active', async function () {
     const _splice = splice.connect(_user);
-    const fee = await splice.quote(testNft.address, 1);
+    const fee = await splice.quote(1, [testNft.address], [1]);
     const _styleNft = styleNFT.connect(_styleMinter);
     await _styleNft.toggleSaleIsActive(1, false);
     try {
@@ -105,7 +106,7 @@ describe('Splice', function () {
 
   it('mints a splice from an origin', async function () {
     const _splice = splice.connect(_user);
-    const fee = await splice.quote(testNft.address, 1);
+    const fee = await splice.quote(1, [testNft.address], [1]);
     const receipt = await (
       await _splice.mint(
         [testNft.address],
@@ -162,7 +163,7 @@ describe('Splice', function () {
 
   it('cannot mint another splice from the same origin and style', async function () {
     const _splice = splice.connect(_user);
-    const fee = await _splice.quote(testNft.address, 1);
+    const fee = await _splice.quote(1, [testNft.address], [1]);
     try {
       await _splice.mint(
         [testNft.address],
@@ -443,22 +444,48 @@ describe('Splice', function () {
       anotherNFT1.address,
       anotherNFT2.address
     ]);
-
-    expect(
-      await _styleNFT.canBeMintedOnCollection(styleTokenId, anotherNFT1.address)
-    ).to.be.true;
-    expect(
-      await _styleNFT.canBeMintedOnCollection(styleTokenId, anotherNFT2.address)
-    ).to.be.true;
-    expect(
-      await _styleNFT.canBeMintedOnCollection(styleTokenId, testNft.address)
-    ).to.be.false;
-
+    const _userAddress = await _user.getAddress();
     const testnetToken1 = await mintTestnetNFT(anotherNFT1, _user);
+    const testnetToken2 = await mintTestnetNFT(anotherNFT2, _user);
     const disallowedTestnetToken = await mintTestnetNFT(testNft, _user);
 
-    const fee = await splice.quote(testNft.address, styleTokenId);
+    expect(
+      await _styleNFT.canBeMintedOnCollections(
+        styleTokenId,
+        [anotherNFT1.address],
+        [testnetToken1],
+        _userAddress
+      )
+    ).to.be.true;
+
+    expect(
+      await _styleNFT.canBeMintedOnCollections(
+        styleTokenId,
+        [anotherNFT2.address],
+        [testnetToken2],
+        _userAddress
+      )
+    ).to.be.true;
+
+    try {
+      await _styleNFT.canBeMintedOnCollections(
+        styleTokenId,
+        [testNft.address],
+        [disallowedTestnetToken],
+        _userAddress
+      );
+      expect.fail('should throw on constrained collection');
+    } catch (e: any) {
+      expect(e.message).to.contain('collection constrained');
+    }
+
+    const fee = await splice.quote(
+      styleTokenId,
+      [testNft.address],
+      [testnetToken1]
+    );
     const _splice = splice.connect(_user);
+
     //test that the constraints implicitly hold
     await (
       await _splice.mint(
@@ -486,7 +513,55 @@ describe('Splice', function () {
       );
       expect.fail('user was able to mint on a constrained style');
     } catch (e: any) {
-      expect(e.message).to.contain('NotAllowedToMint');
+      expect(e.message).to.contain('collection constrained');
+    }
+  });
+
+  it('reverts when trying to mint with too many inputs', async function () {
+    const _userAddress = await _user.getAddress();
+
+    const anotherNFT1 = await deployTestnetNFT();
+    const anotherNFT2 = await deployTestnetNFT();
+    const testnetToken1 = await mintTestnetNFT(anotherNFT1, _user);
+    const testnetToken2 = await mintTestnetNFT(anotherNFT2, _user);
+
+    const _styleNFT = styleNFT.connect(_styleMinter);
+    const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
+      saleIsActive: true,
+      maxInputs: 2
+    });
+
+    expect(
+      await _styleNFT.canBeMintedOnCollections(
+        styleTokenId,
+        [anotherNFT1.address, anotherNFT2.address],
+        [testnetToken1, testnetToken2],
+        _userAddress
+      )
+    ).to.be.true;
+
+    try {
+      await _styleNFT.canBeMintedOnCollections(
+        styleTokenId,
+        [anotherNFT1.address, anotherNFT2.address, testNft.address],
+        [testnetToken1, testnetToken2, 1],
+        _userAddress
+      );
+      expect.fail('could mint with too many inputs');
+    } catch (e: any) {
+      expect(e.message).to.contain('too many inputs');
+    }
+
+    try {
+      await _styleNFT.canBeMintedOnCollections(
+        styleTokenId,
+        [],
+        [],
+        _userAddress
+      );
+      expect.fail('could mint without any inputs');
+    } catch (e: any) {
+      expect(e.message).to.contain('inconsistent input lengths');
     }
   });
 
@@ -719,7 +794,7 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const oldBalance = await _user.getBalance();
 
-    const fee = await splice.quote(testNft.address, 2);
+    const fee = await splice.quote(2, [testNft.address], [nftTokenId]);
 
     //sending 5 Eth along instead of required 0.2
     const surplusFee = fee.add(ethers.utils.parseEther('5'));

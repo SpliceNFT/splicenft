@@ -11,15 +11,13 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
  * according to how many items already have been minted.
  * or it could decrease the minting fee depending on when
  * the last style mint has happened, etc.
- * The "parameters" argument will be interpreted differently by
- * implementers. For a simple static price strategy it simply will
- * be converted to a uint256 for a constant minting fee.
  */
 interface ISplicePriceStrategy {
   function quote(
-    SpliceStyleNFT styleNFT,
-    IERC721 collection,
-    uint256 token_id,
-    StyleSettings memory styleSettings
+    uint256 style_token_id,
+    IERC721[] memory collections,
+    uint256[] memory token_ids
   ) external view returns (uint256);
+
+  function onMinted(uint256 style_token_id) external;
 }

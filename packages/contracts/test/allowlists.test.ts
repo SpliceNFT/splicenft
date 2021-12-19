@@ -46,9 +46,11 @@ describe('Allowlists', function () {
   it('deploys nft & splice', async function () {
     splice = await deploySplice();
     testNft = await deployTestnetNFT();
-    priceStrategy = await deployStaticPriceStrategy();
+
     const styleNftAddress = await splice.styleNFT();
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
+
+    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
 
     const styleMinterAddress = await _styleMinter.getAddress();
     await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
@@ -194,7 +196,11 @@ describe('Allowlists', function () {
       cap: 5
     });
 
-    const mintingFee = await _splice.quote(testNft.address, styleTokenId);
+    const mintingFee = await _splice.quote(
+      styleTokenId,
+      [testNft.address],
+      [1]
+    );
 
     const nftTokenIds = await Promise.all(
       [0, 1].map((i) =>
@@ -257,7 +263,8 @@ describe('Allowlists', function () {
       new Date().getTime() + ONE_DAY_AND_A_BIT
     );
 
-    const mintingFee = await splice.quote(testNft.address, styleTokenId);
+    const mintingFee = await splice.quote(styleTokenId, [testNft.address], [0]);
+
     await (await _styleNft.toggleSaleIsActive(styleTokenId, true)).wait();
 
     expect(await _styleNft.availableForPublicMinting(styleTokenId)).to.equal(2);

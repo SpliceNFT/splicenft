@@ -53,9 +53,6 @@ contract Splice is
   /// @notice you didn't send sufficient fees along
   error InsufficientFees();
 
-  /// @notice you're not owning the origin NFT
-  error NotOwningOrigin();
-
   /// @notice The combination of origin and style already has been minted
   error ProvenanceAlreadyUsed();
 
@@ -64,9 +61,6 @@ contract Splice is
 
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
-
-  ///
-  error BadMintInput();
 
   uint8 public ARTIST_SHARE;
   uint8 public ROYALTY_PERCENT;
@@ -254,12 +248,12 @@ contract Splice is
   //   return BytesLib.toUint32(abi.encodePacked(_provenanceHash), 0);
   // }
 
-  function quote(IERC721 nft, uint32 style_token_id)
-    public
-    view
-    returns (uint256 fee)
-  {
-    return styleNFT.quoteFee(nft, style_token_id);
+  function quote(
+    uint32 style_token_id,
+    IERC721[] memory nfts,
+    uint256[] memory origin_token_ids
+  ) public view returns (uint256 fee) {
+    return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
   }
 
   function splitMintFee(uint256 amount, uint32 style_token_id) internal {
@@ -297,31 +291,21 @@ contract Splice is
     bytes calldata input_params
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
-    if (
-      origin_collections.length == 0 ||
-      origin_token_ids.length == 0 ||
-      origin_collections.length != origin_token_ids.length
-    ) {
-      revert BadMintInput();
-    }
 
-    for (uint256 i = 0; i < origin_collections.length; i++) {
-      if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
-        revert NotOwningOrigin();
-      }
-      if (
-        !styleNFT.canBeMintedOnCollection(
-          style_token_id,
-          address(origin_collections[i])
-        )
-      ) {
-        revert NotAllowedToMint('style disallows minting on this collection');
-      }
+    if (
+      !styleNFT.canBeMintedOnCollections(
+        style_token_id,
+        origin_collections,
+        origin_token_ids,
+        msg.sender
+      )
+    ) {
+      revert NotAllowedToMint('unknown');
     }
 
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)
-    uint256 fee = quote(origin_collections[0], style_token_id);
+    uint256 fee = quote(style_token_id, origin_collections, origin_token_ids);
     if (msg.value < fee) revert InsufficientFees();
 
     //if someone sent too much, we're sending it back to them

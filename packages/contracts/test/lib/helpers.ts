@@ -2,7 +2,12 @@ import { BigNumber, utils, Event, Signer, constants } from 'ethers';
 import keccak256 from 'keccak256';
 
 import { of as ipfsHashOf } from 'ipfs-only-hash';
-import { Splice, SpliceStyleNFT, TestnetNFT } from '../../typechain';
+import {
+  Splice,
+  SplicePriceStrategyStatic__factory,
+  SpliceStyleNFT,
+  TestnetNFT
+} from '../../typechain';
 import { TransferEvent } from '../../typechain/ERC721';
 import { MerkleTree } from 'merkletreejs';
 
@@ -22,6 +27,7 @@ interface MintStyleOptions {
   priceInEth?: string;
   saleIsActive?: boolean;
   cid?: string;
+  maxInputs?: number;
 }
 
 export async function mintTestnetNFT(
@@ -46,26 +52,23 @@ export async function mintStyle(
   priceStrategyAddress: string,
   options?: MintStyleOptions
 ): Promise<number> {
-  const { cap, priceInEth, saleIsActive, cid }: MintStyleOptions = {
+  const { cap, priceInEth, saleIsActive, cid, maxInputs }: MintStyleOptions = {
     cap: 100,
     priceInEth: '0.1',
     saleIsActive: true,
+    maxInputs: 1,
     ...options
   };
 
   const fakeCid = cid || (await ipfsHashOf(Buffer.from('{this: is: fake}')));
-
-  const minPriceWei = utils.parseEther(priceInEth);
-  const priceHex = minPriceWei.toHexString();
-  const priceBytes = utils.hexZeroPad(priceHex, 32);
 
   const receipt = await (
     await connectedStyleNFT.mint(
       cap,
       fakeCid,
       priceStrategyAddress,
-      priceBytes,
-      saleIsActive
+      saleIsActive,
+      maxInputs
     )
   ).wait();
 
@@ -73,6 +76,13 @@ export async function mintStyle(
     (e: Event) => e.event === 'Transfer'
   );
   const tokenId = (transferEvent as TransferEvent).args.tokenId;
+
+  const priceStrategy = SplicePriceStrategyStatic__factory.connect(
+    priceStrategyAddress,
+    connectedStyleNFT.signer
+  );
+  await priceStrategy.setPrice(tokenId, utils.parseEther(priceInEth));
+
   return tokenId.toNumber();
 }
 
@@ -89,7 +99,7 @@ export async function mintSplice(
   originTokenId: number,
   styleTokenId: number
 ): Promise<BigNumber> {
-  const fee = splice.quote(nftAddress, styleTokenId);
+  const fee = splice.quote(styleTokenId, [nftAddress], [originTokenId]);
   const receipt = await (
     await splice.mint(
       [nftAddress],

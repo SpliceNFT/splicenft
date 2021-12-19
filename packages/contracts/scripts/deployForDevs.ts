@@ -94,7 +94,8 @@ const deployTestnetNFT = async (
       directory: `../../renderers/${style}`,
       mintPriceEth: '0.02',
       cap: '200',
-      sale: 'true'
+      sale: 'true',
+      maxInputs: '1'
     });
     console.log(`deployed style ${style}`);
   }

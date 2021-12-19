@@ -38,9 +38,10 @@ describe('Style NFTs', function () {
   it('deploys nft and splice', async function () {
     splice = await deploySplice();
     testNft = await deployTestnetNFT();
-    priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
+    const _priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+    priceStrategy = _priceStrategy.connect(_styleMinter);
   });
 
   it('gets an nft on the test collection', async function () {
@@ -88,16 +89,12 @@ describe('Style NFTs', function () {
 
     const fakeCid = await ipfsHashOf(Buffer.from('{this: is: fake}'));
 
-    const minPriceWei = ethers.utils.parseEther('0.1');
-    const priceHex = minPriceWei.toHexString();
-    const priceBytes = ethers.utils.hexZeroPad(priceHex, 32);
-
     const tx = await _styleNft.mint(
       100,
       fakeCid,
       priceStrategy.address,
-      priceBytes,
-      false
+      false,
+      1
     );
     const receipt = await tx.wait();
 
@@ -109,6 +106,8 @@ describe('Style NFTs', function () {
     const tokenId = (transferEvent as TransferEvent).args.tokenId;
     expect(tokenId.toNumber()).to.equal(1);
 
+    priceStrategy.setPrice(tokenId, ethers.utils.parseEther('0.1'));
+
     const metadataUri = await _styleNft.tokenURI(tokenId);
     expect(metadataUri).to.equal(`ipfs://${fakeCid}/metadata.json`);
   });
@@ -118,17 +117,13 @@ describe('Style NFTs', function () {
 
     const fakeCid = await ipfsHashOf(Buffer.from('{this: is: even more fake}'));
 
-    const minPriceWei = ethers.utils.parseEther('0.1');
-    const priceHex = minPriceWei.toHexString();
-    const priceBytes = ethers.utils.hexZeroPad(priceHex, 32);
-
     try {
       const tx = await _styleNft.mint(
         100,
         fakeCid,
         priceStrategy.address,
-        priceBytes,
-        true
+        true,
+        1
       );
       expect.fail('only style minters should be allowed to mint');
     } catch (e: any) {
@@ -197,7 +192,7 @@ describe('Style NFTs', function () {
 
   it('quotes the minting fee', async function () {
     const _styleNft = styleNFT.connect(_user);
-    const fee = await _styleNft.quoteFee(testNft.address, 1);
+    const fee = await _styleNft.quoteFee(1, [testNft.address], [1]);
     const weiFee = ethers.utils.formatUnits(fee, 'ether');
 
     expect(weiFee).to.equal('0.1');
@@ -217,5 +212,60 @@ describe('Style NFTs', function () {
     } catch (e: any) {
       expect(e.message).to.contain('nonexistent token');
     }
+  });
+
+  it('allows a style owner to update its minting price', async function () {
+    const _styleNft = styleNFT.connect(_styleMinter);
+    const styleMinterAddress = await _styleMinter.getAddress();
+    const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
+      saleIsActive: false,
+      maxInputs: 1
+    });
+
+    priceStrategy.setPrice(styleTokenId, ethers.utils.parseEther('0.25'));
+
+    const fee = await _styleNft.quoteFee(styleTokenId, [testNft.address], [1]);
+    const weiFee = ethers.utils.formatUnits(fee, 'ether');
+    expect(weiFee).to.equal('0.25');
+
+    await priceStrategy.setPrice(styleTokenId, ethers.utils.parseEther('0.3'));
+
+    const newFee = await _styleNft.quoteFee(
+      styleTokenId,
+      [testNft.address],
+      [1]
+    );
+
+    expect(ethers.utils.formatUnits(newFee, 'ether')).to.equal('0.3');
+    const newOwner = signers[10];
+    const newOwnerAddress = await newOwner.getAddress();
+    await _styleNft.transferFrom(
+      styleMinterAddress,
+      newOwnerAddress,
+      styleTokenId
+    );
+    try {
+      await priceStrategy.setPrice(
+        styleTokenId,
+        ethers.utils.parseEther('0.05')
+      );
+      expect.fail('only the current owner must be able to set the minting fee');
+    } catch (e: any) {
+      expect(e.message).to.contain('must own the style');
+    }
+
+    const _priceStrategy = priceStrategy.connect(newOwner);
+    await _priceStrategy.setPrice(
+      styleTokenId,
+      ethers.utils.parseEther('0.77')
+    );
+
+    const newFee2 = await _styleNft.quoteFee(
+      styleTokenId,
+      [testNft.address],
+      [1]
+    );
+
+    expect(ethers.utils.formatUnits(newFee2, 'ether')).to.equal('0.77');
   });
 });

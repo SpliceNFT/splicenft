@@ -1,9 +1,12 @@
 import '@nomiclabs/hardhat-ethers';
+import { Event } from 'ethers';
 import fs from 'fs';
 import { task } from 'hardhat/config';
 import { File, NFTStorage } from 'nft.storage';
+import { SplicePriceStrategyStatic__factory } from '../typechain';
+import { TransferEvent } from '../typechain/IERC721Upgradeable';
 
-//pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200 false
+//pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200 false 1
 
 task('style:mint', 'mints a style')
   .addParam('styleNftAddress')
@@ -13,6 +16,7 @@ task('style:mint', 'mints a style')
   .addPositionalParam('mintPriceEth')
   .addPositionalParam('cap')
   .addPositionalParam('sale', 'is sale immediately active')
+  .addPositionalParam('maxInputs', 'max collections allowed as input')
 
   .setAction(async (taskArgs, hre) => {
     const {
@@ -22,7 +26,8 @@ task('style:mint', 'mints a style')
       directory,
       mintPriceEth,
       cap,
-      sale
+      sale,
+      maxInputs
     } = taskArgs;
 
     const signers = await hre.ethers.getSigners();
@@ -59,26 +64,43 @@ task('style:mint', 'mints a style')
     const cid = metadata.ipnft;
     console.log('uploaded metadata, cid: ', cid);
 
-    const minPriceWei = hre.ethers.utils.parseEther(mintPriceEth);
-    const priceHex = minPriceWei.toHexString();
-    const priceBytes = hre.ethers.utils.hexZeroPad(priceHex, 32);
-
     const mintArgs = {
       _cap: cap,
       _metadataCID: cid,
       _priceStrategy: priceStrategyAddress,
-      _priceStrategyParameters: priceBytes,
       _sale: sale
     };
-    console.log('minting NFT with:', mintArgs);
+    console.log('minting style NFT with:', mintArgs);
 
     const receipt = await styleNFT.mint(
       cap,
       cid,
       priceStrategyAddress,
-      priceBytes,
-      sale === 'true' ? true : false
+      sale === 'true' ? true : false,
+      maxInputs
     );
+
     const confirmation = await receipt.wait();
-    console.log('confirmation', confirmation.transactionHash);
+
+    const transferEvent = confirmation.events?.find(
+      (e: Event) => e.event === 'Transfer'
+    );
+
+    const tokenId = (transferEvent as TransferEvent).args.tokenId;
+    console.log('minted [%s] at [%s]', tokenId, confirmation.transactionHash);
+    const mintPriceWei = hre.ethers.utils.parseEther(mintPriceEth);
+
+    const priceStrategy = SplicePriceStrategyStatic__factory.connect(
+      priceStrategyAddress,
+      styleMinter
+    );
+
+    const priceTx = await priceStrategy.setPrice(tokenId, mintPriceWei);
+    await priceTx.wait();
+    console.log(
+      'set price for [%s] to [%s] at [%s]',
+      tokenId,
+      mintPriceWei,
+      priceTx.hash
+    );
   });

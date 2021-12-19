@@ -44,9 +44,10 @@ describe('Royalties', function () {
   it('deploys nft & splice & mints a style', async function () {
     splice = await deploySplice();
     testNft = await deployTestnetNFT();
-    priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
     const _styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
+
+    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
 
     const styleMinterAddress = await _styleMinter.getAddress();
     await _styleNFT.toggleStyleMinter(styleMinterAddress, true);

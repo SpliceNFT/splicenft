@@ -16,9 +16,9 @@ struct StyleSettings {
   uint32 mintedOfStyle;
   uint32 cap;
   ISplicePriceStrategy priceStrategy;
-  bytes32 priceParameters;
   bool salesIsActive;
   bool collectionConstrained;
   bool isFrozen;
   string styleCID;
+  uint8 maxInputs;
 }

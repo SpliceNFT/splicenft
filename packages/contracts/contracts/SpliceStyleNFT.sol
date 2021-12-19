@@ -63,6 +63,8 @@ contract SpliceStyleNFT is
   /// @notice
   error StyleIsFrozen();
 
+  error BadMintInput(string reason);
+
   error CantFreezeAnUncompleteCollection(uint32 mintsLeft);
   error InvalidCID();
 
@@ -138,16 +140,15 @@ contract SpliceStyleNFT is
     return _metadataURI(styleSettings[uint32(tokenId)].styleCID);
   }
 
-  function quoteFee(IERC721 nft, uint32 style_token_id)
-    external
-    view
-    returns (uint256 fee)
-  {
+  function quoteFee(
+    uint32 style_token_id,
+    IERC721[] memory nfts,
+    uint256[] memory origin_token_ids
+  ) external view returns (uint256 fee) {
     fee = styleSettings[style_token_id].priceStrategy.quote(
-      this,
-      nft,
       style_token_id,
-      styleSettings[style_token_id]
+      nfts,
+      origin_token_ids
     );
   }
 
@@ -281,20 +282,42 @@ contract SpliceStyleNFT is
     );
   }
 
-  function canBeMintedOnCollection(uint32 style_token_id, address collection)
-    public
-    view
-    returns (bool)
-  {
+  function canBeMintedOnCollections(
+    uint32 style_token_id,
+    IERC721[] memory origin_collections,
+    uint256[] memory origin_token_ids,
+    address minter
+  ) public view returns (bool) {
     if (!isSaleActive(style_token_id)) {
       revert SaleNotActive(style_token_id);
     }
 
-    if (styleSettings[style_token_id].collectionConstrained) {
-      return collectionAllowed[style_token_id][collection];
-    } else {
-      return true;
+    if (
+      origin_collections.length == 0 ||
+      origin_token_ids.length == 0 ||
+      origin_collections.length != origin_token_ids.length
+    ) {
+      revert BadMintInput('inconsistent input lengths');
     }
+
+    if (styleSettings[style_token_id].maxInputs < origin_collections.length) {
+      revert BadMintInput('too many inputs');
+    }
+
+    for (uint256 i = 0; i < origin_collections.length; i++) {
+      if (origin_collections[i].ownerOf(origin_token_ids[i]) != minter) {
+        revert BadMintInput('not owning origin');
+      }
+      if (styleSettings[style_token_id].collectionConstrained) {
+        if (
+          !collectionAllowed[style_token_id][address(origin_collections[i])]
+        ) {
+          revert BadMintInput('collection constrained');
+        }
+      }
+    }
+
+    return true;
   }
 
   function restrictToCollections(
@@ -345,6 +368,7 @@ contract SpliceStyleNFT is
       revert StyleIsFullyMinted();
     }
     styleSettings[style_token_id].mintedOfStyle += 1;
+    styleSettings[style_token_id].priceStrategy.onMinted(style_token_id);
     return styleSettings[style_token_id].mintedOfStyle;
   }
 
@@ -352,8 +376,8 @@ contract SpliceStyleNFT is
     uint32 _cap,
     string memory _metadataCID,
     ISplicePriceStrategy _priceStrategy,
-    bytes32 _priceStrategyParameters,
-    bool _salesIsActive
+    bool _salesIsActive,
+    uint8 _maxInputs
   ) external onlyStyleMinter returns (uint32 style_token_id) {
     //CHECKS
     if (bytes(_metadataCID).length < 46) {
@@ -365,14 +389,14 @@ contract SpliceStyleNFT is
     style_token_id = _styleTokenIds.current().toUint32();
 
     styleSettings[style_token_id] = StyleSettings({
-      cap: _cap,
-      styleCID: _metadataCID,
-      priceStrategy: _priceStrategy,
-      priceParameters: _priceStrategyParameters,
       mintedOfStyle: 0,
+      cap: _cap,
+      priceStrategy: _priceStrategy,
       salesIsActive: _salesIsActive,
       collectionConstrained: false,
-      isFrozen: false
+      isFrozen: false,
+      styleCID: _metadataCID,
+      maxInputs: _maxInputs
     });
 
     //INTERACTIONS

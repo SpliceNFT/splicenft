@@ -33,11 +33,13 @@ export async function deploySplice(): Promise<Splice> {
   return splice;
 }
 
-export async function deployStaticPriceStrategy(): Promise<SplicePriceStrategyStatic> {
+export async function deployStaticPriceStrategy(
+  spliceStyleNFTAddress: string
+): Promise<SplicePriceStrategyStatic> {
   const PriceStrategy = await ethers.getContractFactory(
     'SplicePriceStrategyStatic'
   );
-  const staticPriceStrategy = await PriceStrategy.deploy();
+  const staticPriceStrategy = await PriceStrategy.deploy(spliceStyleNFTAddress);
   return staticPriceStrategy;
 }
 
