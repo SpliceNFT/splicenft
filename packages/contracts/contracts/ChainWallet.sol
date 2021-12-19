@@ -3,17 +3,17 @@
 pragma solidity ^0.8.0;
 
 interface Withdrawable {
-  function withdrawShares() external;
+  function claimShares(address payable) external;
 }
 
 contract ChainWallet {
-  event Received(address, uint256);
+  event Received(address by, uint256 val);
 
   receive() external payable {
     emit Received(msg.sender, msg.value);
   }
 
   function withdrawShares(address splice) public {
-    Withdrawable(splice).withdrawShares();
+    Withdrawable(splice).claimShares(payable(this));
   }
 }

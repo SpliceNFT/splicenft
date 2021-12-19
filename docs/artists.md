@@ -51,7 +51,7 @@ function ({ p5, colors, dim }) {
 
 Styles on Splice are minted as NFTs that can be bought and sold. All fees that accrue when collectors mint Splices, or sell minted results on secondary markets, will be transferred to the **current style owner**. 
 
-That means as an artist, you (or someone you choose, like a curator) can mint your style and then sell it as a **style token**. A style NFT isn't just a new kind of asset that potentially generate a stream of revenue from primary and secondary sales, but more importantly, a new way for artists to benefit from their work.
+That means as an artist, you (or someone you choose, like a style minter you trust) can mint your style and then sell it as a **style token**. A style NFT isn't just a new kind of asset that potentially generate a stream of revenue from primary and secondary sales, but more importantly, a new way for artists to benefit from their work.
 
 ## Commissions and Ownership
 

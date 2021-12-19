@@ -1,12 +1,13 @@
 import {
-  BigInt,
-  Bytes,
-  ByteArray,
-  ethereum,
   Address,
+  BigInt,
+  ByteArray,
+  Bytes,
+  crypto,
+  ethereum,
   log as glog
 } from '@graphprotocol/graph-ts';
-import { Splice, Style } from '../generated/schema';
+import { Origin, Splice, Style } from '../generated/schema';
 import { ERC721 as ERC721Contract } from '../generated/Splice/ERC721';
 import {
   Minted,
@@ -14,12 +15,10 @@ import {
   Transfer,
   Withdrawn
 } from '../generated/Splice/Splice';
-
 import {
   Minted as StyleMinted,
-  Transfer as StyleTransferred,
   SpliceStyleNFT as StyleNFTContract,
-  SpliceStyleNFT
+  Transfer as StyleTransferred
 } from '../generated/SpliceStyleNFT/SpliceStyleNFT';
 
 export function handleMinted(event: Minted): void {
@@ -62,13 +61,24 @@ export function handleMinted(event: Minted): void {
     const t = decoded.toTuple();
     const originAddresses = t[0].toAddressArray();
     const originTokenIds = t[1].toBigIntArray();
-    splice.origin_collection = originAddresses[0];
-    splice.origin_token_id = originTokenIds[0];
-    if (splice.origin_collection && splice.origin_token_id) {
-      const originContract = ERC721Contract.bind(originAddresses[0]);
-      splice.origin_metadata_url = originContract.tokenURI(originTokenIds[0]);
+    const origins: string[] = [];
+    for (let i = 0; i < originAddresses.length; i++) {
+      const ba = new ByteArray(96);
+      ba.set(originAddresses[i], 0);
+      ba.set(originTokenIds[i], 32);
+      ba.set(event.params.style_token_id, 64);
+      const oHash = crypto.keccak256(ba).toHexString();
+      const origin = new Origin(oHash);
+      origin.collection = originAddresses[i];
+      origin.token_id = originTokenIds[i];
+      const originContract = ERC721Contract.bind(originAddresses[i]);
+      origin.metadata_url = originContract.tokenURI(originTokenIds[i]);
+      origin.save();
+      origins.push(oHash);
     }
+    splice.origins = origins;
   }
+
   const style_id = event.params.style_token_id.toString();
   splice.style = style_id;
   const style = Style.load(style_id);

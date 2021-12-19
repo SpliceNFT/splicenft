@@ -6,7 +6,14 @@ import {
 } from '@splicenft/contracts';
 import { MintedEvent } from '@splicenft/contracts/typechain/Splice';
 import axios from 'axios';
-import { BigNumber, ethers, providers, Signer, utils } from 'ethers';
+import {
+  BigNumber,
+  BigNumberish,
+  ethers,
+  providers,
+  Signer,
+  utils
+} from 'ethers';
 import { erc721 } from '.';
 import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
@@ -21,21 +28,25 @@ export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
   4: {
     subgraph:
       'https://api.thegraph.com/subgraphs/name/elmariachi111/splicemultirinkeby',
-    address: '0xEa934c468e6c8c0C60E6E62797ae57dBD601970f',
-    deployedAt: 9726364
+    address: '0xa456fDAE364892a1C389afA8FAA84AEa3E559221',
+    deployedAt: 9842904
   }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
 };
 
+export type ProvenanceOrigin = {
+  collection: string;
+  token_id: BigNumberish;
+  metadata_url?: string;
+};
+
 export type TokenProvenance = {
-  origin_collection: string;
-  origin_token_id: BigNumber;
   splice_token_id: BigNumber;
-  //these are contianed in splice_token_id
-  //see tokenIdToStyleAndToken
+  //these are contained in splice_token_id @see tokenIdToStyleAndToken
   style_token_id: number;
   style_token_token_id: number;
+  origins: Array<ProvenanceOrigin>;
 };
 
 //todo: restrict all filters to start searching from the deployed block number
@@ -137,10 +148,15 @@ export class Splice {
   }
 
   public async quote(
+    styleTokenId: number,
     collection: string,
-    styleTokenId: number
+    tokenId: ethers.BigNumberish
   ): Promise<BigNumber> {
-    const quoteWei = await this.contract.quote(collection, styleTokenId);
+    const quoteWei = await this.contract.quote(
+      styleTokenId,
+      [collection],
+      [tokenId]
+    );
     return quoteWei;
   }
 
@@ -181,8 +197,13 @@ export class Splice {
     return {
       transactionHash: result.transactionHash,
       provenance: {
-        origin_collection: origin_collection,
-        origin_token_id: ethers.BigNumber.from(origin_token_id),
+        origins: [
+          {
+            collection: origin_collection,
+            token_id: ethers.BigNumber.from(origin_token_id)
+          }
+        ],
+
         splice_token_id: mintedEvent.args.token_id,
         style_token_id: _style_token_id,
         style_token_token_id
@@ -209,9 +230,14 @@ export class Splice {
     return mintedEvents.map((ev) => {
       const { style_token_id, token_id: style_token_token_id } =
         Splice.tokenIdToStyleAndToken(ev.args.token_id);
+
       return {
-        origin_collection: collectionAddress,
-        origin_token_id: ethers.BigNumber.from(tokenId),
+        origins: [
+          {
+            collection: collectionAddress,
+            token_id: ethers.BigNumber.from(tokenId)
+          }
+        ],
         splice_token_id: ev.args.token_id,
         style_token_id,
         style_token_token_id
@@ -249,9 +275,14 @@ export class Splice {
     const { style_token_id, token_id: style_token_token_id } =
       Splice.tokenIdToStyleAndToken(spliceTokenId);
 
+    const origins = inputData.origin_collections.map(
+      (oCol: string, i: number) => ({
+        collection: oCol,
+        token_id: inputData.origin_token_ids[i]
+      })
+    );
     return {
-      origin_collection: inputData.origin_collections[0],
-      origin_token_id: inputData.origin_token_ids[0],
+      origins,
       splice_token_id: bnTokenId,
       style_token_id,
       style_token_token_id
@@ -287,8 +318,7 @@ export class Splice {
     return metadata;
   }
 
-  //todo: this might become highly expensive
-  //needs a subgraph!
+  //todo: this might become highly expensive without a subgraph
   public async getAllStyles(): Promise<StyleMetadataResponse[]> {
     const styleNFT = await this.getStyleNFT();
     const totalSupply = await styleNFT.totalSupply();
@@ -329,7 +359,8 @@ export class Splice {
         const metadataUrl = await this.contract.tokenURI(e.args.tokenId);
         return {
           id: e.args.tokenId.toString(),
-          metadata_url: metadataUrl
+          metadata_url: metadataUrl,
+          origins: []
         };
       })();
     });

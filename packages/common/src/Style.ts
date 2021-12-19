@@ -58,10 +58,15 @@ export class Style {
       : Promise.resolve(false);
   }
 
-  async quote(collection: string): Promise<BigNumber> {
-    return this.contract
-      ? this.contract.quoteFee(collection, this.tokenId)
+  async quote(
+    collection: string,
+    tokenId: ethers.BigNumberish
+  ): Promise<BigNumber> {
+    const _quote = this.contract
+      ? this.contract.quoteFee(this.tokenId, [collection], [tokenId])
       : Promise.resolve(ethers.BigNumber.from(0));
+
+    return _quote;
   }
 
   async getCodeFromBackend(
@@ -70,14 +75,9 @@ export class Style {
   ): Promise<string> {
     if (this.code) return this.code;
     const url = `${baseUrl}/styles/${networkId}/${this._tokenId}`;
-    console.debug(
-      `[%s] fetching code for [%s] from backend`,
-      networkId,
-      this.tokenId
-    );
+
     const styleMetadata = await (await axios.get(url)).data;
     //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
-    console.debug(`[%s] code for [%s] fetched`, networkId, this.tokenId);
     this.code = styleMetadata.code;
     return styleMetadata.code;
   }

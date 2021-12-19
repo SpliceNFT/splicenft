@@ -1,14 +1,19 @@
 type Splice @entity {
   id: ID!
   owner: Bytes # address
-  origin_collection: Bytes #address 
-  origin_token_id: BigInt
   origin_hash: Bytes
   input_params: Bytes 
   metadata_url: String
-  origin_metadata_url: String
+  origins: [Origin!]
   minting_fee: BigInt
   style: Style!
+}
+
+type Origin @entity {
+  id: ID!
+  collection: Bytes #address 
+  token_id: BigInt
+  metadata_url: String
 }
 
 type Style @entity {

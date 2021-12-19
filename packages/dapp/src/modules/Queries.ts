@@ -6,8 +6,10 @@ export const ALL_SPLICES = gql`
     spliceice {
       id
       owner
-      origin_collection
-      origin_token_id
+      origins {
+        collection
+        token_id
+      }
       style_token_id
       input_params
     }
@@ -31,9 +33,11 @@ export const USER_SPLICES = gql`
         id
         metadata_url
       }
-      origin_collection
-      origin_token_id
-      origin_metadata_url
+      origins {
+        collection
+        token_id
+        metadata_url
+      }
     }
   }
 `;
@@ -46,9 +50,11 @@ export const SPLICES_OF_ORIGIN = gql`
         id
         metadata_url
       }
-      origin_collection
-      origin_token_id
-      origin_metadata_url
+      origins {
+        collection
+        token_id
+        metadata_url
+      }
     }
   }
 `;

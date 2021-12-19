@@ -56,12 +56,14 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
       }
     })();
   }, [splice]);
+
   useEffect(() => {
     if (!splice || !provenance) return;
     (async () => {
       setSpliceMetadata(await splice.getMetadata(provenance));
     })();
   }, [splice, provenance]);
+
   return (
     <SpliceCard flexDirection="column">
       <AspectRatio ratio={1}>

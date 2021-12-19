@@ -20,19 +20,24 @@ LSI  LSI           LCL           LSS       ISL       LSI  ISL       LSS  ISL
 
 pragma solidity 0.8.10;
 
-import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
-import '@openzeppelin/contracts/utils/math/SafeCast.sol';
-import '@openzeppelin/contracts/utils/Counters.sol';
-import '@openzeppelin/contracts/utils/cryptography/MerkleProof.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './ISplicePriceStrategy.sol';
 import './StyleSettings.sol';
 
-contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
-  using Counters for Counters.Counter;
-  using SafeCast for uint256;
+contract SpliceStyleNFT is
+  ERC721EnumerableUpgradeable,
+  OwnableUpgradeable,
+  ReentrancyGuardUpgradeable
+{
+  using CountersUpgradeable for CountersUpgradeable.Counter;
+  using SafeCastUpgradeable for uint256;
 
   error BadReservationParameters(uint32 reservation, uint32 mintsLeft);
   error AllowlistDurationTooShort(uint256 diff);
@@ -58,6 +63,8 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   /// @notice
   error StyleIsFrozen();
 
+  error BadMintInput(string reason);
+
   error CantFreezeAnUncompleteCollection(uint32 mintsLeft);
   error InvalidCID();
 
@@ -71,9 +78,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint64 until
   );
 
-  Counters.Counter private _styleTokenIds;
+  CountersUpgradeable.Counter private _styleTokenIds;
 
-  mapping(address => bool) public isCurator;
+  mapping(address => bool) public isStyleMinter;
   mapping(uint32 => StyleSettings) styleSettings;
   mapping(uint32 => Allowlist) allowlists;
 
@@ -83,15 +90,15 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
   address public spliceNFT;
 
-  constructor()
-    ERC721('Splice Style NFT', 'SPLYLE')
-    ERC721Enumerable()
-    Ownable()
-    ReentrancyGuard()
-  {}
+  function initialize() public initializer {
+    __ERC721_init('Splice Style NFT', 'SPLYLE');
+    __ERC721Enumerable_init_unchained();
+    __Ownable_init_unchained();
+    __ReentrancyGuard_init();
+  }
 
-  modifier onlyCurator() {
-    require(isCurator[msg.sender] == true, 'only curators can mint styles');
+  modifier onlyStyleMinter() {
+    require(isStyleMinter[msg.sender] == true, 'not allowed to mint styles');
     _;
   }
 
@@ -101,11 +108,14 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
   }
 
   function setSplice(address _spliceNFT) external onlyOwner {
+    if (spliceNFT != address(0)) {
+      revert('can only be called once.');
+    }
     spliceNFT = _spliceNFT;
   }
 
-  function toggleCurator(address curator, bool newValue) external onlyOwner {
-    isCurator[curator] = newValue;
+  function toggleStyleMinter(address minter, bool newValue) external onlyOwner {
+    isStyleMinter[minter] = newValue;
   }
 
   /**
@@ -130,16 +140,15 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     return _metadataURI(styleSettings[uint32(tokenId)].styleCID);
   }
 
-  function quoteFee(IERC721 nft, uint32 style_token_id)
-    external
-    view
-    returns (uint256 fee)
-  {
+  function quoteFee(
+    uint32 style_token_id,
+    IERC721[] memory nfts,
+    uint256[] memory origin_token_ids
+  ) external view returns (uint256 fee) {
     fee = styleSettings[style_token_id].priceStrategy.quote(
-      this,
-      nft,
       style_token_id,
-      styleSettings[style_token_id]
+      nfts,
+      origin_token_ids
     );
   }
 
@@ -200,7 +209,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     address requestor
   ) public view returns (bool) {
     return
-      MerkleProof.verify(
+      MerkleProofUpgradeable.verify(
         allowlistProof,
         allowlists[style_token_id].merkleRoot,
         //or maybe: https://ethereum.stackexchange.com/questions/884/how-to-convert-an-address-to-bytes-in-solidity/41356
@@ -273,20 +282,42 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     );
   }
 
-  function canBeMintedOnCollection(uint32 style_token_id, address collection)
-    public
-    view
-    returns (bool)
-  {
+  function canBeMintedOnCollections(
+    uint32 style_token_id,
+    IERC721[] memory origin_collections,
+    uint256[] memory origin_token_ids,
+    address minter
+  ) public view returns (bool) {
     if (!isSaleActive(style_token_id)) {
       revert SaleNotActive(style_token_id);
     }
 
-    if (styleSettings[style_token_id].collectionConstrained) {
-      return collectionAllowed[style_token_id][collection];
-    } else {
-      return true;
+    if (
+      origin_collections.length == 0 ||
+      origin_token_ids.length == 0 ||
+      origin_collections.length != origin_token_ids.length
+    ) {
+      revert BadMintInput('inconsistent input lengths');
     }
+
+    if (styleSettings[style_token_id].maxInputs < origin_collections.length) {
+      revert BadMintInput('too many inputs');
+    }
+
+    for (uint256 i = 0; i < origin_collections.length; i++) {
+      if (origin_collections[i].ownerOf(origin_token_ids[i]) != minter) {
+        revert BadMintInput('not owning origin');
+      }
+      if (styleSettings[style_token_id].collectionConstrained) {
+        if (
+          !collectionAllowed[style_token_id][address(origin_collections[i])]
+        ) {
+          revert BadMintInput('collection constrained');
+        }
+      }
+    }
+
+    return true;
   }
 
   function restrictToCollections(
@@ -306,7 +337,10 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     return styleSettings[style_token_id].isFrozen;
   }
 
-  function freeze(uint32 style_token_id, string memory cid) public onlyCurator {
+  function freeze(uint32 style_token_id, string memory cid)
+    public
+    onlyStyleMinter
+  {
     if (bytes(cid).length < 46) {
       revert InvalidCID();
     }
@@ -334,6 +368,7 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
       revert StyleIsFullyMinted();
     }
     styleSettings[style_token_id].mintedOfStyle += 1;
+    styleSettings[style_token_id].priceStrategy.onMinted(style_token_id);
     return styleSettings[style_token_id].mintedOfStyle;
   }
 
@@ -341,9 +376,9 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint32 _cap,
     string memory _metadataCID,
     ISplicePriceStrategy _priceStrategy,
-    bytes32 _priceStrategyParameters,
-    bool _salesIsActive
-  ) external onlyCurator returns (uint32 style_token_id) {
+    bool _salesIsActive,
+    uint8 _maxInputs
+  ) external onlyStyleMinter returns (uint32 style_token_id) {
     //CHECKS
     if (bytes(_metadataCID).length < 46) {
       revert InvalidCID();
@@ -354,14 +389,14 @@ contract SpliceStyleNFT is ERC721Enumerable, Ownable, ReentrancyGuard {
     style_token_id = _styleTokenIds.current().toUint32();
 
     styleSettings[style_token_id] = StyleSettings({
-      cap: _cap,
-      styleCID: _metadataCID,
-      priceStrategy: _priceStrategy,
-      priceParameters: _priceStrategyParameters,
       mintedOfStyle: 0,
+      cap: _cap,
+      priceStrategy: _priceStrategy,
       salesIsActive: _salesIsActive,
       collectionConstrained: false,
-      isFrozen: false
+      isFrozen: false,
+      styleCID: _metadataCID,
+      maxInputs: _maxInputs
     });
 
     //INTERACTIONS

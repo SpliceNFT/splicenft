@@ -3,6 +3,7 @@ import { ethers, upgrades } from 'hardhat';
 import {
   Splice,
   SplicePriceStrategyStatic,
+  SpliceStyleNFT,
   Splice__factory,
   TestnetNFT,
   TestnetNFT__factory
@@ -13,26 +14,32 @@ export async function deploySplice(): Promise<Splice> {
     'Splice'
   )) as Splice__factory;
 
-  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
-  const spliceStyleNFT = await SpliceStyleNFT.deploy();
+  const SpliceStyleNFTFactory = await ethers.getContractFactory(
+    'SpliceStyleNFT'
+  );
+
+  const spliceStyleNFT = (await upgrades.deployProxy(
+    SpliceStyleNFTFactory,
+    []
+  )) as SpliceStyleNFT;
 
   const splice = (await upgrades.deployProxy(SpliceFactory, [
-    'Splice',
-    'SPLICE',
-    'http://localhost:5999/metadata/31337/'
+    'http://localhost:5999/metadata/31337/',
+    spliceStyleNFT.address
   ])) as Splice;
 
-  await splice.setStyleNFT(spliceStyleNFT.address);
   await spliceStyleNFT.setSplice(splice.address);
 
   return splice;
 }
 
-export async function deployStaticPriceStrategy(): Promise<SplicePriceStrategyStatic> {
+export async function deployStaticPriceStrategy(
+  spliceStyleNFTAddress: string
+): Promise<SplicePriceStrategyStatic> {
   const PriceStrategy = await ethers.getContractFactory(
     'SplicePriceStrategyStatic'
   );
-  const staticPriceStrategy = await PriceStrategy.deploy();
+  const staticPriceStrategy = await PriceStrategy.deploy(spliceStyleNFTAddress);
   return staticPriceStrategy;
 }
 

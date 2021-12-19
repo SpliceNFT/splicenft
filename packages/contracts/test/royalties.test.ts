@@ -24,7 +24,7 @@ describe('Royalties', function () {
   let styleNFT: SpliceStyleNFT;
 
   let signers: Signer[];
-  let _curator: Signer;
+  let _styleMinter: Signer;
   let _artist: Signer;
   let _styleBuyer: Signer;
   let _buyer: Signer;
@@ -36,7 +36,7 @@ describe('Royalties', function () {
     _owner = signers[0];
     _buyer = signers[9];
     _styleBuyer = signers[16];
-    _curator = signers[17];
+    _styleMinter = signers[17];
     _artist = signers[18];
     _seller = signers[19];
   });
@@ -44,17 +44,18 @@ describe('Royalties', function () {
   it('deploys nft & splice & mints a style', async function () {
     splice = await deploySplice();
     testNft = await deployTestnetNFT();
-    priceStrategy = await deployStaticPriceStrategy();
     const styleNftAddress = await splice.styleNFT();
     const _styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
 
-    const curatorAddress = await _curator.getAddress();
-    await _styleNFT.toggleCurator(curatorAddress, true);
-    styleNFT = _styleNFT.connect(_curator);
+    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+
+    const styleMinterAddress = await _styleMinter.getAddress();
+    await _styleNFT.toggleStyleMinter(styleMinterAddress, true);
+    styleNFT = _styleNFT.connect(_styleMinter);
 
     const styleId = await mintStyle(styleNFT, priceStrategy.address);
     const artistAddress = await _artist.getAddress();
-    await styleNFT.transferFrom(curatorAddress, artistAddress, styleId);
+    await styleNFT.transferFrom(styleMinterAddress, artistAddress, styleId);
 
     expect((await styleNFT.balanceOf(artistAddress)).toNumber()).to.equal(1);
     expect(await styleNFT.ownerOf(1)).to.equal(artistAddress);

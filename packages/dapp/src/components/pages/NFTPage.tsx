@@ -89,12 +89,15 @@ export const NFTPage = () => {
 
     if (selectedStyle) {
       setProvenance(
-        allProvenances.find(
-          (prov) =>
-            prov.origin_collection == collection &&
-            prov.origin_token_id.toString() == tokenId &&
+        allProvenances.find((prov) => {
+          const origin = prov.origins[0];
+          if (!origin) return false;
+          return (
+            origin.collection == collection &&
+            origin.token_id.toString() == tokenId &&
             prov.style_token_id == selectedStyle.tokenId
-        )
+          );
+        })
       );
     } else {
       const _style = spliceStyles.find(

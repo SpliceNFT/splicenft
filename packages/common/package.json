@@ -25,7 +25,7 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "devDependencies": {
-    "@types/chai": "^4.2.21",
+    "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
     "@types/p5": "0.9.1",
     "chai": "^4.3.4",
@@ -37,11 +37,11 @@
     "@splicenft/contracts": "workspace:*",
     "axios": "^0.21.4",
     "base64-js": "^1.5.1",
-    "ethers": "^5.4.7",
+    "ethers": "^5.5.2",
     "get-rgba-palette": "^2.0.1",
     "hex-rgb": "^4.3.0",
     "image-to-colors": "^1.0.2",
-    "multiformats": "^9.4.8",
+    "multiformats": "^9.5.4",
     "p5": "1.1.9",
     "rgb-hex": "^4.0.0"
   }

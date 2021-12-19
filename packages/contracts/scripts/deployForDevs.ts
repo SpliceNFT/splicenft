@@ -60,28 +60,30 @@ const deployTestnetNFT = async (
   const PriceStrategy = await ethers.getContractFactory(
     'SplicePriceStrategyStatic'
   );
-  const staticPriceStrategy = await PriceStrategy.deploy();
-  console.log('static price strategy instance:', staticPriceStrategy.address);
 
   const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
-  const spliceStyleNFT = await SpliceStyleNFT.deploy();
+  const spliceStyleNFT = await upgrades.deployProxy(SpliceStyleNFT, []);
+
   console.log('splice style nft:', spliceStyleNFT.address);
+
+  const staticPriceStrategy = await PriceStrategy.deploy(
+    spliceStyleNFT.address
+  );
+  console.log('static price strategy instance:', staticPriceStrategy.address);
 
   const Splice = await ethers.getContractFactory('Splice');
   const splice = await upgrades.deployProxy(Splice, [
-    'Splice',
-    'SPLICE',
-    'http://localhost:5999/splice/31337/'
+    'http://localhost:5999/splice/31337/',
+    spliceStyleNFT.address
   ]);
   console.log('splice contract:', splice.address);
 
-  const r = await splice.setStyleNFT(spliceStyleNFT.address);
-  const q = await spliceStyleNFT.setSplice(splice.address);
+  await spliceStyleNFT.setSplice(splice.address);
   console.log('connected Splice & StyleNFT');
 
   //set some defaults
-  await spliceStyleNFT.toggleCurator(artistAccount.address, true);
-  console.log('allowed curator: ', artistAccount.address);
+  await spliceStyleNFT.toggleStyleMinter(artistAccount.address, true);
+  console.log('allowed style minter: ', artistAccount.address);
 
   for await (const style of [
     'ConfidenceInTheMission',
@@ -95,7 +97,8 @@ const deployTestnetNFT = async (
       directory: `../../renderers/${style}`,
       mintPriceEth: '0.02',
       cap: '200',
-      sale: 'true'
+      sale: 'true',
+      maxInputs: '1'
     });
     console.log(`deployed style ${style}`);
   }

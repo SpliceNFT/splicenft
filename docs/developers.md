@@ -149,9 +149,9 @@ Instead of going with a plain allowlist array we decided to make use of [Merkle 
 
 ## Dynamic Pricing
 
-The first styles we're launching will require a static minting fee that's set by the curator who mints the style NFT on behalf of an artist. We plan to implement more sophisticated approaches to pricing of mints, including Dutch auctions, bonding curves or even oracle based price indicators based on a collection's current floor price. 
+The first styles we're launching will require a static minting fee that's set by the style minter role who mints the style NFT on behalf of an artist. We plan to implement more sophisticated approaches to pricing of mints, including Dutch auctions, bonding curves or even oracle based price indicators based on a collection's current floor price. 
 
-To be flexible in terms of mint price indication we've decoupled price computations from the main contracts: upon minting the curator decides which pricing strategy should be in effect for the new style. Each strategy is implemented as a dedicated smart contract that must implement the `ISplicePriceStrategy` interface to return a price denoted in wei: 
+To be flexible in terms of mint price indication we've decoupled price computations from the main contracts: upon minting the style minter decides which pricing strategy should be in effect for the new style. Each strategy is implemented as a dedicated smart contract that must implement the `ISplicePriceStrategy` interface to return a price denoted in wei: 
 
 ```solidity
 interface ISplicePriceStrategy {

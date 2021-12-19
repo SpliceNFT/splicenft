@@ -8,12 +8,26 @@ import './SpliceStyleNFT.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
 contract SplicePriceStrategyStatic is ISplicePriceStrategy {
-  function quote(
-    SpliceStyleNFT styleNFT,
-    IERC721 collection,
-    uint256 token_id,
-    StyleSettings memory styleSettings
-  ) external pure override returns (uint256) {
-    return uint256(styleSettings.priceParameters);
+  mapping(uint256 => uint256) mintPrice;
+  SpliceStyleNFT styleNFT;
+
+  constructor(SpliceStyleNFT styleNFT_) {
+    styleNFT = styleNFT_;
   }
+
+  function setPrice(uint256 tokenId, uint256 price) external {
+    require(msg.sender == styleNFT.ownerOf(tokenId), 'must own the style');
+
+    mintPrice[tokenId] = price;
+  }
+
+  function quote(
+    uint256 style_token_id,
+    IERC721[] memory collections,
+    uint256[] memory token_ids
+  ) external view override returns (uint256) {
+    return mintPrice[style_token_id];
+  }
+
+  function onMinted(uint256 style_token_id) external {}
 }

@@ -24,7 +24,7 @@ describe('Allowlists', function () {
   let styleNFT: SpliceStyleNFT;
 
   let signers: Signer[];
-  let _curator: Signer;
+  let _styleMinter: Signer;
   let _delegateCurator: Signer;
   let _user: Signer;
   let _owner: Signer;
@@ -35,7 +35,7 @@ describe('Allowlists', function () {
     signers = await ethers.getSigners();
     _owner = signers[0];
     _delegateCurator = signers[17];
-    _curator = signers[18];
+    _styleMinter = signers[18];
     _user = signers[19];
     _allowedUsers = [1, 2, 3].map((i) => signers[i]);
     _allowedAddresses = await Promise.all(
@@ -46,12 +46,14 @@ describe('Allowlists', function () {
   it('deploys nft & splice', async function () {
     splice = await deploySplice();
     testNft = await deployTestnetNFT();
-    priceStrategy = await deployStaticPriceStrategy();
+
     const styleNftAddress = await splice.styleNFT();
     styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
 
-    const curatorAddress = await _curator.getAddress();
-    await (await styleNFT.toggleCurator(curatorAddress, true)).wait();
+    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+
+    const styleMinterAddress = await _styleMinter.getAddress();
+    await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
 
     const _nft = testNft.connect(_user);
     const transaction = await _nft.mint(await _user.getAddress());
@@ -69,7 +71,7 @@ describe('Allowlists', function () {
   });
 
   it('can add an allowlist to a style', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address);
 
     const merkleTree = createMerkleProof(_allowedAddresses);
@@ -83,7 +85,7 @@ describe('Allowlists', function () {
   });
 
   it('can prove that someone is on the allowlist', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const merkleTree = createMerkleProof(_allowedAddresses);
     const leaf = utils.keccak256(_allowedAddresses[0]);
     const proof = merkleTree.getHexProof(leaf);
@@ -113,7 +115,7 @@ describe('Allowlists', function () {
   });
 
   it('cannot use allowlists that are shorter than 1 day', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
       priceInEth: '0.2',
       saleIsActive: true,
@@ -136,7 +138,7 @@ describe('Allowlists', function () {
   });
 
   it('cant overwrite existing allowlists', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address);
     await _styleNft.addAllowlist(
       styleTokenId,
@@ -160,11 +162,11 @@ describe('Allowlists', function () {
   });
 
   it('cant control the allowlist when not owner of the style', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address);
     await (
       await _styleNft.transferFrom(
-        await _curator.getAddress(),
+        await _styleMinter.getAddress(),
         await _delegateCurator.getAddress(),
         styleTokenId
       )
@@ -185,7 +187,7 @@ describe('Allowlists', function () {
   });
 
   it('can add an allowlist after minting has started but only if its parameters fit', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const _splice = splice.connect(_user);
 
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
@@ -194,7 +196,11 @@ describe('Allowlists', function () {
       cap: 5
     });
 
-    const mintingFee = await _splice.quote(testNft.address, styleTokenId);
+    const mintingFee = await _splice.quote(
+      styleTokenId,
+      [testNft.address],
+      [1]
+    );
 
     const nftTokenIds = await Promise.all(
       [0, 1].map((i) =>
@@ -240,7 +246,7 @@ describe('Allowlists', function () {
   });
 
   it('lets public users mint up to the unreserved cap', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
       cap: 5,
       saleIsActive: false
@@ -257,7 +263,8 @@ describe('Allowlists', function () {
       new Date().getTime() + ONE_DAY_AND_A_BIT
     );
 
-    const mintingFee = await splice.quote(testNft.address, styleTokenId);
+    const mintingFee = await splice.quote(styleTokenId, [testNft.address], [0]);
+
     await (await _styleNft.toggleSaleIsActive(styleTokenId, true)).wait();
 
     expect(await _styleNft.availableForPublicMinting(styleTokenId)).to.equal(2);
@@ -404,7 +411,7 @@ describe('Allowlists', function () {
   });
 
   it('shows 0 reserved tokens when no allowlist exists', async function () {
-    const _styleNft = styleNFT.connect(_curator);
+    const _styleNft = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNft, priceStrategy.address, {
       cap: 5,
       saleIsActive: false
