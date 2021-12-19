@@ -46,16 +46,18 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           mySplice.metadata_url
         );
         setMetadata(spliceMetadata);
-        if (mySplice.origin_metadata_url) {
-          fetchMetadataFromUrl(
-            ipfsGW(mySplice.origin_metadata_url),
-            process.env.REACT_APP_CORS_PROXY
-          ).then(setOrigin);
+        if (mySplice.origins[0] && mySplice.origins[0].metadata_url) {
+          setOrigin(
+            await fetchMetadataFromUrl(
+              ipfsGW(mySplice.origins[0].metadata_url),
+              process.env.REACT_APP_CORS_PROXY
+            )
+          );
         } else {
-          const { origin_collection, origin_token_id } = spliceMetadata.splice;
+          const { collection, token_id } = spliceMetadata.splice.origins[0];
           const nftItem = await indexer.getAsset(
-            origin_collection,
-            origin_token_id
+            collection,
+            token_id.toString()
           );
           setOrigin(nftItem?.metadata);
         }
@@ -75,7 +77,7 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           {metadata && origin && (
             <LinkOverlay
               as={NavLink}
-              to={`/nft/${metadata.splice.origin_collection}/${metadata.splice.origin_token_id}`}
+              to={`/nft/${metadata.splice.origins[0].collection}/${metadata.splice.origins[0].token_id}`}
             >
               <SpliceArtwork
                 originImageUrl={resolveImage(origin)}

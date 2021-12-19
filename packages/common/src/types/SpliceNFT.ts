@@ -1,3 +1,4 @@
+import { ProvenanceOrigin } from '..';
 import { NFTMetaData } from './NFT';
 import { RGB } from './Renderers';
 
@@ -9,8 +10,7 @@ export type SpliceNFT = NFTMetaData & {
     style_name: string;
   };
   splice: {
-    origin_collection: string;
-    origin_token_id: string;
+    origins: ProvenanceOrigin[];
     style_metadata_url: string;
     style_collection: string;
     style_token_id: number;

@@ -3,14 +3,14 @@ import {
   extractPalette,
   ipfsGW,
   NFTMetaData,
+  ProvenanceOrigin,
   resolveImage,
   RGB,
-  Splice,
-  TokenProvenance
+  Splice
 } from '@splicenft/common';
 import { extractPaletteFromSvg } from '@splicenft/common/build/img';
 import axios from 'axios';
-import { ethers } from 'ethers';
+import { BigNumberish } from 'ethers';
 import FileType from 'file-type';
 import { GetPixels } from './GetPixels';
 
@@ -29,7 +29,7 @@ export async function extractOriginImage(originImageUrl: string) {
 
 export async function getOriginMetadata(
   erc721: ERC721,
-  originTokenId: ethers.BigNumber | number
+  originTokenId: BigNumberish
 ): Promise<NFTMetaData | null> {
   const originMetadataUrl: string = ipfsGW(
     await erc721.tokenURI(originTokenId)
@@ -43,7 +43,7 @@ export async function getOriginMetadata(
 }
 
 export async function extractOriginFeatures(
-  provenance: TokenProvenance,
+  provenanceOrigin: ProvenanceOrigin,
   originMetadata: NFTMetaData
 ): Promise<{ palette: RGB[]; randomness: number }> {
   const originImageUrl = resolveImage(originMetadata);
@@ -57,8 +57,8 @@ export async function extractOriginFeatures(
   }
 
   const randomness = Splice.computeRandomness(
-    provenance.origin_collection,
-    provenance.origin_token_id.toString()
+    provenanceOrigin.collection,
+    provenanceOrigin.token_id.toString()
   );
 
   return {

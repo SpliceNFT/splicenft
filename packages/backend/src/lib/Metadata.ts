@@ -21,38 +21,43 @@ const Metadata = async (
     throw new Error(`no provenance for token ${spliceTokenId}`);
   }
 
-  const originNftContract = splice.getOriginNftContract(
-    provenance.origin_collection
-  );
-  const originNftName = await originNftContract.name();
-
   const style = styleCache.getStyle(provenance.style_token_id);
   if (!style) throw new Error(`style token seems corrupt`);
 
+  const firstOrigin = provenance.origins[0];
+  if (!firstOrigin) throw new Error(`no origin for splice`);
+
+  const originNftContract = splice.getOriginNftContract(firstOrigin.collection);
+  const originNftName = await originNftContract.name();
+
   const originMetadata = await getOriginMetadata(
     originNftContract,
-    provenance.origin_token_id
+    firstOrigin.token_id
   );
+
   if (!originMetadata) throw new Error(`couldnt get origin metadata`);
   const originFeatures = await extractOriginFeatures(
-    provenance,
+    firstOrigin,
     originMetadata
   );
+
   const ret = {
-    name: `Splice of ${originNftName} #${provenance.origin_token_id}`,
+    name: `Splice of ${originNftName} #${firstOrigin.token_id}`,
     description: `This Splice was created from ${originNftName} #${
-      provenance.origin_token_id
+      firstOrigin.token_id
     } using style "${style.getMetadata().name}".`,
     image: `${process.env.SERVER_BASE_URL}/splice/${styleCache.network}/${spliceTokenId}/image.png`,
-    external_url: `${process.env.SPLICE_BASE_URL}/#/nft/${provenance.origin_collection}/${provenance.origin_token_id}`,
+    external_url: `${process.env.SPLICE_BASE_URL}/#/nft/${firstOrigin.collection}/${firstOrigin.token_id}`,
     properties: {
       style_name: style.getMetadata().name
     },
     splice: {
       colors: originFeatures.palette,
       randomness: originFeatures.randomness,
-      origin_collection: provenance.origin_collection,
-      origin_token_id: provenance.origin_token_id.toString(),
+      origins: provenance.origins.map((o) => ({
+        ...o,
+        token_id: o.token_id.toString()
+      })),
       style_collection: style.getCollectionAddress(),
       style_metadata_url: style.getMetadataUrl(),
       style_token_id: style.tokenId
