@@ -3,8 +3,6 @@ import { Event } from 'ethers';
 import fs from 'fs';
 import { task } from 'hardhat/config';
 import { File, NFTStorage } from 'nft.storage';
-import { SplicePriceStrategyStatic__factory } from '../typechain';
-import { TransferEvent } from '../typechain/IERC721Upgradeable';
 
 //pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200 false 1
 
@@ -85,15 +83,20 @@ task('style:mint', 'mints a style')
     const transferEvent = confirmation.events?.find(
       (e: Event) => e.event === 'Transfer'
     );
+    if (transferEvent === undefined || transferEvent.args === undefined) {
+      throw 'no transfer event';
+    }
+    const tokenId = transferEvent.args.tokenId;
 
-    const tokenId = (transferEvent as TransferEvent).args.tokenId;
     console.log('minted [%s] at [%s]', tokenId, confirmation.transactionHash);
     const mintPriceWei = hre.ethers.utils.parseEther(mintPriceEth);
 
-    const priceStrategy = SplicePriceStrategyStatic__factory.connect(
-      priceStrategyAddress,
-      styleMinter
+    const PriceFactory = await hre.ethers.getContractFactory(
+      'SplicePriceStrategyStatic'
     );
+    const priceStrategy = await PriceFactory.attach(
+      priceStrategyAddress
+    ).connect(styleMinter);
 
     const priceTx = await priceStrategy.setPrice(tokenId, mintPriceWei);
     await priceTx.wait();
