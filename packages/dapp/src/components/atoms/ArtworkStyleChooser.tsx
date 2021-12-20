@@ -23,7 +23,7 @@ export const ArtworkStyleChooser = ({
   disabled?: boolean;
 }) => {
   const { spliceStyles } = useSplice();
-
+  console.log(spliceStyles);
   return (
     <Flex direction="row">
       <Menu>
@@ -54,8 +54,14 @@ export const ArtworkStyleChooser = ({
             <MenuItem
               key={`style-${style.tokenId}`}
               onClick={() => onStyleChanged(style)}
+              alignItems="center"
+              justifyContent="space-between"
+              gridGap={3}
             >
-              {style.getMetadata().name}
+              <Text>{style.getMetadata().name}</Text>
+              <Text fontSize="xs" fontStyle="italic">
+                {' by '} {style.getMetadata().splice.creator_name}
+              </Text>
             </MenuItem>
           ))}
         </MenuList>
