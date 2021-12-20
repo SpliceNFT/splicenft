@@ -49,7 +49,8 @@ export class Fallback implements NFTIndexer {
     try {
       primaryMd = await this.primary.getAsset(collection, tokenId);
     } catch (e: any) {
-      console.error(e.message);
+      console.warn('primary indexer missed', e.message);
+      primaryMd = await this.fallback.getAsset(collection, tokenId);
     }
 
     if (primaryMd) {

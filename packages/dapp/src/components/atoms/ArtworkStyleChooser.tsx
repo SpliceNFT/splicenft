@@ -23,7 +23,7 @@ export const ArtworkStyleChooser = ({
   disabled?: boolean;
 }) => {
   const { spliceStyles } = useSplice();
-  console.log(spliceStyles);
+
   return (
     <Flex direction="row">
       <Menu>
