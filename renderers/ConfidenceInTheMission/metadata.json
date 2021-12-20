@@ -3,9 +3,9 @@
   "description": "Confidence In The Mission generates an abstraction of the interior of HAL, from 2001 Space Odyssey.",
   "properties": {},
   "splice": {
-    "creator_name": "Emily Weil",
-    "creator_twitter": "https://twitter.com/emilyaweil",
-    "creator_url": "https://www.studioemilyweil.com",
+    "creator_name": "Splice Genesis",
+    "creator_twitter": "https://twitter.com/splicenft",
+    "creator_url": "https://getsplice.io",
     "code_library": "p5.js",
     "code_library_version": "1.4.0",
     "license": "CC BY-NC-ND 4.0"
