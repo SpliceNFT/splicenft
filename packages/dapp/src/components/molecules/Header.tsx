@@ -20,7 +20,7 @@ import Account from '../atoms/Account';
 import Logo from '../atoms/Logo';
 
 const Header = () => {
-  const { active, activate, account } = useWeb3React();
+  const { active, activate, deactivate, account } = useWeb3React();
   const toast = useToast();
   const { splice } = useSplice();
 
@@ -32,6 +32,11 @@ const Header = () => {
   const connect = (connectorName: string, connector: AbstractConnector) => {
     activate(connector, console.error);
     localStorage.setItem('prvConnectedWith', connectorName);
+  };
+
+  const disconnect = () => {
+    localStorage.removeItem('prvConnectedWith');
+    deactivate();
   };
 
   useEffect(() => {
@@ -111,7 +116,7 @@ const Header = () => {
             </MenuList>
           </Menu>
         )}
-        {account && <Account account={account} />}
+        {account && <Account account={account} disconnect={disconnect} />}
       </Flex>
     </Flex>
   );

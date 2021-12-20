@@ -1,12 +1,39 @@
-import { Flex, Text, Circle } from '@chakra-ui/react';
-import { useWeb3React } from '@web3-react/core';
+import {
+  Button,
+  Circle,
+  Flex,
+  forwardRef,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text
+} from '@chakra-ui/react';
 import { CHAINS } from '@splicenft/common';
-import React, { useEffect, useState } from 'react';
+import { useWeb3React } from '@web3-react/core';
 import { providers, utils } from 'ethers';
-import { truncateAddress } from '../../modules/strings';
+import React, { useEffect, useState } from 'react';
 import Blockies from 'react-blockies';
+import { truncateAddress } from '../../modules/strings';
 
-export default ({ account }: { account: string }) => {
+const Identicon = forwardRef((props, ref) => {
+  const { account, ...rest } = props;
+  return (
+    <Button ref={ref} p={0} {...rest}>
+      <Circle size="2.75em" overflow="hidden">
+        <Blockies seed={account.toLowerCase()} size={8} scale={6} />
+      </Circle>
+    </Button>
+  );
+});
+
+export default ({
+  account,
+  disconnect
+}: {
+  account: string;
+  disconnect: () => void;
+}) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [balance, setBalance] = useState<string>();
 
@@ -49,10 +76,12 @@ export default ({ account }: { account: string }) => {
           <Text fontSize="x-small">{chainId && CHAINS[chainId]}</Text>
         )}
       </Flex>
-
-      <Circle size="2.75em" overflow="hidden">
-        <Blockies seed={account} size={10} scale={5} />
-      </Circle>
+      <Menu>
+        <MenuButton as={Identicon} account={account} />
+        <MenuList>
+          <MenuItem onClick={disconnect}>Logout</MenuItem>
+        </MenuList>
+      </Menu>
     </Flex>
   );
 };
