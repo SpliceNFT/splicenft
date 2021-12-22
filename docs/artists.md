@@ -21,7 +21,9 @@ function ({ p5, colors, dim }: DrawProps) {
   //your code here
 }
 ```
-You can see a few examples of Splice style code in our repository (`/renderers`). The code used on the dapp is actually stored on IPFS. 
+Splice style code shouldn't use global variables.
+
+You can see a few examples in our repository (`/renderers`). The code used on the dapp is actually stored on IPFS. 
 
 (While you *could* write your style using Typescript, that would add another layer of complexity: the style code itself is instantiated inside a browser context, and if it contains TS, it would  fail to load. If you're building a style using TS, you'll need to make sure  your code is transpiled to Javascript before it's minted. If you don't want to wrap your head around that, just write styles in plain JS.)
 
