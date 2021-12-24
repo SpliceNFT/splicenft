@@ -7,7 +7,7 @@ export default (
     privateKey?: string;
   }
 ): {
-  provider: providers.Provider;
+  provider: providers.BaseProvider;
   signer?: Signer;
 } => {
   let provider: providers.BaseProvider;

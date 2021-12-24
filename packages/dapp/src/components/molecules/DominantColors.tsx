@@ -1,14 +1,8 @@
-import {
-  Flex,
-  IconButton,
-  Skeleton,
-  Text,
-  useClipboard
-} from '@chakra-ui/react';
-import { extractColors } from '@splicenft/common';
+import { Flex, IconButton, Skeleton, useClipboard } from '@chakra-ui/react';
+import { extractColors, LoadImageBrowser } from '@splicenft/colors';
 import { RGB } from 'get-rgba-palette';
 import React, { useEffect } from 'react';
-import { FaClipboard, FaClipboardCheck } from 'react-icons/fa';
+import { FaRegCopy } from 'react-icons/fa';
 import rgbHex from 'rgb-hex';
 
 export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => {
@@ -25,18 +19,13 @@ export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => {
             </Flex>
           );
         })}
-        <Flex>
-          <IconButton
-            icon={
-              hasCopied ? (
-                <FaClipboardCheck aria-label="copied" />
-              ) : (
-                <FaClipboard onClick={onCopy} />
-              )
-            }
-            aria-label="copy palette"
-          />
-        </Flex>
+
+        <IconButton
+          icon={
+            <FaRegCopy onClick={onCopy} color={hasCopied ? 'green' : 'black'} />
+          }
+          aria-label="copy palette"
+        />
       </Flex>
     </Skeleton>
   );
@@ -58,7 +47,7 @@ export const DominantColors = ({
     if (!imageUrl) return;
     (async () => {
       setDominantColors(
-        await extractColors(imageUrl, {
+        await extractColors(imageUrl, LoadImageBrowser, {
           proxy: process.env.REACT_APP_CORS_PROXY
         })
       );
@@ -66,11 +55,8 @@ export const DominantColors = ({
   }, [imageUrl]);
 
   return dominantColors.length > 1 ? (
-    <Flex>
-      <Text>fff</Text>
-      <DominantColorsDisplay colors={dominantColors} />
-    </Flex>
+    <DominantColorsDisplay colors={dominantColors} />
   ) : (
-    <>fdooo</>
+    <></>
   );
 };

@@ -1,5 +1,6 @@
 import { Container, Image } from '@chakra-ui/react';
-import { extractColors, NFTItem, resolveImage, Style } from '@splicenft/common';
+import { NFTItem, resolveImage, Style } from '@splicenft/common';
+import { extractColors, LoadImageBrowser } from '@splicenft/colors';
 import { useWeb3React } from '@web3-react/core';
 import { RGB } from 'get-rgba-palette';
 import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
@@ -102,7 +103,7 @@ export const CreativePanel = ({
       const target: HTMLImageElement = (event.target ||
         event.currentTarget) as HTMLImageElement;
 
-      extractColors(target, xOptions)
+      extractColors(target, LoadImageBrowser, xOptions)
         .then(onExtracted)
         .catch((e: any) => {
           console.debug(
@@ -111,7 +112,7 @@ export const CreativePanel = ({
           );
           //console.log(event);
           //try again with plain source
-          extractColors(target.src, xOptions)
+          extractColors(target.src, LoadImageBrowser, xOptions)
             .then(onExtracted)
             .catch((e) => {
               console.error(

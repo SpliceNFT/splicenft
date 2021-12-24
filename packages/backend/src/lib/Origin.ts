@@ -1,6 +1,5 @@
 import {
   ERC721,
-  extractPalette,
   ipfsGW,
   NFTMetaData,
   ProvenanceOrigin,
@@ -8,24 +7,14 @@ import {
   RGB,
   Splice
 } from '@splicenft/common';
-import { extractPaletteFromSvg } from '@splicenft/common/build/img';
 import axios from 'axios';
 import { BigNumberish } from 'ethers';
-import FileType from 'file-type';
-import { GetPixels } from './GetPixels';
 
-export async function extractOriginImage(originImageUrl: string) {
-  const axiosResponse = await axios.get(originImageUrl, {
-    responseType: 'arraybuffer'
-  });
-
-  const originalImageData: Buffer = await axiosResponse.data;
-
-  const filetype = await FileType.fromBuffer(originalImageData);
-  if (!filetype) throw new Error("can't read original nft file");
-
-  return GetPixels(filetype.mime, originalImageData);
-}
+import {
+  LoadImageNode,
+  extractColors,
+  extractPaletteFromSvg
+} from '@splicenft/colors';
 
 export async function getOriginMetadata(
   erc721: ERC721,
@@ -49,8 +38,7 @@ export async function extractOriginFeatures(
   const originImageUrl = resolveImage(originMetadata);
   let palette: RGB[] = [];
   if (originImageUrl) {
-    const originPixels = await extractOriginImage(originImageUrl);
-    palette = extractPalette(new Uint8Array(originPixels));
+    palette = await extractColors(originImageUrl, LoadImageNode, {});
   } else if (originMetadata.image_data) {
     //todo: this is not necessarily an svg ;)
     palette = extractPaletteFromSvg(originMetadata.image_data);

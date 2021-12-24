@@ -35,12 +35,12 @@
   },
   "dependencies": {
     "@splicenft/contracts": "workspace:*",
+    "@splicenft/colors": "workspace:*",
     "axios": "^0.21.4",
     "base64-js": "^1.5.1",
     "ethers": "^5.5.2",
     "get-rgba-palette": "^2.0.1",
     "hex-rgb": "^4.3.0",
-    "image-to-colors": "^1.0.2",
     "multiformats": "^9.5.4",
     "p5": "1.1.9",
     "rgb-hex": "^4.0.0"
