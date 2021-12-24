@@ -91,3 +91,30 @@ function reOrderColorsDarkestToLightest(colors){
 function getRGBSum(this_color){
   return(red(this_color)+green(this_color)+blue(this_color))
 }
+
+
+/**
+ * getLikeColor() calculates a color that's more or less saturated than the input color. 
+ * This function may be helpful if an input NFT is only 2 colors, 
+ * and you'd like to add a few in between shades to the palette array.
+ */
+function getLikeColor(a_color){
+  let its_red = red(a_color)
+  let its_green = green(a_color)
+  let its_blue = blue(a_color)
+  let total_colors =its_red+its_green+its_blue;
+  if(total_colors==0){
+    //if it's black, need to set so that total isn't zero
+    its_red=10; its_green = 10; its_blue = 10;
+    total_colors =its_red+its_green+its_blue;
+  }
+  //if it's a light color, get a like color that's darker
+  let new_total_colors = int(random(0,(255*3)));
+  //set same proportions of each color in the old color for the new color
+  let new_color = color(  
+    ((its_red*new_total_colors)/total_colors),
+    ((its_green*new_total_colors)/total_colors),
+    ((its_blue*new_total_colors)/total_colors)
+  );
+  return new_color;
+}
