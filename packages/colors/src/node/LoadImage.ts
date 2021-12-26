@@ -2,7 +2,7 @@ import { PNG } from 'pngjs';
 import JPEG from 'jpeg-js';
 import { GifReader } from 'omggif';
 import axios from 'axios';
-import FileType from 'file-type';
+import FileType, { FileTypeResult } from 'file-type';
 import { ImageLoader } from '../types/ImageLoader';
 
 /**
@@ -53,6 +53,13 @@ export async function readImage(
       throw new Error('Unsupported file type: ' + mimeType);
   }
 }
+export const getFileType = async (
+  originalImageData: Buffer
+): Promise<FileTypeResult> => {
+  const filetype = await FileType.fromBuffer(originalImageData);
+  if (!filetype) throw new Error("can't read original nft file");
+  return filetype;
+};
 
 export const LoadImage: ImageLoader = async (
   image: string | HTMLImageElement,
@@ -69,9 +76,7 @@ export const LoadImage: ImageLoader = async (
   });
 
   const originalImageData: Buffer = await axiosResponse.data;
-
-  const filetype = await FileType.fromBuffer(originalImageData);
-  if (!filetype) throw new Error("can't read original nft file");
+  const filetype = await getFileType(originalImageData);
 
   return readImage(filetype.mime, originalImageData);
 };

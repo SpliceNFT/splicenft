@@ -1,0 +1,20 @@
+<html>
+	<head></head>
+	<body>
+		{% for img in images %}
+			<div style="margin-bottom: 10px;">
+				<img src="{{img.file}}" width="200"/>
+				<div style="display:flex;">
+					{% for col in img.hex %}
+						<div style="background-color:{{col}};width:40px;" title="{{img.extracted[loop.index].ratio}}">&nbsp;</div>
+					{% endfor %}
+				</div>
+				<div style="display:flex;">
+					{% for col in img.old %}
+						<div style="background-color:{{col}};width:40px;" title="">&nbsp;</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endfor %}
+	</body>
+</html>

@@ -2,7 +2,8 @@
   "name": "@splicenft/cli",
   "version": "1.0.0",
   "description": "",
-  "main": "./build/index.js",
+  "exports": "./build/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc -p .",
     "dev": "tsc -p . --watch",
@@ -21,6 +22,8 @@
     "commander": "^8.2.0",
     "dotenv-flow": "^3.2.0",
     "ora": "v5.4.1",
+    "rgb-hex": "^4.0.0",
+    "twing": "^5.1.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {
