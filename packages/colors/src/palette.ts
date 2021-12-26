@@ -1,47 +1,28 @@
-import Group from './group';
+import * as iq from 'image-q';
+import { i32ToRGB } from './helpers';
+import { RGB } from './types/RGB';
 
-type ExtractOptions = {
-  pixels?: number;
-  distance?: number;
-  saturationWeight?: number;
-  accuracy?: number;
-};
+export function palette(
+  rgba: number[],
+  dims: { w: number; h: number },
+  amount = 10
+): RGB[] {
+  const pointContainer = iq.utils.PointContainer.fromUint8Array(
+    rgba,
+    dims.w,
+    dims.h
+  );
+  const distanceCalculator = new iq.distance.EuclideanBT709NoAlpha();
+  const paletteQuantizer = new iq.palette.WuQuant(distanceCalculator, amount);
+  paletteQuantizer.sample(pointContainer);
+  const qPalette = paletteQuantizer.quantizeSync();
 
-export function palette(options?: ExtractOptions) {
-  const { pixels, distance, saturationWeight, accuracy }: ExtractOptions = {
-    pixels: 200000,
-    distance: 0.2,
-    saturationWeight: 0.2,
-    accuracy: 10,
-    ...options
-  };
+  const quantizedImage = iq.applyPaletteSync(pointContainer, qPalette, {
+    colorDistanceFormula: 'euclidean-bt709-noalpha',
+    imageQuantization: 'nearest'
+  });
 
-  return (rgba: number[]) => {
-    const root = new Group();
-
-    for (let i = 0; i < rgba.length; i += 4) {
-      const r = rgba[i];
-      const g = rgba[i + 1];
-      const b = rgba[i + 2];
-      const a = rgba[i + 3];
-
-      if (a > 250) {
-        const loose =
-          (((r >> 4) & 0xf) << 2) | (((g >> 4) & 0xf) << 1) | ((b >> 4) & 0xf);
-        const narrow =
-          Math.round((r * (accuracy - 1)) / 255) * (accuracy * accuracy) +
-          Math.round((g * (accuracy - 1)) / 255) * accuracy +
-          Math.round((b * (accuracy - 1)) / 255);
-
-        const gNarrow = root.addGroup(narrow);
-
-        const gLoose = gNarrow && gNarrow.addGroup(loose);
-        gLoose && gLoose.addColor(r, g, b);
-      }
-    }
-
-    const colors = root.getColors(distance, saturationWeight, pixels);
-    colors.sort((c1, c2) => c2.ratio(pixels) - c1.ratio(pixels));
-    return colors.map((color) => color.asStruct(pixels));
-  };
+  const histogram = new iq.palette.ColorHistogram(2, amount);
+  histogram.sample(quantizedImage);
+  return histogram.getImportanceSortedColorsIDXI32().map(i32ToRGB);
 }

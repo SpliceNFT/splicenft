@@ -1,20 +1,13 @@
 #!/usr/bin/env node
 
-import {
-  extractColors,
-  LoadImageNode,
-  readImage,
-  getFileType,
-  palette,
-  extractPaletteOld
-} from '@splicenft/colors';
+import { extractColors, LoadImageNode } from '@splicenft/colors';
+import { rgbHex } from '@splicenft/common';
 import { Command } from 'commander';
 import { config as dotenvConfig } from 'dotenv-flow';
 import fs from 'fs';
 import { TwingEnvironment, TwingLoaderFilesystem } from 'twing';
 import { logColors } from './logColors.js';
-import rgbHex from 'rgb-hex';
-import { RGB } from '@splicenft/common';
+
 dotenvConfig();
 
 const program = new Command();
@@ -37,32 +30,37 @@ program.command('colors <imgurl>').action(async (imgUrl: string) => {
 });
 
 const xcol = async (file: string) => {
+  if (file.endsWith('.html')) return null;
   try {
-    const bin = await fs.promises.readFile(`./data/${file}`);
-    const ft = await getFileType(bin);
-    const flatPixels = Array.from(await readImage(ft.mime, bin));
-    const extracted = palette({
-      saturationWeight: 0.4,
-      distance: 0.125,
-      pixels: flatPixels.length / 16,
-      accuracy: 12
-    })(flatPixels);
-    const old = extractPaletteOld(flatPixels);
+    const palette = await extractColors(`./data/${file}`, LoadImageNode, {});
+
+    // const scaledRgba = await pica().resizeBuffer({
+    //   src: img.rgb,
+    //   width: img.dims.w,
+    //   height: img.dims.h,
+    //   toWidth: 300,
+    //   toHeight: Math.floor((300 * img.dims.h) / img.dims.w)
+    // });
+    // await writePngFile(
+    //   `./data/scaled/${file}.png`,
+    //   Buffer.from(quantizedImage.toUint8Array()),
+    //   {
+    //     width: quantizedImage.getWidth(),
+    //     height: quantizedImage.getHeight()
+    //   }
+    // );
 
     return {
       file,
-      extracted,
-      colors: extracted.map((x) => [x.red, x.green, x.blue] as RGB),
-      hex: extracted.map((x) => rgbHex(x.red, x.green, x.blue)),
-      old: old.map((x) => rgbHex(x[0], x[1], x[2]))
+      hex: palette.map((x) => rgbHex(x[0], x[1], x[2]))
     };
   } catch (e: any) {
     console.error(`${file}: ${e.message}`);
-    return { file, extracted: [], colors: [], hex: [] };
+    return { file, hex: [] };
   }
 };
 
-program.command('all').action(async (csv: string) => {
+program.command('all').action(async () => {
   const loader = new TwingLoaderFilesystem('src');
   const twing = new TwingEnvironment(loader);
 
@@ -70,12 +68,9 @@ program.command('all').action(async (csv: string) => {
   const promises = files.map(xcol);
 
   const images = await Promise.all(promises);
-  //images.map((img) => logColors(img.colors));
 
   const rendered = await twing.render('multi.twig', { images });
   await fs.promises.writeFile('./data/out.html', rendered);
-
-  // const colors = await extractColors(imgUrl, LoadImageNode, {});
 });
 
 program.parseAsync(process.argv);

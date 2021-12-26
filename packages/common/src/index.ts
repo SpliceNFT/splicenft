@@ -37,3 +37,4 @@ export function erc721Enumerable(
 }
 
 export { AllowlistTypes, verifyAllowlistEntry } from './allowlists';
+export { default as rgbHex } from './rgbhex';

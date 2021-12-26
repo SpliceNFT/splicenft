@@ -89,7 +89,9 @@ importers:
       chalk: ^4.1.2
       commander: ^8.2.0
       dotenv-flow: ^3.2.0
+      node-libpng: ^0.2.20
       ora: v5.4.1
+      pica: ^9.0.1
       rgb-hex: ^4.0.0
       ts-node: ^10.2.1
       ts-node-dev: ^1.1.8
@@ -103,7 +105,9 @@ importers:
       chalk: 4.1.2
       commander: 8.2.0
       dotenv-flow: 3.2.0
+      node-libpng: 0.2.20
       ora: 5.4.1
+      pica: 9.0.1
       rgb-hex: 4.0.0
       twing: 5.1.0
       winston: 3.3.3
@@ -116,15 +120,15 @@ importers:
 
   packages/colors:
     specifiers:
-      '@types/get-image-colors': ^4.0.1
       '@types/omggif': ^1.0.2
       '@types/pngjs': ^6.0.1
       axios: ^0.21.4
       base64-js: ^1.5.1
       ethers: ^5.5.2
       file-type: ^16.5.3
-      get-rgba-palette: ^2.0.1
       hex-rgb: ^4.3.0
+      image-q: ^3.0.5
+      image-size: ^1.0.0
       image-to-colors: ^1.0.2
       jpeg-js: ^0.4.3
       omggif: ^1.0.10
@@ -140,15 +144,15 @@ importers:
       base64-js: 1.5.1
       ethers: 5.5.2
       file-type: 16.5.3
-      get-rgba-palette: 2.0.1
       hex-rgb: 4.3.0
+      image-q: 3.0.5
+      image-size: 1.0.0
       image-to-colors: 1.0.2
       jpeg-js: 0.4.3
       omggif: 1.0.10
       pngjs: 6.0.0
       rgb-hex: 4.0.0
     devDependencies:
-      '@types/get-image-colors': 4.0.1
       ts-node: 10.4.0_b3a7f6bd19533882c6d6c932b265dde1
       ts-node-dev: 1.1.8_typescript@4.4.4
       typescript: 4.4.4
@@ -4810,13 +4814,6 @@ packages:
       '@types/node': 16.10.3
     dev: true
 
-  /@types/get-image-colors/4.0.1:
-    resolution: {integrity: sha512-SJw1xtewG0w9btZqeG8evQpvSvo7Hp12cPRUi5XouM7sfe/CcvkSk8x8u2XDLwc2UIW2D7qrf/iffv9dJmSVsQ==}
-    dependencies:
-      '@types/chroma-js': 2.1.3
-      '@types/node': 17.0.0
-    dev: true
-
   /@types/glob/7.1.4:
     resolution: {integrity: sha512-w+LsMxKyYQm347Otw+IfBXOv9UWVjpHpCDdbBMt8Kz/xbvCYNjP+0qPh91Km3iKfSRLBB0P7fAMf0KHrPu+MyA==}
     dependencies:
@@ -4944,6 +4941,10 @@ packages:
 
   /@types/node/16.10.3:
     resolution: {integrity: sha512-ho3Ruq+fFnBrZhUYI46n/bV2GjwzSkwuT4dTf0GkuNFmnb8nq4ny2z9JEVemFi6bdEJanHLlYfy9c6FN9B9McQ==}
+
+  /@types/node/16.9.1:
+    resolution: {integrity: sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==}
+    dev: false
 
   /@types/node/16.9.2:
     resolution: {integrity: sha512-ZHty/hKoOLZvSz6BtP1g7tc7nUeJhoCf3flLjh8ZEv1vFKBWHXcnMbJMyN/pftSljNyy0kNW/UqI3DccnBnZ8w==}
@@ -6502,7 +6503,7 @@ packages:
   /axios/0.24.0:
     resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
-      follow-redirects: 1.14.4
+      follow-redirects: 1.14.4_debug@4.3.2
     transitivePeerDependencies:
       - debug
     dev: false
@@ -11385,16 +11386,6 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /follow-redirects/1.14.4:
-    resolution: {integrity: sha512-zwGkiSXC1MUJG/qmeIFH2HBJx9u0V46QGUe3YR1fXG8bXQxq7fLj0RjLZQ5nubr9qNJUZrH+xUcwXEoXNpfS+g==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dev: false
-
   /follow-redirects/1.14.4_debug@4.3.2:
     resolution: {integrity: sha512-zwGkiSXC1MUJG/qmeIFH2HBJx9u0V46QGUe3YR1fXG8bXQxq7fLj0RjLZQ5nubr9qNJUZrH+xUcwXEoXNpfS+g==}
     engines: {node: '>=4.0'}
@@ -12007,6 +11998,10 @@ packages:
       yargs-parser: 16.1.0
     transitivePeerDependencies:
       - debug
+    dev: false
+
+  /glur/1.1.2:
+    resolution: {integrity: sha1-8g6jbbEDv8KSNDkh8fkeg8NGdok=}
     dev: false
 
   /got/7.1.0:
@@ -12703,6 +12698,20 @@ packages:
   /ignore/5.1.8:
     resolution: {integrity: sha512-BMpfD7PpiETpBl/A6S498BaIJ6Y/ABT93ETbby2fP00v4EbvPBXWEoaR1UBPKs3iR53pJY7EtZk5KACI57i1Uw==}
     engines: {node: '>= 4'}
+
+  /image-q/3.0.5:
+    resolution: {integrity: sha512-VtfoYxlEhcSmOq7EEbwp6XbjaWrwAZkT0c6TrTNzIzrLEyq3WZNvWZ7RqXV1P6w4kOAzy4RuLGE1De8FhuyZJA==}
+    dependencies:
+      '@types/node': 16.9.1
+    dev: false
+
+  /image-size/1.0.0:
+    resolution: {integrity: sha512-JLJ6OwBfO1KcA+TvJT+v8gbE6iWbj24LyDNFgFEN0lzegn6cC6a/p3NIDaepMsJjQjlUWqIC7wJv8lBFxPNjcw==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+    dependencies:
+      queue: 6.0.2
+    dev: false
 
   /image-to-colors/1.0.2:
     resolution: {integrity: sha512-3Kdfn96di6Dc0efalD1wGTnKgvsohr3oIRknrQjt7pM2TJFsRef8zxnluybpylapRXytcsPx392wO5N4gYUaSA==}
@@ -17064,6 +17073,13 @@ packages:
       uint8arrays: 3.0.0
     dev: false
 
+  /multimath/2.0.0:
+    resolution: {integrity: sha512-toRx66cAMJ+Ccz7pMIg38xSIrtnbozk0dchXezwQDMgQmbGpfxjtv68H+L00iFL8hxDaVjrmwAFSb3I6bg8Q2g==}
+    dependencies:
+      glur: 1.1.2
+      object-assign: 4.1.1
+    dev: false
+
   /multistream-select/2.0.1:
     resolution: {integrity: sha512-ziVNT/vux0uUElP4OKNMVr0afU/X6PciAmT2UJNolhzhSLXIwFAaYfmLajD8NoZ+DsBQ1bp0zZ2nMVPF+FhClA==}
     dependencies:
@@ -17330,6 +17346,13 @@ packages:
 
   /node-int64/0.4.0:
     resolution: {integrity: sha1-h6kGXNs1XTGC2PlM4RGIuCXGijs=}
+    dev: false
+
+  /node-libpng/0.2.20:
+    resolution: {integrity: sha512-2r6y7Z3svNlSip+Dwper6NeuUgI5BDEeI/1daZI4X+VKpOFS6ymhU3kIPZpzN+5qusYOw/grJGfSRoZdBhyx2A==}
+    requiresBuild: true
+    dependencies:
+      request: 2.88.2
     dev: false
 
   /node-libs-browser/2.2.1:
@@ -18404,6 +18427,15 @@ packages:
 
   /performance-now/2.1.0:
     resolution: {integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=}
+
+  /pica/9.0.1:
+    resolution: {integrity: sha512-v0U4vY6Z3ztz9b4jBIhCD3WYoecGXCQeCsYep+sXRefViL+mVVoTL+wqzdPeE+GpBFsRUtQZb6dltvAt2UkMtQ==}
+    dependencies:
+      glur: 1.1.2
+      multimath: 2.0.0
+      object-assign: 4.1.1
+      webworkify: 1.5.0
+    dev: false
 
   /picomatch/2.3.0:
     resolution: {integrity: sha512-lY1Q/PiJGC2zOv/z391WOTD+Z02bCgsFfvxoXXf6h7kv9o+WmsmzYqrAwY63sNgOxE4xEdq0WyUnXfKeBrSvYw==}
@@ -19723,6 +19755,12 @@ packages:
 
   /queue-microtask/1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  /queue/6.0.2:
+    resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
+    dependencies:
+      inherits: 2.0.4
+    dev: false
 
   /quick-lru/4.0.1:
     resolution: {integrity: sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g==}
@@ -24433,6 +24471,10 @@ packages:
       utf-8-validate: 5.0.5
       yaeti: 0.0.6
     dev: true
+
+  /webworkify/1.5.0:
+    resolution: {integrity: sha512-AMcUeyXAhbACL8S2hqqdqOLqvJ8ylmIbNwUIqQujRSouf4+eUFaXbG6F1Rbu+srlJMmxQWsiU7mOJi0nMBfM1g==}
+    dev: false
 
   /whatwg-encoding/1.0.5:
     resolution: {integrity: sha512-b5lim54JOPN9HtzvK9HFXvBma/rnfFeqsic0hSpjtDbVxR3dJKLc+KB4V6GgiGOvl7CY/KNh8rxSo9DKQrnUEw==}

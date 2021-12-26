@@ -3,7 +3,9 @@ import JPEG from 'jpeg-js';
 import { GifReader } from 'omggif';
 import axios from 'axios';
 import FileType, { FileTypeResult } from 'file-type';
-import { ImageLoader } from '../types/ImageLoader';
+import { ImageLoader, ImageLoaderResult } from '../types/ImageLoader';
+import sizeOf from 'image-size';
+import fs from 'fs';
 
 /**
  * a much simpler version of https://github.com/scijs/get-pixels
@@ -57,7 +59,7 @@ export const getFileType = async (
   originalImageData: Buffer
 ): Promise<FileTypeResult> => {
   const filetype = await FileType.fromBuffer(originalImageData);
-  if (!filetype) throw new Error("can't read original nft file");
+  if (!filetype) throw new Error("can't read original file");
   return filetype;
 };
 
@@ -66,17 +68,33 @@ export const LoadImage: ImageLoader = async (
   options: {
     proxy?: string;
   }
-): Promise<Uint8Array> => {
+): Promise<ImageLoaderResult> => {
   if ('object' === typeof image) {
     throw new Error('doesnt work in node environments');
   }
+  let originalImageData: Buffer | undefined = undefined;
 
-  const axiosResponse = await axios.get<Buffer>(image, {
-    responseType: 'arraybuffer'
-  });
+  if (fs.existsSync(image)) {
+    originalImageData = await fs.promises.readFile(image);
+  } else {
+    const axiosResponse = await axios.get<Buffer>(image, {
+      responseType: 'arraybuffer'
+    });
+    originalImageData = await axiosResponse.data;
+  }
 
-  const originalImageData: Buffer = await axiosResponse.data;
+  if (!originalImageData) {
+    throw new Error('couldnt read image data');
+  }
+
   const filetype = await getFileType(originalImageData);
+  const size = sizeOf(originalImageData);
+  if (!size.width || !size.height) {
+    throw new Error(`couldn't read image size of ${image}`);
+  }
 
-  return readImage(filetype.mime, originalImageData);
+  return {
+    dims: { w: size.width, h: size.height },
+    rgb: await readImage(filetype.mime, originalImageData)
+  };
 };

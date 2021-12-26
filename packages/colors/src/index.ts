@@ -1,9 +1,8 @@
-import { default as paletteOld, RGB } from 'get-rgba-palette';
-import type { ImageLoader } from './types/ImageLoader';
-
-import { default as hexRgb } from 'hex-rgb';
 import b64 from 'base64-js';
+import { default as hexRgb } from 'hex-rgb';
 import { palette } from './palette';
+import type { ImageLoader } from './types/ImageLoader';
+import { RGB } from './types/RGB';
 
 const SVG_DATA_PREFIX = 'data:image/svg+xml;';
 
@@ -31,26 +30,9 @@ export const extractPaletteFromSvg = (svg: string): RGB[] => {
     .map((hx): RGB => hexRgb(hx, { format: 'array' }).slice(0, 3) as RGB);
 };
 
-/// the old implementation
-/// @deprecated
-export const extractPaletteOld = (flatPixels: number[] | Uint8Array): RGB[] => {
-  return paletteOld(flatPixels, 10);
-};
-
-export const extractPalette = async (flatPixels: number[]): Promise<RGB[]> => {
-  const result = palette({
-    saturationWeight: 0,
-    distance: 0.2,
-    pixels: flatPixels.length / 4,
-    accuracy: 12
-  })(flatPixels);
-  //console.log(result);
-  return result.map((c) => [c.red, c.green, c.blue]); //.slice(0, 10);
-};
-
 export const extractColors = async (
   image: string | HTMLImageElement,
-  GetPixels: ImageLoader,
+  LoadImage: ImageLoader,
   options: {
     proxy?: string;
   }
@@ -69,15 +51,17 @@ export const extractColors = async (
     }
     return extractPaletteFromSvg(dataUrl);
   } else {
-    const px = await GetPixels(image, options);
-    return extractPalette(Array.from(px));
+    const img = await LoadImage(image, options);
+    return palette(Array.from(img.rgb), img.dims);
   }
 };
 
 export { LoadImage as LoadImageBrowser } from './browser/LoadImage';
 export {
+  getFileType,
   LoadImage as LoadImageNode,
-  readImage,
-  getFileType
+  readImage
 } from './node/LoadImage';
 export { palette };
+
+export { RGB, RGBA } from './types/RGB';

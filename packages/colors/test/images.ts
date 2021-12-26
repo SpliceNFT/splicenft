@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
-import { extractColors } from '../src';
+
 describe('Color extraction', function () {
   it('works with unencoded SVG strings #131', async function () {
     const plainSvg = readFileSync('./test/plain.svg', { encoding: 'utf-8' });
