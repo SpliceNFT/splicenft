@@ -1,5 +1,6 @@
 import { Flex } from '@chakra-ui/react';
-import { RGB } from 'get-rgba-palette';
+import { RGB } from '@splicenft/common';
+
 import React from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 

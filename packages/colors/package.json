@@ -20,7 +20,7 @@
     "ethers": "^5.5.2",
     "file-type": "^16.5.3",
     "hex-rgb": "^4.3.0",
-    "image-q": "^3.0.5",
+    "image-q": "^2.1.2",
     "image-size": "^1.0.0",
     "image-to-colors": "^1.0.2",
     "jpeg-js": "^0.4.3",

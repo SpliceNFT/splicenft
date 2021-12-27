@@ -14,17 +14,18 @@ import {
   erc721,
   NFTItem,
   resolveImage,
+  RGB,
   Splice,
   SpliceNFT,
   Style,
   TokenProvenance
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { RGB } from 'get-rgba-palette';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
+import getDominantColors from '../../modules/colors';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { AddToAllowlistButton } from '../molecules/AddToAllowlistButton';
@@ -136,6 +137,11 @@ export const NFTPage = () => {
     setSketch(dataUrl);
   }, []);
 
+  useEffect(() => {
+    if (!chainId) return;
+    getDominantColors(chainId, collection, tokenId).then(setDominantColors);
+  }, [chainId]);
+
   const onMinted = useCallback(
     async (provenance: TokenProvenance) => {
       if (!splice) {
@@ -181,7 +187,7 @@ export const NFTPage = () => {
             style={selectedStyle}
             randomness={randomness}
             onSketched={onSketched}
-            onDominantColors={setDominantColors}
+            dominantColors={dominantColors}
           />
 
           <Flex

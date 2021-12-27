@@ -1,6 +1,6 @@
 import { ProvenanceOrigin } from '..';
 import { NFTMetaData } from './NFT';
-import { RGB } from './Renderers';
+import { RGB } from '@splicenft/colors';
 
 /**
  * metadata structure of Splice NFTs

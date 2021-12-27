@@ -1,5 +1,5 @@
+import { RGB } from '@splicenft/colors';
 import chalk from 'chalk';
-import { RGB } from '@splicenft/common';
 
 export function logColors(palette: RGB[]) {
   palette.forEach((h) => {

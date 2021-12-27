@@ -13,7 +13,7 @@ export { OnChain } from './indexers/OnChain';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
 export * as Transfer from './types/TransferObjects';
-
+export { RGB } from '@splicenft/colors';
 import {
   ERC721,
   ERC721Enumerable,

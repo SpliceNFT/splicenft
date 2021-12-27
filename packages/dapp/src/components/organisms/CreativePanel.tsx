@@ -1,9 +1,8 @@
 import { Container, Image } from '@chakra-ui/react';
-import { NFTItem, resolveImage, Style } from '@splicenft/common';
-import { extractColors, LoadImageBrowser } from '@splicenft/colors';
+import { NFTItem, resolveImage, RGB, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { RGB } from 'get-rgba-palette';
-import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
@@ -70,67 +69,20 @@ export const CreativePanel = ({
   onSketched,
   randomness,
   style,
-  onDominantColors
+  dominantColors
 }: {
   nftItem: NFTItem;
   onSketched: (dataUrl: string) => void;
   randomness: number;
   spliceDataUrl?: string;
   style: Style | undefined;
-  onDominantColors?: (colors: RGB[]) => void;
+  dominantColors: RGB[];
 }) => {
-  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
-
-  const nftExtractedProps: {
-    randomness: number;
-    dominantColors: RGB[];
-  } = {
-    randomness,
-    dominantColors
-  };
-
-  const onNFTImageLoaded = useCallback(
-    (event: SyntheticEvent<HTMLImageElement, Event>): void => {
-      if (spliceDataUrl || dominantColors?.length > 0) return;
-
-      const xOptions = {
-        proxy: process.env.REACT_APP_CORS_PROXY
-      };
-      const onExtracted = (colors: RGB[]) => {
-        setDominantColors(colors);
-        if (onDominantColors) onDominantColors(colors);
-      };
-      const target: HTMLImageElement = (event.target ||
-        event.currentTarget) as HTMLImageElement;
-
-      extractColors(target, LoadImageBrowser, xOptions)
-        .then(onExtracted)
-        .catch((e: any) => {
-          console.debug(
-            'extracting failed, trying again with image source url. Reason:',
-            e.message
-          );
-          //console.log(event);
-          //try again with plain source
-          extractColors(target.src, LoadImageBrowser, xOptions)
-            .then(onExtracted)
-            .catch((e) => {
-              console.error(
-                'fetching image data ultimatively failed: ',
-                e.message
-              );
-            });
-        });
-    },
-    [dominantColors, spliceDataUrl]
-  );
-
   const nftImage = (
     <FallbackImage
       boxShadow="lg"
       imgUrl={resolveImage(nftItem.metadata)}
       metadata={nftItem.metadata}
-      onNFTImageLoaded={onNFTImageLoaded}
     />
   );
 
@@ -139,7 +91,10 @@ export const CreativePanel = ({
       <Preview
         nftImage={nftImage}
         onSketched={onSketched}
-        nftExtractedProps={nftExtractedProps}
+        nftExtractedProps={{
+          randomness,
+          dominantColors
+        }}
         style={style}
       />
     );

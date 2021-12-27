@@ -4,7 +4,6 @@ import {
   NFTMetaData,
   ProvenanceOrigin,
   resolveImage,
-  RGB,
   Splice
 } from '@splicenft/common';
 import axios from 'axios';
@@ -13,7 +12,8 @@ import { BigNumberish } from 'ethers';
 import {
   LoadImageNode,
   extractColors,
-  extractPaletteFromSvg
+  extractPaletteFromSvg,
+  RGB
 } from '@splicenft/colors';
 
 export async function getOriginMetadata(

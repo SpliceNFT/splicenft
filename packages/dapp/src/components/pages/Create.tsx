@@ -10,13 +10,12 @@ import {
   Textarea,
   useToast
 } from '@chakra-ui/react';
-import { NFTItem, resolveImage, Splice } from '@splicenft/common';
-import { RGB } from 'get-rgba-palette';
+import { NFTItem, RGB, Splice } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 import { useSplice } from '../../context/SpliceContext';
 import { FallbackImage } from '../atoms/FallbackImage';
-import { DominantColors } from '../molecules/DominantColors';
+import { DominantColorsDisplay } from '../molecules/DominantColors';
 
 const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
   const [collection, setCollection] = useState<string>();
@@ -159,11 +158,7 @@ export const CreatePage = () => {
       {nftItem && (
         <Flex my={4} align="center" gridGap={3}>
           <Flex flex="1">
-            <DominantColors
-              imageUrl={resolveImage(nftItem.metadata)}
-              dominantColors={dominantColors}
-              setDominantColors={setDominantColors}
-            />
+            <DominantColorsDisplay colors={dominantColors} />
           </Flex>
           <Flex flex="1">
             <Text>

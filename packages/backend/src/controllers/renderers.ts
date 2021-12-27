@@ -1,4 +1,4 @@
-import { RGB } from '@splicenft/common';
+import { RGB } from '@splicenft/colors';
 import { Request, Response } from 'express';
 import Artwork from '../lib/Artwork';
 import ImageCallback from '../lib/ImageCallback';
