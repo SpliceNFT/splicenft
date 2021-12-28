@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { extractColors, LoadImageNode } from '@splicenft/colors';
-import { rgbHex } from '@splicenft/common';
+import { extractColors, LoadImageNode, rgbToHex } from '@splicenft/colors';
+
 import { Command } from 'commander';
 import { config as dotenvConfig } from 'dotenv-flow';
 import fs from 'fs';
@@ -25,14 +25,14 @@ program.version('0.0.1').name('nft');
 //   });
 
 program.command('colors <imgurl>').action(async (imgUrl: string) => {
-  const colors = await extractColors(imgUrl, LoadImageNode, {});
-  logColors(colors);
+  const histogram = await extractColors(imgUrl, LoadImageNode, {});
+  logColors(histogram.map((h) => h.rgb));
 });
 
 const xcol = async (file: string) => {
   if (file.endsWith('.html')) return null;
   try {
-    const palette = await extractColors(`./data/${file}`, LoadImageNode, {});
+    const histogram = await extractColors(`./data/${file}`, LoadImageNode, {});
 
     // const scaledRgba = await pica().resizeBuffer({
     //   src: img.rgb,
@@ -52,11 +52,11 @@ const xcol = async (file: string) => {
 
     return {
       file,
-      hex: palette.map((x) => rgbHex(x[0], x[1], x[2]))
+      histogram
     };
   } catch (e: any) {
     console.error(`${file}: ${e.message}`);
-    return { file, hex: [] };
+    return { file, histogram: [] };
   }
 };
 

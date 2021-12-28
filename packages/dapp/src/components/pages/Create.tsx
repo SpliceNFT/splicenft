@@ -10,7 +10,7 @@ import {
   Textarea,
   useToast
 } from '@chakra-ui/react';
-import { NFTItem, RGB, Splice } from '@splicenft/common';
+import { Histogram, NFTItem, Splice } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 import { useSplice } from '../../context/SpliceContext';
@@ -73,7 +73,7 @@ const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
 const PreviewSketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
-  colors: RGB[];
+  colors: Histogram;
   code: string;
 }) => {
   const { dim, colors, randomness, code } = props;
@@ -121,7 +121,7 @@ const PreviewSketch = (props: {
 
 export const CreatePage = () => {
   const [code, setCode] = useState<string>();
-  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
+  const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
   const [nftItem, setNFTItem] = useState<NFTItem>();
   const [randomness, setRandomness] = useState<number>(0);

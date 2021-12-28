@@ -27,7 +27,7 @@ export default async function Artwork(
   Render(
     renderer,
     {
-      colors: spliceMetadata.splice.colors,
+      colors: spliceMetadata.splice.colors.map((c) => c.rgb),
       dim: { w: 1500, h: 500 },
       randomness: spliceMetadata.splice.randomness
     },

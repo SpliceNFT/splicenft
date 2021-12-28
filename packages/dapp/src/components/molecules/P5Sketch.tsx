@@ -33,7 +33,9 @@ export const P5Sketch = (props: {
     p5.draw = () => {
       if (!renderer) return;
 
+      //the most important line in Splice:
       renderer({ p5, colors, dim });
+
       p5.noLoop();
       if (onSketched) {
         const canvas = (p5 as any).canvas as HTMLCanvasElement;

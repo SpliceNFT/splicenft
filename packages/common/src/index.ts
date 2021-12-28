@@ -13,7 +13,7 @@ export { OnChain } from './indexers/OnChain';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
 export * as Transfer from './types/TransferObjects';
-export { RGB } from '@splicenft/colors';
+export { RGB, Histogram, rgbToHex } from '@splicenft/colors';
 import {
   ERC721,
   ERC721Enumerable,
@@ -37,4 +37,3 @@ export function erc721Enumerable(
 }
 
 export { AllowlistTypes, verifyAllowlistEntry } from './allowlists';
-export { default as rgbHex } from './rgbhex';

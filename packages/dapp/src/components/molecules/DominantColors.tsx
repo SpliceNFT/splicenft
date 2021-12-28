@@ -1,19 +1,23 @@
 import { Flex, IconButton, Skeleton, useClipboard } from '@chakra-ui/react';
-import { RGB } from '@splicenft/common';
+import { Histogram } from '@splicenft/common';
 import React from 'react';
 import { FaRegCopy } from 'react-icons/fa';
-import rgbHex from 'rgb-hex';
 
-export const DominantColorsDisplay = ({ colors }: { colors: RGB[] }) => {
+export const DominantColorsDisplay = ({ colors }: { colors: Histogram }) => {
   const { hasCopied, onCopy } = useClipboard(JSON.stringify(colors));
 
   return (
     <Skeleton isLoaded={colors.length > 0} w="70%" size="lg">
       <Flex direction="row" align="center" height="1.5em" gridGap={0}>
         {colors.map((color) => {
-          const colorHex = `#${rgbHex(color[0], color[1], color[2])}`;
+          const colorHex = `#${color.hex}`;
           return (
-            <Flex key={colorHex} flex="1" background={colorHex}>
+            <Flex
+              key={colorHex}
+              flex="1"
+              background={colorHex}
+              title={`${(100 * color.freq).toFixed(2)}%`}
+            >
               &nbsp;
             </Flex>
           );

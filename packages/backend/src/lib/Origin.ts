@@ -1,11 +1,10 @@
-import { extractColors, LoadImageNode, RGB } from '@splicenft/colors';
+import { extractColors, Histogram, LoadImageNode } from '@splicenft/colors';
 import {
   ERC721,
   ipfsGW,
   NFTMetaData,
   ProvenanceOrigin,
   resolveImage,
-  rgbHex,
   Splice,
   Transfer
 } from '@splicenft/common';
@@ -35,9 +34,9 @@ export async function extractOriginFeatures(
 ): Promise<Transfer.OriginFeatures> {
   const originImageUrl =
     resolveImage(originMetadata) || originMetadata.image_data;
-  let palette: RGB[] = [];
+  let colors: Histogram = [];
   if (originImageUrl) {
-    palette = await extractColors(originImageUrl, LoadImageNode, {});
+    colors = await extractColors(originImageUrl, LoadImageNode, {});
   }
 
   const randomness = Splice.computeRandomness(
@@ -45,10 +44,7 @@ export async function extractOriginFeatures(
     provenanceOrigin.token_id.toString()
   );
   const ret: Transfer.OriginFeatures = {
-    colors: palette.map((c: RGB) => ({
-      rgb: c,
-      hex: rgbHex(c[0], c[1], c[2])
-    })),
+    colors,
     randomness
   };
 

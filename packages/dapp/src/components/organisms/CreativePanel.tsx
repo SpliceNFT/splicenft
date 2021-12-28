@@ -1,7 +1,6 @@
 import { Container, Image } from '@chakra-ui/react';
-import { NFTItem, resolveImage, RGB, Style } from '@splicenft/common';
+import { Histogram, NFTItem, resolveImage, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-
 import React, { useEffect, useState } from 'react';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
@@ -16,7 +15,7 @@ const Preview = ({
   nftImage: React.ReactNode;
   nftExtractedProps: {
     randomness: number;
-    dominantColors: RGB[];
+    dominantColors: Histogram;
   };
   style: Style;
   onSketched: (dataUrl: string) => void;
@@ -41,7 +40,7 @@ const Preview = ({
       <P5Sketch
         randomness={randomness}
         dim={{ w: 1500, h: 500 }}
-        colors={dominantColors}
+        colors={dominantColors.map((c) => c.rgb)}
         onSketched={onSketched}
         code={code}
       />
@@ -76,7 +75,7 @@ export const CreativePanel = ({
   randomness: number;
   spliceDataUrl?: string;
   style: Style | undefined;
-  dominantColors: RGB[];
+  dominantColors: Histogram;
 }) => {
   const nftImage = (
     <FallbackImage

@@ -1,4 +1,4 @@
-import { RGB } from '..';
+import { Histogram } from '..';
 
 export interface UserSplice {
   id: string;
@@ -20,10 +20,7 @@ export interface StyleMetadataResponse {
 }
 
 export interface ColorsResponse {
-  colors: Array<{
-    rgb: RGB;
-    hex: string;
-  }>;
+  colors: Histogram;
 }
 
 export interface OriginFeatures extends ColorsResponse {

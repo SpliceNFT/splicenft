@@ -8,8 +8,8 @@
 				</div>
 
 				<div style="display:flex;">
-					{% for col in img.hex %}
-						<div style="background-color:{{col}};width:40px;" title="#{{col}}">&nbsp;</div>
+					{% for hist in img.histogram %}
+						<div style="background-color:#{{hist.hex}};width:40px;padding:2px;" title="#{{hist.hex}} ">{{ (hist.freq * 100) | round(1)}}</div>
 					{% endfor %}
 				</div>
 

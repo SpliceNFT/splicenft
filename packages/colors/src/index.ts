@@ -3,6 +3,7 @@ import { default as hexRgb } from 'hex-rgb';
 import { palette } from './palette';
 import type { ImageLoader } from './types/ImageLoader';
 import { RGB } from './types/RGB';
+import { Histogram } from './types/Histogram';
 
 const SVG_DATA_PREFIX = 'data:image/svg+xml;';
 
@@ -11,7 +12,7 @@ const SVG_FILL_REGEX = new RegExp(
   'gi'
 );
 
-export const extractPaletteFromSvg = (svg: string): RGB[] => {
+export const extractPaletteFromSvg = (svg: string): Histogram => {
   const matches = svg.matchAll(SVG_FILL_REGEX);
 
   const ret: Record<string, number> = {};
@@ -27,7 +28,11 @@ export const extractPaletteFromSvg = (svg: string): RGB[] => {
       return ret[b] - ret[a];
     })
     .slice(0, 10)
-    .map((hx): RGB => hexRgb(hx, { format: 'array' }).slice(0, 3) as RGB);
+    .map((hx: string) => ({
+      hex: hx,
+      freq: 0,
+      rgb: hexRgb(hx, { format: 'array' }).slice(0, 3) as RGB
+    }));
 };
 
 export const extractColors = async (
@@ -36,7 +41,7 @@ export const extractColors = async (
   options: {
     proxy?: string;
   }
-): Promise<RGB[]> => {
+): Promise<Histogram> => {
   if (
     (typeof image === 'string' && image.startsWith(SVG_DATA_PREFIX)) ||
     (typeof image === 'object' && image.src.startsWith(SVG_DATA_PREFIX))
@@ -65,3 +70,5 @@ export {
 export { palette };
 
 export { RGB, RGBA } from './types/RGB';
+export { Histogram } from './types/Histogram';
+export { rgbToHex } from './helpers';

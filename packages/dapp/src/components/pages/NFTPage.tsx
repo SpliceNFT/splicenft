@@ -12,9 +12,9 @@ import {
 } from '@chakra-ui/react';
 import {
   erc721,
+  Histogram,
   NFTItem,
   resolveImage,
-  RGB,
   Splice,
   SpliceNFT,
   Style,
@@ -51,7 +51,7 @@ export const NFTPage = () => {
 
   const [nftItem, setNFTItem] = useState<NFTItem>();
 
-  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
+  const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
   const [selectedStyle, setSelectedStyle] = useState<Style>();
 

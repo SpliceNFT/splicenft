@@ -1,5 +1,5 @@
-import { BigNumber } from 'ethers';
 import { SpliceNFT, Transfer } from '@splicenft/common';
+import { BigNumber } from 'ethers';
 import * as Cache from './Cache';
 import { extractOriginFeatures, getOriginMetadata } from './Origin';
 import { getSplice } from './SpliceContracts';
@@ -47,7 +47,7 @@ const Metadata = async (
       style_name: style.getMetadata().name
     },
     splice: {
-      colors: originFeatures.colors.map((c) => c.rgb),
+      colors: originFeatures.colors,
       randomness: originFeatures.randomness,
       origins: provenance.origins.map((o) => ({
         ...o,
