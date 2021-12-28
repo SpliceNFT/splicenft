@@ -1,14 +1,5 @@
-import { RGB } from '@splicenft/common';
+import { RGB, Transfer } from '@splicenft/common';
 import axios from 'axios';
-
-interface ColorsResponse {
-  colors: [
-    {
-      rgb: RGB;
-      hex: string;
-    }
-  ];
-}
 
 export default async function getDominantColors(
   chainId: number | string,
@@ -17,7 +8,9 @@ export default async function getDominantColors(
 ): Promise<RGB[]> {
   const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/colors/${chainId}/${collection}/${tokenId}`;
   try {
-    const { colors } = await (await axios.get<ColorsResponse>(url)).data;
+    const { colors } = await (
+      await axios.get<Transfer.ColorsResponse>(url)
+    ).data;
     return colors.map((c) => c.rgb);
   } catch (e: any) {
     throw new Error(`couldnt get image colors: ${e.message}`);

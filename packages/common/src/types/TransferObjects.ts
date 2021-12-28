@@ -1,3 +1,5 @@
+import { RGB } from '..';
+
 export interface UserSplice {
   id: string;
   metadata_url: string;
@@ -15,4 +17,15 @@ export interface UserSplice {
 export interface StyleMetadataResponse {
   tokenId: string;
   metadataUrl: string;
+}
+
+export interface ColorsResponse {
+  colors: Array<{
+    rgb: RGB;
+    hex: string;
+  }>;
+}
+
+export interface OriginFeatures extends ColorsResponse {
+  randomness: number;
 }

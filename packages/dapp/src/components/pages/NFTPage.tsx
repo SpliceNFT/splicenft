@@ -139,7 +139,16 @@ export const NFTPage = () => {
 
   useEffect(() => {
     if (!chainId) return;
-    getDominantColors(chainId, collection, tokenId).then(setDominantColors);
+
+    getDominantColors(chainId, collection, tokenId)
+      .then(setDominantColors)
+      .catch((e: any) => {
+        toast({
+          isClosable: true,
+          status: 'error',
+          title: e.message
+        });
+      });
   }, [chainId]);
 
   const onMinted = useCallback(
@@ -266,6 +275,7 @@ export const NFTPage = () => {
             >
               <Heading size="md"> Splice attributes</Heading>
               <SpliceMetadataDisplay
+                provenance={provenance}
                 spliceMetadata={spliceMetadata}
                 owner={spliceOwner}
               />

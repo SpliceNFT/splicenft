@@ -16,7 +16,10 @@ export default async function Artwork(
     return callback(null, stream);
   }
 
-  const spliceMetadata = await Metadata(styleCache, spliceTokenId);
+  const spliceMetadata = await Cache.withCache(
+    `${styleCache.network}/splice/metadata/${spliceTokenId}.json`,
+    async () => Metadata(styleCache, spliceTokenId)
+  );
   const style = styleCache.getStyle(spliceMetadata.splice.style_token_id);
   if (!style) throw new Error('no style on metadata ?!');
   const renderer = await style.getRenderer();

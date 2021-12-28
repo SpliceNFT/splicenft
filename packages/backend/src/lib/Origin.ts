@@ -1,20 +1,16 @@
+import { extractColors, LoadImageNode, RGB } from '@splicenft/colors';
 import {
   ERC721,
   ipfsGW,
   NFTMetaData,
   ProvenanceOrigin,
   resolveImage,
-  Splice
+  rgbHex,
+  Splice,
+  Transfer
 } from '@splicenft/common';
 import axios from 'axios';
 import { BigNumberish } from 'ethers';
-
-import {
-  LoadImageNode,
-  extractColors,
-  extractPaletteFromSvg,
-  RGB
-} from '@splicenft/colors';
 
 export async function getOriginMetadata(
   erc721: ERC721,
@@ -23,34 +19,38 @@ export async function getOriginMetadata(
   const originMetadataUrl: string = ipfsGW(
     await erc721.tokenURI(originTokenId)
   );
-
-  return (
+  console.log(originMetadataUrl);
+  const metadata = (
     await axios.get<NFTMetaData>(originMetadataUrl, {
       responseType: 'json'
     })
   ).data;
+
+  return metadata;
 }
 
 export async function extractOriginFeatures(
   provenanceOrigin: ProvenanceOrigin,
   originMetadata: NFTMetaData
-): Promise<{ palette: RGB[]; randomness: number }> {
-  const originImageUrl = resolveImage(originMetadata);
+): Promise<Transfer.OriginFeatures> {
+  const originImageUrl =
+    resolveImage(originMetadata) || originMetadata.image_data;
   let palette: RGB[] = [];
   if (originImageUrl) {
     palette = await extractColors(originImageUrl, LoadImageNode, {});
-  } else if (originMetadata.image_data) {
-    //todo: this is not necessarily an svg ;)
-    palette = extractPaletteFromSvg(originMetadata.image_data);
   }
 
   const randomness = Splice.computeRandomness(
     provenanceOrigin.collection,
     provenanceOrigin.token_id.toString()
   );
-
-  return {
-    palette,
+  const ret: Transfer.OriginFeatures = {
+    colors: palette.map((c: RGB) => ({
+      rgb: c,
+      hex: rgbHex(c[0], c[1], c[2])
+    })),
     randomness
   };
+
+  return ret;
 }

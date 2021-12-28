@@ -1,37 +1,50 @@
-import {
-  extractColors as _extractColors,
-  LoadImageNode
-} from '@splicenft/colors';
-import { erc721, resolveImage, rgbHex } from '@splicenft/common';
+import { erc721, NFTMetaData, Transfer } from '@splicenft/common';
+
 import { Request, Response } from 'express';
-import { getOriginMetadata } from '../lib/Origin';
+import { withCache } from '../lib/Cache';
+import { extractOriginFeatures, getOriginMetadata } from '../lib/Origin';
 import { providerFor } from '../lib/SpliceContracts';
 
 export async function extractColors(req: Request, res: Response) {
   const networkId = parseInt(req.params.network);
   const collection = req.params.collection;
-  const tokenId = req.params.tokenid;
+  const token_id = req.params.token_id;
 
   try {
     const provider = providerFor(networkId);
     if (!provider)
       throw new Error(`Splice is not available for network ${networkId}`);
 
-    const contract = erc721(provider, collection);
-    const metadata = await getOriginMetadata(contract, tokenId);
-    if (!metadata)
-      throw new Error(`can't read metadata for ${tokenId} on ${collection}`);
+    const metadata = await withCache<NFTMetaData>(
+      `${networkId}/nft/${collection}/${token_id}/metadata.json`,
+      async () => {
+        const contract = erc721(provider, collection);
+        const metadata = await getOriginMetadata(contract, token_id);
+        if (!metadata)
+          throw new Error(
+            `can't read metadata for ${token_id} on ${collection}`
+          );
+        return metadata;
+      }
+    );
 
-    const image = resolveImage(metadata);
-    const colors = await _extractColors(image, LoadImageNode, {});
-    res.status(200).json({
-      colors: colors.map((c) => ({
-        rgb: c,
-        hex: rgbHex(c[0], c[1], c[2])
-      }))
-    });
+    const features = await withCache<Transfer.OriginFeatures>(
+      `${networkId}/nft/${collection}/${token_id}/features.json`,
+      async () => {
+        return extractOriginFeatures(
+          {
+            collection,
+            token_id
+          },
+          metadata
+        );
+      }
+    );
+
+    res.status(200).json(features);
   } catch (e: any) {
-    console.error(`couldnt create image :( ${e.message}`);
-    res.status(500).send(`couldnt create image :( ${e.message}`);
+    const err = `couldnt load colors :( ${e.message}`;
+    console.error(err);
+    res.status(500).send(`couldnt load colors :( ${e.message}`);
   }
 }
