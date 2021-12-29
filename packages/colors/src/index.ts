@@ -46,7 +46,7 @@ const scaleDown = async (
   const scaler = pica();
   const toDim = {
     w: 300,
-    h: (300 * dims.h) / dims.w
+    h: Math.floor((300 * dims.h) / dims.w)
   };
   const res = scaler.resizeBuffer({
     src: rgba,
@@ -82,8 +82,9 @@ export const extractColors = async (
 
     return palette(Array.from(scaled), {
       w: 300,
-      h: (300 * img.dims.h) / img.dims.w
+      h: Math.floor((300 * img.dims.h) / img.dims.w)
     });
+    //return palette(Array.from(img.rgb), img.dims);
   }
 };
 
