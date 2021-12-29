@@ -3,6 +3,7 @@ import { extractColors, Histogram, LoadImageBrowser } from '@splicenft/colors';
 import { NFTItem, resolveImage, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import getDominantColors from '../../modules/colors';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
@@ -78,6 +79,7 @@ export const CreativePanel = ({
   style: Style | undefined;
   onDominantColors?: (colors: Histogram) => void;
 }) => {
+  const { chainId } = useWeb3React();
   const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
   const nftExtractedProps: {
@@ -90,7 +92,7 @@ export const CreativePanel = ({
 
   const onNFTImageLoaded = useCallback(
     (event: SyntheticEvent<HTMLImageElement, Event>): void => {
-      if (spliceDataUrl || dominantColors?.length > 0) return;
+      if (!chainId || spliceDataUrl || dominantColors?.length > 0) return;
 
       const onExtracted = (colors: Histogram) => {
         setDominantColors(colors);
@@ -109,10 +111,20 @@ export const CreativePanel = ({
       })
         .then(onExtracted)
         .catch((e) => {
-          console.error('fetching image data ultimatively failed: ', e.message);
+          console.debug(
+            'palette extraction on frontend failed, trying the backend'
+          );
+          getDominantColors(chainId, nftItem.contract_address, nftItem.token_id)
+            .then(onExtracted)
+            .catch((e) => {
+              console.error(
+                'fetching image data ultimatively failed: ',
+                e.message
+              );
+            });
         });
     },
-    [dominantColors, spliceDataUrl]
+    [chainId, dominantColors, spliceDataUrl]
   );
 
   const nftImage = (

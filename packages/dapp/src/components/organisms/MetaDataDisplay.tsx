@@ -102,6 +102,7 @@ export const MetaDataDisplay = ({
   //https://opensea.io/assets/0x031920cc2d9f5c10b444fd44009cd64f829e7be2/13318
   //todo: move this to the indexers
   const attributes = nftMetadata.attributes;
+
   const _attrs = attributes?.map ? attributes : [];
   return (
     <Flex direction="column" gridGap={3}>
@@ -109,12 +110,12 @@ export const MetaDataDisplay = ({
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
 
-      {_attrs.map((attr) => {
+      {_attrs.map((attr, i) => {
         return (
           <MetaDataItem
             fontSize="sm"
-            key={`attr-${attr.trait_type}`}
-            label={attr.trait_type}
+            key={`attr-${attr.trait_type || `unk-${i}`}`}
+            label={attr.trait_type || `unknown trait`}
             value={attr.value}
           />
         );
