@@ -1,9 +1,13 @@
 import b64 from 'base64-js';
 import { default as hexRgb } from 'hex-rgb';
 import { palette } from './palette';
-import type { ImageLoader } from './types/ImageLoader';
+import type { ImageLoader, ImageLoaderOptions } from './types/ImageLoader';
 import { RGB } from './types/RGB';
 import { Histogram } from './types/Histogram';
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import pica from 'pica';
 
 const SVG_DATA_PREFIX = 'data:image/svg+xml;';
 
@@ -35,12 +39,28 @@ export const extractPaletteFromSvg = (svg: string): Histogram => {
     }));
 };
 
+const scaleDown = async (
+  rgba: Uint8Array,
+  dims: { w: number; h: number }
+): Promise<number[]> => {
+  const scaler = pica();
+  const toDim = {
+    w: 300,
+    h: (300 * dims.h) / dims.w
+  };
+  const res = scaler.resizeBuffer({
+    src: rgba,
+    width: dims.w,
+    height: dims.h,
+    toWidth: toDim.w,
+    toHeight: toDim.h
+  });
+  return res;
+};
 export const extractColors = async (
   image: string | HTMLImageElement,
   LoadImage: ImageLoader,
-  options: {
-    proxy?: string;
-  }
+  options: ImageLoaderOptions
 ): Promise<Histogram> => {
   if (
     (typeof image === 'string' && image.startsWith(SVG_DATA_PREFIX)) ||
@@ -57,7 +77,13 @@ export const extractColors = async (
     return extractPaletteFromSvg(dataUrl);
   } else {
     const img = await LoadImage(image, options);
-    return palette(Array.from(img.rgb), img.dims);
+
+    const scaled = await scaleDown(img.rgb, img.dims);
+
+    return palette(Array.from(scaled), {
+      w: 300,
+      h: (300 * img.dims.h) / img.dims.w
+    });
   }
 };
 

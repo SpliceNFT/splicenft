@@ -1,7 +1,8 @@
 import { Container, Image } from '@chakra-ui/react';
-import { Histogram, NFTItem, resolveImage, Style } from '@splicenft/common';
+import { extractColors, Histogram, LoadImageBrowser } from '@splicenft/colors';
+import { NFTItem, resolveImage, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import React, { useEffect, useState } from 'react';
+import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
@@ -40,7 +41,7 @@ const Preview = ({
       <P5Sketch
         randomness={randomness}
         dim={{ w: 1500, h: 500 }}
-        colors={dominantColors.map((c) => c.rgb)}
+        colors={dominantColors.map((h) => h.rgb)}
         onSketched={onSketched}
         code={code}
       />
@@ -68,20 +69,58 @@ export const CreativePanel = ({
   onSketched,
   randomness,
   style,
-  dominantColors
+  onDominantColors
 }: {
   nftItem: NFTItem;
   onSketched: (dataUrl: string) => void;
   randomness: number;
   spliceDataUrl?: string;
   style: Style | undefined;
-  dominantColors: Histogram;
+  onDominantColors?: (colors: Histogram) => void;
 }) => {
+  const [dominantColors, setDominantColors] = useState<Histogram>([]);
+
+  const nftExtractedProps: {
+    randomness: number;
+    dominantColors: Histogram;
+  } = {
+    randomness,
+    dominantColors
+  };
+
+  const onNFTImageLoaded = useCallback(
+    (event: SyntheticEvent<HTMLImageElement, Event>): void => {
+      if (spliceDataUrl || dominantColors?.length > 0) return;
+
+      const onExtracted = (colors: Histogram) => {
+        setDominantColors(colors);
+        if (onDominantColors) onDominantColors(colors);
+      };
+      const target: HTMLImageElement = (event.target ||
+        event.currentTarget) as HTMLImageElement;
+
+      const proxyUrl = `${process.env.REACT_APP_CORS_PROXY}?url=${target.src}`;
+
+      extractColors(proxyUrl, LoadImageBrowser, {
+        dims: {
+          w: target.width,
+          h: target.height
+        }
+      })
+        .then(onExtracted)
+        .catch((e) => {
+          console.error('fetching image data ultimatively failed: ', e.message);
+        });
+    },
+    [dominantColors, spliceDataUrl]
+  );
+
   const nftImage = (
     <FallbackImage
       boxShadow="lg"
       imgUrl={resolveImage(nftItem.metadata)}
       metadata={nftItem.metadata}
+      onNFTImageLoaded={onNFTImageLoaded}
     />
   );
 
@@ -90,10 +129,7 @@ export const CreativePanel = ({
       <Preview
         nftImage={nftImage}
         onSketched={onSketched}
-        nftExtractedProps={{
-          randomness,
-          dominantColors
-        }}
+        nftExtractedProps={nftExtractedProps}
         style={style}
       />
     );

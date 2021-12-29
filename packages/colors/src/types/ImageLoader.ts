@@ -6,9 +6,15 @@ export type ImageLoaderResult = {
   };
 };
 
+export type ImageLoaderOptions = {
+  proxy?: string;
+  dims?: {
+    w: number;
+    h: number;
+  };
+};
+
 export type ImageLoader = (
   image: string | HTMLImageElement,
-  options: {
-    proxy?: string;
-  }
+  options: ImageLoaderOptions
 ) => Promise<ImageLoaderResult>;

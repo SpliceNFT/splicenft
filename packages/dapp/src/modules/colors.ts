@@ -1,6 +1,9 @@
 import { Transfer, Histogram } from '@splicenft/common';
 import axios from 'axios';
 
+/**
+ * can be used to compute palette colors on the backend.
+ */
 export default async function getDominantColors(
   chainId: number | string,
   collection: string,

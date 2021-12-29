@@ -1,33 +1,36 @@
 import ImageToColors from 'image-to-colors';
-import { ImageLoader, ImageLoaderResult } from '../types/ImageLoader';
-import sizeOf from 'image-size';
+import {
+  ImageLoader,
+  ImageLoaderOptions,
+  ImageLoaderResult
+} from '../types/ImageLoader';
 import { RGB } from '../types/RGB';
 
+//todo: consider using https://developer.mozilla.org/en-US/docs/Web/API/createImageBitmap
 export const LoadImage: ImageLoader = async (
   image: string | HTMLImageElement,
-  options: {
-    proxy?: string;
-  }
+  options: ImageLoaderOptions
 ): Promise<ImageLoaderResult> => {
   let pixels: RGB[] = [];
-  let dims: { w: number; h: number } | undefined = undefined;
+  let dims = options.dims;
 
   if (typeof image === 'string') {
     try {
+      if (!options.dims) {
+        throw new Error(
+          'must provide dimensions when loading an image from an URL'
+        );
+      }
       pixels = await ImageToColors.getFromExternalSource(image, {
         setImageCrossOriginToAnonymous: true
       });
-      const sz = sizeOf(image);
-      if (sz.width && sz.height) {
-        dims = { w: sz.width, h: sz.height };
-      }
     } catch (e: any) {
       console.debug(
-        "couldn't load image from external source, trying again with proxy"
+        "LoadImage: couldn't load image from external source, retrying with proxy"
       );
       if (options.proxy) {
         const proxyUrl = `${process.env.REACT_APP_CORS_PROXY}?url=${image}`;
-        return LoadImage(proxyUrl, {});
+        return LoadImage(proxyUrl, { dims });
       }
     }
   } else {

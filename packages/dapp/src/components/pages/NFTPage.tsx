@@ -12,7 +12,6 @@ import {
 } from '@chakra-ui/react';
 import {
   erc721,
-  Histogram,
   NFTItem,
   resolveImage,
   Splice,
@@ -20,12 +19,12 @@ import {
   Style,
   TokenProvenance
 } from '@splicenft/common';
+import { Histogram } from '@splicenft/colors';
 import { useWeb3React } from '@web3-react/core';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
-import getDominantColors from '../../modules/colors';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { AddToAllowlistButton } from '../molecules/AddToAllowlistButton';
@@ -137,20 +136,6 @@ export const NFTPage = () => {
     setSketch(dataUrl);
   }, []);
 
-  useEffect(() => {
-    if (!chainId) return;
-
-    getDominantColors(chainId, collection, tokenId)
-      .then(setDominantColors)
-      .catch((e: any) => {
-        toast({
-          isClosable: true,
-          status: 'error',
-          title: e.message
-        });
-      });
-  }, [chainId]);
-
   const onMinted = useCallback(
     async (provenance: TokenProvenance) => {
       if (!splice) {
@@ -196,7 +181,7 @@ export const NFTPage = () => {
             style={selectedStyle}
             randomness={randomness}
             onSketched={onSketched}
-            dominantColors={dominantColors}
+            onDominantColors={setDominantColors}
           />
 
           <Flex
