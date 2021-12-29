@@ -1,0 +1,19 @@
+<html>
+	<head></head>
+	<body>
+		{% for img in images if img != null %}
+			<div style="margin-bottom: 10px;">
+				<div style="display:flex;">
+					<img src="{{img.file}}" width="300"/>
+				</div>
+
+				<div style="display:flex;">
+					{% for hist in img.histogram %}
+						<div style="background-color:#{{hist.hex}};width:40px;padding:2px;" title="#{{hist.hex}} ">{{ (hist.freq * 100) | round(1)}}</div>
+					{% endfor %}
+				</div>
+
+			</div>
+		{% endfor %}
+	</body>
+</html>

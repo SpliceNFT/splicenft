@@ -1,5 +1,5 @@
+import { RGB } from '@splicenft/colors';
 import p5Types from 'p5';
-export type RGB = [number, number, number];
 
 export interface DrawProps {
   p5: p5Types;

@@ -10,13 +10,12 @@ import {
   Textarea,
   useToast
 } from '@chakra-ui/react';
-import { NFTItem, resolveImage, Splice } from '@splicenft/common';
-import { RGB } from 'get-rgba-palette';
+import { Histogram, NFTItem, Splice } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 import { useSplice } from '../../context/SpliceContext';
 import { FallbackImage } from '../atoms/FallbackImage';
-import { DominantColors } from '../molecules/DominantColors';
+import { DominantColorsDisplay } from '../molecules/DominantColors';
 
 const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
   const [collection, setCollection] = useState<string>();
@@ -74,7 +73,7 @@ const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
 const PreviewSketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
-  colors: RGB[];
+  colors: Histogram;
   code: string;
 }) => {
   const { dim, colors, randomness, code } = props;
@@ -122,7 +121,7 @@ const PreviewSketch = (props: {
 
 export const CreatePage = () => {
   const [code, setCode] = useState<string>();
-  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
+  const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
   const [nftItem, setNFTItem] = useState<NFTItem>();
   const [randomness, setRandomness] = useState<number>(0);
@@ -159,11 +158,7 @@ export const CreatePage = () => {
       {nftItem && (
         <Flex my={4} align="center" gridGap={3}>
           <Flex flex="1">
-            <DominantColors
-              imageUrl={resolveImage(nftItem.metadata)}
-              dominantColors={dominantColors}
-              setDominantColors={setDominantColors}
-            />
+            <DominantColorsDisplay colors={dominantColors} />
           </Flex>
           <Flex flex="1">
             <Text>

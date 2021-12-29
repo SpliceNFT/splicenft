@@ -4,7 +4,7 @@ export * from './types/NFT';
 export * from './types/SpliceNFT';
 
 export { default as getProvider } from './provider';
-export { resolveImage, ipfsGW, extractColors, extractPalette } from './img';
+export { resolveImage, ipfsGW } from './img';
 export { CHAINS, ChainOpt } from './types/Chains';
 export * from './types/Renderers';
 export { NFTIndexer } from './indexers/NFTIndexer';
@@ -13,7 +13,7 @@ export { OnChain } from './indexers/OnChain';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
 export * as Transfer from './types/TransferObjects';
-
+export { RGB, Histogram, rgbToHex } from '@splicenft/colors';
 import {
   ERC721,
   ERC721Enumerable,

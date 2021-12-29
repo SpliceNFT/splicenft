@@ -38,36 +38,29 @@ export class StyleMetadataCache {
     const promises = allStyles.map((tokenMetadataResponse) => {
       const { tokenId, metadataUrl } = tokenMetadataResponse;
       return (async () => {
-        const cacheKey = `${this.network}/styles/${tokenId}/style.json`;
-        let metadata = await Cache.lookupJSON<StyleNFT>(cacheKey);
-
-        if (!metadata) {
-          const gwUrl = ipfsGW(metadataUrl);
-          console.debug(
-            `[%s] fetching style metadata [%s] from ipfs`,
-            this.networkId,
-            tokenId
-          );
-          metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
-          //todo: remove this translation for mainnet
-          if (!metadata.splice) {
-            console.info('translating old metadata schema to newer one');
-            //translate "legacy" metadata
-            metadata.code = metadata.properties.code;
-            metadata.splice = metadata.properties as unknown as {
-              code_library: string;
-              code_library_version: string;
-              license: string;
-            };
-            metadata.properties = {};
+        const metadata = await Cache.withCache<StyleNFT>(
+          `${this.network}/styles/${tokenId}/style.json`,
+          async () => {
+            const gwUrl = ipfsGW(metadataUrl);
+            console.debug(
+              `[%s] fetching style metadata [%s] from ipfs`,
+              this.networkId,
+              tokenId
+            );
+            const metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+            //todo: remove this translation for mainnet
+            if (!metadata.splice) {
+              throw new Error('found old metadata...');
+            }
+            return metadata;
           }
-          Cache.store(cacheKey, metadata);
-        }
+        );
 
         const style = new Style(parseInt(tokenId), metadataUrl, metadata).bind(
           styleNFTContract
         );
 
+        //preload code
         const codeCacheKey = `${this.network}/styles/${tokenId}/code.js`;
         let code = await Cache.lookupString(codeCacheKey);
         if (!code) {

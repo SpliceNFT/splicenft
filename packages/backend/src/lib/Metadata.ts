@@ -1,5 +1,5 @@
-import { BigNumber } from '.pnpm/@ethersproject+bignumber@5.4.2/node_modules/@ethersproject/bignumber';
-import { SpliceNFT } from '@splicenft/common';
+import { SpliceNFT, Transfer } from '@splicenft/common';
+import { BigNumber } from 'ethers';
 import * as Cache from './Cache';
 import { extractOriginFeatures, getOriginMetadata } from './Origin';
 import { getSplice } from './SpliceContracts';
@@ -9,12 +9,6 @@ const Metadata = async (
   styleCache: StyleMetadataCache,
   spliceTokenId: string
 ): Promise<SpliceNFT> => {
-  const key = `${styleCache.network}/splice/metadata/${spliceTokenId}.json`;
-
-  const cached = await Cache.lookupJSON<SpliceNFT>(key);
-  if (cached) {
-    return cached;
-  }
   const splice = getSplice(styleCache.network);
   const provenance = await splice.getProvenance(BigNumber.from(spliceTokenId));
   if (!provenance) {
@@ -36,12 +30,13 @@ const Metadata = async (
   );
 
   if (!originMetadata) throw new Error(`couldnt get origin metadata`);
-  const originFeatures = await extractOriginFeatures(
-    firstOrigin,
-    originMetadata
+
+  const originFeatures = await Cache.withCache<Transfer.OriginFeatures>(
+    `${styleCache.network}/nft/${firstOrigin.collection}/${firstOrigin.token_id}/features.json`,
+    async () => extractOriginFeatures(firstOrigin, originMetadata)
   );
 
-  const ret = {
+  return {
     name: `Splice of ${originNftName} #${firstOrigin.token_id}`,
     description: `This Splice was created from ${originNftName} #${
       firstOrigin.token_id
@@ -52,7 +47,7 @@ const Metadata = async (
       style_name: style.getMetadata().name
     },
     splice: {
-      colors: originFeatures.palette,
+      colors: originFeatures.colors,
       randomness: originFeatures.randomness,
       origins: provenance.origins.map((o) => ({
         ...o,
@@ -63,9 +58,6 @@ const Metadata = async (
       style_token_id: style.tokenId
     }
   };
-  Cache.store(key, ret);
-
-  return ret;
 };
 
 export default Metadata;

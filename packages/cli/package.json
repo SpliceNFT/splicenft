@@ -1,33 +1,34 @@
 {
-  "name": "@splicenft/extractor",
+  "name": "@splicenft/cli",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/index.js",
-  "exports": {
-    ".": "./dist/index.js"
-  },
+  "exports": "./build/index.js",
   "scripts": {
     "build": "tsc -p .",
     "dev": "tsc -p . --watch",
-    "nft": "node dist",
-    "dist": "ncc build index.ts -o dist",
+    "nft": "node build",
+    "dist": "ncc build index.ts -o build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.4",
+    "@splicenft/colors": "workspace:*",
+    "@splicenft/common": "workspace:*",
+    "axios": "^0.24.0",
+    "chalk": "^4.1.2",
     "commander": "^8.2.0",
     "dotenv-flow": "^3.2.0",
-    "ethers": "^5.4.7",
-    "get-image-colors": "^4.0.0",
+    "node-libpng": "^0.2.20",
     "ora": "v5.4.1",
+    "pica": "^9.0.1",
+    "rgb-hex": "^4.0.0",
+    "twing": "^5.1.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {
     "@types/dotenv-flow": "^3.2.0",
-    "@types/get-image-colors": "^4.0.1",
     "@vercel/ncc": "^0.31.1",
     "ts-node": "^10.2.1",
     "ts-node-dev": "^1.1.8",

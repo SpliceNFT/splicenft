@@ -19,8 +19,8 @@ import {
   Style,
   TokenProvenance
 } from '@splicenft/common';
+import { Histogram } from '@splicenft/colors';
 import { useWeb3React } from '@web3-react/core';
-import { RGB } from 'get-rgba-palette';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { NavLink, useParams } from 'react-router-dom';
@@ -50,7 +50,7 @@ export const NFTPage = () => {
 
   const [nftItem, setNFTItem] = useState<NFTItem>();
 
-  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
+  const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
   const [selectedStyle, setSelectedStyle] = useState<Style>();
 
@@ -260,6 +260,7 @@ export const NFTPage = () => {
             >
               <Heading size="md"> Splice attributes</Heading>
               <SpliceMetadataDisplay
+                provenance={provenance}
                 spliceMetadata={spliceMetadata}
                 owner={spliceOwner}
               />

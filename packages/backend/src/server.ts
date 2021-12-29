@@ -11,6 +11,7 @@ import {
   spliceMetadata,
   styleDetails
 } from './controllers';
+import { extractColors } from './controllers/colors';
 import { StyleCache } from './lib/StyleCache';
 
 const app: Express = express();
@@ -36,6 +37,7 @@ const styleCache = new StyleCache([4, 31337]);
 styleCache.init();
 
 app.get('/render/:network/:style_token_id', renderGeneric(styleCache));
+app.get('/colors/:network/:collection/:token_id', extractColors);
 app.get('/styles/:network/:style_token_id', styleDetails(styleCache));
 app.get('/styles/:network', allStyles(styleCache));
 app.get('/splice/:network/:tokenid/image.png', renderSplice(styleCache));

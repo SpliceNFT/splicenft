@@ -34,3 +34,11 @@ Content-Type: application/json
   "signature": "0xf00d",
   "chain_id": 1
 }
+
+###
+
+GET  http://localhost:5999/colors/4/0xd56c266c640F406db3B02C7054d2848252beE664/3
+
+### 
+
+GET http://localhost:5999/colors/1/0xc631164b6cb1340b5123c9162f8558c866de1926/689

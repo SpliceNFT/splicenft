@@ -1,7 +1,7 @@
 import { Container, Image } from '@chakra-ui/react';
-import { extractColors, NFTItem, resolveImage, Style } from '@splicenft/common';
+import { extractColors, Histogram, LoadImageBrowser } from '@splicenft/colors';
+import { NFTItem, resolveImage, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { RGB } from 'get-rgba-palette';
 import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
@@ -16,7 +16,7 @@ const Preview = ({
   nftImage: React.ReactNode;
   nftExtractedProps: {
     randomness: number;
-    dominantColors: RGB[];
+    dominantColors: Histogram;
   };
   style: Style;
   onSketched: (dataUrl: string) => void;
@@ -41,7 +41,7 @@ const Preview = ({
       <P5Sketch
         randomness={randomness}
         dim={{ w: 1500, h: 500 }}
-        colors={dominantColors}
+        colors={dominantColors.map((h) => h.rgb)}
         onSketched={onSketched}
         code={code}
       />
@@ -76,13 +76,13 @@ export const CreativePanel = ({
   randomness: number;
   spliceDataUrl?: string;
   style: Style | undefined;
-  onDominantColors?: (colors: RGB[]) => void;
+  onDominantColors?: (colors: Histogram) => void;
 }) => {
-  const [dominantColors, setDominantColors] = useState<RGB[]>([]);
+  const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
   const nftExtractedProps: {
     randomness: number;
-    dominantColors: RGB[];
+    dominantColors: Histogram;
   } = {
     randomness,
     dominantColors
@@ -92,33 +92,24 @@ export const CreativePanel = ({
     (event: SyntheticEvent<HTMLImageElement, Event>): void => {
       if (spliceDataUrl || dominantColors?.length > 0) return;
 
-      const xOptions = {
-        proxy: process.env.REACT_APP_CORS_PROXY
-      };
-      const onExtracted = (colors: RGB[]) => {
+      const onExtracted = (colors: Histogram) => {
         setDominantColors(colors);
         if (onDominantColors) onDominantColors(colors);
       };
       const target: HTMLImageElement = (event.target ||
         event.currentTarget) as HTMLImageElement;
 
-      extractColors(target, xOptions)
+      const proxyUrl = `${process.env.REACT_APP_CORS_PROXY}?url=${target.src}`;
+
+      extractColors(proxyUrl, LoadImageBrowser, {
+        dims: {
+          w: target.width,
+          h: target.height
+        }
+      })
         .then(onExtracted)
-        .catch((e: any) => {
-          console.debug(
-            'extracting failed, trying again with image source url. Reason:',
-            e.message
-          );
-          //console.log(event);
-          //try again with plain source
-          extractColors(target.src, xOptions)
-            .then(onExtracted)
-            .catch((e) => {
-              console.error(
-                'fetching image data ultimatively failed: ',
-                e.message
-              );
-            });
+        .catch((e) => {
+          console.error('fetching image data ultimatively failed: ', e.message);
         });
     },
     [dominantColors, spliceDataUrl]

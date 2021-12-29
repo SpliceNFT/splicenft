@@ -1,3 +1,5 @@
+import { Histogram } from '..';
+
 export interface UserSplice {
   id: string;
   metadata_url: string;
@@ -15,4 +17,12 @@ export interface UserSplice {
 export interface StyleMetadataResponse {
   tokenId: string;
   metadataUrl: string;
+}
+
+export interface ColorsResponse {
+  colors: Histogram;
+}
+
+export interface OriginFeatures extends ColorsResponse {
+  randomness: number;
 }

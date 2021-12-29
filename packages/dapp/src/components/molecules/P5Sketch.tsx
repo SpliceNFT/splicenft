@@ -1,5 +1,6 @@
 import { Flex } from '@chakra-ui/react';
-import { RGB } from 'get-rgba-palette';
+import { RGB } from '@splicenft/common';
+
 import React from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
@@ -32,7 +33,9 @@ export const P5Sketch = (props: {
     p5.draw = () => {
       if (!renderer) return;
 
+      //the most important line in Splice:
       renderer({ p5, colors, dim });
+
       p5.noLoop();
       if (onSketched) {
         const canvas = (p5 as any).canvas as HTMLCanvasElement;

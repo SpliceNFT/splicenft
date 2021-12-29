@@ -1,6 +1,6 @@
 import { ProvenanceOrigin } from '..';
 import { NFTMetaData } from './NFT';
-import { RGB } from './Renderers';
+import { Histogram } from '@splicenft/colors';
 
 /**
  * metadata structure of Splice NFTs
@@ -15,7 +15,7 @@ export type SpliceNFT = NFTMetaData & {
     style_collection: string;
     style_token_id: number;
     metadataUrl?: string;
-    colors: RGB[];
+    colors: Histogram;
     randomness: number;
   };
 };

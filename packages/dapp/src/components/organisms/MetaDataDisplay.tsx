@@ -1,5 +1,10 @@
 import { Flex, Link, Text } from '@chakra-ui/react';
-import { ipfsGW, NFTMetaData, SpliceNFT } from '@splicenft/common';
+import {
+  ipfsGW,
+  NFTMetaData,
+  SpliceNFT,
+  TokenProvenance
+} from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React from 'react';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
@@ -46,10 +51,12 @@ export const MetaDataItem = ({
 
 export const SpliceMetadataDisplay = ({
   owner,
-  spliceMetadata
+  spliceMetadata,
+  provenance
 }: {
   owner?: string;
   spliceMetadata: SpliceNFT;
+  provenance?: TokenProvenance | null;
 }) => {
   const { account } = useWeb3React();
   return (
@@ -62,6 +69,12 @@ export const SpliceMetadataDisplay = ({
         label="Style"
         value={spliceMetadata.properties.style_name}
       />
+      {provenance && (
+        <MetaDataItem
+          label="Splice ID"
+          value={provenance.splice_token_id.toString()}
+        />
+      )}
       <MetaDataItem
         label="Randomness"
         value={spliceMetadata.splice.randomness}
