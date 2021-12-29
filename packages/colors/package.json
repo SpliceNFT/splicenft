@@ -7,17 +7,14 @@
   "scripts": {
     "build": "tsc -p .",
     "dev": "tsc -p . --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register  'test/**/*.ts'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/omggif": "^1.0.2",
-    "@types/pngjs": "^6.0.1",
     "axios": "^0.21.4",
     "base64-js": "^1.5.1",
-    "ethers": "^5.5.2",
     "file-type": "^16.5.3",
     "hex-rgb": "^4.3.0",
     "image-q": "^2.1.2",
@@ -26,13 +23,18 @@
     "jpeg-js": "^0.4.3",
     "omggif": "^1.0.10",
     "pica": "^9.0.1",
-    "pngjs": "^6.0.0",
-    "rgb-hex": "^4.0.0"
+    "pngjs": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.5",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/omggif": "^1.0.2",
+    "@types/pngjs": "^6.0.1",
     "ts-node": "^10.2.1",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "chai": "^4.3.4",
+    "mocha": "^9.1.3"
   }
 }

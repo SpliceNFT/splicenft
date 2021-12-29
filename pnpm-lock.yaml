@@ -120,31 +120,30 @@ importers:
 
   packages/colors:
     specifiers:
+      '@types/chai': ^4.3.0
+      '@types/mocha': ^9.0.0
       '@types/node': ^17.0.5
       '@types/omggif': ^1.0.2
       '@types/pngjs': ^6.0.1
       axios: ^0.21.4
       base64-js: ^1.5.1
-      ethers: ^5.5.2
+      chai: ^4.3.4
       file-type: ^16.5.3
       hex-rgb: ^4.3.0
       image-q: ^2.1.2
       image-size: ^1.0.0
       image-to-colors: ^1.0.2
       jpeg-js: ^0.4.3
+      mocha: ^9.1.3
       omggif: ^1.0.10
       pica: ^9.0.1
       pngjs: ^6.0.0
-      rgb-hex: ^4.0.0
       ts-node: ^10.2.1
       ts-node-dev: ^1.1.8
       typescript: ^4.4.3
     dependencies:
-      '@types/omggif': 1.0.2
-      '@types/pngjs': 6.0.1
       axios: 0.21.4
       base64-js: 1.5.1
-      ethers: 5.5.2
       file-type: 16.5.3
       hex-rgb: 4.3.0
       image-q: 2.1.2
@@ -154,9 +153,14 @@ importers:
       omggif: 1.0.10
       pica: 9.0.1
       pngjs: 6.0.0
-      rgb-hex: 4.0.0
     devDependencies:
+      '@types/chai': 4.3.0
+      '@types/mocha': 9.0.0
       '@types/node': 17.0.5
+      '@types/omggif': 1.0.2
+      '@types/pngjs': 6.0.1
+      chai: 4.3.4
+      mocha: 9.1.3
       ts-node: 10.4.0_36be2463e7f53a6d4d92b1500a615bca
       ts-node-dev: 1.1.8_typescript@4.4.4
       typescript: 4.4.4
@@ -172,12 +176,9 @@ importers:
       base64-js: ^1.5.1
       chai: ^4.3.4
       ethers: ^5.5.2
-      get-rgba-palette: ^2.0.1
-      hex-rgb: ^4.3.0
       mocha: ^9.1.3
       multiformats: ^9.5.4
       p5: 1.1.9
-      rgb-hex: ^4.0.0
       ts-node: ^10.2.1
       typescript: ^4.4.3
     dependencies:
@@ -186,11 +187,8 @@ importers:
       axios: 0.21.4
       base64-js: 1.5.1
       ethers: 5.5.2
-      get-rgba-palette: 2.0.1
-      hex-rgb: 4.3.0
       multiformats: 9.5.4
       p5: 1.1.9
-      rgb-hex: 4.0.0
     devDependencies:
       '@types/chai': 4.3.0
       '@types/mocha': 9.0.0
@@ -5037,7 +5035,7 @@ packages:
     resolution: {integrity: sha512-bNk2nyTNMKrgoFtqsq3oUeXDGg6jJ/j0rn4wIEVWZQ28hewtpsBItuexXIu24f2dDKJXZSljNU4fZ9Ek7/gjRw==}
     dependencies:
       '@types/node': 17.0.5
-    dev: false
+    dev: true
 
   /@types/p5/0.9.1:
     resolution: {integrity: sha512-4glOKdqdBiRWDFZwi/MjHudPV2U4t2L4fTTSacGapfFxyNXzZcAshAjqmrJkCIZcFlhRBEAL7AM95xRDMfrIwg==}
@@ -5059,7 +5057,7 @@ packages:
     resolution: {integrity: sha512-J39njbdW1U/6YyVXvC9+1iflZghP8jgRf2ndYghdJb5xL49LYDB+1EuAxfbuJ2IBbWIL3AjHPQhgaTxT3YaYeg==}
     dependencies:
       '@types/node': 17.0.5
-    dev: false
+    dev: true
 
   /@types/prettier/2.3.2:
     resolution: {integrity: sha512-eI5Yrz3Qv4KPUa/nSIAi0h+qX0XyewOliug5F2QAtuRg6Kjg6jfmxe1GIwoIRhZspD1A0RP8ANrPwvEXXtRFog==}
@@ -8056,7 +8054,6 @@ packages:
   /camelcase/6.2.1:
     resolution: {integrity: sha512-tVI4q5jjFV5CavAU8DXfza/TJcZutVKo/5Foskmsqcm0MsL91moHvwiGNnqaa2o6PF/7yT5ikDRcVcl8Rj6LCA==}
     engines: {node: '>=10'}
-    dev: false
 
   /caniuse-api/3.0.0:
     resolution: {integrity: sha512-bsTwuIg/BZZK/vreVTYYbSWoe2F+71P7K5QGEX+pT250DZbfU1MQ5prOKpPR+LL6uWKK3KMwMCAS74QB3Um1uw==}
@@ -8247,7 +8244,7 @@ packages:
       braces: 3.0.2
       glob-parent: 5.1.2
       is-binary-path: 2.1.0
-      is-glob: 4.0.1
+      is-glob: 4.0.3
       normalize-path: 3.0.0
       readdirp: 3.6.0
     optionalDependencies:
@@ -12074,7 +12071,7 @@ packages:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
     dependencies:
-      is-glob: 4.0.1
+      is-glob: 4.0.3
 
   /glob/5.0.15:
     resolution: {integrity: sha1-G8k2ueAvSmA/zCIuz3Yz0wuLk7E=}
@@ -13993,7 +13990,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       is-extglob: 2.1.1
-    dev: false
 
   /is-hex-prefixed/1.0.0:
     resolution: {integrity: sha1-fY035q135dEnFIkTxXPggtd39VQ=}
@@ -25372,7 +25368,7 @@ packages:
     resolution: {integrity: sha512-7pRTIA9Qc1caZ0bZ6RYRGbHJthJWuakf+WmHK0rVeLkNrrGhfoabBNdue6kdINI6r4if7ocq9aD/n7xwKOdzOA==}
     engines: {node: '>=10'}
     dependencies:
-      camelcase: 6.2.0
+      camelcase: 6.2.1
       decamelize: 4.0.0
       flat: 5.0.2
       is-plain-obj: 2.1.0
