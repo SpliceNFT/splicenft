@@ -1,13 +1,12 @@
 import { Flex } from '@chakra-ui/react';
-import { RGB } from '@splicenft/common';
-
+import { Histogram } from '@splicenft/colors';
 import React from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
-  colors: RGB[];
+  colors: Histogram;
   code?: string;
   onSketched?: (dataUrl: string) => void;
 }) => {
@@ -32,9 +31,15 @@ export const P5Sketch = (props: {
     };
     p5.draw = () => {
       if (!renderer) return;
-
+      const params = {
+        randomness,
+        colors: colors.map((c) => ({
+          color: p5.color(c.hex),
+          ...c
+        }))
+      };
       //the most important line in Splice:
-      renderer({ p5, colors, dim });
+      renderer({ p5, colors: colors.map((c) => c.rgb), dim, params });
 
       p5.noLoop();
       if (onSketched) {

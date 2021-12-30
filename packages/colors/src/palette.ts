@@ -47,7 +47,7 @@ export function palette(
     const rgb = i32ToRGB(+b[0]);
     return {
       rgb,
-      hex: rgbToHex(rgb),
+      hex: '#' + rgbToHex(rgb),
       freq: b[1] / len
     };
   });

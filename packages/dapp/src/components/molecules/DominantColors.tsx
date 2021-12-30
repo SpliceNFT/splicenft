@@ -10,12 +10,11 @@ export const DominantColorsDisplay = ({ colors }: { colors: Histogram }) => {
     <Skeleton isLoaded={colors.length > 0} w="70%" size="lg">
       <Flex direction="row" align="center" height="1.5em" gridGap={0}>
         {colors.map((color) => {
-          const colorHex = `#${color.hex}`;
           return (
             <Flex
-              key={colorHex}
+              key={color.hex}
               flex="1"
-              background={colorHex}
+              background={color.hex}
               title={`${(100 * color.freq).toFixed(2)}%`}
             >
               &nbsp;

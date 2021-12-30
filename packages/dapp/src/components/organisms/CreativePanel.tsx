@@ -42,7 +42,7 @@ const Preview = ({
       <P5Sketch
         randomness={randomness}
         dim={{ w: 1500, h: 500 }}
-        colors={dominantColors.map((h) => h.rgb)}
+        colors={dominantColors}
         onSketched={onSketched}
         code={code}
       />
