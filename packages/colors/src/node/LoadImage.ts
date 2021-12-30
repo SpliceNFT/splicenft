@@ -4,14 +4,18 @@ import { GifReader } from 'omggif';
 import axios from 'axios';
 import FileType, { FileTypeResult } from 'file-type';
 import { ImageLoader, ImageLoaderResult } from '../types/ImageLoader';
-import sizeOf from 'image-size';
 import fs from 'fs';
 
 /**
  * a much simpler version of https://github.com/scijs/get-pixels
  */
 
-async function handlePNG(data: Buffer): Promise<Buffer> {
+type HandlerRetval = {
+  dims: { w: number; h: number };
+  rgb: Buffer;
+};
+
+async function handlePNG(data: Buffer): Promise<HandlerRetval> {
   const png = new PNG();
   return new Promise((resolve, reject) => {
     png.parse(data, (err, img_data) => {
@@ -19,27 +23,41 @@ async function handlePNG(data: Buffer): Promise<Buffer> {
         reject(err);
         return;
       }
-      resolve(img_data.data);
+
+      resolve({
+        dims: { w: img_data.width, h: img_data.height },
+        rgb: img_data.data
+      });
     });
   });
 }
 
-async function handleJPEG(data: Buffer): Promise<Buffer> {
-  return Promise.resolve(JPEG.decode(data).data);
+async function handleJPEG(data: Buffer): Promise<HandlerRetval> {
+  const decoded = JPEG.decode(data, {
+    maxMemoryUsageInMB: 2048
+  });
+
+  return Promise.resolve({
+    dims: { w: decoded.width, h: decoded.height },
+    rgb: decoded.data
+  });
 }
 
-async function handleGIF(data: Buffer): Promise<Buffer> {
+async function handleGIF(data: Buffer): Promise<HandlerRetval> {
   const reader = new GifReader(data);
   const ret = new Uint8Array(reader.height * reader.width * 4);
 
   reader.decodeAndBlitFrameRGBA(0, ret);
-  return Promise.resolve(Buffer.from(ret));
+  return Promise.resolve({
+    dims: { w: reader.width, h: reader.height },
+    rgb: Buffer.from(ret)
+  });
 }
 
 export async function readImage(
   mimeType: string,
   data: Buffer
-): Promise<Buffer> {
+): Promise<HandlerRetval> {
   switch (mimeType) {
     case 'image/png':
       return handlePNG(data);
@@ -88,13 +106,6 @@ export const LoadImage: ImageLoader = async (
   }
 
   const filetype = await getFileType(originalImageData);
-  const size = sizeOf(originalImageData);
-  if (!size.width || !size.height) {
-    throw new Error(`couldn't read image size of ${image}`);
-  }
 
-  return {
-    dims: { w: size.width, h: size.height },
-    rgb: await readImage(filetype.mime, originalImageData)
-  };
+  return readImage(filetype.mime, originalImageData);
 };

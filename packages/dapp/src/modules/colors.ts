@@ -1,4 +1,6 @@
-import { Transfer, Histogram } from '@splicenft/common';
+import { extractColors, LoadImageBrowser } from '@splicenft/colors';
+import { Transfer, Histogram, NFTItem } from '@splicenft/common';
+import { isIpfsGateway } from '@splicenft/common/build/img';
 import axios from 'axios';
 
 /**
@@ -17,5 +19,32 @@ export default async function getDominantColors(
     return colors;
   } catch (e: any) {
     throw new Error(`couldnt get image colors: ${e.message}`);
+  }
+}
+
+export async function loadColors(
+  nftItem: NFTItem,
+  image: HTMLImageElement,
+  chainId: number
+): Promise<Histogram> {
+  const dims = { w: image.width, h: image.height };
+  if (dims.w * dims.h > 6_250_000 || !isIpfsGateway(image.src)) {
+    console.log('image quite large or not on ipfs -> offloading to backend');
+    return getDominantColors(
+      chainId,
+      nftItem.contract_address,
+      nftItem.token_id
+    );
+  }
+
+  try {
+    return extractColors(image.src, LoadImageBrowser, { dims });
+  } catch (e: any) {
+    console.debug('palette extraction on frontend failed, trying the backend');
+    return getDominantColors(
+      chainId,
+      nftItem.contract_address,
+      nftItem.token_id
+    );
   }
 }

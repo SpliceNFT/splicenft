@@ -1,9 +1,9 @@
 import { Container, Image } from '@chakra-ui/react';
-import { extractColors, Histogram, LoadImageBrowser } from '@splicenft/colors';
+import { Histogram } from '@splicenft/colors';
 import { NFTItem, resolveImage, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
-import getDominantColors from '../../modules/colors';
+import { loadColors } from '../../modules/colors';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
@@ -91,40 +91,20 @@ export const CreativePanel = ({
   };
 
   const onNFTImageLoaded = useCallback(
-    (event: SyntheticEvent<HTMLImageElement, Event>): void => {
-      if (!chainId || spliceDataUrl || dominantColors?.length > 0) return;
+    async (event: SyntheticEvent<HTMLImageElement, Event>) => {
+      if (!chainId || spliceDataUrl || dominantColors.length > 0) return;
 
-      const onExtracted = (colors: Histogram) => {
-        setDominantColors(colors);
-        if (onDominantColors) onDominantColors(colors);
-      };
       const target: HTMLImageElement = (event.target ||
         event.currentTarget) as HTMLImageElement;
-
-      const proxyUrl = `${process.env.REACT_APP_CORS_PROXY}?url=${target.src}`;
-
-      extractColors(proxyUrl, LoadImageBrowser, {
-        dims: {
-          w: target.width,
-          h: target.height
-        }
-      })
-        .then(onExtracted)
-        .catch((e) => {
-          console.debug(
-            'palette extraction on frontend failed, trying the backend'
-          );
-          getDominantColors(chainId, nftItem.contract_address, nftItem.token_id)
-            .then(onExtracted)
-            .catch((e) => {
-              console.error(
-                'fetching image data ultimatively failed: ',
-                e.message
-              );
-            });
-        });
+      try {
+        const colors = await loadColors(nftItem, target, chainId);
+        setDominantColors(colors);
+        if (onDominantColors) onDominantColors(colors);
+      } catch (e: any) {
+        console.error('fetching image data ultimatively failed: ', e.message);
+      }
     },
-    [chainId, dominantColors, spliceDataUrl]
+    [chainId, nftItem, spliceDataUrl, dominantColors]
   );
 
   const nftImage = (

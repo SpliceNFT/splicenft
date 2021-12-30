@@ -44,7 +44,8 @@ export async function extractColors(req: Request, res: Response) {
     res.status(200).json(features);
   } catch (e: any) {
     const err = `couldnt load colors :( ${e.message}`;
-    console.error(err);
+    console.error(err, e);
+
     res.status(500).send(`couldnt load colors :( ${e.message}`);
   }
 }

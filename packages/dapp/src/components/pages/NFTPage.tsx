@@ -68,13 +68,17 @@ export const NFTPage = () => {
       setOwnsOrigin(false);
       return;
     }
+
     (async () => {
-      erc721(web3, collection)
-        .ownerOf(tokenId)
-        .then((owner) => setOwnsOrigin(owner === account))
-        .catch((e: any) => {
-          setOwnsOrigin(false);
-        });
+      try {
+        const owner = await erc721(web3, collection).ownerOf(tokenId);
+        setOwnsOrigin(owner === account);
+      } catch (e: any) {
+        console.error(
+          "couldn't load origin collection information (likely not an erc721 contract)"
+        );
+        setOwnsOrigin(false);
+      }
     })();
   }, [web3, account]);
 

@@ -35,6 +35,7 @@ export const LoadImage: ImageLoader = async (
     }
   } else {
     image.crossOrigin = 'anonymous';
+    console.debug('getting image data from cors source');
     pixels = ImageToColors.get(image, {
       setImageCrossOriginToAnonymous: true
     });
