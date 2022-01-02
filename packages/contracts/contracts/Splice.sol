@@ -242,12 +242,6 @@ contract Splice is
     royaltyAmount = ROYALTY_PERCENT * salePrice.div(100);
   }
 
-  /// @dev the randomness is the first 32 bit of the provenance hash
-  /// (0xcollection + origin_token_id + style_token_id)
-  // function randomness(bytes32 _provenanceHash) public pure returns (uint32) {
-  //   return BytesLib.toUint32(abi.encodePacked(_provenanceHash), 0);
-  // }
-
   function quote(
     uint32 style_token_id,
     IERC721[] memory nfts,
@@ -264,7 +258,7 @@ contract Splice is
     //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
     feesEscrow.deposit{ value: feeForArtist }(beneficiaryArtist);
     feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
-    //todo: later add a share to a beneficiary of the origin collection.
+    //todo: add a share to a beneficiary of the origin collection.
   }
 
   function claimShares(address payable beneficiary)
@@ -273,7 +267,6 @@ contract Splice is
     whenNotPaused
   {
     uint256 balance = escrowedBalanceOf(beneficiary);
-    //todo: the payable cast might not be right (msg.sender might be a contract)
     feesEscrow.withdraw(beneficiary);
     emit Withdrawn(msg.sender, balance);
   }

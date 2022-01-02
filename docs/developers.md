@@ -213,9 +213,7 @@ We've built the splice contract as gas efficient as possible, reducing bookkeepi
 
 ## Common package
 
-The `common` package contains code that's shared between our Dapp and the backend. Most importantly we make sure  serverside and frontend renderers use *exactly* the same code so as not to confuse users with varying visual results. 
-
-If you look at the `extractPalette` export from `img.ts` you'll notice that the code to compute an image's predominant colors is used on the frontend (`dapp/src/components/organisms/CreativePanel:extractPixels`) and on the backend (`backend/src/lib/Origin.ts`). 
+The `common` package contains code that's shared between our Dapp and the backend. Most importantly we make sure serverside and frontend renderers use *exactly* the same code so as not to confuse users with varying visual results. 
 
 Other exports that are exposed by the `common` package are
 
@@ -227,21 +225,28 @@ Other exports that are exposed by the `common` package are
 
 - `indexers`: contains code to read existing NFTs from chain and extract their metadata in an abstract way: if you know which collections you'd like to read and you have access to a web3 provider, you can use the `OnChain` indexer. If you need to find all assets owned by an user on mainnet, you can use the `NFTPort` indexer class instead. Our dapp uses the `Fallback` indexer that tries reading from NFTPort and falls back to the on chain implementation if NFTPort hasn't fully indexed the collection yet.
 
+## Colors
+
+The `colors` package contains code to extract primary / dominant colors from an image. We experimented with quite a lot of solutions but found that some algorithms implemented by the [image-q](https://www.npmjs.com/package/image-q) library yield the best results. Color extraction is a pretty delicate field since it deals with image quantization and adaptive weighting under the hood, not unrelated to palette generators. Splice uses a combination of [Xiaolin Wu's matrix quantizer](https://people.freedesktop.org/~joonas/tmp/wu.pdf) and Euclidean color distance to build a palette of 10 primary colors.
+
+If you look at the `colors/src/index.ts` file you'll notice that the same code to compute an image's dominant colors is used on the frontend (`dapp/src/components/organisms/CreativePanel:extractPixels`) and on the backend (`backend/src/lib/Origin.ts`).
+
 ## Backend
 
-The basic Splice concept doesn't depend on a backend at all: since styles and their code are stored on IPFS and one can recover origin minting parameters from the Splice contract, you can rebuild your Splice NFT anytime. (We'll be providing dedicated tools for rebuilding soon). 
+Splice generally doesn't depend on a backend at all: since styles and their code are stored on IPFS and one can recover origin minting parameters by scanning transaction parameters on the Splice contract, you can rebuild your Splice NFT anytime. (We'll be providing dedicated tools for fully trustless rebuilding soon). 
 
 Since IPFS lookups and chain queries are usually related to high latencies or aren't free (Infura's free tier is high, but their RPC timeouts are rather low), we're providing a backend service that speeds up many use cases significantly.
 
-Our backend package is a rather plain express server that responds to 5 API endpoints (see `backend/src/server.ts`) and its base URI is `https://validate.getsplice.io`:
+Our backend package is a rather plain express server that responds to 6 API endpoints (see `backend/src/server.ts`) and its base URI is `https://validate.getsplice.io`:
 
 - `GET /styles/:network` returns all styles (without code) including their metadata that are deployed on `network` (e.g. `4` for `rinkeby`)
 - `GET /render/:network/:style_token_id` renders a grayscale preview of a style.
 - `GET /styles/:network/:style_token_id` returns metadata and inline code of a style token
 - `GET /splice/:network/:tokenid` returns the metadata for Splice `tokenid`
 - `GET /splice/:network/:tokenid/image.png` returns the Splice image for `tokenid` on `network`
+- `GET /colors/:network/:collection/:token_id` extracts metadata, features and colors of the given NFT.
 
-What makes the backend so powerful is its caching mechanism: Instead of fetching origins, extracting colors and rerendering NFT metadata on every request, we're caching all results once they have been created for the first time. There's an [open issue](https://github.com/SpliceNFT/splicenft/issues/122) to align the cache layout in a way that's suitable for simple style freezing, too. 
+What makes the backend so powerful is its builtin caching mechanism: Instead of fetching origins, extracting colors and rerendering NFT metadata on every request, we're caching all results once they have been created for the first time. There's an [open issue](https://github.com/SpliceNFT/splicenft/issues/122) to align the cache layout in a way that's suitable for simple style freezing, too. 
 
 ### Dapp
 
