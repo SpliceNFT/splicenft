@@ -14,15 +14,12 @@ import { useSplice } from '../../../context/SpliceContext';
 import getDominantColors from '../../../modules/colors';
 import { CreativeOrigin } from '../../../types/CreativeOrigin';
 
-const OPENSEA_ASSET_URL = new RegExp(
-  `https://opensea.io/assets/(0x.+)/(.+)`,
-  'gi'
-);
+const NFT_ASSET_URL = new RegExp(`(0x\\w+)[/:](\\d+)`, 'gi');
 
-const extractOpenseaLink = (url: string) => {
+const extractNFTLink = (url: string) => {
   //https://opensea.io/assets/0x8c5029957bf42c61d19a29075dc4e00b626e5022/4949
 
-  const matches = OPENSEA_ASSET_URL.exec(url);
+  const matches = NFT_ASSET_URL.exec(url);
   if (!matches) return;
 
   return {
@@ -41,13 +38,16 @@ const ImportNFT = ({
   const { indexer } = useSplice();
   const { chainId } = useWeb3React();
   const [buzy, setBuzy] = useState<boolean>(false);
-  const loadNft = async () => {
+
+  const loadNft = async (url: string) => {
     if (!indexer || !url || !chainId) return;
-    const x = extractOpenseaLink(url);
-    if (!x) return false;
+    const collectionAndTokenId = extractNFTLink(url);
+    if (!collectionAndTokenId) {
+      return false;
+    }
     try {
       setBuzy(true);
-      const { collection, tokenId } = x;
+      const { collection, tokenId } = collectionAndTokenId;
       const nftItem = await indexer.getAsset(collection, tokenId);
 
       if (nftItem?.metadata) {
@@ -56,8 +56,9 @@ const ImportNFT = ({
           randomness: Splice.computeRandomness(collection, tokenId),
           histogram: await getDominantColors(chainId, collection, tokenId)
         };
-        onNFT(origin);
+        setBuzy(false);
         setUrl('');
+        onNFT(origin);
       }
     } catch (e: any) {
       toast({ title: e.message, status: 'warning' });
@@ -66,36 +67,51 @@ const ImportNFT = ({
     }
   };
 
+  const validUrl = !!url.match(NFT_ASSET_URL);
+
   return (
     <Flex
       as="form"
       direction="row"
       gridGap={3}
-      w="full"
-      align="center"
+      align={chainId != 1 || (!!url && !validUrl) ? 'center' : 'flex-end'}
       onSubmit={(e) => {
         e.preventDefault();
-        loadNft();
+        loadNft(url);
       }}
     >
-      <FormControl flex="4">
-        <FormLabel>NFT URL</FormLabel>
+      <FormControl flex="4" isInvalid={!!url && !validUrl}>
+        <FormLabel fontSize="lg" fontWeight="bold">
+          add an origin NFT URL
+        </FormLabel>
         <Input
           bg="white"
           variant="filled"
+          disabled={buzy || chainId !== 1}
           type="text"
           placeholder="e.g. https://opensea.io/assets/0x8c5029957bf42c61d19a29075dc4e00b626e5022/4949"
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => {
+            e.preventDefault();
+            setUrl(e.target.value);
+          }}
           value={url}
         />
-        <FormHelperText>try an OpenSea asset URL</FormHelperText>
+        {chainId !== 1 && (
+          <FormHelperText>please switch to mainnet</FormHelperText>
+        )}
+        {url && !validUrl && (
+          <FormHelperText>cannot detect an asset url</FormHelperText>
+        )}
       </FormControl>
       <Button
         isLoading={buzy}
+        loadingText="loading..."
         type="submit"
         variant="black"
+        size="sm"
         flex="1"
-        disabled={!url || buzy}
+        disabled={!url || buzy || chainId != 1 || !validUrl}
+        title={chainId != 1 ? 'please switch to mainnet' : ''}
       >
         Submit
       </Button>

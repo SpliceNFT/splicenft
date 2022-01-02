@@ -109,12 +109,12 @@ export class OnChain implements NFTIndexer {
     collection: string,
     tokenId: string
   ): Promise<NFTItem | null> {
-    const contract =
-      this.collections[collection] ||
-      erc721Enumerable(this.provider, collection);
-
     try {
-      const metadataUrl = ipfsGW(await contract.tokenURI(tokenId));
+      const contract =
+        this.collections[collection] ||
+        erc721Enumerable(this.provider, collection);
+      const tokenUri = await contract.tokenURI(tokenId);
+      const metadataUrl = ipfsGW(tokenUri);
       const metadata = await fetchMetadataFromUrl(
         metadataUrl,
         this.proxyAddress

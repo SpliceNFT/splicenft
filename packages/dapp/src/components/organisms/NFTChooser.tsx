@@ -1,4 +1,4 @@
-import { Flex, LinkOverlay } from '@chakra-ui/react';
+import { Box, Flex, LinkOverlay } from '@chakra-ui/react';
 import { useState } from 'react';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
@@ -11,22 +11,30 @@ export const NFTChooser = ({
   nftChosen: (origin: CreativeOrigin) => unknown;
 }) => {
   const [origins, setOrigins] = useState<CreativeOrigin[]>([]);
-
+  const [selected, setSelected] = useState<CreativeOrigin>();
   const addNFT = (origin: CreativeOrigin) => {
     setOrigins([origin, ...origins]);
+    select(origin);
+  };
+  const select = (origin: CreativeOrigin) => {
+    setSelected(origin);
+    nftChosen(origin);
   };
 
   return (
-    <Flex direction="column">
+    <Flex direction="column" w="full">
       <ImportNFT onNFT={addNFT} />
       <Flex direction="row" gridGap={3} my={6}>
         {origins.map((o) => (
           <SpliceCard
+            border={selected === o ? '4px solid' : 'none'}
+            borderColor="blue.400"
+            overflow="hidden"
             flexDirection="column"
             key={`${o.nft.contract_address}_${o.nft.token_id}`}
           >
-            <LinkOverlay onClick={() => nftChosen(o)}>
-              <FallbackImage metadata={o.nft.metadata} height="15rem" />
+            <LinkOverlay onClick={() => select(o)} sx={{ cursor: 'pointer' }}>
+              <FallbackImage metadata={o.nft.metadata} maxH={64} />
             </LinkOverlay>
           </SpliceCard>
         ))}

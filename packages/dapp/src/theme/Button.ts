@@ -22,7 +22,10 @@ const Button = {
   variants: {
     black: {
       color: 'white',
-      bg: 'black'
+      bg: 'black',
+      _disabled: {
+        background: 'gray.500'
+      }
     },
     white: {
       color: 'black',

@@ -1,7 +1,7 @@
 import { NFTMetaData } from './types/NFT';
 
 //const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
-//const IPFS_GATEWAY = 'https://dweb.link/ipfs/';
+//const IPFS_GATEWAY = 'https://dweb.link';
 const IPFS_GATEWAY = 'https://ipfs.getsplice.io';
 
 export const resolveImage = (nftMetaData: NFTMetaData): string => {

@@ -8,7 +8,7 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 
-const Preview = ({
+export const Preview = ({
   nftImage,
   nftExtractedProps,
   style,

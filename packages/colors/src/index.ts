@@ -97,5 +97,5 @@ export {
 export { palette };
 
 export { RGB, RGBA } from './types/RGB';
-export { Histogram } from './types/Histogram';
+export { Histogram, HistogramEntry } from './types/Histogram';
 export { rgbToHex } from './helpers';

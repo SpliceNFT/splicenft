@@ -1,17 +1,21 @@
 import {
   Button,
-  Center,
   Container,
   Flex,
   Heading,
+  Link,
+  Spacer,
   Text,
   Textarea
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
+import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { P5Sketch } from '../molecules/P5Sketch';
+import { PreviewBase } from '../molecules/PreviewBase';
 import { NFTChooser } from '../organisms/NFTChooser';
+import { FaPlay } from 'react-icons/fa';
 
 export const CreatePage = () => {
   const [code, setCode] = useState<string>();
@@ -27,28 +31,27 @@ export const CreatePage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      <Heading>Test your Splice artwork styles</Heading>
-      <Heading size="sm" color="gray.400">
+      <Heading size="lg">Test your Splice artwork styles</Heading>
+      <Text fontSize="md" color="gray.500">
         Use this to validate your style code
-      </Heading>
-      <Flex my={6} gridGap={6}>
-        <Flex flex="2" w="full">
-          <NFTChooser nftChosen={setOrigin} />
-        </Flex>
+      </Text>
+      <Flex my={6} gridGap={6} flex="2" w="full">
+        <NFTChooser nftChosen={setOrigin} />
       </Flex>
       {origin && (
         <Flex my={4} align="center" gridGap={3}>
-          <Flex flex="1">
-            <DominantColorsDisplay colors={origin.histogram} />
-          </Flex>
-          <Flex flex="1">
-            <Text>
-              <strong>Random seed: </strong>
-              {origin.randomness}
-            </Text>
-          </Flex>
+          <DominantColorsDisplay colors={origin.histogram} showDetails />
         </Flex>
       )}
+      <Flex direction="row" align="center" mt={12} mb={3}>
+        <Text fontSize="lg" fontWeight="bold">
+          Write / paste your code here
+        </Text>
+        <Spacer />
+        <Link isExternal href="https://splicenft.github.io/splicenft/artists/">
+          Help
+        </Link>
+      </Flex>
       <Textarea
         id="codearea"
         name="codearea"
@@ -56,37 +59,42 @@ export const CreatePage = () => {
         placeholder="your code goes here"
         bg="white"
         rows={20}
-      >{`function ({ p5, params, dim }) {
+        defaultValue={`function ({ p5, params, dim }) {
+  // all your code must go inside this function.
   const { colors } = params;
   let y = dim.h;
-  
   for (let color of colors) {
+    // colors[].color is a p5 color
     p5.fill(color.color);
     p5.strokeWeight(0);
-    let newY = y - color.freq * dim.h;
-    p5.rect(0,newY,dim.w,y);
-    y = newY;
+    y = y - color.freq * dim.h;
+    p5.rect(0,y,dim.w, color.freq * dim.h);
   }
-}`}</Textarea>
-      <Flex my={4}>
-        <Button onClick={updateCode} variant="black" disabled={!origin}>
-          update
+}`}
+      ></Textarea>
+      <Flex my={4} justify="flex-end">
+        <Button
+          onClick={updateCode}
+          variant="black"
+          disabled={!origin}
+          leftIcon={<FaPlay />}
+        >
+          Run code
         </Button>
       </Flex>
       {code && origin && (
-        <Center
-          width="100%"
-          height="100%"
-          position="relative"
-          background="green.300"
+        <PreviewBase
+          nftImage={
+            <FallbackImage boxShadow="lg" metadata={origin.nft.metadata} />
+          }
         >
           <P5Sketch
-            code={code}
             randomness={origin.randomness}
             dim={{ w: 1500, h: 500 }}
             colors={origin.histogram}
+            code={code}
           />
-        </Center>
+        </PreviewBase>
       )}
     </Container>
   );

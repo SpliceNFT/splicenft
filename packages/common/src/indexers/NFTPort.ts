@@ -17,6 +17,7 @@ type NftPortNftMetadataResponse = {
   status: string;
   status_message: string;
   nft: NFTItem & {
+    updated_date: string;
     asset_metadata: {
       height: number;
       width: number;
@@ -25,6 +26,11 @@ type NftPortNftMetadataResponse = {
     image_url: string;
     cached_image_url: string;
     mint_date: null;
+  };
+  contract?: {
+    name: string;
+    symbol: string;
+    type: 'ERC721' | 'ERC1155';
   };
 };
 
