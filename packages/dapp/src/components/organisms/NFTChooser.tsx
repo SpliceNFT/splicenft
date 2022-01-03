@@ -1,4 +1,4 @@
-import { Box, Flex, LinkOverlay } from '@chakra-ui/react';
+import { Box, Flex, LinkOverlay, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
@@ -27,8 +27,8 @@ export const NFTChooser = ({
       <Flex direction="row" gridGap={3} my={6}>
         {origins.map((o) => (
           <SpliceCard
-            border={selected === o ? '4px solid' : 'none'}
-            borderColor="blue.400"
+            border="4px solid"
+            borderColor={selected === o ? 'blue.400' : 'transparent'}
             overflow="hidden"
             flexDirection="column"
             key={`${o.nft.contract_address}_${o.nft.token_id}`}

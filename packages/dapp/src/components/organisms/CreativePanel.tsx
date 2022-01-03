@@ -110,7 +110,6 @@ export const CreativePanel = ({
   const nftImage = (
     <FallbackImage
       boxShadow="lg"
-      imgUrl={resolveImage(nftItem.metadata)}
       metadata={nftItem.metadata}
       onNFTImageLoaded={onNFTImageLoaded}
     />

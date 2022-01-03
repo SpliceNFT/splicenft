@@ -1,8 +1,10 @@
 import { NFTMetaData } from './types/NFT';
 
-//const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+//const IPFS_GATEWAY = 'https://ipfs.io';
 //const IPFS_GATEWAY = 'https://dweb.link';
 const IPFS_GATEWAY = 'https://ipfs.getsplice.io';
+
+const IPFS_LOCATION_REGEX = new RegExp(`/ipfs/(.+)`, 'gi');
 
 export const resolveImage = (nftMetaData: NFTMetaData): string => {
   const imgUrl =
@@ -28,4 +30,16 @@ export const ipfsGW = (url: string) => {
 
 export const isIpfsGateway = (url: string): boolean => {
   return url.startsWith(IPFS_GATEWAY);
+};
+
+export const isIpfsLocation = (url: string): boolean => {
+  return !!url.match(IPFS_LOCATION_REGEX);
+};
+
+export const getIpfsPath = (url: string): string => {
+  if (!isIpfsLocation(url)) {
+    throw new Error('not an ipfs path');
+  }
+  const matches = url.matchAll(IPFS_LOCATION_REGEX);
+  return matches.next().value[1];
 };
