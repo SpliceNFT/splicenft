@@ -297,7 +297,7 @@ importers:
       '@web3-react/injected-connector': ^6.0.7
       '@web3-react/walletconnect-connector': ^6.2.4
       axios: ^0.24.0
-      core-js: ^2.5
+      core-js: ^2.5.3
       ethers: ^5.5.2
       framer-motion: ^4
       get-rgba-palette: ^2.0.1
@@ -7318,7 +7318,7 @@ packages:
   /axios/0.21.4:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.6
+      follow-redirects: 1.14.6_debug@4.3.3
     transitivePeerDependencies:
       - debug
     dev: false
@@ -12284,16 +12284,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       tslib: 2.3.1
-    dev: false
-
-  /follow-redirects/1.14.6:
-    resolution: {integrity: sha512-fhUl5EwSJbbl8AR+uYL2KQDxLkdSjZGR36xy46AO7cOMTrCMON6Sa28FmAnC2tRTDbd/Uuzz3aJBv7EBN7JH8A==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
     dev: false
 
   /follow-redirects/1.14.6_debug@4.3.3:
@@ -20421,6 +20411,7 @@ packages:
     resolution: {integrity: sha512-N9iVG+CGJsI4b4ZGazjwLnxErD2d9Pe4DPvvXSxYA9tFNu8ymXME4Qs5HIQ0LMJpNM7zj+m0NlNnNeqFpKzqnA==}
     deprecated: Unmaintained
     dev: false
+    bundledDependencies: []
 
   /promptly/2.2.0:
     resolution: {integrity: sha1-KhP6BjaIoqWYOxYf/wEIoH0m/HQ=}
