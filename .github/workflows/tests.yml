@@ -10,35 +10,36 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
+    container: elmariachi/node16-pnpm:v1.6
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-version }}
-
       - name: Cache pnpm modules
         uses: actions/cache@v2
         env:
           cache-name: cache-pnpm-modules
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}-${{ hashFiles('**/package.json') }}
+          key: build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}-
+            build-${{ env.cache-name }}
 
-      - uses: pnpm/action-setup@v1.2.1
+      - uses: pnpm/action-setup@v2.0.0
         with:
           version: 6
           run_install: true
       - name: build
-        run: pnpm -r build
+        run: pnpm -r --filter=contracts --filter=common --filter=colors --filter=backend build
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          DEPLOYER_PRIVATEKEY: ${{ secrets.DEPLOYER_PRIVATEKEY }}
+          ETHERSCAN_KEY: ${{ secrets.ETHERSCAN_KEY }}
       - name: run tests
-        run: pnpm run -r test
+        run: pnpm -r --filter=contracts --filter=common --filter=colors --filter=backend test
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          DEPLOYER_PRIVATEKEY: ${{ secrets.DEPLOYER_PRIVATEKEY }}
+          ETHERSCAN_KEY: ${{ secrets.ETHERSCAN_KEY }}
