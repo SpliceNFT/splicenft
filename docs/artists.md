@@ -84,9 +84,11 @@ After you've written and tested your code, send us:<br /> - Your eth wallet addr
 <br /> - Your style code
 <br /> - The cap on your series (how many can be minted)
 <br /> - Its price 
-<br /> - Metadata text <br />
-Here's an example:
+<br /> - Metadata text 
 
+
+[Here](https://github.com/SpliceNFT/splicenft/blob/main/renderers/District1618/metadata.json) is an example of Splice metadata:
+<br /> 
 { <br /> 
   "name": "District 1618", <br /> 
   "description": "District 1618 generates a pattern based on the droste effect and golden mean (1.618).", <br /> 
