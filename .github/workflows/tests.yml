@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -33,13 +33,12 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}-
-      
+
       - uses: pnpm/action-setup@v1.2.1
         with:
-          version: latest
+          version: 6
           run_install: true
       - name: build
         run: pnpm -r build
       - name: run tests
         run: pnpm run -r test
-  
