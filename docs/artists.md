@@ -53,13 +53,13 @@ function ({ p5, params, dim }) {
 }
 ```
 
-## Ownership and deployment
+### Ownership and deployment
 
 Styles on Splice are minted as NFTs that can be bought and sold. All fees that accrue when collectors mint Splices, or sell minted results on secondary markets, will be escrowed for the **current style NFT owner** and can be claimed / withdrawn at any time. 
 
 When deploying a style, its metadata and code is stored on IPFS. Right now, artists cannot deploy or mint new style NFTs on their own but must rely on trusted *style minter* roles who deploy style NFTs on behalf of their artists. Once minted you can sell or transfer your **style NFT** as you like. A style NFT isn't just a new kind of asset that potentially generates a stream of revenue from primary and secondary sales, but more importantly, a new way for artists to benefit from their work.
 
-## Commissions and fee distribution
+### Commissions and fee distribution
 
 The Splice contract distributes 85% of primary sales to the artist (or whoever owns the style NFT) and 15% to the platform protocol. On secondary sales, the artist (or whoever owns the style NFT) receives 90% of the selected royalty commission (set to 10% on OpenSea).
 
@@ -68,6 +68,31 @@ The Splice contract implements the [EIP-2981 NFT Royalty Standard](https://eips.
 All royalty payouts that happen to be paid to the contract owner directly (which is the Splice protocol) in the old-fashioned way will be forwarded to artists on a monthly basis.
 
 For security reasons, all fees are kept safe by an inline trustless escrow. It pays out all accrued funds on request (see `Splice.sol:claimShares`) 
+
+## How to get your style algorithm on Splice 
+After you've written and tested your code, send us:
+
+- Your ethereum wallet address that will become the initial owner of the style NFT (and receives minting fees)
+- Your style source code
+- The desired cap on your series (how many can be minted)
+- The minting price (in Eth) that you're charging 
+- a metadata JSON file [like this one](https://github.com/SpliceNFT/splicenft/blob/main/renderers/District1618/metadata.json):  
+
+```json
+{
+  "name": "District 1618",
+  "description": "District 1618 generates a pattern based on the droste effect and golden mean (1.618).", 
+  "properties": {}, 
+  "splice": {
+    "creator_name": "Splice Genesis", 
+    "creator_twitter": "https://twitter.com/splicenft",
+    "creator_url": "https://getsplice.io", 
+    "code_library": "p5.js", 
+    "code_library_version": "1.4.0",
+    "license": "CC BY-NC-ND 4.0"
+  } 
+}
+```
 
 ## The creators' playground
 
@@ -79,28 +104,6 @@ A playground to test style code with arbitrary inputs can be found at [https://g
 
 While you *could* write your style using Typescript, that would add another layer of complexity: the style code itself is instantiated inside a browser context, and if it contains TS, it would  fail to load. If you're building a style using TS, you'll need to make sure  your code is transpiled to Javascript before we can mint it. If you don't want to wrap your head around that, just write styles in plain JS.
 
-## How to get your style algorithm on Splice 
-After you've written and tested your code, send us:<br /> - Your eth wallet address to receive revenue from sales
-<br /> - Your style code
-<br /> - The cap on your series (how many can be minted)
-<br /> - Its price 
-<br /> - Metadata text 
 
-
-[Here](https://github.com/SpliceNFT/splicenft/blob/main/renderers/District1618/metadata.json) is an example of Splice metadata:
-<br /> 
-{ <br /> 
-  "name": "District 1618", <br /> 
-  "description": "District 1618 generates a pattern based on the droste effect and golden mean (1.618).", <br /> 
-  "properties": {}, <br /> 
-  "splice": { <br /> 
-    "creator_name": "Splice Genesis", <br /> 
-    "creator_twitter": "https://twitter.com/splicenft", <br /> 
-    "creator_url": "https://getsplice.io", <br /> 
-    "code_library": "p5.js", <br /> 
-    "code_library_version": "1.4.0", <br /> 
-    "license": "CC BY-NC-ND 4.0" <br /> 
-  } <br /> 
-} <br /> 
 
 **Excited to see what you build!**
