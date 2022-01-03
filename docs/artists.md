@@ -1,4 +1,4 @@
-# Splice for Artists
+# Splice for artists
 
 If you're a generative artist interested in creating a Splice style NFT, welcome! Below is an outline of how Splice works, and how we can work together. If you have questions that remain unanswered, or if you want to get started building with Splice, please don't hesitate to contact us on [our discord](https://discord.gg/JhtT87y2BA). 
 
@@ -53,13 +53,13 @@ function ({ p5, params, dim }) {
 }
 ```
 
-## Ownership and Deployment
+## Ownership and deployment
 
 Styles on Splice are minted as NFTs that can be bought and sold. All fees that accrue when collectors mint Splices, or sell minted results on secondary markets, will be escrowed for the **current style NFT owner** and can be claimed / withdrawn at any time. 
 
 When deploying a style, its metadata and code is stored on IPFS. Right now, artists cannot deploy or mint new style NFTs on their own but must rely on trusted *style minter* roles who deploy style NFTs on behalf of their artists. Once minted you can sell or transfer your **style NFT** as you like. A style NFT isn't just a new kind of asset that potentially generates a stream of revenue from primary and secondary sales, but more importantly, a new way for artists to benefit from their work.
 
-### Commissions and fee distribution
+## Commissions and fee distribution
 
 The Splice contract distributes 85% of primary sales to the artist (or whoever owns the style NFT) and 15% to the platform protocol. On secondary sales, the artist (or whoever owns the style NFT) receives 90% of the selected royalty commission (set to 10% on OpenSea).
 
@@ -69,7 +69,7 @@ All royalty payouts that happen to be paid to the contract owner directly (which
 
 For security reasons, all fees are kept safe by an inline trustless escrow. It pays out all accrued funds on request (see `Splice.sol:claimShares`) 
 
-## The Creators' Playground
+## The creators' playground
 
 A playground to test style code with arbitrary inputs can be found at [https://getsplice.io/#/create](https://getsplice.io/#/create). Note that you must switch your wallet to mainnet to use the playground's color extraction features. 
 
@@ -78,3 +78,27 @@ A playground to test style code with arbitrary inputs can be found at [https://g
 ## Complex style code
 
 While you *could* write your style using Typescript, that would add another layer of complexity: the style code itself is instantiated inside a browser context, and if it contains TS, it would  fail to load. If you're building a style using TS, you'll need to make sure  your code is transpiled to Javascript before we can mint it. If you don't want to wrap your head around that, just write styles in plain JS.
+
+## How to get your style algorithm on Splice 
+After you've written and tested your code, send us:<br /> - Your eth wallet address to receive revenue from sales
+<br /> - Your style code
+<br /> - The cap on your series (how many can be minted)
+<br /> - Its price 
+<br /> - Metadata text <br />
+Here's an example:
+
+{ <br /> 
+  "name": "District 1618", <br /> 
+  "description": "District 1618 generates a pattern based on the droste effect and golden mean (1.618).", <br /> 
+  "properties": {}, <br /> 
+  "splice": { <br /> 
+    "creator_name": "Splice Genesis", <br /> 
+    "creator_twitter": "https://twitter.com/splicenft", <br /> 
+    "creator_url": "https://getsplice.io", <br /> 
+    "code_library": "p5.js", <br /> 
+    "code_library_version": "1.4.0", <br /> 
+    "license": "CC BY-NC-ND 4.0" <br /> 
+  } <br /> 
+} <br /> 
+
+**Excited to see what you build!**
