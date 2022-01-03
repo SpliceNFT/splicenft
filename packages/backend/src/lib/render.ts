@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import p5 from 'p5js-node';
+import p5 from '@mattheath/p5js-node';
 import { Renderer, RGB } from '@splicenft/common';
 
 export default function (
@@ -32,7 +32,7 @@ export default function (
         });
 
         //setTimeout(() => {
-        callback(null, p5.canvas.toBuffer('image/png'));
+        callback(null, p5.canvas.createPNGStream());
         //}, 250);
       } catch (e) {
         callback(e, null);

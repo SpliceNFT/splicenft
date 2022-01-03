@@ -1,5 +1,12 @@
-import { promises as fs, existsSync, createReadStream, ReadStream } from 'fs';
+import {
+  promises as fs,
+  existsSync,
+  createReadStream,
+  createWriteStream,
+  ReadStream
+} from 'fs';
 import { dirname } from 'path';
+import { Readable } from 'stream';
 
 export const CACHE_LOCATION = './.splice.cache';
 
@@ -37,7 +44,10 @@ export async function store(key: string, payload: any): Promise<void> {
     await fs.mkdir(dirname(location), { recursive: true });
   }
 
-  if (payload instanceof Buffer) {
+  if (payload instanceof Readable) {
+    const writeable = createWriteStream(location);
+    payload.pipe(writeable);
+  } else if (payload instanceof Buffer) {
     return fs.writeFile(location, payload);
   } else if (typeof payload === 'string') {
     return fs.writeFile(location, payload as string, { encoding: 'utf-8' });

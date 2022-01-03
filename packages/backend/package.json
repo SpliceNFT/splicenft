@@ -24,8 +24,9 @@
       "vercel": "^23.1.2"
    },
    "dependencies": {
-      "@splicenft/common": "workspace:*",
+      "@mattheath/p5js-node": "^1.3.7",
       "@splicenft/colors": "workspace:*",
+      "@splicenft/common": "workspace:*",
       "axios": "^0.21.4",
       "chalk": "^4.1.2",
       "cors": "^2.8.5",
@@ -35,10 +36,9 @@
       "helmet": "^4.6.0",
       "micro": "^9.3.4",
       "morgan": "^1.10.0",
-      "p5js-node": "^1.3.4",
       "pm2": "^5.1.2",
-      "request": "^2.88.2",
       "reflect-metadata": "^0.1.10",
+      "request": "^2.88.2",
       "sqlite3": "^5.0.2",
       "typeorm": "0.2.41"
    }

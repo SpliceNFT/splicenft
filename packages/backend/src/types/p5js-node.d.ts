@@ -1,1 +1,1 @@
-declare module 'p5js-node';
+declare module '@mattheath/p5js-node';
