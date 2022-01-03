@@ -156,15 +156,14 @@ To be flexible in terms of mint price indication we've decoupled price computati
 ```solidity
 interface ISplicePriceStrategy {
   function quote(
-    SpliceStyleNFT styleNFT,
-    IERC721 collection,
-    uint256 token_id,
-    StyleSettings memory styleSettings
+    uint256 style_token_id,
+    IERC721[] memory collections,
+    uint256[] memory token_ids
   ) external view returns (uint256);
 }
 ```
 
-Since each implementation will receive the full `styleSettings` struct of the requesting style, it can determine a price point unique for each style. That struct's `priceParameters` field may contain implementation specific information, e.g. a minimum and a maximum price. So far we only implemented a static pricing strategy that simply returns the `priceParameters` content, which effectively becomes a fixed price parameter.
+Each style NFT is parametrized with a pricing contract address when minted. That contract is responsible for determining the price point for a requested Splice mint. A basic example is `SplicePriceStrategyStatic.sol` that returns a fixed price unique to each style token.
 
 ## Subgraphs
 
