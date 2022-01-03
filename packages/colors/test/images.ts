@@ -22,6 +22,6 @@ describe('Color extraction', function () {
       {}
     );
     expect(palette.length).to.eq(10);
-    expect(palette[0].hex).to.eq('fe1929');
+    expect(palette[0].hex).to.eq('#fe1929');
   });
 });

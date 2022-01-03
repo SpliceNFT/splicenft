@@ -7,8 +7,7 @@
     "build": "tsc -p .",
     "dev": "tsc -p . --watch",
     "nft": "node build",
-    "dist": "ncc build index.ts -o build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist": "ncc build index.ts -o build"
   },
   "keywords": [],
   "author": "",
