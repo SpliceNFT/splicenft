@@ -16,7 +16,7 @@ import { BigNumberish } from 'ethers';
 const IPFSIO_GATEWAY = 'https://ipfs.io/ipfs/';
 const IPFSDWEB_GATEWAY = 'https://dweb.link/ipfs/';
 
-async function prefetchIpfsResources(ipfsPath: string) {
+function usePublicGateway(ipfsPath: string) {
   [IPFSIO_GATEWAY].map((gw) => {
     console.debug('prefetch timeout reached, getting %s from %s', ipfsPath, gw);
     axios.get(`${gw}${ipfsPath}`);
@@ -34,14 +34,14 @@ export async function getOriginMetadata(
   let prefetchTimeout;
   if (isIpfsLocation(originMetadataUrl)) {
     prefetchTimeout = setTimeout(() => {
-      prefetchIpfsResources(getIpfsPath(originMetadataUrl));
+      usePublicGateway(getIpfsPath(originMetadataUrl));
     }, 10000);
   }
 
   const metadata = (
     await axios.get<NFTMetaData>(originMetadataUrl, {
       responseType: 'json',
-      timeout: 30 * 1000
+      timeout: 60 * 1000
     })
   ).data;
 
@@ -62,7 +62,7 @@ export async function extractOriginFeatures(
     let prefetchTimeout;
     if (isIpfsLocation(originImageUrl)) {
       prefetchTimeout = setTimeout(() => {
-        prefetchIpfsResources(getIpfsPath(originImageUrl));
+        usePublicGateway(getIpfsPath(originImageUrl));
       }, 10000);
     }
 

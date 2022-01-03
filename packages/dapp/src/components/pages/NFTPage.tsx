@@ -6,13 +6,16 @@ import {
   Container,
   Flex,
   Heading,
+  IconButton,
   Link,
   SimpleGrid,
+  Spacer,
   useToast
 } from '@chakra-ui/react';
 import {
   erc721,
   NFTItem,
+  OnChain,
   resolveImage,
   Splice,
   SpliceNFT,
@@ -23,6 +26,7 @@ import { Histogram } from '@splicenft/colors';
 import { useWeb3React } from '@web3-react/core';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
+import { IoReload } from 'react-icons/io5';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
@@ -161,6 +165,17 @@ export const NFTPage = () => {
     return provenance !== undefined && spliceOwner === account;
   }, [spliceOwner, account]);
 
+  const useOriginalMetadata = useCallback(async () => {
+    const indexer = new OnChain(web3, []);
+    setBuzy(true);
+    setDominantColors([]);
+    const nftItem = await indexer.getAsset(collection, tokenId);
+    if (nftItem) {
+      setNFTItem(nftItem);
+    }
+    setBuzy(false);
+  }, [web3]);
+
   return (
     <Container maxW="container.xl">
       <Breadcrumb>
@@ -278,7 +293,17 @@ export const NFTPage = () => {
               gridGap={3}
               background="white"
             >
-              <Heading size="md"> Origin attributes</Heading>
+              <Flex direction="row">
+                <Heading size="md"> Origin attributes</Heading>
+                <Spacer />
+                <IconButton
+                  size="sm"
+                  icon={<IoReload />}
+                  title="reload metadata"
+                  aria-label="reload"
+                  onClick={() => useOriginalMetadata()}
+                />
+              </Flex>
               {!provenance && (
                 <MetaDataItem
                   label="colors"

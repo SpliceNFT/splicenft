@@ -92,7 +92,7 @@ export const CreativePanel = ({
 
   const onNFTImageLoaded = useCallback(
     async (event: SyntheticEvent<HTMLImageElement, Event>) => {
-      if (!chainId || spliceDataUrl || dominantColors.length > 0) return;
+      if (!chainId || spliceDataUrl) return;
 
       const target: HTMLImageElement = (event.target ||
         event.currentTarget) as HTMLImageElement;
