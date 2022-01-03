@@ -10,7 +10,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,12 +34,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}-
 
-
       - uses: pnpm/action-setup@v2.0.0
         with:
           version: 6
           run_install: true
       - name: build
         run: pnpm -r build
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          DEPLOYER_PRIVATEKEY: ${{ secrets.DEPLOYER_PRIVATEKEY }}
+          ETHERSCAN_KEY: ${{ secrets.ETHERSCAN_KEY }}
       - name: run tests
         run: pnpm run -r test
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          DEPLOYER_PRIVATEKEY: ${{ secrets.DEPLOYER_PRIVATEKEY }}
+          ETHERSCAN_KEY: ${{ secrets.ETHERSCAN_KEY }}
