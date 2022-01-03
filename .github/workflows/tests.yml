@@ -30,14 +30,14 @@ jobs:
           version: 6
           run_install: true
       - name: build
-        run: pnpm -r build
+        run: pnpm -r --filter=contracts --filter=common --filter=colors --filter=backend build
         env:
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
           COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
           DEPLOYER_PRIVATEKEY: ${{ secrets.DEPLOYER_PRIVATEKEY }}
           ETHERSCAN_KEY: ${{ secrets.ETHERSCAN_KEY }}
       - name: run tests
-        run: pnpm run -r test
+        run: pnpm -r --filter=contracts --filter=common --filter=colors --filter=backend test
         env:
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
           COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
