@@ -1,4 +1,4 @@
-# Splice for Artists
+# Splice for artists
 
 If you're a generative artist interested in creating a Splice style NFT, welcome! Below is an outline of how Splice works, and how we can work together. If you have questions that remain unanswered, or if you want to get started building with Splice, please don't hesitate to contact us on [our discord](https://discord.gg/JhtT87y2BA). 
 
@@ -53,7 +53,7 @@ function ({ p5, params, dim }) {
 }
 ```
 
-## Ownership and Deployment
+### Ownership and deployment
 
 Styles on Splice are minted as NFTs that can be bought and sold. All fees that accrue when collectors mint Splices, or sell minted results on secondary markets, will be escrowed for the **current style NFT owner** and can be claimed / withdrawn at any time. 
 
@@ -69,7 +69,32 @@ All royalty payouts that happen to be paid to the contract owner directly (which
 
 For security reasons, all fees are kept safe by an inline trustless escrow. It pays out all accrued funds on request (see `Splice.sol:claimShares`) 
 
-## The Creators' Playground
+## How to get your style algorithm on Splice 
+After you've written and tested your code, send us:
+
+- Your ethereum wallet address that will become the initial owner of the style NFT (and receives minting fees)
+- Your style source code
+- The desired cap on your series (how many can be minted)
+- The minting price (in Eth) that you're charging 
+- a metadata JSON file [like this one](https://github.com/SpliceNFT/splicenft/blob/main/renderers/District1618/metadata.json):  
+
+```json
+{
+  "name": "District 1618",
+  "description": "District 1618 generates a pattern based on the droste effect and golden mean (1.618).", 
+  "properties": {}, 
+  "splice": {
+    "creator_name": "Splice Genesis", 
+    "creator_twitter": "https://twitter.com/splicenft",
+    "creator_url": "https://getsplice.io", 
+    "code_library": "p5.js", 
+    "code_library_version": "1.4.0",
+    "license": "CC BY-NC-ND 4.0"
+  } 
+}
+```
+
+## The creators' playground
 
 A playground to test style code with arbitrary inputs can be found at [https://getsplice.io/#/create](https://getsplice.io/#/create). Note that you must switch your wallet to mainnet to use the playground's color extraction features. 
 
@@ -78,3 +103,7 @@ A playground to test style code with arbitrary inputs can be found at [https://g
 ## Complex style code
 
 While you *could* write your style using Typescript, that would add another layer of complexity: the style code itself is instantiated inside a browser context, and if it contains TS, it would  fail to load. If you're building a style using TS, you'll need to make sure  your code is transpiled to Javascript before we can mint it. If you don't want to wrap your head around that, just write styles in plain JS.
+
+
+
+**Excited to see what you build!**
