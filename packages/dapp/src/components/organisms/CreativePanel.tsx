@@ -8,7 +8,7 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 
-const Preview = ({
+export const Preview = ({
   nftImage,
   nftExtractedProps,
   style,
@@ -42,7 +42,7 @@ const Preview = ({
       <P5Sketch
         randomness={randomness}
         dim={{ w: 1500, h: 500 }}
-        colors={dominantColors.map((h) => h.rgb)}
+        colors={dominantColors}
         onSketched={onSketched}
         code={code}
       />
@@ -92,7 +92,7 @@ export const CreativePanel = ({
 
   const onNFTImageLoaded = useCallback(
     async (event: SyntheticEvent<HTMLImageElement, Event>) => {
-      if (!chainId || spliceDataUrl || dominantColors.length > 0) return;
+      if (!chainId || spliceDataUrl) return;
 
       const target: HTMLImageElement = (event.target ||
         event.currentTarget) as HTMLImageElement;
@@ -110,7 +110,6 @@ export const CreativePanel = ({
   const nftImage = (
     <FallbackImage
       boxShadow="lg"
-      imgUrl={resolveImage(nftItem.metadata)}
       metadata={nftItem.metadata}
       onNFTImageLoaded={onNFTImageLoaded}
     />

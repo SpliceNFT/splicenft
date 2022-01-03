@@ -31,11 +31,11 @@ export default async function Artwork(
       dim: { w: 1500, h: 500 },
       randomness: spliceMetadata.splice.randomness
     },
-    (err: any | null, buffer: Buffer) => {
+    (err: any | null, stream: Readable) => {
       if (!err) {
-        Cache.store(key, buffer);
+        Cache.store(key, stream);
       }
-      callback(err, Readable.from(buffer));
+      callback(err, stream);
     }
   );
 }

@@ -2,137 +2,27 @@ import {
   Button,
   Container,
   Flex,
-  FormControl,
-  FormLabel,
   Heading,
-  Input,
+  Link,
+  Spacer,
   Text,
-  Textarea,
-  useToast
+  Textarea
 } from '@chakra-ui/react';
-import { Histogram, NFTItem, Splice } from '@splicenft/common';
-import React, { useEffect, useState } from 'react';
-import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
-import { useSplice } from '../../context/SpliceContext';
+import React, { useState } from 'react';
+import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
-
-const NFTChooser = ({ onNFT }: { onNFT: (nftItem: NFTItem) => unknown }) => {
-  const [collection, setCollection] = useState<string>();
-  const [tokenId, setTokenId] = useState<string>();
-
-  const { indexer } = useSplice();
-
-  const loadNft = async () => {
-    if (!indexer || !collection || !tokenId) return;
-    console.log(collection, tokenId);
-
-    const nftItem = await indexer.getAsset(collection, tokenId);
-
-    if (nftItem?.metadata) {
-      onNFT(nftItem);
-    }
-  };
-
-  return (
-    <Flex
-      as="form"
-      direction="column"
-      onSubmit={(e) => {
-        e.preventDefault();
-        loadNft();
-      }}
-      w="full"
-    >
-      <FormControl>
-        <FormLabel>Collection address</FormLabel>
-        <Input
-          bg="white"
-          variant="filled"
-          type="text"
-          placeholder="0x"
-          onChange={(e) => setCollection(e.target.value)}
-          value={collection}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>TokenId</FormLabel>
-        <Input
-          bg="white"
-          type="text"
-          onChange={(e) => setTokenId(e.target.value)}
-          value={tokenId}
-        />
-      </FormControl>
-      <Button type="submit" my={6} variant="black">
-        Submit
-      </Button>
-    </Flex>
-  );
-};
-const PreviewSketch = (props: {
-  dim: { w: number; h: number };
-  randomness: number;
-  colors: Histogram;
-  code: string;
-}) => {
-  const { dim, colors, randomness, code } = props;
-  const toast = useToast();
-
-  let renderer: any;
-
-  const sketch = (p5: P5Instance) => {
-    p5.setup = () => {
-      p5.randomSeed(randomness);
-      p5.pixelDensity(1);
-      p5.createCanvas(dim.w, dim.h, p5.P2D);
-    };
-
-    p5.updateWithProps = (props) => {
-      if (props.code) {
-        try {
-          renderer = Function(`"use strict";return (${props.code})`)();
-        } catch (e: any) {
-          console.error(e);
-          toast({
-            status: 'error',
-            title: 'Your code contains an error: ' + e.toString()
-          });
-        }
-      }
-    };
-
-    p5.draw = () => {
-      try {
-        if (renderer) renderer({ p5, colors, dim });
-        p5.noLoop();
-      } catch (e: any) {
-        console.error(e);
-      }
-    };
-  };
-
-  return (
-    <Flex direction="column">
-      <ReactP5Wrapper sketch={sketch} code={code} />
-    </Flex>
-  );
-};
+import { P5Sketch } from '../molecules/P5Sketch';
+import { PreviewBase } from '../molecules/PreviewBase';
+import { NFTChooser } from '../organisms/NFTChooser';
+import { FaPlay } from 'react-icons/fa';
 
 export const CreatePage = () => {
   const [code, setCode] = useState<string>();
-  const [dominantColors, setDominantColors] = useState<Histogram>([]);
 
-  const [nftItem, setNFTItem] = useState<NFTItem>();
-  const [randomness, setRandomness] = useState<number>(0);
+  const [origin, setOrigin] = useState<CreativeOrigin>();
 
-  useEffect(() => {
-    if (!nftItem) return;
-    setRandomness(
-      Splice.computeRandomness(nftItem.contract_address, nftItem.token_id)
-    );
-  }, [nftItem]);
-  const save = () => {
+  const updateCode = () => {
     const $el: HTMLTextAreaElement = document.getElementById(
       'codearea'
     ) as HTMLTextAreaElement;
@@ -141,33 +31,27 @@ export const CreatePage = () => {
 
   return (
     <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      <Heading>Create your own Splice artwork style</Heading>
-      <Heading size="sm" color="gray.400">
-        Heads up: this is only here for validation, not very intuitive.
-      </Heading>
-      <Flex my={6} gridGap={6}>
-        <Flex flex="2" w="full">
-          <NFTChooser onNFT={setNFTItem} />
-        </Flex>
-        {nftItem && (
-          <Flex flex="1">
-            <FallbackImage metadata={nftItem.metadata} />
-          </Flex>
-        )}
+      <Heading size="lg">Test your Splice artwork styles</Heading>
+      <Text fontSize="md" color="gray.500">
+        Use this to validate your style code
+      </Text>
+      <Flex my={6} gridGap={6} flex="2" w="full">
+        <NFTChooser nftChosen={setOrigin} />
       </Flex>
-      {nftItem && (
+      {origin && (
         <Flex my={4} align="center" gridGap={3}>
-          <Flex flex="1">
-            <DominantColorsDisplay colors={dominantColors} />
-          </Flex>
-          <Flex flex="1">
-            <Text>
-              <strong>Random seed: </strong>
-              {randomness}
-            </Text>
-          </Flex>
+          <DominantColorsDisplay colors={origin.histogram} showDetails />
         </Flex>
       )}
+      <Flex direction="row" align="center" mt={12} mb={3}>
+        <Text fontSize="lg" fontWeight="bold">
+          Write / paste your code here
+        </Text>
+        <Spacer />
+        <Link isExternal href="https://splicenft.github.io/splicenft/artists/">
+          Help
+        </Link>
+      </Flex>
       <Textarea
         id="codearea"
         name="codearea"
@@ -175,24 +59,42 @@ export const CreatePage = () => {
         placeholder="your code goes here"
         bg="white"
         rows={20}
-      >{`function ({ p5, colors, dim }) {
-  p5.fill(p5.color(colors[0][0], colors[0][1], colors[0][2]));
-  p5.stroke(p5.color(colors[1][0], colors[1][1], colors[1][2]));
-  p5.strokeWeight(15);
-  p5.rect(100,50,dim.w-100,dim.h-100);
-}`}</Textarea>
-      <Flex my={4}>
-        <Button onClick={save} variant="black">
-          Save
+        defaultValue={`function ({ p5, params, dim }) {
+  // all your code must go inside this function.
+  const { colors } = params;
+  let y = dim.h;
+  for (let color of colors) {
+    // colors[].color is a p5 color
+    p5.fill(color.color);
+    p5.strokeWeight(0);
+    y = y - color.freq * dim.h;
+    p5.rect(0,y,dim.w, color.freq * dim.h);
+  }
+}`}
+      ></Textarea>
+      <Flex my={4} justify="flex-end">
+        <Button
+          onClick={updateCode}
+          variant="black"
+          disabled={!origin}
+          leftIcon={<FaPlay />}
+        >
+          Run code
         </Button>
       </Flex>
-      {code && nftItem && (
-        <PreviewSketch
-          code={code}
-          randomness={randomness}
-          dim={{ w: 1500, h: 500 }}
-          colors={dominantColors}
-        />
+      {code && origin && (
+        <PreviewBase
+          nftImage={
+            <FallbackImage boxShadow="lg" metadata={origin.nft.metadata} />
+          }
+        >
+          <P5Sketch
+            randomness={origin.randomness}
+            dim={{ w: 1500, h: 500 }}
+            colors={origin.histogram}
+            code={code}
+          />
+        </PreviewBase>
       )}
     </Container>
   );

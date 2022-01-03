@@ -135,9 +135,9 @@ export const MintButton = ({
     );
   } else {
     return (
-      <Menu enabled={mintableNFTs.length > 0}>
+      <Menu>
         <MenuButton
-          disabled={buzy}
+          disabled={buzy || mintableNFTs.length == 0}
           boxShadow="md"
           isLoading={buzy}
           loadingText="Minting"

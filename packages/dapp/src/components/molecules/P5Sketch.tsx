@@ -1,18 +1,17 @@
-import { Flex } from '@chakra-ui/react';
-import { RGB } from '@splicenft/common';
-
+import { Flex, useToast } from '@chakra-ui/react';
+import { Histogram } from '@splicenft/colors';
 import React from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
 export const P5Sketch = (props: {
   dim: { w: number; h: number };
   randomness: number;
-  colors: RGB[];
+  colors: Histogram;
   code?: string;
   onSketched?: (dataUrl: string) => void;
 }) => {
   const { dim, colors, onSketched, randomness, code } = props;
-
+  const toast = useToast();
   let renderer: any;
   const sketch = (p5: P5Instance) => {
     p5.setup = () => {
@@ -27,20 +26,33 @@ export const P5Sketch = (props: {
           renderer = Function(`"use strict";return (${props.code})`)();
         } catch (e: any) {
           console.error(e);
+          toast({
+            status: 'warning',
+            title: e.message
+          });
         }
       }
     };
     p5.draw = () => {
       if (!renderer) return;
-
-      //the most important line in Splice:
-      renderer({ p5, colors, dim });
-
-      p5.noLoop();
-      if (onSketched) {
-        const canvas = (p5 as any).canvas as HTMLCanvasElement;
-        const dataUrl = canvas.toDataURL('image/png');
-        onSketched(dataUrl);
+      const params = {
+        randomness,
+        colors: colors.map((c) => ({
+          color: p5.color(c.hex),
+          ...c
+        }))
+      };
+      try {
+        //the most important line in Splice:
+        renderer({ p5, colors: colors.map((c) => c.rgb), dim, params });
+        p5.noLoop();
+        if (onSketched) {
+          const canvas = (p5 as any).canvas as HTMLCanvasElement;
+          const dataUrl = canvas.toDataURL('image/png');
+          onSketched(dataUrl);
+        }
+      } catch (e: any) {
+        console.error(e);
       }
     };
   };
