@@ -311,7 +311,8 @@ describe('Splice', function () {
 
     const _styleNFT = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
-      saleIsActive: true
+      saleIsActive: true,
+      maxInputs: 2
     });
     await _styleNFT.restrictToCollections(styleTokenId, [
       anotherNFT1.address,
@@ -334,8 +335,8 @@ describe('Splice', function () {
     expect(
       await _styleNFT.canBeMintedOnCollections(
         styleTokenId,
-        [anotherNFT2.address],
-        [testnetToken2],
+        [anotherNFT1.address, anotherNFT2.address],
+        [testnetToken1, testnetToken2],
         _userAddress
       )
     ).to.be.true;
@@ -362,8 +363,8 @@ describe('Splice', function () {
     //test that the constraints implicitly hold
     await (
       await _splice.mint(
-        [anotherNFT1.address],
-        [testnetToken1],
+        [anotherNFT1.address, anotherNFT2.address],
+        [testnetToken1, testnetToken2],
         styleTokenId,
         [],
         ethers.constants.HashZero,
