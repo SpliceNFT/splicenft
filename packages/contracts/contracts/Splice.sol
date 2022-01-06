@@ -316,16 +316,14 @@ contract Splice is
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
 
-    if (
-      !styleNFT.isMintable(
+    require(
+      styleNFT.isMintable(
         style_token_id,
         origin_collections,
         origin_token_ids,
         msg.sender
       )
-    ) {
-      revert NotAllowedToMint('unknown');
-    }
+    );
 
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)

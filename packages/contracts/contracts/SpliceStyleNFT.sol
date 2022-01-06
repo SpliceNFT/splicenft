@@ -94,7 +94,7 @@ contract SpliceStyleNFT is
   address public spliceNFT;
 
   /**
-   * @dev keccak(collection, styletokenid) => Partnership
+   * @dev style_token_id => Partnership
    */
   mapping(uint32 => Partnership) private _partnerships;
 
@@ -134,8 +134,7 @@ contract SpliceStyleNFT is
   }
 
   /**
-   * we assume that our metadata CIDs are folder roots containing a /metadata.json
-   * that's how nft.storage does it.
+   * @dev we assume that our metadata CIDs are folder roots containing a /metadata.json. That's how nft.storage does it.
    */
   function _metadataURI(string memory metadataCID)
     private
@@ -155,6 +154,9 @@ contract SpliceStyleNFT is
     return _metadataURI(styleSettings[uint32(tokenId)].styleCID);
   }
 
+  /**
+   * @return fee the fee required to mint splices of that style
+   */
   function quoteFee(
     uint32 style_token_id,
     IERC721[] memory nfts,
@@ -189,12 +191,18 @@ contract SpliceStyleNFT is
     styleSettings[style_token_id].salesIsActive = newValue;
   }
 
+  /**
+   * @return how many mints are left on that style
+   */
   function mintsLeft(uint32 style_token_id) public view returns (uint32) {
     return
       styleSettings[style_token_id].cap -
       styleSettings[style_token_id].mintedOfStyle;
   }
 
+  /**
+   * @return how many mints are currently reserved on the allowlist
+   */
   function reservedTokens(uint32 style_token_id) public view returns (uint32) {
     if (block.timestamp > allowlists[style_token_id].reservedUntil) {
       //reservation period has ended
@@ -203,6 +211,9 @@ contract SpliceStyleNFT is
     return allowlists[style_token_id].numReserved;
   }
 
+  /**
+   * @return how many splices can be minted except those reserved on an allowlist for that style
+   */
   function availableForPublicMinting(uint32 style_token_id)
     public
     view
@@ -216,6 +227,12 @@ contract SpliceStyleNFT is
       styleSettings[style_token_id].mintedOfStyle -
       reservedTokens(style_token_id);
   }
+
+  /**
+   * @param allowlistProof a list of leaves in the merkle tree that are needed to perform the proof
+   * @param requestor the subject account of the proof
+   * @return whether the proof could be verified
+   */
 
   function verifyAllowlistEntryProof(
     uint32 style_token_id,
@@ -231,6 +248,9 @@ contract SpliceStyleNFT is
       );
   }
 
+  /**
+   * @dev called by Splice to decrement the allowance for requestor
+   */
   function decreaseAllowance(uint32 style_token_id, address requestor)
     public
     nonReentrant
@@ -254,6 +274,13 @@ contract SpliceStyleNFT is
       1;
   }
 
+  /**
+   * @notice an allowlist gives privilege to a dedicated list of users to mint this style by presenting a merkle proof
+   * @param _numReserved how many reservations shall be made
+   * @param _mintsPerAddress how many mints are allowed per one distinct address
+   * @param _merkleRoot the merkle root of a tree of allowed addresses
+   * @param _reservedUntil a timestamp until when the allowlist shall be in effect
+   */
   function addAllowlist(
     uint32 style_token_id,
     uint32 _numReserved,
@@ -352,6 +379,12 @@ contract SpliceStyleNFT is
     return _partnerships[style_token_id];
   }
 
+  /**
+   * @notice collection partnerships have an effect on minting availability. They restrict styles to be minted only on certain collections. Partner collections receive a share of the platform fee.
+   * @param beneficiary account of the partner collection that we escrow shares to
+   * @param until after this timestamp the partnership is not in effect anymore. Set to a very high value to add a collection constraint to a style.
+   * @param exclusive a non-exclusive partnership allows other origins to mint. When trying to mint on an exclusive partnership with an unsupported input, it will fail.
+   */
   function addCollectionPartnership(
     address[] memory collections,
     uint32 style_token_id,
@@ -375,6 +408,10 @@ contract SpliceStyleNFT is
     return styleSettings[style_token_id].isFrozen;
   }
 
+  /**
+   * @notice freezing a fully minted style means to disable its sale and set its splice's baseUrl to a fixed IPFS CID. That IPFS directory must contain all metadata for the splices.
+   * @param cid an IPFS content hash
+   */
   function freeze(uint32 style_token_id, string memory cid)
     public
     onlyStyleMinter
@@ -394,6 +431,10 @@ contract SpliceStyleNFT is
     emit PermanentURI(tokenURI(style_token_id), style_token_id);
   }
 
+  /**
+   * @dev only called by Splice. Increments the amount of minted splices.
+   * @return the new highest amount. Used as incremental part of the splice token id
+   */
   function incrementMintedPerStyle(uint32 style_token_id)
     external
     onlySplice
@@ -411,6 +452,14 @@ contract SpliceStyleNFT is
     return styleSettings[style_token_id].mintedOfStyle;
   }
 
+  /**
+   * @notice creates a new style NFT
+   * @param _cap how many splices can be minted of this style
+   * @param _metadataCID an IPFS CID pointing to the style metadata. Must be a directory, containing a metadata.json file.
+   * @param _priceStrategy address of an ISplicePriceStrategy instance that's configured to return fee quotes for the new style (e.g. static)
+   * @param _salesIsActive splices of this style can be minted once this method is finished (careful: some other methods will only run when no splices have ever been minted)
+   * @param _maxInputs how many origin inputs are allowed for a mint (e.g. 2 NFT collections)
+   */
   function mint(
     uint32 _cap,
     string memory _metadataCID,
