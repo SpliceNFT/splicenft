@@ -70,7 +70,7 @@ All royalty payouts that happen to be paid to the contract owner directly (which
 For security reasons, all fees are kept safe by an inline trustless escrow. It pays out all accrued funds on request (see `Splice.sol:claimShares`) 
 
 ## How to get your style algorithm on Splice 
-After you've written and tested your code, send us:
+After you've written and tested your code, we'll get it onto Splice once you send the following to us at [gm@getsplice.io](gm@getsplice.io):
 
 - Your ethereum wallet address that will become the initial owner of the style NFT (and receives minting fees)
 - Your style source code
@@ -106,4 +106,3 @@ While you *could* write your style using Typescript, that would add another laye
 
 
 
-**Excited to see what you build!**
