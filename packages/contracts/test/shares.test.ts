@@ -26,6 +26,8 @@ describe('Fee Splitting', function () {
   let _owner: Signer;
   let _user: Signer;
   let _platformBeneficiary: Signer;
+  let _anotherArtist: Signer;
+  let _partnerBeneficiary: Signer;
   let _styleMinter: Signer;
   let _seller: Signer;
   let _artist: Signer;
@@ -35,6 +37,8 @@ describe('Fee Splitting', function () {
     _owner = signers[0];
     _user = signers[1];
     _platformBeneficiary = signers[2];
+    _anotherArtist = signers[15];
+    _partnerBeneficiary = signers[16];
     _styleMinter = signers[17];
     _seller = signers[18];
     _artist = signers[19];
@@ -124,10 +128,8 @@ describe('Fee Splitting', function () {
   });
 
   it('reallocates funds to new owners of a style token', async function () {
-    const anotherArtist = signers[15];
-
     const _artistAddress = await _artist.getAddress();
-    const _anotherArtistAddress = await anotherArtist.getAddress();
+    const _anotherArtistAddress = await _anotherArtist.getAddress();
 
     const oldArtistShares = await splice.escrowedBalanceOf(_artistAddress);
 

@@ -1,7 +1,7 @@
 // contracts/ISplicePriceStrategy.sol
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
-import './StyleSettings.sol';
+import './Structs.sol';
 import './SpliceStyleNFT.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 

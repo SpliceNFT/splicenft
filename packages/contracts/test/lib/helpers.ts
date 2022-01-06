@@ -95,15 +95,20 @@ export function createMerkleProof(allowedAddresses: string[]): MerkleTree {
 
 export async function mintSplice(
   splice: Splice,
-  nftAddress: string,
-  originTokenId: number,
+  nftAddress: string | string[],
+  originTokenId: number | number[],
   styleTokenId: number
 ): Promise<BigNumber> {
-  const fee = splice.quote(styleTokenId, [nftAddress], [originTokenId]);
+  const nftAddresses = Array.isArray(nftAddress) ? nftAddress : [nftAddress];
+  const originTokenIds = Array.isArray(originTokenId)
+    ? originTokenId
+    : [originTokenId];
+
+  const fee = splice.quote(styleTokenId, nftAddresses, originTokenIds);
   const receipt = await (
     await splice.mint(
-      [nftAddress],
-      [originTokenId],
+      nftAddresses,
+      originTokenIds,
       styleTokenId,
       [],
       constants.HashZero,

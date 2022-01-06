@@ -15,8 +15,6 @@ import {
 } from './lib/deployContracts';
 import { mintSplice, mintStyle, mintTestnetNFT } from './lib/helpers';
 
-const ONE_DAY_AND_A_BIT = 60 * 60 * 24 + 60;
-
 describe('Royalties', function () {
   let testNft: TestnetNFT;
   let splice: Splice;

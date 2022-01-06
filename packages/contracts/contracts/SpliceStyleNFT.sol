@@ -29,7 +29,8 @@ import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './ISplicePriceStrategy.sol';
-import './StyleSettings.sol';
+import './Structs.sol';
+import './ArrayLib.sol';
 
 contract SpliceStyleNFT is
   ERC721EnumerableUpgradeable,
@@ -66,6 +67,7 @@ contract SpliceStyleNFT is
   error BadMintInput(string reason);
 
   error CantFreezeAnUncompleteCollection(uint32 mintsLeft);
+
   error InvalidCID();
 
   //https://docs.opensea.io/docs/metadata-standards#ipfs-and-arweave-uris
@@ -86,9 +88,15 @@ contract SpliceStyleNFT is
 
   /// @notice how many pieces has an (allowed) address already minted on a style
   mapping(uint32 => mapping(address => uint8)) mintsAlreadyAllowed;
+  // @dev unused
   mapping(uint32 => mapping(address => bool)) collectionAllowed;
 
   address public spliceNFT;
+
+  /**
+   * @dev keccak(collection, styletokenid) => Partnership
+   */
+  mapping(uint32 => Partnership) private _partnerships;
 
   function initialize() public initializer {
     __ERC721_init('Splice Style NFT', 'SPLYLE');
@@ -104,6 +112,13 @@ contract SpliceStyleNFT is
 
   modifier onlySplice() {
     require(msg.sender == spliceNFT, 'only callable by Splice');
+    _;
+  }
+
+  modifier onlyStyleOwner(uint32 style_token_id) {
+    if (ownerOf(style_token_id) != msg.sender) {
+      revert NotControllingStyle(style_token_id);
+    }
     _;
   }
 
@@ -164,11 +179,10 @@ contract SpliceStyleNFT is
     return styleSettings[style_token_id].salesIsActive;
   }
 
-  function toggleSaleIsActive(uint32 style_token_id, bool newValue) public {
-    if (ownerOf(style_token_id) != msg.sender) {
-      revert NotControllingStyle(style_token_id);
-    }
-
+  function toggleSaleIsActive(uint32 style_token_id, bool newValue)
+    public
+    onlyStyleOwner(style_token_id)
+  {
     if (isFrozen(style_token_id)) {
       revert StyleIsFrozen();
     }
@@ -246,12 +260,8 @@ contract SpliceStyleNFT is
     uint8 _mintsPerAddress,
     bytes32 _merkleRoot,
     uint64 _reservedUntil
-  ) external {
+  ) external onlyStyleOwner(style_token_id) {
     //CHECKS
-    if (ownerOf(style_token_id) != msg.sender) {
-      revert NotControllingStyle(style_token_id);
-    }
-
     if (allowlists[style_token_id].reservedUntil != 0) {
       revert AllowlistNotOverridable(style_token_id);
     }
@@ -282,7 +292,10 @@ contract SpliceStyleNFT is
     );
   }
 
-  function canBeMintedOnCollections(
+  /**
+   * @dev will revert when something prevents minting
+   */
+  function isMintable(
     uint32 style_token_id,
     IERC721[] memory origin_collections,
     uint256[] memory origin_token_ids,
@@ -304,33 +317,54 @@ contract SpliceStyleNFT is
       revert BadMintInput('too many inputs');
     }
 
+    Partnership memory partnership = _partnerships[style_token_id];
+
     for (uint256 i = 0; i < origin_collections.length; i++) {
       if (origin_collections[i].ownerOf(origin_token_ids[i]) != minter) {
         revert BadMintInput('not owning origin');
       }
-      if (styleSettings[style_token_id].collectionConstrained) {
-        if (
-          !collectionAllowed[style_token_id][address(origin_collections[i])]
-        ) {
-          revert BadMintInput('collection constrained');
+      if (partnership.collections.length > 0) {
+        // = if partnership "exists"
+        if (partnership.exclusive) {
+          if (partnership.until > block.timestamp) {
+            if (
+              !ArrayLib.contains(
+                partnership.collections,
+                address(origin_collections[i])
+              )
+            ) {
+              revert BadMintInput(
+                'collection not part of exclusive partnership'
+              );
+            }
+          }
         }
       }
     }
-
     return true;
   }
 
-  function restrictToCollections(
+  function getPartnership(uint32 style_token_id)
+    public
+    view
+    returns (Partnership memory)
+  {
+    return _partnerships[style_token_id];
+  }
+
+  function addCollectionPartnership(
+    address[] memory collections,
     uint32 style_token_id,
-    address[] memory _collections
-  ) public {
-    if (ownerOf(style_token_id) != msg.sender) {
-      revert NotControllingStyle(style_token_id);
-    }
-    styleSettings[style_token_id].collectionConstrained = true;
-    for (uint256 i = 0; i < _collections.length; i++) {
-      collectionAllowed[style_token_id][_collections[i]] = true;
-    }
+    address beneficiary,
+    uint64 until,
+    bool exclusive
+  ) public onlyStyleMinter {
+    _partnerships[style_token_id] = Partnership({
+      collections: collections,
+      beneficiary: beneficiary,
+      until: until,
+      exclusive: exclusive
+    });
   }
 
   function isFrozen(uint32 style_token_id) public view returns (bool) {
@@ -345,6 +379,7 @@ contract SpliceStyleNFT is
       revert InvalidCID();
     }
 
+    //@todo: this might be unnecessarily strict
     if (mintsLeft(style_token_id) != 0) {
       revert CantFreezeAnUncompleteCollection(mintsLeft(style_token_id));
     }
