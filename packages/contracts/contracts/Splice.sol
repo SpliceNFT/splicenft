@@ -35,6 +35,8 @@ import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
 import 'hardhat/console.sol';
 
 import './BytesLib.sol';
+import './ArrayLib.sol';
+import './Structs.sol';
 import './SpliceStyleNFT.sol';
 
 /// @title Splice is a protocol to mint NFTs out of origin NFTs
@@ -250,15 +252,44 @@ contract Splice is
     return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
   }
 
-  function splitMintFee(uint256 amount, uint32 style_token_id) internal {
-    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
-    uint256 feeForPlatform = amount.sub(feeForArtist); //Splice takes a 15% cut
+  function splitWithPartners(
+    address[] memory partnership_collections,
+    IERC721[] memory origin_collections
+  ) internal pure returns (bool) {
+    for (uint256 i = 0; i < origin_collections.length; i++) {
+      if (
+        ArrayLib.contains(
+          partnership_collections,
+          address(origin_collections[i])
+        )
+      ) {
+        return true;
+      }
+    }
+  }
 
-    address beneficiaryArtist = styleNFT.ownerOf(style_token_id);
-    //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
-    feesEscrow.deposit{ value: feeForArtist }(beneficiaryArtist);
+  //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
+  function splitMintFee(
+    uint256 amount,
+    uint32 styleTokenId,
+    IERC721[] memory origin_collections
+  ) internal {
+    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
+    uint256 feeForPlatform = amount.sub(feeForArtist);
+
+    Partnership memory partnership = styleNFT.getPartnership(styleTokenId);
+    if (
+      partnership.collections.length > 0 && partnership.until > block.timestamp
+    ) {
+      if (splitWithPartners(partnership.collections, origin_collections)) {
+        uint256 feeForPartners = feeForPlatform.div(2);
+        feeForPlatform = feeForPartners;
+        feesEscrow.deposit{ value: feeForPartners }(partnership.beneficiary);
+      }
+    }
+
+    feesEscrow.deposit{ value: feeForArtist }(styleNFT.ownerOf(styleTokenId));
     feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
-    //todo: add a share to a beneficiary of the origin collection.
   }
 
   function claimShares(address payable beneficiary)
@@ -285,16 +316,14 @@ contract Splice is
   ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
 
-    if (
-      !styleNFT.canBeMintedOnCollections(
+    require(
+      styleNFT.isMintable(
         style_token_id,
         origin_collections,
         origin_token_ids,
         msg.sender
       )
-    ) {
-      revert NotAllowedToMint('unknown');
-    }
+    );
 
     //todo if there's more than one mint request in one block the quoted fee might be lower
     //than what the artist expects, (when using a bonded price strategy)
@@ -339,7 +368,7 @@ contract Splice is
     provenanceToTokenId[_provenanceHash] = token_id;
 
     //INTERACTIONS
-    splitMintFee(fee, style_token_id);
+    splitMintFee(fee, style_token_id, origin_collections);
     _safeMint(msg.sender, token_id);
 
     if (surplus > 0) {

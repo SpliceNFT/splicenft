@@ -15,8 +15,6 @@ import {
 } from './lib/deployContracts';
 import { mintSplice, mintStyle, mintTestnetNFT } from './lib/helpers';
 
-const ONE_DAY_AND_A_BIT = 60 * 60 * 24 + 60;
-
 describe('Royalties', function () {
   let testNft: TestnetNFT;
   let splice: Splice;
@@ -62,6 +60,7 @@ describe('Royalties', function () {
   });
 
   it('signals royalties', async function () {
+    await splice.updateRoyalties(5);
     const artistAddress = await _artist.getAddress();
 
     const _nft = testNft.connect(_seller);
@@ -74,9 +73,12 @@ describe('Royalties', function () {
       nftTokenId,
       1
     );
+
     const salePrice = ethers.utils.parseEther('1');
     const royaltyInfo = await splice.royaltyInfo(spliceTokenId, salePrice);
-    expect(ethers.utils.formatUnits(royaltyInfo.royaltyAmount)).to.equal('0.1');
+    expect(ethers.utils.formatUnits(royaltyInfo.royaltyAmount)).to.equal(
+      '0.05'
+    );
 
     const royaltyReceiver = royaltyInfo.receiver;
     expect(royaltyReceiver).to.equal(artistAddress);
@@ -97,7 +99,7 @@ describe('Royalties', function () {
     expect(royaltyInfo.receiver).to.equal(styleBuyerAddress);
   });
 
-  it('cannot increase royalties higher than 10%', async () => {
+  it('cannot set royalties higher than 10%', async () => {
     const _splice = splice.connect(_owner);
     try {
       await _splice.updateRoyalties(11);

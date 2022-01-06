@@ -44,6 +44,15 @@ describe('Style NFTs', function () {
     priceStrategy = _priceStrategy.connect(_styleMinter);
   });
 
+  it('cannot update the splice contract once connected', async function () {
+    try {
+      await styleNFT.setSplice(splice.address);
+      expect.fail('cannot set splice on an already established contract bond');
+    } catch (e: any) {
+      expect(e.message).to.contain('can only be called once');
+    }
+  });
+
   it('gets an nft on the test collection', async function () {
     const requestor = await _user.getAddress();
     const _nft = testNft.connect(_user);

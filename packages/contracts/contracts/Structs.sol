@@ -11,6 +11,15 @@ struct Allowlist {
   bytes32 merkleRoot;
 }
 
+struct Partnership {
+  address[] collections;
+  address beneficiary;
+  uint64 until;
+  /// @notice exclusive partnerships mean that all style inputs must be covered by the partnership
+  /// @notice unexclusive partnerships require only 1 input to be covered
+  bool exclusive;
+}
+
 struct StyleSettings {
   //counting up
   uint32 mintedOfStyle;
