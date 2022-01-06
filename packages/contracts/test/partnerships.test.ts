@@ -231,4 +231,43 @@ describe('Partnerships', function () {
       styleTokenId
     );
   });
+
+  it('cannot start a partnership once minting has started', async () => {
+    const collection = await deployTestnetNFT();
+    const nft = await mintTestnetNFT(collection, _user);
+
+    const styleTokenId = await mintStyle(styleNFT, priceStrategy.address, {
+      maxInputs: 1,
+      priceInEth: '1',
+      saleIsActive: true
+    });
+
+    const partnerBeneficiary = ethers.Wallet.createRandom();
+
+    await mintSplice(
+      splice.connect(_user),
+      collection.address,
+      nft,
+      styleTokenId
+    );
+
+    try {
+      await (
+        await styleNFT.addCollectionPartnership(
+          [collection.address],
+          styleTokenId,
+          partnerBeneficiary.address,
+          FOREVER,
+          true
+        )
+      ).wait();
+      expect.fail(
+        'a partnership mustnt be established after minting has started'
+      );
+    } catch (e: any) {
+      expect(e.message).contains(
+        'cant add a partnership after minting started'
+      );
+    }
+  });
 });

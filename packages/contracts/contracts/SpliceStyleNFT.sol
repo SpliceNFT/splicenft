@@ -247,7 +247,7 @@ contract SpliceStyleNFT is
     if (allowlists[style_token_id].numReserved < 1) {
       revert NotEnoughTokensToMatchReservation(style_token_id);
     }
-    // INTERACTIONS
+    // EFFECTS
     allowlists[style_token_id].numReserved -= 1;
     mintsAlreadyAllowed[style_token_id][requestor] =
       mintsAlreadyAllowed[style_token_id][requestor] +
@@ -277,7 +277,7 @@ contract SpliceStyleNFT is
       revert AllowlistDurationTooShort(_reservedUntil);
     }
 
-    //INTERACTION
+    //EFFECTS
     allowlists[style_token_id] = Allowlist({
       numReserved: _numReserved,
       merkleRoot: _merkleRoot,
@@ -359,6 +359,10 @@ contract SpliceStyleNFT is
     uint64 until,
     bool exclusive
   ) public onlyStyleMinter {
+    if (styleSettings[style_token_id].mintedOfStyle > 0) {
+      revert('cant add a partnership after minting started');
+    }
+
     _partnerships[style_token_id] = Partnership({
       collections: collections,
       beneficiary: beneficiary,
