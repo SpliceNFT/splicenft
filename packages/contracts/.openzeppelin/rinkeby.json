@@ -1784,13 +1784,13 @@
           {
             "contract": "SpliceStyleNFT",
             "label": "styleSettings",
-            "type": "t_mapping(t_uint32,t_struct(StyleSettings)9582_storage)",
+            "type": "t_mapping(t_uint32,t_struct(StyleSettings)9581_storage)",
             "src": "contracts/SpliceStyleNFT.sol:84"
           },
           {
             "contract": "SpliceStyleNFT",
             "label": "allowlists",
-            "type": "t_mapping(t_uint32,t_struct(Allowlist)9564_storage)",
+            "type": "t_mapping(t_uint32,t_struct(Allowlist)9563_storage)",
             "src": "contracts/SpliceStyleNFT.sol:85"
           },
           {
@@ -1834,13 +1834,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_mapping(t_uint32,t_struct(StyleSettings)9582_storage)": {
+          "t_mapping(t_uint32,t_struct(StyleSettings)9581_storage)": {
             "label": "mapping(uint32 => struct StyleSettings)"
           },
           "t_uint32": {
             "label": "uint32"
           },
-          "t_struct(StyleSettings)9582_storage": {
+          "t_struct(StyleSettings)9581_storage": {
             "label": "struct StyleSettings",
             "members": [
               {
@@ -1886,10 +1886,10 @@
           "t_uint8": {
             "label": "uint8"
           },
-          "t_mapping(t_uint32,t_struct(Allowlist)9564_storage)": {
+          "t_mapping(t_uint32,t_struct(Allowlist)9563_storage)": {
             "label": "mapping(uint32 => struct Allowlist)"
           },
-          "t_struct(Allowlist)9564_storage": {
+          "t_struct(Allowlist)9563_storage": {
             "label": "struct Allowlist",
             "members": [
               {
@@ -2092,7 +2092,7 @@
           {
             "contract": "Splice",
             "label": "styleNFT",
-            "type": "t_contract(SpliceStyleNFT)9552",
+            "type": "t_contract(SpliceStyleNFT)9551",
             "src": "contracts/Splice.sol:79"
           },
           {
@@ -2124,7 +2124,7 @@
           "t_uint64": {
             "label": "uint64"
           },
-          "t_contract(SpliceStyleNFT)9552": {
+          "t_contract(SpliceStyleNFT)9551": {
             "label": "contract SpliceStyleNFT"
           },
           "t_address_payable": {
@@ -2156,6 +2156,561 @@
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "5c458167d392af710dd794ef670d6754ef1b47d59293f1e3c9e79d84c279f375": {
+      "address": "0xb33320Cf84Cb277c15F629f4fea9eD1243C8d9df",
+      "txHash": "0xbe4fe0fc33e6e4512194d0e54a7d4f8cf04cd4fb28e2dcddff35a6a878503e33",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:36"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:25"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:28"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_owners",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_tokenApprovals",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_operatorApprovals",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:431"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:82"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "_paused",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:97"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:68"
+          },
+          {
+            "contract": "Splice",
+            "label": "ARTIST_SHARE",
+            "type": "t_uint8",
+            "src": "contracts/Splice.sol:67"
+          },
+          {
+            "contract": "Splice",
+            "label": "ROYALTY_PERCENT",
+            "type": "t_uint8",
+            "src": "contracts/Splice.sol:68"
+          },
+          {
+            "contract": "Splice",
+            "label": "baseUri",
+            "type": "t_string_storage",
+            "src": "contracts/Splice.sol:70"
+          },
+          {
+            "contract": "Splice",
+            "label": "provenanceToTokenId",
+            "type": "t_mapping(t_bytes32,t_uint64)",
+            "src": "contracts/Splice.sol:74"
+          },
+          {
+            "contract": "Splice",
+            "label": "styleNFT",
+            "type": "t_contract(SpliceStyleNFT)9716",
+            "src": "contracts/Splice.sol:81"
+          },
+          {
+            "contract": "Splice",
+            "label": "platformBeneficiary",
+            "type": "t_address_payable",
+            "src": "contracts/Splice.sol:86"
+          },
+          {
+            "contract": "Splice",
+            "label": "feesEscrow",
+            "type": "t_contract(EscrowUpgradeable)2598",
+            "src": "contracts/Splice.sol:92"
+          }
+        ],
+        "types": {
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_mapping(t_bytes32,t_uint64)": {
+            "label": "mapping(bytes32 => uint64)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_contract(SpliceStyleNFT)9716": {
+            "label": "contract SpliceStyleNFT"
+          },
+          "t_address_payable": {
+            "label": "address payable"
+          },
+          "t_contract(EscrowUpgradeable)2598": {
+            "label": "contract EscrowUpgradeable"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "194c9b5c98d76c703b7874b03173936ff1febd52c78ce170836c1d11bc3e409f": {
+      "address": "0x1C8972ed8153F4F29B6802245549d78E7b46508D",
+      "txHash": "0x473c32a6dce21de0c75a90bb43ccef4b188b867417c3d594ab7e0f0f4b002e23",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:36"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:25"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:28"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_owners",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_tokenApprovals",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_operatorApprovals",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:431"
+          },
+          {
+            "contract": "ERC721EnumerableUpgradeable",
+            "label": "_ownedTokens",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:25"
+          },
+          {
+            "contract": "ERC721EnumerableUpgradeable",
+            "label": "_ownedTokensIndex",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:28"
+          },
+          {
+            "contract": "ERC721EnumerableUpgradeable",
+            "label": "_allTokens",
+            "type": "t_array(t_uint256)dyn_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721EnumerableUpgradeable",
+            "label": "_allTokensIndex",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721EnumerableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)46_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:172"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:82"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:68"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "_styleTokenIds",
+            "type": "t_struct(Counter)2106_storage",
+            "src": "contracts/SpliceStyleNFT.sol:83"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "isStyleMinter",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/SpliceStyleNFT.sol:85"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "styleSettings",
+            "type": "t_mapping(t_uint32,t_struct(StyleSettings)9757_storage)",
+            "src": "contracts/SpliceStyleNFT.sol:86"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "allowlists",
+            "type": "t_mapping(t_uint32,t_struct(Allowlist)9728_storage)",
+            "src": "contracts/SpliceStyleNFT.sol:87"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "mintsAlreadyAllowed",
+            "type": "t_mapping(t_uint32,t_mapping(t_address,t_uint8))",
+            "src": "contracts/SpliceStyleNFT.sol:90"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "collectionAllowed",
+            "type": "t_mapping(t_uint32,t_mapping(t_address,t_bool))",
+            "src": "contracts/SpliceStyleNFT.sol:92"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "spliceNFT",
+            "type": "t_address",
+            "src": "contracts/SpliceStyleNFT.sol:94"
+          },
+          {
+            "contract": "SpliceStyleNFT",
+            "label": "_partnerships",
+            "type": "t_mapping(t_uint32,t_struct(Partnership)9739_storage)",
+            "src": "contracts/SpliceStyleNFT.sol:99"
+          }
+        ],
+        "types": {
+          "t_struct(Counter)2106_storage": {
+            "label": "struct CountersUpgradeable.Counter",
+            "members": [
+              {
+                "label": "_value",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_uint32,t_struct(StyleSettings)9757_storage)": {
+            "label": "mapping(uint32 => struct StyleSettings)"
+          },
+          "t_uint32": {
+            "label": "uint32"
+          },
+          "t_struct(StyleSettings)9757_storage": {
+            "label": "struct StyleSettings",
+            "members": [
+              {
+                "label": "mintedOfStyle",
+                "type": "t_uint32"
+              },
+              {
+                "label": "cap",
+                "type": "t_uint32"
+              },
+              {
+                "label": "priceStrategy",
+                "type": "t_contract(ISplicePriceStrategy)7779"
+              },
+              {
+                "label": "salesIsActive",
+                "type": "t_bool"
+              },
+              {
+                "label": "collectionConstrained",
+                "type": "t_bool"
+              },
+              {
+                "label": "isFrozen",
+                "type": "t_bool"
+              },
+              {
+                "label": "styleCID",
+                "type": "t_string_storage"
+              },
+              {
+                "label": "maxInputs",
+                "type": "t_uint8"
+              }
+            ]
+          },
+          "t_contract(ISplicePriceStrategy)7779": {
+            "label": "contract ISplicePriceStrategy"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_mapping(t_uint32,t_struct(Allowlist)9728_storage)": {
+            "label": "mapping(uint32 => struct Allowlist)"
+          },
+          "t_struct(Allowlist)9728_storage": {
+            "label": "struct Allowlist",
+            "members": [
+              {
+                "label": "numReserved",
+                "type": "t_uint32"
+              },
+              {
+                "label": "reservedUntil",
+                "type": "t_uint64"
+              },
+              {
+                "label": "mintsPerAddress",
+                "type": "t_uint8"
+              },
+              {
+                "label": "merkleRoot",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_mapping(t_uint32,t_mapping(t_address,t_uint8))": {
+            "label": "mapping(uint32 => mapping(address => uint8))"
+          },
+          "t_mapping(t_address,t_uint8)": {
+            "label": "mapping(address => uint8)"
+          },
+          "t_mapping(t_uint32,t_mapping(t_address,t_bool))": {
+            "label": "mapping(uint32 => mapping(address => bool))"
+          },
+          "t_mapping(t_uint32,t_struct(Partnership)9739_storage)": {
+            "label": "mapping(uint32 => struct Partnership)"
+          },
+          "t_struct(Partnership)9739_storage": {
+            "label": "struct Partnership",
+            "members": [
+              {
+                "label": "collections",
+                "type": "t_array(t_address)dyn_storage"
+              },
+              {
+                "label": "beneficiary",
+                "type": "t_address"
+              },
+              {
+                "label": "until",
+                "type": "t_uint64"
+              },
+              {
+                "label": "exclusive",
+                "type": "t_bool"
+              }
+            ]
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(address => mapping(uint256 => uint256))"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]"
+          },
+          "t_array(t_uint256)46_storage": {
+            "label": "uint256[46]"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
           },
           "t_array(t_uint256)44_storage": {
             "label": "uint256[44]"
