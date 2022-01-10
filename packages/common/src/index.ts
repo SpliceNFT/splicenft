@@ -10,6 +10,7 @@ export * from './types/Renderers';
 export { NFTIndexer } from './indexers/NFTIndexer';
 export { NFTPort } from './indexers/NFTPort';
 export { OnChain } from './indexers/OnChain';
+export { Backend } from './indexers/Backend';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
 export * as Transfer from './types/TransferObjects';
