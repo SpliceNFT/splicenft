@@ -45,3 +45,11 @@ GET http://localhost:5999/colors/1/0xc631164b6cb1340b5123c9162f8558c866de1926/68
 
 ###  
 GET http://localhost:5999/colors/4/0xAF7209354132a3eab58D5CDef6FA28D98A27222E/9
+
+### 
+
+GET http://localhost:5999/nft/31337/0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512/1
+
+### 
+
+GET http://localhost:5999/proxy?url=https:%2F%2Fapi.deadfellaz.io%2Ftraits%2F2

@@ -41,35 +41,27 @@ export class Fallback implements NFTIndexer {
     }
   }
 
-  public async getAsset(
-    collection: string,
-    tokenId: string
-  ): Promise<NFTItem | null> {
-    let primaryMd;
+  public async getAsset(collection: string, tokenId: string): Promise<NFTItem> {
+    let nftItem;
     try {
-      primaryMd = await this.primary.getAsset(collection, tokenId);
+      nftItem = await this.primary.getAsset(collection, tokenId);
     } catch (e: any) {
       console.warn('primary indexer missed', e.message);
-      primaryMd = await this.fallback.getAsset(collection, tokenId);
+      nftItem = await this.fallback.getAsset(collection, tokenId);
     }
 
-    if (primaryMd) {
-      const resolvedImage = primaryMd.metadata
-        ? resolveImage(primaryMd.metadata)
-        : undefined;
-      if (!resolvedImage) {
-        console.debug(
-          'no image data from primary indexer, falling back to on chain lookup'
-        );
-        const secMd = await this.fallback.getAsset(collection, tokenId);
-        if (secMd) {
-          return secMd;
-        } else {
-          return null;
-        }
+    const resolvedImage = nftItem.metadata
+      ? resolveImage(nftItem.metadata)
+      : undefined;
+    if (!resolvedImage) {
+      console.debug(
+        'no image data from primary indexer, falling back to on chain lookup'
+      );
+      nftItem = await this.fallback.getAsset(collection, tokenId);
+      if (nftItem) {
+        return nftItem;
       }
-      return primaryMd;
     }
-    return null;
+    return nftItem;
   }
 }

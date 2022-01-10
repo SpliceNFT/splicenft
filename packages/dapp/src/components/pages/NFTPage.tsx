@@ -10,6 +10,8 @@ import {
   Link,
   SimpleGrid,
   Spacer,
+  Spinner,
+  Tooltip,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -24,7 +26,15 @@ import {
 } from '@splicenft/common';
 import { Histogram } from '@splicenft/colors';
 import { useWeb3React } from '@web3-react/core';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState
+} from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { IoReload } from 'react-icons/io5';
 import { NavLink, useParams } from 'react-router-dom';
@@ -41,107 +51,196 @@ import {
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
 
+import { default as getDominantColors, loadColors } from '../../modules/colors';
+import { FallbackImage } from '../atoms/FallbackImage';
+
+type StateAction = {
+  type: string;
+  payload: any;
+};
+
+type State = {
+  origin: {
+    collection: string;
+    tokenId: string;
+    nftItem?: NFTItem;
+  };
+  features: {
+    randomness: number;
+    dominantColors: Histogram;
+  };
+  allProvenances: TokenProvenance[];
+  provenance?: TokenProvenance;
+  splice?: SpliceNFT;
+  selectedStyle?: Style;
+  sketch?: string;
+  ownership?: {
+    splice: string | undefined;
+    origin: string | undefined;
+  };
+  originImage?: HTMLImageElement;
+};
+
+function reducer(state: State, action: StateAction): State {
+  const { payload } = action;
+  switch (action.type) {
+    case 'sketched':
+      return { ...state, sketch: payload.sketch };
+
+    case 'setBasics':
+      return {
+        ...state,
+        ownership: { origin: payload.owner, splice: state.ownership?.splice },
+        origin: { ...state.origin, nftItem: payload.nftItem },
+        allProvenances: payload.provenances,
+        provenance:
+          payload.provenances.length > 0 ? payload.provenances[0] : undefined
+      };
+    case 'setOrigin':
+      return {
+        ...state,
+        origin: {
+          ...state.origin,
+          nftItem: payload.nftItem
+        },
+        features: {
+          ...state.features,
+          dominantColors: payload.colors
+        }
+      };
+    case 'setSpliceMetadata':
+      return {
+        ...state,
+        splice: payload.metadata,
+        sketch: resolveImage(payload.metadata),
+        ownership: {
+          splice: payload.owner,
+          origin: state.ownership?.origin
+        },
+        features: {
+          randomness: state.features.randomness,
+          dominantColors: payload.metadata.splice.colors
+        },
+        selectedStyle: payload.style
+      };
+    case 'styleSelected':
+      return {
+        ...state,
+        selectedStyle: payload.style,
+        sketch: undefined,
+        splice: undefined,
+        provenance: state.allProvenances.find((p) => {
+          const origin = p.origins[0];
+          if (!origin) return false;
+          return (
+            origin.collection == state.origin.collection &&
+            origin.token_id.toString() == state.origin.tokenId &&
+            p.style_token_id == payload.style.tokenId
+          );
+        })
+      };
+    case 'minted':
+      return {
+        ...state,
+        ownership: { origin: state.ownership?.origin, splice: payload.account },
+        provenance: payload.provenance,
+        allProvenances: [payload.provenance, ...state.allProvenances]
+      };
+    case 'saveOriginImage':
+      return {
+        ...state,
+        originImage: payload.image
+      };
+    case 'setColors':
+      return {
+        ...state,
+        features: {
+          randomness: state.features.randomness,
+          dominantColors: payload.colors
+        }
+      };
+    default:
+      throw new Error();
+  }
+}
+
 export const NFTPage = () => {
   const { collection, token_id: tokenId } =
     useParams<{ collection: string; token_id: string }>();
 
   const toast = useToast();
 
-  const randomness = Splice.computeRandomness(collection, tokenId);
-
   const { splice, indexer, spliceStyles } = useSplice();
   const { library: web3, account, chainId } = useWeb3React();
-
-  const [nftItem, setNFTItem] = useState<NFTItem>();
-
-  const [dominantColors, setDominantColors] = useState<Histogram>([]);
-
-  const [selectedStyle, setSelectedStyle] = useState<Style>();
-
-  const [allProvenances, setAllProvenances] = useState<TokenProvenance[]>();
-  const [provenance, setProvenance] = useState<TokenProvenance>();
-  const [spliceOwner, setSpliceOwner] = useState<string>();
-  const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
-  const [ownsOrigin, setOwnsOrigin] = useState<boolean>(false);
-
-  const [sketch, setSketch] = useState<string>();
   const [buzy, setBuzy] = useState<boolean>(false);
 
+  const [state, dispatch] = useReducer(reducer, {
+    origin: {
+      collection,
+      tokenId
+    },
+    features: {
+      randomness: Splice.computeRandomness(collection, tokenId),
+      dominantColors: []
+    },
+    allProvenances: []
+  });
+
   useEffect(() => {
-    if (!web3 || !account) {
-      setOwnsOrigin(false);
-      return;
-    }
+    if (!web3 || !account || !chainId || !indexer) return;
 
     (async () => {
       try {
-        const owner = await erc721(web3, collection).ownerOf(tokenId);
-        setOwnsOrigin(owner === account);
+        const [nftItem, owner] = await Promise.all([
+          indexer.getAsset(collection, tokenId),
+          erc721(web3, collection).ownerOf(tokenId)
+        ]);
+
+        const provenances = splice
+          ? await splice.findProvenances(collection, tokenId)
+          : [];
+
+        dispatch({
+          type: 'setBasics',
+          payload: {
+            owner,
+            nftItem,
+            provenances
+          }
+        });
       } catch (e: any) {
         console.error(
-          "couldn't load origin collection information (likely not an erc721 contract)"
+          "couldn't load origin collection information (maybe not an erc721 contract)",
+          e.message
         );
-        setOwnsOrigin(false);
       }
     })();
-  }, [web3, account]);
+  }, [web3, account, chainId, splice, indexer]);
 
   useEffect(() => {
-    if (!splice) return;
-
-    splice.findProvenances(collection, tokenId).then(setAllProvenances);
-  }, [splice]);
-
-  useEffect(() => {
-    if (!allProvenances || allProvenances.length === 0 || !spliceStyles) return;
-
-    if (selectedStyle) {
-      setProvenance(
-        allProvenances.find((prov) => {
-          const origin = prov.origins[0];
-          if (!origin) return false;
-          return (
-            origin.collection == collection &&
-            origin.token_id.toString() == tokenId &&
-            prov.style_token_id == selectedStyle.tokenId
-          );
-        })
+    const { provenance } = state;
+    if (!splice || !provenance) return;
+    Promise.all([
+      splice.ownerOf(provenance.splice_token_id),
+      splice.getMetadata(provenance)
+    ]).then((res) => {
+      const [owner, metadata] = res;
+      const style = spliceStyles.find(
+        (s) => s.tokenId == state.allProvenances[0].style_token_id
       );
-    } else {
-      const _style = spliceStyles.find(
-        (s) => s.tokenId == allProvenances[0].style_token_id
-      );
-      setSelectedStyle(_style);
-    }
-  }, [allProvenances, selectedStyle, spliceStyles]);
+      dispatch({
+        type: 'setSpliceMetadata',
+        payload: {
+          owner,
+          metadata,
+          style
+        }
+      });
+    });
+  }, [splice, state.provenance]);
 
-  useEffect(() => {
-    (async () => {
-      if (!splice || !provenance) {
-        setSpliceMetadata(undefined);
-        setSpliceOwner(undefined);
-        return;
-      }
-      await splice.ownerOf(provenance.splice_token_id).then(setSpliceOwner);
-      const _metadata = await splice.getMetadata(provenance);
-      setDominantColors(_metadata.splice.colors);
-      setSpliceMetadata(_metadata);
-      setSketch(resolveImage(_metadata));
-    })();
-  }, [splice, provenance]);
-
-  useEffect(() => {
-    if (!indexer) return;
-    (async () => {
-      const _nftItem = await indexer.getAsset(collection, tokenId);
-      if (!_nftItem) return;
-
-      setNFTItem(_nftItem);
-    })();
-  }, [indexer]);
-
-  const onSketched = useCallback((dataUrl: string) => {
-    setSketch(dataUrl);
+  const onSketched = useCallback((sketch: string) => {
+    dispatch({ type: 'sketched', payload: { sketch } });
   }, []);
 
   const onMinted = useCallback(
@@ -155,26 +254,71 @@ export const NFTPage = () => {
         status: 'success',
         title: `Hooray, Splice #${provenance.splice_token_id} is yours now!`
       });
-
-      setAllProvenances([...(allProvenances || []), provenance]);
+      dispatch({ type: 'minted', payload: { provenance, account } });
     },
-    [allProvenances]
+    [state.allProvenances]
   );
 
   const _isDownloadable = useMemo<boolean>(() => {
-    return provenance !== undefined && spliceOwner === account;
-  }, [spliceOwner, account]);
+    return (
+      state.provenance !== undefined && state.ownership?.splice === account
+    );
+  }, [state.provenance, state.ownership?.splice, account]);
+
+  const _ownsOrigin = useMemo<boolean>(() => {
+    return state.ownership?.origin == account;
+  }, [state.ownership?.origin, account]);
+
+  const _canMint = useMemo<boolean>(() => {
+    return (
+      state.provenance === undefined &&
+      state.selectedStyle !== undefined &&
+      state.sketch !== undefined
+    );
+  }, [state.provenance, state.selectedStyle, state.sketch]);
 
   const useOriginalMetadata = useCallback(async () => {
-    const indexer = new OnChain(web3, []);
+    if (!chainId) return;
+    const onChain = new OnChain(web3, [], {
+      proxyAddress: process.env.REACT_APP_CORS_PROXY
+    });
+
     setBuzy(true);
-    setDominantColors([]);
-    const nftItem = await indexer.getAsset(collection, tokenId);
-    if (nftItem) {
-      setNFTItem(nftItem);
+    try {
+      const [nftItem, colors] = await Promise.all([
+        onChain.getAsset(collection, tokenId),
+        getDominantColors(chainId, collection, tokenId)
+      ]);
+      dispatch({ type: 'setOrigin', payload: { nftItem, colors } });
+    } catch (e: any) {
+      toast({ title: `loading original metadata failed ${e.message}` });
+    } finally {
+      setBuzy(false);
     }
-    setBuzy(false);
-  }, [web3]);
+  }, [web3, chainId]);
+
+  const imageLoaded = useCallback(
+    async (event: SyntheticEvent<HTMLImageElement, Event>) => {
+      if (
+        chainId === undefined ||
+        state.origin.nftItem === undefined ||
+        state.features.dominantColors.length > 0
+      ) {
+        return;
+      } else {
+        const target: HTMLImageElement = (event.target ||
+          event.currentTarget) as HTMLImageElement;
+
+        const histogram = await loadColors(
+          state.origin.nftItem,
+          target,
+          chainId
+        );
+        dispatch({ type: 'setColors', payload: { colors: histogram } });
+      }
+    },
+    [state.origin.nftItem, state.features.dominantColors, chainId]
+  );
 
   return (
     <Container maxW="container.xl">
@@ -186,22 +330,26 @@ export const NFTPage = () => {
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
           <BreadcrumbLink>
-            {provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
-            {nftItem?.metadata?.name}
+            {state.provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
+            {state.origin.nftItem?.metadata?.name}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {nftItem?.metadata && (
+      {state.origin.nftItem && (
         <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
-            spliceDataUrl={sketch}
-            nftItem={nftItem}
-            style={selectedStyle}
-            randomness={randomness}
+            spliceDataUrl={state.sketch}
+            nftFeatures={state.features}
+            style={state.selectedStyle}
             onSketched={onSketched}
-            onDominantColors={setDominantColors}
-          />
+          >
+            <FallbackImage
+              boxShadow="lg"
+              metadata={state.origin.nftItem.metadata}
+              onNFTImageLoaded={imageLoaded}
+            />
+          </CreativePanel>
 
           <Flex
             position={['relative', 'absolute']}
@@ -212,27 +360,26 @@ export const NFTPage = () => {
             align="center"
           >
             <ArtworkStyleChooser
-              disabled={dominantColors?.length == 0 || buzy}
-              selectedStyle={selectedStyle}
-              onStyleChanged={(style: Style) => {
-                setSelectedStyle(style);
-                setSketch(undefined);
-              }}
+              disabled={state.features.dominantColors.length == 0 || buzy}
+              selectedStyle={state.selectedStyle}
+              onStyleChanged={(style: Style) =>
+                dispatch({ type: 'styleSelected', payload: { style } })
+              }
             />
-            {chainId === 1 && selectedStyle && (
+            {chainId === 1 && state.selectedStyle && (
               <AddToAllowlistButton
-                selectedStyle={selectedStyle}
-                ownsOrigin={ownsOrigin}
+                selectedStyle={state.selectedStyle}
+                ownsOrigin={_ownsOrigin}
               />
             )}
-            {provenance === undefined && splice && selectedStyle && sketch && (
+            {chainId !== 1 && _canMint && state.selectedStyle && (
               <MintSpliceButton
                 buzy={buzy}
                 setBuzy={setBuzy}
                 collection={collection}
                 originTokenId={tokenId}
-                selectedStyle={selectedStyle}
-                ownsOrigin={ownsOrigin}
+                selectedStyle={state.selectedStyle}
+                ownsOrigin={_ownsOrigin}
                 onMinted={onMinted}
               />
             )}
@@ -240,8 +387,8 @@ export const NFTPage = () => {
             {_isDownloadable && (
               <Button
                 as={Link}
-                href={sketch}
-                disabled={!sketch}
+                href={state.sketch}
+                disabled={!state.sketch}
                 leftIcon={<FaCloudDownloadAlt />}
                 boxShadow="md"
                 size="lg"
@@ -264,12 +411,12 @@ export const NFTPage = () => {
         mt={[6, null, 1]}
       >
         <NFTDescription
-          nftMetadata={nftItem?.metadata}
-          spliceMetadata={spliceMetadata}
-          styleNFT={selectedStyle?.getMetadata()}
+          nftMetadata={state.origin.nftItem?.metadata}
+          spliceMetadata={state.splice}
+          styleNFT={state.selectedStyle?.getMetadata()}
         />
         <Flex direction="column" gridGap={6} pt={3}>
-          {spliceMetadata && (
+          {state.splice && (
             <Flex
               boxShadow="xl"
               direction="column"
@@ -279,13 +426,13 @@ export const NFTPage = () => {
             >
               <Heading size="md"> Splice attributes</Heading>
               <SpliceMetadataDisplay
-                provenance={provenance}
-                spliceMetadata={spliceMetadata}
-                owner={spliceOwner}
+                provenance={state.provenance}
+                spliceMetadata={state.splice}
+                owner={state.ownership?.splice}
               />
             </Flex>
           )}
-          {nftItem && (
+          {state.origin.nftItem && (
             <Flex
               boxShadow="xl"
               direction="column"
@@ -294,27 +441,35 @@ export const NFTPage = () => {
               background="white"
             >
               <Flex direction="row">
-                <Heading size="md"> Origin attributes</Heading>
+                <Heading size="md">Origin attributes</Heading>
                 <Spacer />
-                <IconButton
-                  size="sm"
-                  icon={<IoReload />}
-                  title="reload metadata"
-                  aria-label="reload"
-                  onClick={() => useOriginalMetadata()}
-                />
+                <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
+                  <IconButton
+                    disabled={buzy}
+                    size="sm"
+                    icon={buzy ? <Spinner size="sm" /> : <IoReload />}
+                    title="reload metadata"
+                    aria-label="reload"
+                    onClick={useOriginalMetadata}
+                  />
+                </Tooltip>
               </Flex>
-              {!provenance && (
+
+              {!state.provenance && (
                 <MetaDataItem
                   label="colors"
-                  value={<DominantColorsDisplay colors={dominantColors} />}
+                  value={
+                    <DominantColorsDisplay
+                      colors={state.features.dominantColors}
+                    />
+                  }
                 />
               )}
               <MetaDataDisplay
                 contractAddress={collection}
                 tokenId={tokenId}
-                nftMetadata={nftItem.metadata}
-                randomness={randomness}
+                nftMetadata={state.origin.nftItem.metadata}
+                randomness={state.features.randomness}
               />
             </Flex>
           )}

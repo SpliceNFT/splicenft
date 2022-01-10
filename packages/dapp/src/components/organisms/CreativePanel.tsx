@@ -1,10 +1,8 @@
 import { Container, Image } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
-import { NFTItem, resolveImage, Style } from '@splicenft/common';
+import { Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
-import { loadColors } from '../../modules/colors';
-import { FallbackImage } from '../atoms/FallbackImage';
+import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 
@@ -28,13 +26,17 @@ export const Preview = ({
 
   useEffect(() => {
     if (!style || !chainId) return;
+    let unmounted = false;
     (async () => {
       const _code = await style.getCodeFromBackend(
         process.env.REACT_APP_VALIDATOR_BASEURL as string,
         chainId === 1 ? 4 : chainId
       );
-      setCode(_code);
+      if (!unmounted) setCode(_code);
     })();
+    return () => {
+      unmounted = true;
+    };
   }, [style]);
 
   return (
@@ -50,7 +52,7 @@ export const Preview = ({
   );
 };
 
-const DataSketch = ({
+export const DataSketch = ({
   nftImage,
   spliceDataUrl
 }: {
@@ -66,67 +68,33 @@ const DataSketch = ({
 
 export const CreativePanel = ({
   spliceDataUrl,
-  nftItem,
-  onSketched,
-  randomness,
+  nftFeatures,
   style,
-  onDominantColors
+  onSketched,
+  children
 }: {
-  nftItem: NFTItem;
-  onSketched: (dataUrl: string) => void;
-  randomness: number;
   spliceDataUrl?: string;
-  style: Style | undefined;
-  onDominantColors?: (colors: Histogram) => void;
-}) => {
-  const { chainId } = useWeb3React();
-  const [dominantColors, setDominantColors] = useState<Histogram>([]);
-
-  const nftExtractedProps: {
+  nftFeatures?: {
     randomness: number;
     dominantColors: Histogram;
-  } = {
-    randomness,
-    dominantColors
   };
 
-  const onNFTImageLoaded = useCallback(
-    async (event: SyntheticEvent<HTMLImageElement, Event>) => {
-      if (!chainId || spliceDataUrl) return;
-
-      const target: HTMLImageElement = (event.target ||
-        event.currentTarget) as HTMLImageElement;
-      try {
-        const colors = await loadColors(nftItem, target, chainId);
-        setDominantColors(colors);
-        if (onDominantColors) onDominantColors(colors);
-      } catch (e: any) {
-        console.error('fetching image data ultimatively failed: ', e.message);
-      }
-    },
-    [chainId, nftItem, spliceDataUrl, dominantColors]
-  );
-
-  const nftImage = (
-    <FallbackImage
-      boxShadow="lg"
-      metadata={nftItem.metadata}
-      onNFTImageLoaded={onNFTImageLoaded}
-    />
-  );
-
-  if (style && !spliceDataUrl && dominantColors.length > 0) {
+  style: Style | undefined;
+  onSketched: (dataUrl: string) => void;
+  children: React.ReactNode;
+}) => {
+  if (style && !spliceDataUrl && nftFeatures) {
     return (
       <Preview
-        nftImage={nftImage}
+        nftImage={children}
         onSketched={onSketched}
-        nftExtractedProps={nftExtractedProps}
+        nftExtractedProps={nftFeatures}
         style={style}
       />
     );
   } else if (spliceDataUrl) {
-    return <DataSketch nftImage={nftImage} spliceDataUrl={spliceDataUrl} />;
+    return <DataSketch nftImage={children} spliceDataUrl={spliceDataUrl} />;
   } else {
-    return <Container py={[null, 5, 20]}>{nftImage}</Container>;
+    return <Container py={[null, 5, 20]}>{children}</Container>;
   }
 };

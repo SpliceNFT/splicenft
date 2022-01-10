@@ -76,7 +76,7 @@ export const Footer = () => {
               @BiggyTava
             </Link>
           </Flex>
-          <Flex gridGap={8} mt={10} align="flex-end" justify="space-between">
+          <Flex gridGap={4} mt={5} align="flex-start" justify="space-between">
             <Link
               href="https://github.com/SpliceNFT/splicenft"
               isExternal
