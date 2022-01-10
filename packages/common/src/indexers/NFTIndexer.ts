@@ -5,10 +5,8 @@ export abstract class NFTIndexer {
   abstract getAllAssetsOfOwner(
     ownerAddress: string
   ): Promise<NFTItemInTransit[]>;
-  abstract getAsset(
-    collection: string,
-    tokenId: string
-  ): Promise<NFTItem | null>;
+
+  abstract getAsset(collection: string, tokenId: string): Promise<NFTItem>;
   abstract reset(): void;
   abstract canBeContinued(): boolean;
   // getNFTsOfOwner(

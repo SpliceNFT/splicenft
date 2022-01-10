@@ -60,13 +60,17 @@ export async function store(key: string, payload: any): Promise<void> {
 
 export async function withCache<T>(
   cacheKey: string,
-  logic: () => Promise<T> | T
+  logic: () => Promise<T> | T,
+  invalidate?: boolean
 ): Promise<T> {
-  const cached = await lookupJSON<T>(cacheKey);
-  if (cached) return cached;
-  else {
-    const res: T = await logic();
-    await store(cacheKey, res);
-    return res;
+  if (!invalidate) {
+    const cached = await lookupJSON<T>(cacheKey);
+    if (cached) return cached;
+  } else {
+    console.debug('forced to lookup on chain again');
   }
+
+  const res: T = await logic();
+  await store(cacheKey, res);
+  return res;
 }

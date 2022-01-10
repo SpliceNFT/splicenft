@@ -10,6 +10,7 @@ import {
   Link,
   SimpleGrid,
   Spacer,
+  Spinner,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -30,6 +31,7 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState
 } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
@@ -48,7 +50,7 @@ import {
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
 
-import { default as getDominantColors } from '../../modules/colors';
+import { default as getDominantColors, loadColors } from '../../modules/colors';
 import { FallbackImage } from '../atoms/FallbackImage';
 
 type StateAction = {
@@ -99,6 +101,10 @@ function reducer(state: State, action: StateAction): State {
         origin: {
           ...state.origin,
           nftItem: payload.nftItem
+        },
+        features: {
+          ...state.features,
+          dominantColors: payload.colors
         }
       };
     case 'setSpliceMetadata':
@@ -132,9 +138,11 @@ function reducer(state: State, action: StateAction): State {
           );
         })
       };
-    case 'addProvenance':
+    case 'minted':
       return {
         ...state,
+        ownership: { origin: state.ownership?.origin, splice: payload.account },
+        provenance: payload.provenance,
         allProvenances: [payload.provenance, ...state.allProvenances]
       };
     case 'saveOriginImage':
@@ -163,7 +171,6 @@ export const NFTPage = () => {
 
   const { splice, indexer, spliceStyles } = useSplice();
   const { library: web3, account, chainId } = useWeb3React();
-
   const [buzy, setBuzy] = useState<boolean>(false);
 
   const [state, dispatch] = useReducer(reducer, {
@@ -183,15 +190,14 @@ export const NFTPage = () => {
 
     (async () => {
       try {
-        const [nftItem, provenances] = await Promise.all([
+        const [nftItem, owner] = await Promise.all([
           indexer.getAsset(collection, tokenId),
-
           erc721(web3, collection).ownerOf(tokenId)
         ]);
 
-        const owner = splice
+        const provenances = splice
           ? await splice.findProvenances(collection, tokenId)
-          : undefined;
+          : [];
 
         dispatch({
           type: 'setBasics',
@@ -201,25 +207,10 @@ export const NFTPage = () => {
             provenances
           }
         });
-        if (provenances.length == 0) {
-          const histogram = await getDominantColors(
-            chainId,
-            collection,
-            tokenId
-          );
-          dispatch({ type: 'setColors', payload: { colors: histogram } });
-        }
-        // const nftItem = await indexer.getAsset(collection, tokenId);
-        // dispatch({ type: 'setOriginNFT', payload: { nftItem } });
-
-        // const provenances = await splice.findProvenances(collection, tokenId);
-        // dispatch({ type: 'setProvenances', payload: { provenances } });
-
-        // const owner = await erc721(web3, collection).ownerOf(tokenId);
-        // dispatch({ type: 'setOriginOwner', payload: { owner } });
       } catch (e: any) {
         console.error(
-          "couldn't load origin collection information (likely not an erc721 contract)"
+          "couldn't load origin collection information (maybe not an erc721 contract)",
+          e.message
         );
       }
     })();
@@ -247,8 +238,8 @@ export const NFTPage = () => {
     });
   }, [splice, state.provenance]);
 
-  const onSketched = useCallback((dataUrl: string) => {
-    dispatch({ type: 'sketched', payload: { sketch: dataUrl } });
+  const onSketched = useCallback((sketch: string) => {
+    dispatch({ type: 'sketched', payload: { sketch } });
   }, []);
 
   const onMinted = useCallback(
@@ -262,7 +253,7 @@ export const NFTPage = () => {
         status: 'success',
         title: `Hooray, Splice #${provenance.splice_token_id} is yours now!`
       });
-      dispatch({ type: 'addProvenance', payload: { provenance } });
+      dispatch({ type: 'minted', payload: { provenance, account } });
     },
     [state.allProvenances]
   );
@@ -286,31 +277,47 @@ export const NFTPage = () => {
   }, [state.provenance, state.selectedStyle, state.sketch]);
 
   const useOriginalMetadata = useCallback(async () => {
-    const indexer = new OnChain(web3, []);
+    if (!chainId) return;
+    const onChain = new OnChain(web3, [], {
+      proxyAddress: process.env.REACT_APP_CORS_PROXY
+    });
+
     setBuzy(true);
-    const nftItem = await indexer.getAsset(collection, tokenId);
-    dispatch({ type: 'setOrigin', payload: { nftItem } });
-    setBuzy(false);
-  }, [web3]);
-
-  /*
     try {
-    const colors = await loadColors(nftItem, target, chainId);
-    setDominantColors(colors);
-    if (onDominantColors) onDominantColors(colors);
-  } catch (e: any) {
-    console.error('fetching image data ultimatively failed: ', e.message);
-  }
-  */
+      const [nftItem, colors] = await Promise.all([
+        onChain.getAsset(collection, tokenId),
+        getDominantColors(chainId, collection, tokenId)
+      ]);
+      dispatch({ type: 'setOrigin', payload: { nftItem, colors } });
+    } catch (e: any) {
+      toast({ title: `loading original metadata failed ${e.message}` });
+    } finally {
+      setBuzy(false);
+    }
+  }, [web3, chainId]);
 
-  const saveImageSrc = async (
-    event: SyntheticEvent<HTMLImageElement, Event>
-  ) => {
-    const target: HTMLImageElement = (event.target ||
-      event.currentTarget) as HTMLImageElement;
-    dispatch({ type: 'saveOriginImage', payload: { image: target } });
-    console.log('SAVING ORIGINAL');
-  };
+  const imageLoaded = useCallback(
+    async (event: SyntheticEvent<HTMLImageElement, Event>) => {
+      if (
+        chainId === undefined ||
+        state.origin.nftItem === undefined ||
+        state.features.dominantColors.length > 0
+      ) {
+        return;
+      } else {
+        const target: HTMLImageElement = (event.target ||
+          event.currentTarget) as HTMLImageElement;
+
+        const histogram = await loadColors(
+          state.origin.nftItem,
+          target,
+          chainId
+        );
+        dispatch({ type: 'setColors', payload: { colors: histogram } });
+      }
+    },
+    [state.origin.nftItem, state.features.dominantColors, chainId]
+  );
 
   return (
     <Container maxW="container.xl">
@@ -339,7 +346,7 @@ export const NFTPage = () => {
             <FallbackImage
               boxShadow="lg"
               metadata={state.origin.nftItem.metadata}
-              onNFTImageLoaded={saveImageSrc}
+              onNFTImageLoaded={imageLoaded}
             />
           </CreativePanel>
 
@@ -364,7 +371,7 @@ export const NFTPage = () => {
                 ownsOrigin={_ownsOrigin}
               />
             )}
-            {_canMint && state.selectedStyle && (
+            {chainId !== 1 && _canMint && state.selectedStyle && (
               <MintSpliceButton
                 buzy={buzy}
                 setBuzy={setBuzy}
@@ -433,11 +440,12 @@ export const NFTPage = () => {
               background="white"
             >
               <Flex direction="row">
-                <Heading size="md"> Origin attributes</Heading>
+                <Heading size="md">Origin attributes</Heading>
                 <Spacer />
                 <IconButton
+                  disabled={buzy}
                   size="sm"
-                  icon={<IoReload />}
+                  icon={buzy ? <Spinner size="sm" /> : <IoReload />}
                   title="reload metadata"
                   aria-label="reload"
                   onClick={useOriginalMetadata}

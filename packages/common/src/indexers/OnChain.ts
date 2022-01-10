@@ -17,9 +17,13 @@ export interface MetadataResponse {
 }
 
 type ProviderOrSigner = ethers.providers.BaseProvider | ethers.Signer;
+interface OnChainOptions {
+  proxyAddress?: string | undefined;
+  metadataProxy?: string | undefined;
+}
 
 export class OnChain implements NFTIndexer {
-  private proxyAddress: string | undefined;
+  private options: OnChainOptions;
 
   private collections: Record<string, ERC721Enumerable> = {};
 
@@ -32,9 +36,9 @@ export class OnChain implements NFTIndexer {
   constructor(
     provider: ProviderOrSigner,
     addressList: string[],
-    proxyAddress?: string
+    options?: OnChainOptions
   ) {
-    this.proxyAddress = proxyAddress;
+    this.options = options || {};
     this.provider = provider;
 
     addressList.forEach((knownCollection) => {
@@ -83,7 +87,7 @@ export class OnChain implements NFTIndexer {
           try {
             const metaData = fetchMetadataFromUrl(
               ipfsGW(await contract.tokenURI(tokenId)),
-              this.proxyAddress
+              this.options.proxyAddress
             );
 
             return {
@@ -105,33 +109,24 @@ export class OnChain implements NFTIndexer {
     return Promise.all(promises);
   }
 
-  public async getAsset(
-    collection: string,
-    tokenId: string
-  ): Promise<NFTItem | null> {
-    try {
-      const contract =
-        this.collections[collection] ||
-        erc721Enumerable(this.provider, collection);
-      const tokenUri = await contract.tokenURI(tokenId);
-      const metadataUrl = ipfsGW(tokenUri);
-      const metadata = await fetchMetadataFromUrl(
-        metadataUrl,
-        this.proxyAddress
-      );
+  public async getAsset(collection: string, tokenId: string): Promise<NFTItem> {
+    const contract =
+      this.collections[collection] ||
+      erc721Enumerable(this.provider, collection);
+    const tokenUri = await contract.tokenURI(tokenId);
 
-      return {
-        contract_address: collection,
-        token_id: tokenId,
-        name: metadata.name,
-        description: metadata.description,
-        metadata
-      };
-    } catch (e: any) {
-      console.error(
-        `failed loading on chain metadata for ${collection}/${tokenId} (${e.message})`
-      );
-      return null;
-    }
+    const metadataUrl = ipfsGW(tokenUri);
+    const metadata = await fetchMetadataFromUrl(
+      metadataUrl,
+      this.options.proxyAddress
+    );
+
+    return {
+      contract_address: collection,
+      token_id: tokenId,
+      name: metadata.name,
+      description: metadata.description,
+      metadata
+    };
   }
 }

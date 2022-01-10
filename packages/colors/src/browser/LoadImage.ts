@@ -29,8 +29,7 @@ export const LoadImage: ImageLoader = async (
         "LoadImage: couldn't load image from external source, retrying with proxy"
       );
       if (options.proxy) {
-        const proxyUrl = `${process.env.REACT_APP_CORS_PROXY}?url=${image}`;
-        return LoadImage(proxyUrl, { dims });
+        return LoadImage(`${options.proxy}?url=${image}`, { dims });
       }
     }
   } else {

@@ -12,6 +12,8 @@ import {
   styleDetails
 } from './controllers';
 import { extractColors } from './controllers/colors';
+import { nftMetadata } from './controllers/metadata';
+import { proxy } from './controllers/proxy';
 import { StyleCache } from './lib/StyleCache';
 
 const app: Express = express();
@@ -35,7 +37,8 @@ app.use(cors());
 
 const styleCache = new StyleCache([4, 31337]);
 styleCache.init();
-
+app.get('/proxy', proxy());
+app.get('/nft/:network/:collection/:token_id', nftMetadata());
 app.get('/render/:network/:style_token_id', renderGeneric(styleCache));
 app.get('/colors/:network/:collection/:token_id', extractColors);
 app.get('/styles/:network/:style_token_id', styleDetails(styleCache));
