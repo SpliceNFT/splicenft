@@ -28,7 +28,8 @@ import {
   UserSplicesVars,
   USER_SPLICES
 } from '../../modules/Queries';
-import { SpliceArtwork } from '../molecules/Splice/SpliceArtwork';
+import { FallbackImage } from '../atoms/FallbackImage';
+import { DataSketch } from '../organisms/CreativePanel';
 import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
 const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
@@ -73,15 +74,19 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
   return (
     <Flex bg="white" w="100%" direction="row">
       <Flex gridGap={2} flexDirection={['column', null, null, 'row']}>
-        <LinkBox as={Flex} w={[null, null, null, '66%']}>
+        <LinkBox
+          as={Flex}
+          w={[null, null, null, '66%']}
+          marginBottom={[5, 5, 0]}
+        >
           {metadata && origin && (
             <LinkOverlay
               as={NavLink}
               to={`/nft/${metadata.splice.origins[0].collection}/${metadata.splice.origins[0].token_id}`}
             >
-              <SpliceArtwork
-                originImageUrl={resolveImage(origin)}
-                spliceImageUrl={resolveImage(metadata)}
+              <DataSketch
+                nftImage={<FallbackImage imgUrl={resolveImage(origin)} />}
+                spliceDataUrl={resolveImage(metadata)}
               />
             </LinkOverlay>
           )}

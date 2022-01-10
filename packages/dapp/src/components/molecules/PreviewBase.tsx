@@ -1,4 +1,4 @@
-import { Flex, Center, AspectRatio } from '@chakra-ui/react';
+import { Flex, Center, AspectRatio, Box } from '@chakra-ui/react';
 
 export const PreviewBase = ({
   nftImage,
@@ -17,16 +17,21 @@ export const PreviewBase = ({
     <Center width="100%" height="100%" position="relative">
       {children}
     </Center>
-    <Center position="absolute" width="100%" height="100%">
+
+    <Box position="absolute" width="100%" height="100%">
       <AspectRatio
         ratio={1}
         rounded="full"
         border="4px solid white"
-        w="15%"
+        w="15vw"
+        maxW="130px"
         overflow="hidden"
+        position="absolute"
+        left="1rem"
+        bottom="1rem"
       >
         {nftImage}
       </AspectRatio>
-    </Center>
+    </Box>
   </Flex>
 );

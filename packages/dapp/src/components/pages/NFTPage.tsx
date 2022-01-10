@@ -11,6 +11,7 @@ import {
   SimpleGrid,
   Spacer,
   Spinner,
+  Tooltip,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -442,14 +443,16 @@ export const NFTPage = () => {
               <Flex direction="row">
                 <Heading size="md">Origin attributes</Heading>
                 <Spacer />
-                <IconButton
-                  disabled={buzy}
-                  size="sm"
-                  icon={buzy ? <Spinner size="sm" /> : <IoReload />}
-                  title="reload metadata"
-                  aria-label="reload"
-                  onClick={useOriginalMetadata}
-                />
+                <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
+                  <IconButton
+                    disabled={buzy}
+                    size="sm"
+                    icon={buzy ? <Spinner size="sm" /> : <IoReload />}
+                    title="reload metadata"
+                    aria-label="reload"
+                    onClick={useOriginalMetadata}
+                  />
+                </Tooltip>
               </Flex>
 
               {!state.provenance && (

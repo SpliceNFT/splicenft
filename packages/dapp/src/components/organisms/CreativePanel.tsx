@@ -1,6 +1,6 @@
 import { Container, Image } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
-import { NFTItem, Style } from '@splicenft/common';
+import { Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
@@ -52,7 +52,7 @@ export const Preview = ({
   );
 };
 
-const DataSketch = ({
+export const DataSketch = ({
   nftImage,
   spliceDataUrl
 }: {
