@@ -36,10 +36,10 @@
   "dependencies": {
     "@splicenft/contracts": "workspace:*",
     "@splicenft/colors": "workspace:*",
-    "axios": "^0.21.4",
+    "axios": "^0.24.0",
     "base64-js": "^1.5.1",
     "ethers": "^5.5.2",
     "multiformats": "^9.5.4",
-    "p5": "1.1.9"
+    "p5": "^1.4.0"
   }
 }

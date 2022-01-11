@@ -1,13 +1,11 @@
 import b64 from 'base64-js';
-import { default as hexRgb } from 'hex-rgb';
-import { palette } from './palette';
-import type { ImageLoader, ImageLoaderOptions } from './types/ImageLoader';
-import { RGB } from './types/RGB';
-import { Histogram } from './types/Histogram';
-
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import pica from 'pica';
+import { hexToRgb } from './helpers';
+import { palette } from './palette';
+import { Histogram } from './types/Histogram';
+import type { ImageLoader, ImageLoaderOptions } from './types/ImageLoader';
 
 const SVG_DATA_PREFIX = 'data:image/svg+xml;';
 
@@ -35,7 +33,7 @@ export const extractPaletteFromSvg = (svg: string): Histogram => {
     .map((hx: string) => ({
       hex: hx,
       freq: 0,
-      rgb: hexRgb(hx, { format: 'array' }).slice(0, 3) as RGB
+      rgb: hexToRgb(hx)
     }));
 };
 
@@ -89,13 +87,12 @@ export const extractColors = async (
 };
 
 export { LoadImage as LoadImageBrowser } from './browser/LoadImage';
+export { rgbToHex } from './helpers';
 export {
   getFileType,
   LoadImage as LoadImageNode,
   readImage
 } from './node/LoadImage';
-export { palette };
-
-export { RGB, RGBA } from './types/RGB';
 export { Histogram, HistogramEntry } from './types/Histogram';
-export { rgbToHex } from './helpers';
+export { RGB, RGBA } from './types/RGB';
+export { palette };
