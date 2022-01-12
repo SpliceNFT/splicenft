@@ -116,7 +116,7 @@ contract Splice is
     styleNFT = initializedStyleNFT_;
   }
 
-  function setBaseUri(string memory newBaseUri) public onlyOwner {
+  function setBaseUri(string memory newBaseUri) external onlyOwner {
     baseUri = newBaseUri;
   }
 
@@ -125,7 +125,10 @@ contract Splice is
   }
 
   //todo: the platform benef. should be the only one to name a new beneficiary, not the owner.
-  function setPlatformBeneficiary(address payable newAddress) public onlyOwner {
+  function setPlatformBeneficiary(address payable newAddress)
+    external
+    onlyOwner
+  {
     require(address(0) != newAddress, 'must be a real address');
     platformBeneficiary = newAddress;
   }
@@ -146,30 +149,26 @@ contract Splice is
    * in case anything drops ETH/ERC20/ERC721 on us accidentally,
    * this will help us withdraw it.
    */
-  function withdrawEth() public onlyOwner {
+  function withdrawEth() external onlyOwner {
     platformBeneficiary.transfer(address(this).balance);
   }
 
-  function withdrawERC20(IERC20 token) public onlyOwner {
+  function withdrawERC20(IERC20 token) external onlyOwner {
     token.transfer(platformBeneficiary, token.balanceOf(address(this)));
   }
 
   function withdrawERC721(IERC721 nftContract, uint256 tokenId)
-    public
+    external
     onlyOwner
   {
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
 
-  //todo: add more interfaces for royalties here.
-  //https://eips.ethereum.org/EIPS/eip-2981
-  // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
-
-  function pause() public onlyOwner {
+  function pause() external onlyOwner {
     _pause();
   }
 
-  function unpause() public onlyOwner {
+  function unpause() external onlyOwner {
     _unpause();
   }
 
@@ -220,13 +219,13 @@ contract Splice is
     }
   }
 
-  function updateArtistShare(uint8 share) public onlyOwner {
+  function updateArtistShare(uint8 share) external onlyOwner {
     require(share > 75, 'we will never take more than 25%');
     ARTIST_SHARE = share;
     emit SharesChanged(share);
   }
 
-  function updateRoyalties(uint8 royaltyPercentage) public onlyOwner {
+  function updateRoyalties(uint8 royaltyPercentage) external onlyOwner {
     require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
     ROYALTY_PERCENT = royaltyPercentage;
   }
@@ -235,7 +234,7 @@ contract Splice is
   // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
   // https://forum.openzeppelin.com/t/how-do-eip-2891-royalties-work/17177
   function royaltyInfo(uint256 tokenId, uint256 salePrice)
-    external
+    public
     view
     returns (address receiver, uint256 royaltyAmount)
   {
@@ -248,52 +247,13 @@ contract Splice is
     uint32 style_token_id,
     IERC721[] memory nfts,
     uint256[] memory origin_token_ids
-  ) public view returns (uint256 fee) {
+  ) external view returns (uint256 fee) {
     return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
   }
 
-  function splitWithPartners(
-    address[] memory partnership_collections,
-    IERC721[] memory origin_collections
-  ) internal pure returns (bool) {
-    for (uint256 i = 0; i < origin_collections.length; i++) {
-      if (
-        ArrayLib.contains(
-          partnership_collections,
-          address(origin_collections[i])
-        )
-      ) {
-        return true;
-      }
-    }
-  }
-
   //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
-  function splitMintFee(
-    uint256 amount,
-    uint32 styleTokenId,
-    IERC721[] memory origin_collections
-  ) internal {
-    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
-    uint256 feeForPlatform = amount.sub(feeForArtist);
-
-    Partnership memory partnership = styleNFT.getPartnership(styleTokenId);
-    if (
-      partnership.collections.length > 0 && partnership.until > block.timestamp
-    ) {
-      if (splitWithPartners(partnership.collections, origin_collections)) {
-        uint256 feeForPartners = feeForPlatform.div(2);
-        feeForPlatform = feeForPartners;
-        feesEscrow.deposit{ value: feeForPartners }(partnership.beneficiary);
-      }
-    }
-
-    feesEscrow.deposit{ value: feeForArtist }(styleNFT.ownerOf(styleTokenId));
-    feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
-  }
-
   function claimShares(address payable beneficiary)
-    external
+    public
     nonReentrant
     whenNotPaused
   {
@@ -306,16 +266,104 @@ contract Splice is
     return feesEscrow.depositsOf(payee);
   }
 
-  function mint(
+  function splitMintFee(
+    uint256 amount,
+    uint32 styleTokenId,
+    IERC721[] memory origin_collections,
+    uint256[] memory origin_token_ids
+  ) internal {
+    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
+    uint256 feeForPlatform = amount.sub(feeForArtist);
+
+    Partnership memory partnership = styleNFT.getPartnership(styleTokenId);
+    uint8 partner_count = 0;
+    bool partnership_is_active = (partnership.collections.length > 0 &&
+      partnership.until > block.timestamp);
+    for (uint256 i = 0; i < origin_collections.length; i++) {
+      if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
+        revert NotAllowedToMint('not owning origin');
+      }
+      if (partnership_is_active) {
+        if (
+          ArrayLib.contains(
+            partnership.collections,
+            address(origin_collections[i])
+          )
+        ) {
+          partner_count++;
+        }
+      }
+    }
+    if (
+      partnership_is_active &&
+      partnership.exclusive &&
+      partner_count != origin_collections.length
+    ) {
+      revert NotAllowedToMint('collections not part of exclusive partnership');
+    }
+
+    if (partner_count > 0) {
+      uint256 feeForPartners = feeForPlatform.div(2);
+      feeForPlatform = feeForPartners;
+      feesEscrow.deposit{ value: feeForPartners }(partnership.beneficiary);
+    }
+
+    feesEscrow.deposit{ value: feeForArtist }(styleNFT.ownerOf(styleTokenId));
+    feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
+  }
+
+  function mintWithAllowlist(
     IERC721[] memory origin_collections,
     uint256[] memory origin_token_ids,
     uint32 style_token_id,
     bytes32[] memory allowlistProof,
+    bytes calldata input_params
+  ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
+    if (
+      allowlistProof.length == 0 ||
+      !styleNFT.verifyAllowlistEntryProof(
+        style_token_id,
+        allowlistProof,
+        msg.sender
+      )
+    ) {
+      revert NotAllowedToMint('no reservations left or proof failed');
+    } else {
+      styleNFT.decreaseAllowance(style_token_id, msg.sender);
+    }
+    token_id = _mint(
+      origin_collections,
+      origin_token_ids,
+      style_token_id,
+      input_params
+    );
+  }
+
+  function publicMint(
+    IERC721[] memory origin_collections,
+    uint256[] memory origin_token_ids,
+    uint32 style_token_id,
+    bytes calldata input_params
+  ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
+    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
+      revert NotAllowedToMint('no reservations left or proof failed');
+    }
+    token_id = _mint(
+      origin_collections,
+      origin_token_ids,
+      style_token_id,
+      input_params
+    );
+  }
+
+  function _mint(
+    IERC721[] memory origin_collections,
+    uint256[] memory origin_token_ids,
+    uint32 style_token_id,
     //stays in calldata and can be used to later prove aspects of the user facing inputs
     bytes calldata input_params
-  ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
+  ) internal whenNotPaused returns (uint64 token_id) {
     //CHECKS
-
     require(
       styleNFT.isMintable(
         style_token_id,
@@ -325,29 +373,12 @@ contract Splice is
       )
     );
 
-    //todo if there's more than one mint request in one block the quoted fee might be lower
-    //than what the artist expects, (when using a bonded price strategy)
-    uint256 fee = quote(style_token_id, origin_collections, origin_token_ids);
+    uint256 fee = styleNFT.quoteFee(
+      style_token_id,
+      origin_collections,
+      origin_token_ids
+    );
     if (msg.value < fee) revert InsufficientFees();
-
-    //if someone sent too much, we're sending it back to them
-    uint256 surplus = msg.value.sub(fee);
-
-    //CHECKS & EFFECTS
-    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
-      if (
-        allowlistProof.length == 0 ||
-        !styleNFT.verifyAllowlistEntryProof(
-          style_token_id,
-          allowlistProof,
-          msg.sender
-        )
-      ) {
-        revert NotAllowedToMint('no reservations left or proof failed');
-      } else {
-        styleNFT.decreaseAllowance(style_token_id, msg.sender);
-      }
-    }
 
     bytes32 _provenanceHash = keccak256(
       abi.encodePacked(origin_collections, origin_token_ids, style_token_id)
@@ -358,18 +389,20 @@ contract Splice is
     }
 
     //EFFECTS
-    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(style_token_id);
+    splitMintFee(fee, style_token_id, origin_collections, origin_token_ids);
 
+    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(style_token_id);
     token_id = BytesLib.toUint64(
       abi.encodePacked(style_token_id, nextStyleMintId),
       0
     );
-
     provenanceToTokenId[_provenanceHash] = token_id;
 
     //INTERACTIONS
-    splitMintFee(fee, style_token_id, origin_collections);
     _safeMint(msg.sender, token_id);
+
+    //if someone sent too much, we're sending it back to them
+    uint256 surplus = msg.value.sub(fee);
 
     if (surplus > 0) {
       payable(msg.sender).sendValue(surplus);

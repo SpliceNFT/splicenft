@@ -200,7 +200,7 @@ describe('Partnerships', function () {
       expect.fail('should throw on constrained collection');
     } catch (e: any) {
       expect(e.message).to.contain(
-        'collection not part of exclusive partnership'
+        'collections not part of exclusive partnership'
       );
     }
 
@@ -215,7 +215,7 @@ describe('Partnerships', function () {
       expect.fail('should not allow exclusive partnerships to mix with others');
     } catch (e: any) {
       expect(e.message).to.contain(
-        'collection not part of exclusive partnership'
+        'collections not part of exclusive partnership'
       );
     }
 

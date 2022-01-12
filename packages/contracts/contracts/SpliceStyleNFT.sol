@@ -155,13 +155,16 @@ contract SpliceStyleNFT is
   }
 
   /**
+   * todo if there's more than one mint request in one block the quoted fee might be lower
+   * than what the artist expects, (when using a bonded price strategy)
+
    * @return fee the fee required to mint splices of that style
    */
   function quoteFee(
     uint32 style_token_id,
     IERC721[] memory nfts,
     uint256[] memory origin_token_ids
-  ) external view returns (uint256 fee) {
+  ) public view returns (uint256 fee) {
     fee = styleSettings[style_token_id].priceStrategy.quote(
       style_token_id,
       nfts,
@@ -182,7 +185,7 @@ contract SpliceStyleNFT is
   }
 
   function toggleSaleIsActive(uint32 style_token_id, bool newValue)
-    public
+    external
     onlyStyleOwner(style_token_id)
   {
     if (isFrozen(style_token_id)) {
@@ -344,30 +347,6 @@ contract SpliceStyleNFT is
       revert BadMintInput('too many inputs');
     }
 
-    Partnership memory partnership = _partnerships[style_token_id];
-
-    for (uint256 i = 0; i < origin_collections.length; i++) {
-      if (origin_collections[i].ownerOf(origin_token_ids[i]) != minter) {
-        revert BadMintInput('not owning origin');
-      }
-      if (partnership.collections.length > 0) {
-        // = if partnership "exists"
-        if (partnership.exclusive) {
-          if (partnership.until > block.timestamp) {
-            if (
-              !ArrayLib.contains(
-                partnership.collections,
-                address(origin_collections[i])
-              )
-            ) {
-              revert BadMintInput(
-                'collection not part of exclusive partnership'
-              );
-            }
-          }
-        }
-      }
-    }
     return true;
   }
 
@@ -436,7 +415,7 @@ contract SpliceStyleNFT is
    * @return the new highest amount. Used as incremental part of the splice token id
    */
   function incrementMintedPerStyle(uint32 style_token_id)
-    external
+    public
     onlySplice
     returns (uint32)
   {
