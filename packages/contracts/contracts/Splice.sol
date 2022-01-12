@@ -294,12 +294,15 @@ contract Splice is
         }
       }
     }
-    if (
-      partnership_is_active &&
-      partnership.exclusive &&
-      partner_count != origin_collections.length
-    ) {
-      revert NotAllowedToMint('collections not part of exclusive partnership');
+    if (partnership_is_active) {
+      //this saves a very slight amount of gas compared to &&
+      if (partnership.exclusive) {
+        if (partner_count != origin_collections.length) {
+          revert NotAllowedToMint(
+            'collections not part of exclusive partnership'
+          );
+        }
+      }
     }
 
     if (partner_count > 0) {
@@ -331,12 +334,7 @@ contract Splice is
     } else {
       styleNFT.decreaseAllowance(style_token_id, msg.sender);
     }
-    token_id = _mint(
-      origin_collections,
-      origin_token_ids,
-      style_token_id,
-      input_params
-    );
+    token_id = _mint(origin_collections, origin_token_ids, style_token_id);
   }
 
   function publicMint(
@@ -346,22 +344,15 @@ contract Splice is
     bytes calldata input_params
   ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
     if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
-      revert NotAllowedToMint('no reservations left or proof failed');
+      revert NotAllowedToMint('public minting depleted, try with allowlist');
     }
-    token_id = _mint(
-      origin_collections,
-      origin_token_ids,
-      style_token_id,
-      input_params
-    );
+    token_id = _mint(origin_collections, origin_token_ids, style_token_id);
   }
 
   function _mint(
     IERC721[] memory origin_collections,
     uint256[] memory origin_token_ids,
-    uint32 style_token_id,
-    //stays in calldata and can be used to later prove aspects of the user facing inputs
-    bytes calldata input_params
+    uint32 style_token_id
   ) internal whenNotPaused returns (uint64 token_id) {
     //CHECKS
     require(
