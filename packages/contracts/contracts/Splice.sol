@@ -315,45 +315,13 @@ contract Splice is
     feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
   }
 
-  function mintWithAllowlist(
+  function mint(
     IERC721[] memory origin_collections,
     uint256[] memory origin_token_ids,
     uint32 style_token_id,
     bytes32[] memory allowlistProof,
     bytes calldata input_params
-  ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
-    if (
-      allowlistProof.length == 0 ||
-      !styleNFT.verifyAllowlistEntryProof(
-        style_token_id,
-        allowlistProof,
-        msg.sender
-      )
-    ) {
-      revert NotAllowedToMint('no reservations left or proof failed');
-    } else {
-      styleNFT.decreaseAllowance(style_token_id, msg.sender);
-    }
-    token_id = _mint(origin_collections, origin_token_ids, style_token_id);
-  }
-
-  function publicMint(
-    IERC721[] memory origin_collections,
-    uint256[] memory origin_token_ids,
-    uint32 style_token_id,
-    bytes calldata input_params
-  ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
-    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
-      revert NotAllowedToMint('public minting depleted, try with allowlist');
-    }
-    token_id = _mint(origin_collections, origin_token_ids, style_token_id);
-  }
-
-  function _mint(
-    IERC721[] memory origin_collections,
-    uint256[] memory origin_token_ids,
-    uint32 style_token_id
-  ) internal whenNotPaused returns (uint64 token_id) {
+  ) external payable whenNotPaused returns (uint64 token_id) {
     //CHECKS
     require(
       styleNFT.isMintable(
@@ -363,6 +331,21 @@ contract Splice is
         msg.sender
       )
     );
+
+    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
+      if (
+        allowlistProof.length == 0 ||
+        !styleNFT.verifyAllowlistEntryProof(
+          style_token_id,
+          allowlistProof,
+          msg.sender
+        )
+      ) {
+        revert NotAllowedToMint('no reservations left or proof failed');
+      } else {
+        styleNFT.decreaseAllowance(style_token_id, msg.sender);
+      }
+    }
 
     uint256 fee = styleNFT.quoteFee(
       style_token_id,

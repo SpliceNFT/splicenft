@@ -76,10 +76,11 @@ describe('Splice', function () {
 
     try {
       await (
-        await _splice.publicMint(
+        await _splice.mint(
           [testNft.address],
           [1],
           1,
+          [],
           ethers.constants.HashZero
         )
       ).wait();
@@ -110,10 +111,11 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await splice.quote(1, [testNft.address], [1]);
     const receipt = await (
-      await _splice.publicMint(
+      await _splice.mint(
         [testNft.address],
         [1],
         1,
+        [],
         ethers.constants.HashZero,
         {
           value: fee
@@ -166,10 +168,11 @@ describe('Splice', function () {
     const _splice = splice.connect(_user);
     const fee = await _splice.quote(1, [testNft.address], [1]);
     try {
-      await _splice.publicMint(
+      await _splice.mint(
         [testNft.address],
         [1],
         1,
+        [],
         ethers.constants.HashZero,
         {
           value: fee
@@ -260,7 +263,7 @@ describe('Splice', function () {
     const tx = await mintEvent.getTransaction();
     const inputData = splice.interface.decodeFunctionData(
       splice.interface.functions[
-        'publicMint(address[],uint256[],uint32,bytes)'
+        'mint(address[],uint256[],uint32,bytes32[],bytes)'
       ],
       tx.data
     );
@@ -557,10 +560,11 @@ describe('Splice', function () {
     const surplusFee = fee.add(ethers.utils.parseEther('5'));
 
     await (
-      await _splice.publicMint(
+      await _splice.mint(
         [testNft.address],
         [nftTokenId],
         2,
+        [],
         ethers.constants.HashZero,
         {
           value: surplusFee

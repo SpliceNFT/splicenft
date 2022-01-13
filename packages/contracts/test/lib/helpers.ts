@@ -106,10 +106,11 @@ export async function mintSplice(
 
   const fee = splice.quote(styleTokenId, nftAddresses, originTokenIds);
   const receipt = await (
-    await splice.publicMint(
+    await splice.mint(
       nftAddresses,
       originTokenIds,
       styleTokenId,
+      [],
       constants.HashZero,
       {
         value: fee
