@@ -1,5 +1,5 @@
 import * as iq from 'image-q';
-import { PointContainer } from 'image-q/dist/esm/utils';
+import { PointContainer } from 'image-q/dist/types/src/utils';
 import { Histogram } from '.';
 import { i32ToRGB, rgbToHex } from './helpers';
 

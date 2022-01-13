@@ -43,9 +43,9 @@ export const P5Sketch = (props: {
         }))
       };
       try {
+        p5.noLoop();
         //the most important line in Splice:
         renderer({ p5, colors: colors.map((c) => c.rgb), dim, params });
-        p5.noLoop();
         if (onSketched) {
           const canvas = (p5 as any).canvas as HTMLCanvasElement;
           const dataUrl = canvas.toDataURL('image/png');
