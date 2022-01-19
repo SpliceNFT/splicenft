@@ -30,4 +30,5 @@ struct StyleSettings {
   bool isFrozen;
   string styleCID;
   uint8 maxInputs;
+  address payable paymentSplitter;
 }

@@ -29,8 +29,11 @@ import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './ISplicePriceStrategy.sol';
+import './Splice.sol';
 import './Structs.sol';
 import './ArrayLib.sol';
+import './ReplaceablePaymentSplitter.sol';
+import './PaymentSplitterController.sol';
 
 contract SpliceStyleNFT is
   ERC721EnumerableUpgradeable,
@@ -64,6 +67,10 @@ contract SpliceStyleNFT is
   /// @notice
   error StyleIsFrozen();
 
+  error NotOwningOrigin();
+
+  error OriginNotAllowed(string reason);
+
   error BadMintInput(string reason);
 
   error CantFreezeAnUncompleteCollection(uint32 mintsLeft);
@@ -91,18 +98,22 @@ contract SpliceStyleNFT is
   // @dev unused
   mapping(uint32 => mapping(address => bool)) collectionAllowed;
 
-  address public spliceNFT;
+  Splice public spliceNFT;
 
   /**
    * @dev style_token_id => Partnership
    */
   mapping(uint32 => Partnership) private _partnerships;
 
+  PaymentSplitterController public paymentSplitterController;
+
   function initialize() public initializer {
     __ERC721_init('Splice Style NFT', 'SPLYLE');
     __ERC721Enumerable_init_unchained();
     __Ownable_init_unchained();
     __ReentrancyGuard_init();
+
+    paymentSplitterController = new PaymentSplitterController(this);
   }
 
   modifier onlyStyleMinter() {
@@ -111,7 +122,7 @@ contract SpliceStyleNFT is
   }
 
   modifier onlySplice() {
-    require(msg.sender == spliceNFT, 'only callable by Splice');
+    require(msg.sender == address(spliceNFT), 'only callable by Splice');
     _;
   }
 
@@ -122,11 +133,17 @@ contract SpliceStyleNFT is
     _;
   }
 
-  function setSplice(address _spliceNFT) external onlyOwner {
-    if (spliceNFT != address(0)) {
+  function setSplice(Splice _spliceNFT) external onlyOwner {
+    if (address(spliceNFT) != address(0)) {
       revert('can only be called once.');
     }
     spliceNFT = _spliceNFT;
+  }
+
+  function setRoyaltySplitterController(
+    PaymentSplitterController _paymentSplitterController
+  ) external onlyOwner {
+    paymentSplitterController = _paymentSplitterController;
   }
 
   function toggleStyleMinter(address minter, bool newValue) external onlyOwner {
@@ -323,7 +340,7 @@ contract SpliceStyleNFT is
   }
 
   /**
-   * @dev will revert when something prevents minting
+   * @dev will revert when something prevents minting a splice
    */
   function isMintable(
     uint32 style_token_id,
@@ -344,18 +361,38 @@ contract SpliceStyleNFT is
     }
 
     if (styleSettings[style_token_id].maxInputs < origin_collections.length) {
-      revert BadMintInput('too many inputs');
+      revert OriginNotAllowed('too many inputs');
+    }
+
+    Partnership memory partnership = _partnerships[style_token_id];
+    bool partnership_is_active = (partnership.collections.length > 0 &&
+      partnership.until > block.timestamp);
+    uint8 partner_count = 0;
+    for (uint256 i = 0; i < origin_collections.length; i++) {
+      if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
+        revert NotOwningOrigin();
+      }
+      if (partnership_is_active) {
+        if (
+          ArrayLib.contains(
+            partnership.collections,
+            address(origin_collections[i])
+          )
+        ) {
+          partner_count++;
+        }
+      }
+    }
+    if (partnership_is_active) {
+      //this saves a very slight amount of gas compared to &&
+      if (partnership.exclusive) {
+        if (partner_count != origin_collections.length) {
+          revert OriginNotAllowed('exclusive partnership');
+        }
+      }
     }
 
     return true;
-  }
-
-  function getPartnership(uint32 style_token_id)
-    public
-    view
-    returns (Partnership memory)
-  {
-    return _partnerships[style_token_id];
   }
 
   /**
@@ -370,7 +407,8 @@ contract SpliceStyleNFT is
     address beneficiary,
     uint64 until,
     bool exclusive
-  ) public onlyStyleMinter {
+  ) external onlyStyleMinter {
+    //todo: consider loosening this restriction for non exclusive partnerships
     if (styleSettings[style_token_id].mintedOfStyle > 0) {
       revert('cant add a partnership after minting started');
     }
@@ -381,6 +419,13 @@ contract SpliceStyleNFT is
       until: until,
       exclusive: exclusive
     });
+    address[] memory members;
+    members.push(address(ownerOf(style_token_id)));
+    members.push(spliceNFT.platformBeneficiary.address);
+    members.push(beneficiary);
+      
+    styleSettings[style_token_id].paymentSplitter = paymentSplitterController
+      .createSplit(style_token_id, members, [85, 10, 5]);
   }
 
   function isFrozen(uint32 style_token_id) public view returns (bool) {
@@ -432,6 +477,8 @@ contract SpliceStyleNFT is
   }
 
   /**
+   * //todo: consider adding the first owner as parameter and mint it to him.
+   *
    * @notice creates a new style NFT
    * @param _cap how many splices can be minted of this style
    * @param _metadataCID an IPFS CID pointing to the style metadata. Must be a directory, containing a metadata.json file.
@@ -463,11 +510,28 @@ contract SpliceStyleNFT is
       collectionConstrained: false,
       isFrozen: false,
       styleCID: _metadataCID,
-      maxInputs: _maxInputs
+      maxInputs: _maxInputs,
+      paymentSplitter: paymentSplitterController.createSplit(
+        style_token_id,
+        [msg.sender, spliceNFT.platformBeneficiary],
+        [85, 15]
+      )
     });
 
     //INTERACTIONS
     _safeMint(msg.sender, style_token_id);
     emit Minted(style_token_id, _cap, _metadataCID);
+  }
+
+  function _beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 tokenId
+  ) internal virtual override {
+    super._beforeTokenTransfer(from, to, tokenId);
+    if (from != address(0) && to != address(0)) {
+      //its not a mint or a burn but a real transfer
+      paymentSplitterController.replaceShareholder(tokenId, from, to);
+    }
   }
 }

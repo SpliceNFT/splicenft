@@ -22,6 +22,7 @@ pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
@@ -31,13 +32,13 @@ import '@openzeppelin/contracts-upgradeable/interfaces/IERC165Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
 import 'hardhat/console.sol';
 
 import './BytesLib.sol';
 import './ArrayLib.sol';
 import './Structs.sol';
 import './SpliceStyleNFT.sol';
+import './ReplaceablePaymentSplitter.sol';
 
 /// @title Splice is a protocol to mint NFTs out of origin NFTs
 /// @author Stefan Adolf @elmariachi111
@@ -83,13 +84,7 @@ contract Splice is
   /**
    * @notice the splice platform account, i.e. a Gnosis Safe / DAO Treasury etc.
    */
-  address payable public platformBeneficiary;
-
-  /**
-   * @dev an Escrow that keeps funds safe
-   * @dev check: https://medium.com/[at]ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
-   */
-  EscrowUpgradeable private feesEscrow;
+  address public platformBeneficiary;
 
   event SharesChanged(uint8 percentage);
   event Withdrawn(address indexed user, uint256 amount);
@@ -110,10 +105,16 @@ contract Splice is
     ARTIST_SHARE = 85;
     ROYALTY_PERCENT = 10;
     platformBeneficiary = payable(msg.sender);
-    feesEscrow = new EscrowUpgradeable();
-    feesEscrow.initialize();
     baseUri = baseUri_;
     styleNFT = initializedStyleNFT_;
+  }
+
+  function pause() external onlyOwner {
+    _pause();
+  }
+
+  function unpause() external onlyOwner {
+    _unpause();
   }
 
   function setBaseUri(string memory newBaseUri) external onlyOwner {
@@ -150,7 +151,7 @@ contract Splice is
    * this will help us withdraw it.
    */
   function withdrawEth() external onlyOwner {
-    platformBeneficiary.transfer(address(this).balance);
+    Address.sendValue(payable(platformBeneficiary), address(this).balance);
   }
 
   function withdrawERC20(IERC20 token) external onlyOwner {
@@ -162,14 +163,6 @@ contract Splice is
     onlyOwner
   {
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
-  }
-
-  function pause() external onlyOwner {
-    _pause();
-  }
-
-  function unpause() external onlyOwner {
-    _unpause();
   }
 
   function styleAndTokenByTokenId(uint256 tokenId)
@@ -219,12 +212,6 @@ contract Splice is
     }
   }
 
-  function updateArtistShare(uint8 share) external onlyOwner {
-    require(share > 75, 'we will never take more than 25%');
-    ARTIST_SHARE = share;
-    emit SharesChanged(share);
-  }
-
   function updateRoyalties(uint8 royaltyPercentage) external onlyOwner {
     require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
     ROYALTY_PERCENT = royaltyPercentage;
@@ -239,80 +226,8 @@ contract Splice is
     returns (address receiver, uint256 royaltyAmount)
   {
     (uint32 style_token_id, ) = styleAndTokenByTokenId(tokenId);
-    receiver = styleNFT.ownerOf(style_token_id);
+    receiver = styleNFT.getSettings(style_token_id).paymentSplitter;
     royaltyAmount = ROYALTY_PERCENT * salePrice.div(100);
-  }
-
-  function quote(
-    uint32 style_token_id,
-    IERC721[] memory nfts,
-    uint256[] memory origin_token_ids
-  ) external view returns (uint256 fee) {
-    return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
-  }
-
-  //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
-  function claimShares(address payable beneficiary)
-    public
-    nonReentrant
-    whenNotPaused
-  {
-    uint256 balance = escrowedBalanceOf(beneficiary);
-    feesEscrow.withdraw(beneficiary);
-    emit Withdrawn(msg.sender, balance);
-  }
-
-  function escrowedBalanceOf(address payee) public view returns (uint256) {
-    return feesEscrow.depositsOf(payee);
-  }
-
-  function splitMintFee(
-    uint256 amount,
-    uint32 styleTokenId,
-    IERC721[] memory origin_collections,
-    uint256[] memory origin_token_ids
-  ) internal {
-    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
-    uint256 feeForPlatform = amount.sub(feeForArtist);
-
-    Partnership memory partnership = styleNFT.getPartnership(styleTokenId);
-    uint8 partner_count = 0;
-    bool partnership_is_active = (partnership.collections.length > 0 &&
-      partnership.until > block.timestamp);
-    for (uint256 i = 0; i < origin_collections.length; i++) {
-      if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
-        revert NotAllowedToMint('not owning origin');
-      }
-      if (partnership_is_active) {
-        if (
-          ArrayLib.contains(
-            partnership.collections,
-            address(origin_collections[i])
-          )
-        ) {
-          partner_count++;
-        }
-      }
-    }
-    if (partnership_is_active) {
-      //this saves a very slight amount of gas compared to &&
-      if (partnership.exclusive) {
-        if (partner_count != origin_collections.length) {
-          revert NotAllowedToMint(
-            'collections not part of exclusive partnership'
-          );
-        }
-      }
-    }
-
-    if (partner_count > 0) {
-      uint256 feeForPartners = feeForPlatform.div(2);
-      feeForPlatform = feeForPartners;
-      feesEscrow.deposit{ value: feeForPartners }(partnership.beneficiary);
-    }
-
-    feesEscrow.deposit{ value: feeForArtist }(styleNFT.ownerOf(styleTokenId));
-    feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
   }
 
   function mint(
@@ -321,7 +236,7 @@ contract Splice is
     uint32 style_token_id,
     bytes32[] memory allowlistProof,
     bytes calldata input_params
-  ) external payable whenNotPaused returns (uint64 token_id) {
+  ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
     //CHECKS
     require(
       styleNFT.isMintable(
@@ -363,7 +278,10 @@ contract Splice is
     }
 
     //EFFECTS
-    splitMintFee(fee, style_token_id, origin_collections, origin_token_ids);
+    Address.sendValue(
+      styleNFT.getSettings(style_token_id).paymentSplitter,
+      fee
+    );
 
     uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(style_token_id);
     token_id = BytesLib.toUint64(

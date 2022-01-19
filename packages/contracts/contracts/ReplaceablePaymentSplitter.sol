@@ -1,4 +1,4 @@
-// contracts/RoyaltyPaymentSplitter.sol
+// contracts/ReplaceablePaymentSplitter.sol
 // SPDX-License-Identifier: MIT
 
 /*
@@ -23,32 +23,50 @@ pragma solidity 0.8.10;
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
 
-contract RoyaltyPaymentSplitter is Context {
-  event PaymentReleased(address to, uint256 amount);
-  event PaymentReceived(address from, uint256 amount);
-  event PayeeAdded(address account, uint256 shares);
+import './SpliceStyleNFT.sol';
 
+/**
+ * this is an initializeable PaymentSplitter with an additional replace function to
+ * update the payees when the owner of the underlying royalty bearing asset has
+ * changed. Cannot extend PaymentSplitter because its members are private.
+ */
+contract ReplaceablePaymentSplitter is Context, Initializable {
+  event PayeeAdded(address account, uint256 shares);
+  event PaymentReleased(address to, uint256 amount);
   event ERC20PaymentReleased(IERC20 indexed token, address to, uint256 amount);
-  mapping(IERC20 => uint256) private _erc20TotalReleased;
-  mapping(IERC20 => mapping(address => uint256)) private _erc20Released;
+  event PaymentReceived(address from, uint256 amount);
 
   uint256 private _totalShares;
   uint256 private _totalReleased;
-  uint256 private _style_token_id;
-  address[] private _payees;
+
   mapping(address => uint256) private _shares;
   mapping(address => uint256) private _released;
+  address[] private _payees;
+
+  mapping(IERC20 => uint256) private _erc20TotalReleased;
+  mapping(IERC20 => mapping(address => uint256)) private _erc20Released;
+
+  uint256 private _style_token_id;
+  address private _controller;
+
+  modifier onlyController() {
+    require(msg.sender == address(_controller), 'only callable by controller');
+    _;
+  }
 
   function initialize(
-    uint256 style_token_id,
-    address[] memory payees,
+    address controller_,
+    uint256 style_token_id_,
+    address[] memory payees_,
     uint256[] memory shares_
-  ) public payable {
-    _style_token_id = style_token_id;
-    for (uint256 i = 0; i < payees.length; i++) {
-      _addPayee(payees[i], shares_[i]);
+  ) public payable initializer {
+    _controller = controller_;
+    _style_token_id = style_token_id_;
+    for (uint256 i = 0; i < _payees.length; i++) {
+      _addPayee(payees_[i], shares_[i]);
     }
   }
 
@@ -125,18 +143,14 @@ contract RoyaltyPaymentSplitter is Context {
       released(account)
     );
 
-    require(payment != 0, 'PaymentSplitter: account is not due payment');
+    //require(payment != 0, 'PaymentSplitter: account is not due payment');
+    if (payment > 0) {
+      _released[account] += payment;
+      _totalReleased += payment;
 
-    _released[account] += payment;
-    _totalReleased += payment;
-
-    Address.sendValue(account, payment);
-    emit PaymentReleased(account, payment);
-  }
-
-  function due(address payable account) public view returns (uint256 payment) {
-    uint256 totalReceived = address(this).balance + totalReleased();
-    payment = _pendingPayment(account, totalReceived, released(account));
+      Address.sendValue(account, payment);
+      emit PaymentReleased(account, payment);
+    }
   }
 
   /**
@@ -155,13 +169,14 @@ contract RoyaltyPaymentSplitter is Context {
       released(token, account)
     );
 
-    require(payment != 0, 'PaymentSplitter: account is not due payment');
+    //require(payment != 0, 'PaymentSplitter: account is not due payment');
+    if (payment > 0) {
+      _erc20Released[token][account] += payment;
+      _erc20TotalReleased[token] += payment;
 
-    _erc20Released[token][account] += payment;
-    _erc20TotalReleased[token] += payment;
-
-    SafeERC20.safeTransfer(token, account, payment);
-    emit ERC20PaymentReleased(token, account, payment);
+      SafeERC20.safeTransfer(token, account, payment);
+      emit ERC20PaymentReleased(token, account, payment);
+    }
   }
 
   /**
@@ -197,53 +212,29 @@ contract RoyaltyPaymentSplitter is Context {
     _totalShares = _totalShares + shares_;
     emit PayeeAdded(account, shares_);
   }
-}
 
-contract RoyaltyPaymentSplitterController {
-  mapping(uint256 => address) public splitters;
-  mapping(address => address payable[]) public stakes;
-  RoyaltyPaymentSplitter private _firstofitskindps;
-  address payable private _firstofitskind;
+  /**
+   * @dev the _new payee will receive splits at the same rate as _old did before
+   *      all pending payouts of _old can be withdrawn by _new.
+   * @notice this pays out all Eth funds before replacing the old share holder
+   */
+  function replacePayee(address _old, address _new) public onlyController {
+    uint256 oldShares = _shares[_old];
+    require(oldShares > 0, 'PaymentSplitter: old account has no shares');
+    require(_new != address(0), 'PaymentSplitter: account is the zero address');
+    require(_shares[_new] == 0, 'PaymentSplitter: account already has shares');
 
-  constructor() {
-    _firstofitskindps = new RoyaltyPaymentSplitter();
-    _firstofitskind = payable(_firstofitskindps);
-  }
+    _shares[_old] = 0;
+    _released[_new] = _released[_old];
 
-  function addSplit(
-    uint256 tokenId,
-    address[] memory payees_,
-    uint256[] memory shares_
-  ) public payable {
-    require(
-      payees_.length == shares_.length,
-      'PaymentSplitter: payees and shares length mismatch'
-    );
-    require(payees_.length > 0, 'PaymentSplitter: no payees');
-
-    address payable ps = payable(Clones.clone(_firstofitskind));
-    RoyaltyPaymentSplitter(ps).initialize(tokenId, payees_, shares_);
-    splitters[tokenId] = ps;
-
-    for (uint256 i = 0; i < payees_.length; i++) {
-      stakes[payees_[i]].push(ps);
-    }
-  }
-
-  function totalBalance(address payable payee)
-    public
-    view
-    returns (uint256 total)
-  {
-    total = 0;
-    for (uint256 i = 0; i < stakes[payee].length; i++) {
-      total += RoyaltyPaymentSplitter(stakes[payee][i]).due(payee);
-    }
-  }
-
-  function withdrawAll(address payable payee) external {
-    for (uint256 i = 0; i < stakes[payee].length; i++) {
-      RoyaltyPaymentSplitter(stakes[payee][i]).release(payee);
+    uint256 idx = 0;
+    while (idx < _payees.length) {
+      if (_payees[idx] == _old) {
+        _payees[idx] = _new;
+        emit PayeeAdded(_new, oldShares);
+        return;
+      }
+      idx++;
     }
   }
 }
