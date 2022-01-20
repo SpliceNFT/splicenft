@@ -22,7 +22,6 @@ pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
-import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
@@ -151,7 +150,10 @@ contract Splice is
    * this will help us withdraw it.
    */
   function withdrawEth() external onlyOwner {
-    Address.sendValue(payable(platformBeneficiary), address(this).balance);
+    AddressUpgradeable.sendValue(
+      payable(platformBeneficiary),
+      address(this).balance
+    );
   }
 
   function withdrawERC20(IERC20 token) external onlyOwner {
@@ -212,6 +214,17 @@ contract Splice is
     }
   }
 
+  function quote(
+    uint32 style_token_id,
+    IERC721[] memory nfts,
+    uint256[] memory origin_token_ids
+  ) external view returns (uint256 fee) {
+    return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
+  }
+
+  /**
+   * @notice this won't change royalties for everyone. It will only have effect for new styles
+   */
   function updateRoyalties(uint8 royaltyPercentage) external onlyOwner {
     require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
     ROYALTY_PERCENT = royaltyPercentage;
@@ -220,6 +233,10 @@ contract Splice is
   // https://eips.ethereum.org/EIPS/eip-2981
   // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
   // https://forum.openzeppelin.com/t/how-do-eip-2891-royalties-work/17177
+  /**
+   * potentially (hopefully) called by marketplaces to find a target address where to send royalties
+   * @notice the returned address will be a payment splitting instance
+   */
   function royaltyInfo(uint256 tokenId, uint256 salePrice)
     public
     view
@@ -278,7 +295,7 @@ contract Splice is
     }
 
     //EFFECTS
-    Address.sendValue(
+    AddressUpgradeable.sendValue(
       styleNFT.getSettings(style_token_id).paymentSplitter,
       fee
     );

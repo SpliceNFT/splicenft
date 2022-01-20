@@ -21,16 +21,21 @@ LSI  LSI           LCL           LSS       ISL       LSI  ISL       LSS  ISL
 pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
-import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './ReplaceablePaymentSplitter.sol';
 import './SpliceStyleNFT.sol';
 
-contract PaymentSplitterController is ReentrancyGuard {
+contract PaymentSplitterController is
+  Initializable,
+  OwnableUpgradeable,
+  ReentrancyGuardUpgradeable
+{
   /**
    * @dev each style tokens' payment splitter instance
    */
@@ -50,8 +55,9 @@ contract PaymentSplitterController is ReentrancyGuard {
 
   SpliceStyleNFT private styleNFT;
 
-  constructor(SpliceStyleNFT styleNFT_) ReentrancyGuard() {
-    _splitterTemplate = payable(new ReplaceablePaymentSplitter());
+  function initialize(SpliceStyleNFT styleNFT_) public initializer {
+    __Ownable_init_unchained();
+    __ReentrancyGuard_init();
     styleNFT = styleNFT_;
     PAYMENT_TOKENS = [
       0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, //WETH9
@@ -59,6 +65,7 @@ contract PaymentSplitterController is ReentrancyGuard {
       0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, //USDC
       0x6B175474E89094C44Da98b954EedeAC495271d0F // DAI
     ];
+    _splitterTemplate = payable(new ReplaceablePaymentSplitter());
   }
 
   modifier onlyStyleNFT() {
@@ -110,7 +117,7 @@ contract PaymentSplitterController is ReentrancyGuard {
     uint256 style_token_id,
     address payable from,
     address to
-  ) public onlyStyleNFT {
+  ) public nonReentrant onlyStyleNFT {
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);

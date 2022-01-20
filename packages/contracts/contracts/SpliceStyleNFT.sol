@@ -112,8 +112,6 @@ contract SpliceStyleNFT is
     __ERC721Enumerable_init_unchained();
     __Ownable_init_unchained();
     __ReentrancyGuard_init();
-
-    paymentSplitterController = new PaymentSplitterController(this);
   }
 
   modifier onlyStyleMinter() {
@@ -131,6 +129,16 @@ contract SpliceStyleNFT is
       revert NotControllingStyle(style_token_id);
     }
     _;
+  }
+
+  function setPaymentSplitter(PaymentSplitterController ps_)
+    external
+    onlyOwner
+  {
+    if (address(paymentSplitterController) != address(0)) {
+      revert('can only be called once.');
+    }
+    paymentSplitterController = ps_;
   }
 
   function setSplice(Splice _spliceNFT) external onlyOwner {
