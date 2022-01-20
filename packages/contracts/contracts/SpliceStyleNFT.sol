@@ -420,12 +420,20 @@ contract SpliceStyleNFT is
       exclusive: exclusive
     });
     address[] memory members;
-    members.push(address(ownerOf(style_token_id)));
-    members.push(spliceNFT.platformBeneficiary.address);
-    members.push(beneficiary);
-      
+    members[0] = address(ownerOf(style_token_id));
+    members[1] = spliceNFT.platformBeneficiary();
+    members[2] = beneficiary;
+
+    uint256 artistShare = spliceNFT.ARTIST_SHARE();
+    uint256 splitShare = (100 - artistShare) / 2;
+
+    uint256[] memory shares;
+    shares[0] = artistShare;
+    shares[1] = splitShare;
+    shares[2] = splitShare;
+
     styleSettings[style_token_id].paymentSplitter = paymentSplitterController
-      .createSplit(style_token_id, members, [85, 10, 5]);
+      .createSplit(style_token_id, members, shares);
   }
 
   function isFrozen(uint32 style_token_id) public view returns (bool) {
@@ -498,6 +506,15 @@ contract SpliceStyleNFT is
       revert InvalidCID();
     }
 
+    address[] memory royMembers;
+    royMembers[0] = msg.sender;
+    royMembers[1] = spliceNFT.platformBeneficiary();
+    uint256 artistShare = spliceNFT.ARTIST_SHARE();
+
+    uint256[] memory royShares;
+    royShares[0] = artistShare;
+    royShares[1] = 100 - artistShare;
+
     //EFFECTS
     _styleTokenIds.increment();
     style_token_id = _styleTokenIds.current().toUint32();
@@ -513,8 +530,8 @@ contract SpliceStyleNFT is
       maxInputs: _maxInputs,
       paymentSplitter: paymentSplitterController.createSplit(
         style_token_id,
-        [msg.sender, spliceNFT.platformBeneficiary],
-        [85, 15]
+        royMembers,
+        royShares
       )
     });
 
@@ -531,7 +548,7 @@ contract SpliceStyleNFT is
     super._beforeTokenTransfer(from, to, tokenId);
     if (from != address(0) && to != address(0)) {
       //its not a mint or a burn but a real transfer
-      paymentSplitterController.replaceShareholder(tokenId, from, to);
+      paymentSplitterController.replaceShareholder(tokenId, payable(from), to);
     }
   }
 }
