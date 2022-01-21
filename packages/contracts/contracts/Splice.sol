@@ -296,7 +296,7 @@ contract Splice is
 
     //EFFECTS
     AddressUpgradeable.sendValue(
-      styleNFT.getSettings(style_token_id).paymentSplitter,
+      payable(styleNFT.getSettings(style_token_id).paymentSplitter),
       fee
     );
 

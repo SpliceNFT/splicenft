@@ -44,18 +44,19 @@ describe('Splice', function () {
   });
 
   it('deploys nft, splice & creates a style', async function () {
-    splice = await deploySplice();
+    const { splice: _splice, styleNft: _styleNft } = await deploySplice();
+    splice = _splice;
     testNft = await deployTestnetNFT();
-    const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
+    styleNFT = _styleNft.connect(signers[0]);
 
-    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+    priceStrategy = await deployStaticPriceStrategy(_styleNft.address);
 
     const styleMinterAddress = await _styleMinter.getAddress();
     await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
 
-    const _styleNft = styleNFT.connect(_styleMinter);
-    await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: true });
+    await mintStyle(styleNFT.connect(_styleMinter), priceStrategy.address, {
+      saleIsActive: true
+    });
 
     await splice.setPlatformBeneficiary(
       await _platformBeneficiary.getAddress()
@@ -72,17 +73,18 @@ describe('Splice', function () {
   });
 
   it('reverts when youre not sending sufficient fees along', async function () {
-    const _splice = splice.connect(_user);
-
+    const nftTokenId = await mintTestnetNFT(testNft, _user);
     try {
       await (
-        await _splice.mint(
-          [testNft.address],
-          [1],
-          1,
-          [],
-          ethers.constants.HashZero
-        )
+        await splice
+          .connect(_user)
+          .mint(
+            [testNft.address],
+            [nftTokenId],
+            1,
+            [],
+            ethers.constants.HashZero
+          )
       ).wait();
       expect.fail('shouldnt work because no fees have been sent along');
     } catch (e: any) {

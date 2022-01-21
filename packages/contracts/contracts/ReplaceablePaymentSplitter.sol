@@ -143,7 +143,6 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
       released(account)
     );
 
-    //require(payment != 0, 'PaymentSplitter: account is not due payment');
     if (payment > 0) {
       _released[account] += payment;
       _totalReleased += payment;

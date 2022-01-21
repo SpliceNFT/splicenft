@@ -44,28 +44,32 @@ contract PaymentSplitterController is
   /**
    * @dev a list of all beneficiaries (artists, partners, platform) we know
    */
-  mapping(address => address payable[]) public splitsOfAccount;
+  mapping(address => address[]) public splitsOfAccount;
 
   address[] private PAYMENT_TOKENS;
 
   /**
    * @dev the base instance that minimal proxies are cloned from
    */
-  address payable private _splitterTemplate;
+  address private _splitterTemplate;
 
   SpliceStyleNFT private styleNFT;
 
-  function initialize(SpliceStyleNFT styleNFT_) public initializer {
+  function initialize(SpliceStyleNFT styleNFT_, address[] memory paymentTokens_)
+    public
+    initializer
+  {
     __Ownable_init_unchained();
     __ReentrancyGuard_init();
     styleNFT = styleNFT_;
-    PAYMENT_TOKENS = [
-      0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, //WETH9
-      0xdAC17F958D2ee523a2206206994597C13D831ec7, //USDT
-      0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, //USDC
-      0x6B175474E89094C44Da98b954EedeAC495271d0F // DAI
-    ];
-    _splitterTemplate = payable(new ReplaceablePaymentSplitter());
+    PAYMENT_TOKENS = paymentTokens_;
+    // [
+    //   0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, //WETH9
+    //   0xdAC17F958D2ee523a2206206994597C13D831ec7, //USDT
+    //   0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, //USDC
+    //   0x6B175474E89094C44Da98b954EedeAC495271d0F // DAI
+    // ];
+    _splitterTemplate = address(new ReplaceablePaymentSplitter());
   }
 
   modifier onlyStyleNFT() {
@@ -77,15 +81,17 @@ contract PaymentSplitterController is
     uint256 tokenId,
     address[] memory payees_,
     uint256[] memory shares_
-  ) public payable onlyStyleNFT returns (address payable ps_address) {
+  ) public payable onlyStyleNFT returns (address ps_address) {
     require(
       payees_.length == shares_.length,
       'PaymentSplitter: payees and shares length mismatch'
     );
     require(payees_.length > 0, 'PaymentSplitter: no payees');
 
-    ps_address = payable(Clones.clone(_splitterTemplate));
-    ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(ps_address);
+    ps_address = Clones.clone(_splitterTemplate);
+    ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
+      payable(ps_address)
+    );
     ps.initialize(address(this), tokenId, payees_, shares_);
     splitters[tokenId] = ps;
 
@@ -97,7 +103,7 @@ contract PaymentSplitterController is
   function withdrawAll(address payable payee) external {
     for (uint256 i = 0; i < splitsOfAccount[payee].length; i++) {
       ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
-        splitsOfAccount[payee][i]
+        payable(splitsOfAccount[payee][i])
       );
       releaseAll(ps, payee);
     }
@@ -117,7 +123,7 @@ contract PaymentSplitterController is
     uint256 style_token_id,
     address payable from,
     address to
-  ) public nonReentrant onlyStyleNFT {
+  ) public onlyStyleNFT {
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);

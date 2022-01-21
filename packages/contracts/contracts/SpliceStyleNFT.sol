@@ -377,7 +377,7 @@ contract SpliceStyleNFT is
       partnership.until > block.timestamp);
     uint8 partner_count = 0;
     for (uint256 i = 0; i < origin_collections.length; i++) {
-      if (origin_collections[i].ownerOf(origin_token_ids[i]) != msg.sender) {
+      if (origin_collections[i].ownerOf(origin_token_ids[i]) != minter) {
         revert NotOwningOrigin();
       }
       if (partnership_is_active) {
@@ -427,7 +427,8 @@ contract SpliceStyleNFT is
       until: until,
       exclusive: exclusive
     });
-    address[] memory members;
+
+    address[] memory members = new address[](3);
     members[0] = address(ownerOf(style_token_id));
     members[1] = spliceNFT.platformBeneficiary();
     members[2] = beneficiary;
@@ -435,7 +436,7 @@ contract SpliceStyleNFT is
     uint256 artistShare = spliceNFT.ARTIST_SHARE();
     uint256 splitShare = (100 - artistShare) / 2;
 
-    uint256[] memory shares;
+    uint256[] memory shares = new uint256[](3);
     shares[0] = artistShare;
     shares[1] = splitShare;
     shares[2] = splitShare;
@@ -514,12 +515,12 @@ contract SpliceStyleNFT is
       revert InvalidCID();
     }
 
-    address[] memory royMembers;
+    address[] memory royMembers = new address[](2);
     royMembers[0] = msg.sender;
     royMembers[1] = spliceNFT.platformBeneficiary();
     uint256 artistShare = spliceNFT.ARTIST_SHARE();
 
-    uint256[] memory royShares;
+    uint256[] memory royShares = new uint256[](2);
     royShares[0] = artistShare;
     royShares[1] = 100 - artistShare;
 

@@ -36,10 +36,12 @@ describe('Style NFTs', function () {
   });
 
   it('deploys nft and splice', async function () {
-    splice = await deploySplice();
+    const { splice: _splice, styleNft: _styleNft } = await deploySplice();
+    splice = _splice;
+
     testNft = await deployTestnetNFT();
     const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
+    styleNFT = _styleNft.connect(_owner);
     const _priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
     priceStrategy = _priceStrategy.connect(_styleMinter);
   });

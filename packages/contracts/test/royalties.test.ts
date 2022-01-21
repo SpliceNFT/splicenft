@@ -40,16 +40,14 @@ describe('Royalties', function () {
   });
 
   it('deploys nft & splice & mints a style', async function () {
-    splice = await deploySplice();
+    const { splice: _splice, styleNft: _styleNft } = await deploySplice();
+    splice = _splice;
     testNft = await deployTestnetNFT();
-    const styleNftAddress = await splice.styleNFT();
-    const _styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
 
-    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+    priceStrategy = await deployStaticPriceStrategy(_styleNft.address);
 
     const styleMinterAddress = await _styleMinter.getAddress();
-    await _styleNFT.toggleStyleMinter(styleMinterAddress, true);
-    styleNFT = _styleNFT.connect(_styleMinter);
+    styleNFT = _styleNft.connect(_styleMinter);
 
     const styleId = await mintStyle(styleNFT, priceStrategy.address);
     const artistAddress = await _artist.getAddress();
