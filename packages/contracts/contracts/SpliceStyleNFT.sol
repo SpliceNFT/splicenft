@@ -1,4 +1,4 @@
-// contracts/StyleNFT.sol
+// contracts/SpliceStyleNFT.sol
 // SPDX-License-Identifier: MIT
 
 /*

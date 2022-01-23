@@ -1,4 +1,4 @@
-// contracts/RoyaltyPaymentSplitter.sol
+// contracts/PaymentSplitterController.sol
 // SPDX-License-Identifier: MIT
 
 /*
@@ -26,14 +26,10 @@ import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-
 import './ReplaceablePaymentSplitter.sol';
-import './SpliceStyleNFT.sol';
 
 contract PaymentSplitterController is
   Initializable,
-  OwnableUpgradeable,
   ReentrancyGuardUpgradeable
 {
   /**
@@ -53,15 +49,14 @@ contract PaymentSplitterController is
    */
   address private _splitterTemplate;
 
-  SpliceStyleNFT private styleNFT;
+  address private _owner;
 
-  function initialize(SpliceStyleNFT styleNFT_, address[] memory paymentTokens_)
+  function initialize(address owner_, address[] memory paymentTokens_)
     public
     initializer
   {
-    __Ownable_init_unchained();
     __ReentrancyGuard_init();
-    styleNFT = styleNFT_;
+    _owner = owner_;
     PAYMENT_TOKENS = paymentTokens_;
     // [
     //   0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, //WETH9
@@ -72,8 +67,8 @@ contract PaymentSplitterController is
     _splitterTemplate = address(new ReplaceablePaymentSplitter());
   }
 
-  modifier onlyStyleNFT() {
-    require(msg.sender == address(styleNFT), 'only callable by Style NFT');
+  modifier onlyOwner() {
+    require(msg.sender == _owner, 'only callable by owner');
     _;
   }
 
@@ -81,18 +76,20 @@ contract PaymentSplitterController is
     uint256 tokenId,
     address[] memory payees_,
     uint256[] memory shares_
-  ) public payable onlyStyleNFT returns (address ps_address) {
-    require(
-      payees_.length == shares_.length,
-      'PaymentSplitter: payees and shares length mismatch'
-    );
-    require(payees_.length > 0, 'PaymentSplitter: no payees');
+  ) public payable onlyOwner returns (address ps_address) {
+    require(payees_.length == shares_.length, 'p and s len mismatch');
+    require(payees_.length > 0, 'no payees');
+    require(address(splitters[tokenId]) == address(0), 'ps exists');
 
     ps_address = Clones.clone(_splitterTemplate);
     ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
       payable(ps_address)
     );
     ps.initialize(address(this), tokenId, payees_, shares_);
+
+    // ReplaceablePaymentSplitter ps = new ReplaceablePaymentSplitter();
+    // ps.initialize(address(this), tokenId, payees_, shares_);
+
     splitters[tokenId] = ps;
 
     for (uint256 i = 0; i < payees_.length; i++) {
@@ -100,10 +97,19 @@ contract PaymentSplitterController is
     }
   }
 
+  /**
+   * @notice this can run out of gas if you've got a lot of splits. Wouldn't recommend using this with more than 10.
+   */
   function withdrawAll(address payable payee) external {
-    for (uint256 i = 0; i < splitsOfAccount[payee].length; i++) {
+    withdrawAll(payee, splitsOfAccount[payee]);
+  }
+
+  function withdrawAll(address payable payee, address[] memory splitters_)
+    public
+  {
+    for (uint256 i = 0; i < splitters_.length; i++) {
       ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
-        payable(splitsOfAccount[payee][i])
+        payable(splitters_[i])
       );
       releaseAll(ps, payee);
     }
@@ -123,7 +129,7 @@ contract PaymentSplitterController is
     uint256 style_token_id,
     address payable from,
     address to
-  ) public onlyStyleNFT {
+  ) public onlyOwner {
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);

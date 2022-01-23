@@ -25,7 +25,6 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
-
 import './SpliceStyleNFT.sol';
 
 /**
@@ -65,7 +64,9 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
   ) public payable initializer {
     _controller = controller_;
     _style_token_id = style_token_id_;
-    for (uint256 i = 0; i < _payees.length; i++) {
+
+    uint256 len = payees_.length;
+    for (uint256 i = 0; i < len; i++) {
       _addPayee(payees_[i], shares_[i]);
     }
   }
@@ -223,13 +224,13 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
     require(_new != address(0), 'PaymentSplitter: account is the zero address');
     require(_shares[_new] == 0, 'PaymentSplitter: account already has shares');
 
-    _shares[_old] = 0;
-    _released[_new] = _released[_old];
-
     uint256 idx = 0;
     while (idx < _payees.length) {
       if (_payees[idx] == _old) {
         _payees[idx] = _new;
+        _shares[_old] = 0;
+        _shares[_new] = oldShares;
+        _released[_new] = _released[_old];
         emit PayeeAdded(_new, oldShares);
         return;
       }
