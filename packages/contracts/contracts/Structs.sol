@@ -13,7 +13,6 @@ struct Allowlist {
 
 struct Partnership {
   address[] collections;
-  address beneficiary;
   uint64 until;
   /// @notice exclusive partnerships mean that all style inputs must be covered by the partnership
   /// @notice unexclusive partnerships require only 1 input to be covered
@@ -26,7 +25,6 @@ struct StyleSettings {
   uint32 cap;
   ISplicePriceStrategy priceStrategy;
   bool salesIsActive;
-  bool collectionConstrained;
   bool isFrozen;
   string styleCID;
   uint8 maxInputs;

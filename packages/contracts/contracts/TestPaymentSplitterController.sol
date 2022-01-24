@@ -18,7 +18,7 @@ contract TestPaymentSplitterController is
 {
   mapping(uint256 => ReplaceablePaymentSplitter) public splitters;
 
-  mapping(address => address[]) public splitsOfAccount;
+  mapping(address => address[]) public splittersOfAccount;
 
   address[] private PAYMENT_TOKENS;
 
@@ -27,7 +27,7 @@ contract TestPaymentSplitterController is
   address private _owner;
 
   function withdrawAll(address payable payee) external {
-    withdrawAll(payee, splitsOfAccount[payee]);
+    withdrawAll(payee, splittersOfAccount[payee]);
   }
 
   function withdrawAll(address payable payee, address[] memory splitters_)
@@ -58,7 +58,7 @@ contract TestPaymentSplitterController is
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);
-    splitsOfAccount[to].push(payable(ps));
+    splittersOfAccount[to].push(payable(ps));
   }
 
   function greet() external pure returns (string memory res) {

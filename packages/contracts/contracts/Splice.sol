@@ -64,7 +64,6 @@ contract Splice is
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
 
-  uint8 public ARTIST_SHARE;
   uint8 public ROYALTY_PERCENT;
 
   string private baseUri;
@@ -85,7 +84,6 @@ contract Splice is
    */
   address public platformBeneficiary;
 
-  event SharesChanged(uint8 percentage);
   event Withdrawn(address indexed user, uint256 amount);
   event Minted(
     bytes32 indexed origin_hash,
@@ -101,9 +99,8 @@ contract Splice is
     __Ownable_init();
     __Pausable_init();
     __ReentrancyGuard_init();
-    ARTIST_SHARE = 85;
     ROYALTY_PERCENT = 10;
-    platformBeneficiary = payable(msg.sender);
+    platformBeneficiary = msg.sender;
     baseUri = baseUri_;
     styleNFT = initializedStyleNFT_;
   }

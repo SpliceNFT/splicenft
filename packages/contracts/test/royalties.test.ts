@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import { Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import {
+  ReplaceablePaymentSplitter__factory,
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
-  SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
 import {
@@ -24,16 +24,15 @@ describe('Royalties', function () {
   let signers: Signer[];
   let _styleMinter: Signer;
   let _artist: Signer;
-  let _styleBuyer: Signer;
-  let _buyer: Signer;
+
+  let _marketplace: Signer;
   let _seller: Signer;
   let _owner: Signer;
 
   beforeEach(async function () {
     signers = await ethers.getSigners();
     _owner = signers[0];
-    _buyer = signers[9];
-    _styleBuyer = signers[16];
+    _marketplace = signers[10];
     _styleMinter = signers[17];
     _artist = signers[18];
     _seller = signers[19];
@@ -47,6 +46,7 @@ describe('Royalties', function () {
     priceStrategy = await deployStaticPriceStrategy(_styleNft.address);
 
     const styleMinterAddress = await _styleMinter.getAddress();
+    await _styleNft.toggleStyleMinter(styleMinterAddress, true);
     styleNFT = _styleNft.connect(_styleMinter);
 
     const styleId = await mintStyle(styleNFT, priceStrategy.address);
@@ -59,7 +59,6 @@ describe('Royalties', function () {
 
   it('signals royalties', async function () {
     await splice.updateRoyalties(5);
-    const artistAddress = await _artist.getAddress();
 
     const _nft = testNft.connect(_seller);
     const nftTokenId = await mintTestnetNFT(_nft, _seller);
@@ -74,27 +73,45 @@ describe('Royalties', function () {
 
     const salePrice = ethers.utils.parseEther('1');
     const royaltyInfo = await splice.royaltyInfo(spliceTokenId, salePrice);
-    expect(ethers.utils.formatUnits(royaltyInfo.royaltyAmount)).to.equal(
+    expect(ethers.utils.formatEther(royaltyInfo.royaltyAmount)).to.equal(
       '0.05'
     );
 
     const royaltyReceiver = royaltyInfo.receiver;
-    expect(royaltyReceiver).to.equal(artistAddress);
+    const settings = await styleNFT.getSettings(1);
+    expect(royaltyReceiver).to.equal(settings.paymentSplitter);
   });
 
-  it('sends royalties to the current style owner', async () => {
-    const _splice = splice.connect(_seller);
-    const _styleNFT = styleNFT.connect(_artist);
-    const artistAddress = await _artist.getAddress();
-    const styleBuyerAddress = await _styleBuyer.getAddress();
+  it('updates payment splitters to the next style owner', async () => {
+    const styleBuyer = ethers.Wallet.createRandom().connect(ethers.provider);
 
-    await _styleNFT.transferFrom(artistAddress, styleBuyerAddress, 1);
+    await styleNFT
+      .connect(_artist)
+      .transferFrom(await _artist.getAddress(), styleBuyer.address, 1);
+
     const spliceTokenId = ethers.BigNumber.from('0x0000000100000001');
     const royaltyInfo = await splice.royaltyInfo(
       spliceTokenId,
       ethers.utils.parseEther('1')
     );
-    expect(royaltyInfo.receiver).to.equal(styleBuyerAddress);
+
+    const settings = await styleNFT.getSettings(1);
+    expect(royaltyInfo.receiver).to.equal(settings.paymentSplitter);
+
+    const splitter = ReplaceablePaymentSplitter__factory.connect(
+      royaltyInfo.receiver,
+      _owner
+    );
+
+    await _marketplace.sendTransaction({
+      to: royaltyInfo.receiver,
+      value: ethers.utils.parseEther('0.1')
+    });
+
+    await splitter['release(address)'](styleBuyer.address);
+    expect(ethers.utils.formatEther(await styleBuyer.getBalance())).to.be.equal(
+      '0.085'
+    );
   });
 
   it('cannot set royalties higher than 10%', async () => {

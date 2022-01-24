@@ -80,6 +80,7 @@ contract SpliceStyleNFT is
   //https://docs.opensea.io/docs/metadata-standards#ipfs-and-arweave-uris
   event PermanentURI(string _value, uint256 indexed _id);
   event Minted(uint32 indexed style_token_id, uint32 cap, string metadataCID);
+  event SharesChanged(uint16 percentage);
   event AllowlistInstalled(
     uint32 indexed style_token_id,
     uint32 reserved,
@@ -107,11 +108,14 @@ contract SpliceStyleNFT is
 
   PaymentSplitterController public paymentSplitterController;
 
+  uint16 public ARTIST_SHARE;
+
   function initialize() public initializer {
     __ERC721_init('Splice Style NFT', 'SPLYLE');
     __ERC721Enumerable_init_unchained();
     __Ownable_init_unchained();
     __ReentrancyGuard_init();
+    ARTIST_SHARE = 8500;
   }
 
   modifier onlyStyleMinter() {
@@ -124,11 +128,17 @@ contract SpliceStyleNFT is
     _;
   }
 
-  modifier onlyStyleOwner(uint32 style_token_id) {
-    if (ownerOf(style_token_id) != msg.sender) {
+  modifier controlsStyle(uint32 style_token_id) {
+    if (!isStyleMinter[msg.sender] && msg.sender != ownerOf(style_token_id)) {
       revert NotControllingStyle(style_token_id);
     }
     _;
+  }
+
+  function updateArtistShare(uint16 share) public onlyOwner {
+    require(share <= 10000 && share > 7500, 'we will never take more than 25%');
+    ARTIST_SHARE = share;
+    emit SharesChanged(share);
   }
 
   function setPaymentSplitter(PaymentSplitterController ps_)
@@ -211,7 +221,7 @@ contract SpliceStyleNFT is
 
   function toggleSaleIsActive(uint32 style_token_id, bool newValue)
     external
-    onlyStyleOwner(style_token_id)
+    controlsStyle(style_token_id)
   {
     if (isFrozen(style_token_id)) {
       revert StyleIsFrozen();
@@ -315,7 +325,7 @@ contract SpliceStyleNFT is
     uint8 _mintsPerAddress,
     bytes32 _merkleRoot,
     uint64 _reservedUntil
-  ) external onlyStyleOwner(style_token_id) {
+  ) external controlsStyle(style_token_id) {
     //CHECKS
     if (allowlists[style_token_id].reservedUntil != 0) {
       revert AllowlistNotOverridable(style_token_id);
@@ -403,48 +413,6 @@ contract SpliceStyleNFT is
     return true;
   }
 
-  /**
-   * @notice collection partnerships have an effect on minting availability. They restrict styles to be minted only on certain collections. Partner collections receive a share of the platform fee.
-   * @param beneficiary account of the partner collection that we escrow shares to
-   * @param until after this timestamp the partnership is not in effect anymore. Set to a very high value to add a collection constraint to a style.
-   * @param exclusive a non-exclusive partnership allows other origins to mint. When trying to mint on an exclusive partnership with an unsupported input, it will fail.
-   */
-  function addCollectionPartnership(
-    address[] memory collections,
-    uint32 style_token_id,
-    address beneficiary,
-    uint64 until,
-    bool exclusive
-  ) external onlyStyleMinter {
-    //todo: consider loosening this restriction for non exclusive partnerships
-    if (styleSettings[style_token_id].mintedOfStyle > 0) {
-      revert('cant add a partnership after minting started');
-    }
-
-    _partnerships[style_token_id] = Partnership({
-      collections: collections,
-      beneficiary: beneficiary,
-      until: until,
-      exclusive: exclusive
-    });
-
-    address[] memory members = new address[](3);
-    members[0] = address(ownerOf(style_token_id));
-    members[1] = spliceNFT.platformBeneficiary();
-    members[2] = beneficiary;
-
-    uint256 artistShare = spliceNFT.ARTIST_SHARE();
-    uint256 splitShare = (100 - artistShare) / 2;
-
-    uint256[] memory shares = new uint256[](3);
-    shares[0] = artistShare;
-    shares[1] = splitShare;
-    shares[2] = splitShare;
-
-    styleSettings[style_token_id].paymentSplitter = paymentSplitterController
-      .createSplit(style_token_id, members, shares);
-  }
-
   function isFrozen(uint32 style_token_id) public view returns (bool) {
     return styleSettings[style_token_id].isFrozen;
   }
@@ -494,36 +462,86 @@ contract SpliceStyleNFT is
   }
 
   /**
-   * //todo: consider adding the first owner as parameter and mint it to him.
-   *
+   * @notice collection partnerships have an effect on minting availability. They restrict styles to be minted only on certain collections. Partner collections receive a share of the platform fee.
+   * @param until after this timestamp the partnership is not in effect anymore. Set to a very high value to add a collection constraint to a style.
+   * @param exclusive a non-exclusive partnership allows other origins to mint. When trying to mint on an exclusive partnership with an unsupported input, it will fail.
+   */
+  function enablePartnership(
+    address[] memory collections,
+    uint32 style_token_id,
+    uint64 until,
+    bool exclusive
+  ) external onlyStyleMinter {
+    require(
+      styleSettings[style_token_id].mintedOfStyle == 0,
+      'cant add a partnership after minting started'
+    );
+
+    _partnerships[style_token_id] = Partnership({
+      collections: collections,
+      until: until,
+      exclusive: exclusive
+    });
+  }
+
+  function setupPaymentSplitter(
+    uint256 style_token_id,
+    address artist,
+    address partner
+  ) internal returns (address ps) {
+    address[] memory members;
+    uint256[] memory shares;
+
+    if (partner != address(0)) {
+      members = new address[](3);
+      shares = new uint256[](3);
+      uint256 splitShare = (10_000 - ARTIST_SHARE) / 2;
+
+      members[0] = artist;
+      shares[0] = ARTIST_SHARE;
+      members[1] = spliceNFT.platformBeneficiary();
+      shares[1] = splitShare;
+      members[2] = partner;
+      shares[2] = splitShare;
+    } else {
+      members = new address[](2);
+      shares = new uint256[](2);
+      members[0] = artist;
+      shares[0] = ARTIST_SHARE;
+      members[1] = spliceNFT.platformBeneficiary();
+      shares[1] = 10_000 - ARTIST_SHARE;
+    }
+
+    ps = paymentSplitterController.createSplit(style_token_id, members, shares);
+  }
+
+  /**
    * @notice creates a new style NFT
    * @param _cap how many splices can be minted of this style
    * @param _metadataCID an IPFS CID pointing to the style metadata. Must be a directory, containing a metadata.json file.
    * @param _priceStrategy address of an ISplicePriceStrategy instance that's configured to return fee quotes for the new style (e.g. static)
    * @param _salesIsActive splices of this style can be minted once this method is finished (careful: some other methods will only run when no splices have ever been minted)
    * @param _maxInputs how many origin inputs are allowed for a mint (e.g. 2 NFT collections)
+   * @param _artist the first owner of that style. If 0 the minter is the first owner.
+   * @param _partnershipBeneficiary an address that gets 50% of platform shares. Can be 0
    */
   function mint(
     uint32 _cap,
     string memory _metadataCID,
     ISplicePriceStrategy _priceStrategy,
     bool _salesIsActive,
-    uint8 _maxInputs
+    uint8 _maxInputs,
+    address _artist,
+    address _partnershipBeneficiary
   ) external onlyStyleMinter returns (uint32 style_token_id) {
     //CHECKS
     if (bytes(_metadataCID).length < 46) {
       revert InvalidCID();
     }
 
-    address[] memory royMembers = new address[](2);
-    royMembers[0] = msg.sender;
-    royMembers[1] = spliceNFT.platformBeneficiary();
-    uint256 artistShare = spliceNFT.ARTIST_SHARE();
-
-    uint256[] memory royShares = new uint256[](2);
-    royShares[0] = artistShare;
-    royShares[1] = 100 - artistShare;
-
+    if (_artist == address(0)) {
+      _artist = msg.sender;
+    }
     //EFFECTS
     _styleTokenIds.increment();
     style_token_id = _styleTokenIds.current().toUint32();
@@ -533,19 +551,18 @@ contract SpliceStyleNFT is
       cap: _cap,
       priceStrategy: _priceStrategy,
       salesIsActive: _salesIsActive,
-      collectionConstrained: false,
       isFrozen: false,
       styleCID: _metadataCID,
       maxInputs: _maxInputs,
-      paymentSplitter: paymentSplitterController.createSplit(
+      paymentSplitter: setupPaymentSplitter(
         style_token_id,
-        royMembers,
-        royShares
+        _artist,
+        _partnershipBeneficiary
       )
     });
 
     //INTERACTIONS
-    _safeMint(msg.sender, style_token_id);
+    _safeMint(_artist, style_token_id);
     emit Minted(style_token_id, _cap, _metadataCID);
   }
 

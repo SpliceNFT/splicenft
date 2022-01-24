@@ -16,7 +16,12 @@ contract SplicePriceStrategyStatic is ISplicePriceStrategy {
   }
 
   function setPrice(uint256 tokenId, uint256 price) external {
-    require(msg.sender == styleNFT.ownerOf(tokenId), 'must own the style');
+    if (
+      !styleNFT.isStyleMinter(msg.sender) &&
+      msg.sender != styleNFT.ownerOf(tokenId)
+    ) {
+      revert('not controlling the style');
+    }
 
     mintPrice[tokenId] = price;
   }

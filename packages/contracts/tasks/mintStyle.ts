@@ -1,5 +1,5 @@
 import '@nomiclabs/hardhat-ethers';
-import { Event } from 'ethers';
+import { Event, constants } from 'ethers';
 import fs from 'fs';
 import { task } from 'hardhat/config';
 import { File, NFTStorage } from 'nft.storage';
@@ -75,7 +75,9 @@ task('style:mint', 'mints a style')
       cid,
       priceStrategyAddress,
       sale === 'true' ? true : false,
-      maxInputs
+      maxInputs,
+      styleMinter.address,
+      constants.AddressZero
     );
 
     const confirmation = await receipt.wait();

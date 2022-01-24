@@ -8,7 +8,6 @@ import {
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
-  SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
 import { MintedEvent } from '../typechain/Splice';

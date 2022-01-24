@@ -40,7 +40,7 @@ contract PaymentSplitterController is
   /**
    * @dev a list of all beneficiaries (artists, partners, platform) we know
    */
-  mapping(address => address[]) public splitsOfAccount;
+  mapping(address => address[]) public splittersOfAccount;
 
   address[] private PAYMENT_TOKENS;
 
@@ -93,7 +93,7 @@ contract PaymentSplitterController is
     splitters[tokenId] = ps;
 
     for (uint256 i = 0; i < payees_.length; i++) {
-      splitsOfAccount[payees_[i]].push(ps_address);
+      splittersOfAccount[payees_[i]].push(ps_address);
     }
   }
 
@@ -101,7 +101,7 @@ contract PaymentSplitterController is
    * @notice this can run out of gas if you've got a lot of splits. Wouldn't recommend using this with more than 10.
    */
   function withdrawAll(address payable payee) external {
-    withdrawAll(payee, splitsOfAccount[payee]);
+    withdrawAll(payee, splittersOfAccount[payee]);
   }
 
   function withdrawAll(address payable payee, address[] memory splitters_)
@@ -119,9 +119,17 @@ contract PaymentSplitterController is
     public
     nonReentrant
   {
-    ps.release(account);
+    try ps.release(account) {
+      /*empty*/
+    } catch {
+      /*empty*/
+    }
     for (uint256 i = 0; i < PAYMENT_TOKENS.length; i++) {
-      ps.release(IERC20(PAYMENT_TOKENS[i]), account);
+      try ps.release(IERC20(PAYMENT_TOKENS[i]), account) {
+        /*empty*/
+      } catch {
+        /*empty*/
+      }
     }
   }
 
@@ -133,6 +141,6 @@ contract PaymentSplitterController is
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);
-    splitsOfAccount[to].push(payable(ps));
+    splittersOfAccount[to].push(payable(ps));
   }
 }

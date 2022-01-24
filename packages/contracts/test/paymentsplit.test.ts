@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { providers, Signer } from 'ethers';
 import { ethers, upgrades } from 'hardhat';
-import solc from 'solc';
 
 import {
   GLDToken,
@@ -35,8 +34,6 @@ describe('Payment Splitters', function () {
   let _owner: Signer;
   let _user: Signer;
   let _platform: Signer;
-  let _thirdParty: Signer;
-  let _buyer: Signer;
   let erc20: GLDToken;
 
   before(async function () {
@@ -52,8 +49,6 @@ describe('Payment Splitters', function () {
     _owner = signers[0];
     _user = signers[1];
     _platform = signers[2];
-    _thirdParty = signers[3];
-    _buyer = signers[4];
 
     const PaymentSplitterControllerFactory = await ethers.getContractFactory(
       'PaymentSplitterController'
@@ -69,7 +64,7 @@ describe('Payment Splitters', function () {
     const userAddress = await _user.getAddress();
     const pfAddress = await _platform.getAddress();
     await (
-      await controller.createSplit(1, [userAddress, pfAddress], [90, 10])
+      await controller.createSplit(1, [userAddress, pfAddress], [9000, 1000])
     ).wait();
 
     const splitter = await controller.splitters(1);
@@ -80,11 +75,13 @@ describe('Payment Splitters', function () {
       splitter,
       controller.provider
     );
-    expect(await (await instance.totalShares()).toNumber()).to.be.equal(100);
+    expect(await (await instance.totalShares()).toNumber()).to.be.equal(10_000);
     expect(await (await instance.shares(userAddress)).toNumber()).to.be.equal(
-      90
+      9000
     );
-    expect(await (await instance.shares(pfAddress)).toNumber()).to.be.equal(10);
+    expect(await (await instance.shares(pfAddress)).toNumber()).to.be.equal(
+      1000
+    );
 
     const noSplitter = await controller.splitters(2);
     expect(noSplitter).to.be.equal(ethers.constants.AddressZero);
@@ -95,7 +92,11 @@ describe('Payment Splitters', function () {
     const platf = ethers.Wallet.createRandom().connect(controller.provider);
 
     await (
-      await controller.createSplit(1, [benef.address, platf.address], [60, 40])
+      await controller.createSplit(
+        1,
+        [benef.address, platf.address],
+        [6000, 4000]
+      )
     ).wait();
 
     const splitter = await controller.splitters(1);
@@ -128,21 +129,21 @@ describe('Payment Splitters', function () {
     const split0 = await createSplitter(
       controller,
       [benef1.address, platf.address],
-      [20, 80],
+      [2000, 8000],
       1,
       _owner
     );
     const split1 = await createSplitter(
       controller,
       [benef2.address, platf.address],
-      [25, 75],
+      [2500, 7500],
       2,
       _owner
     );
     const split2 = await createSplitter(
       controller,
       [benef1.address, platf.address],
-      [50, 50],
+      [5000, 5000],
       3,
       _owner
     );
@@ -183,7 +184,7 @@ describe('Payment Splitters', function () {
     await createSplitter(
       controller,
       [await _user.getAddress(), await _platform.getAddress()],
-      [50, 50],
+      [5000, 5000],
       1,
       _owner
     );
@@ -191,7 +192,7 @@ describe('Payment Splitters', function () {
       await createSplitter(
         controller,
         [await _user.getAddress(), await _platform.getAddress()],
-        [60, 40],
+        [6000, 4000],
         1,
         _owner
       );
@@ -209,7 +210,7 @@ describe('Payment Splitters', function () {
       await createSplitter(
         _controller,
         [await _user.getAddress(), await _platform.getAddress()],
-        [60, 40],
+        [6000, 4000],
         1,
         _owner
       );
@@ -229,7 +230,7 @@ describe('Payment Splitters', function () {
     const splitter = await createSplitter(
       controller,
       [benef1.address, platf.address],
-      [50, 50],
+      [5000, 5000],
       1,
       _owner
     );
@@ -268,7 +269,7 @@ describe('Payment Splitters', function () {
     const splitter = await createSplitter(
       controller,
       [benef.address, platf.address],
-      [80, 20],
+      [8000, 2000],
       1,
       _owner
     );
@@ -296,7 +297,7 @@ describe('Payment Splitters', function () {
     const splitter = await createSplitter(
       controller,
       [benef.address, platf.address],
-      [80, 20],
+      [8000, 2000],
       1,
       _owner
     );
@@ -337,7 +338,7 @@ describe('Payment Splitters', function () {
         return createSplitter(
           controller,
           [benef.address, platf.address],
-          [85, 15],
+          [8500, 1500],
           i,
           _owner
         );
@@ -376,6 +377,52 @@ describe('Payment Splitters', function () {
     );
   });
 
+  it('can withdraw funds even when one ps has been transferred', async function () {
+    const benef1 = ethers.Wallet.createRandom().connect(controller.provider);
+    const benef2 = ethers.Wallet.createRandom().connect(controller.provider);
+    const platf = ethers.Wallet.createRandom().connect(controller.provider);
+
+    const splitter1 = await createSplitter(
+      controller,
+      [benef1.address, platf.address],
+      [5000, 5000],
+      1,
+      _owner
+    );
+
+    const splitter2 = await createSplitter(
+      controller,
+      [benef1.address, platf.address],
+      [5000, 5000],
+      2,
+      _owner
+    );
+
+    await _owner.sendTransaction({
+      to: splitter1.address,
+      value: ethers.utils.parseEther('1.0')
+    });
+
+    await _owner.sendTransaction({
+      to: splitter2.address,
+      value: ethers.utils.parseEther('1.0')
+    });
+
+    await controller.replaceShareholder(1, benef1.address, benef2.address);
+
+    expect(await ethers.utils.formatEther(await benef1.getBalance())).to.equal(
+      '0.5'
+    );
+
+    //benef1 shares on ps1 are 0. This should still work:
+    await controller['withdrawAll(address)'](benef1.address);
+
+    //received funds of ps2
+    expect(await ethers.utils.formatEther(await benef1.getBalance())).to.equal(
+      '1.0'
+    );
+  });
+
   it('can be upgraded', async function () {
     const benef1 = ethers.Wallet.createRandom().connect(controller.provider);
     const benef2 = ethers.Wallet.createRandom().connect(controller.provider);
@@ -384,7 +431,7 @@ describe('Payment Splitters', function () {
     const splitter = await createSplitter(
       controller,
       [benef1.address, platf.address],
-      [70, 30],
+      [7000, 3000],
       1,
       _owner
     );

@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { Signer } from 'ethers';
+import { Signer, Wallet } from 'ethers';
 import { ethers, network } from 'hardhat';
 import {
+  ReplaceablePaymentSplitter__factory,
   Splice,
   SplicePriceStrategyStatic,
-  SpliceStyleNFT,
-  SpliceStyleNFT__factory
+  SpliceStyleNFT
 } from '../typechain';
 import {
   deploySplice,
@@ -24,118 +24,121 @@ describe('Partnerships', function () {
   let signers: Signer[];
   let _owner: Signer;
   let _user: Signer;
-  let _platformBeneficiary: Signer;
+  let _platformBeneficiary: Wallet;
   let _styleMinter: Signer;
-
-  let partnerStyleId: number;
 
   before(async function () {
     signers = await ethers.getSigners();
     _owner = signers[0];
     _user = signers[1];
-    _platformBeneficiary = signers[2];
     _styleMinter = signers[19];
-  });
 
-  beforeEach(async function () {
-    splice = await deploySplice();
-    const styleNftAddress = await splice.styleNFT();
-    const _styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
-    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+    const { splice: _splice, styleNft: _styleNft } = await deploySplice();
+    splice = _splice;
+
+    priceStrategy = await deployStaticPriceStrategy(_styleNft.address);
 
     const styleMinterAddress = await _styleMinter.getAddress();
-    await _styleNFT.toggleStyleMinter(styleMinterAddress, true);
-    styleNFT = _styleNFT.connect(_styleMinter);
+    await _styleNft.toggleStyleMinter(styleMinterAddress, true);
+    styleNFT = _styleNft.connect(_styleMinter);
 
-    await splice.setPlatformBeneficiary(
-      await _platformBeneficiary.getAddress()
-    );
-
-    partnerStyleId = await mintStyle(styleNFT, priceStrategy.address, {
-      maxInputs: 1,
-      priceInEth: '1',
-      saleIsActive: true
-    });
+    _platformBeneficiary = Wallet.createRandom().connect(ethers.provider);
+    await splice.setPlatformBeneficiary(_platformBeneficiary.address);
   });
 
-  it('active partnerships share mint fees with the partners', async function () {
+  it('active partnerships share fees with the partners', async function () {
     const ONE_DAY_AND_A_BIT = 60 * 60 * 24 + 60;
+    const partnerBeneficiary = ethers.Wallet.createRandom().connect(
+      ethers.provider
+    );
+    const artist = Wallet.createRandom().connect(ethers.provider);
+
+    const styleId = await mintStyle(styleNFT, priceStrategy.address, {
+      maxInputs: 1,
+      priceInEth: '1',
+      saleIsActive: false,
+      artist: artist.address,
+      partner: partnerBeneficiary.address
+    });
 
     const partnerNft = await deployTestnetNFT();
     const expires = new Date().getTime() + ONE_DAY_AND_A_BIT + 1;
-    const partnerBeneficiary = ethers.Wallet.createRandom();
 
     await (
-      await styleNFT.addCollectionPartnership(
-        [partnerNft.address],
-        partnerStyleId,
-        partnerBeneficiary.address,
-        expires,
-        false
-      )
+      await styleNFT
+        .connect(_styleMinter)
+        .enablePartnership([partnerNft.address], styleId, expires, false)
     ).wait();
 
-    const nft = await mintTestnetNFT(partnerNft, _user);
-    await mintSplice(
-      splice.connect(_user),
-      partnerNft.address,
-      nft,
-      partnerStyleId
-    );
-    const balStyleOwner = ethers.utils.formatEther(
-      await splice.escrowedBalanceOf(await _styleMinter.getAddress())
-    );
-    const balPlatform = ethers.utils.formatEther(
-      await splice.escrowedBalanceOf(await _platformBeneficiary.getAddress())
-    );
-    const balPartner = ethers.utils.formatEther(
-      await splice.escrowedBalanceOf(partnerBeneficiary.address)
+    const settings = await styleNFT.getSettings(styleId);
+    const paymentSplitter = ReplaceablePaymentSplitter__factory.connect(
+      settings.paymentSplitter,
+      ethers.provider
+    ).connect(_owner);
+
+    expect((await paymentSplitter.shares(artist.address)).toNumber()).to.equal(
+      8500
     );
 
-    expect(balStyleOwner).to.be.equal('0.85');
-    expect(balPlatform).to.be.equal('0.075');
-    expect(balPartner).to.be.equal('0.075');
+    expect(
+      (await paymentSplitter.shares(partnerBeneficiary.address)).toNumber()
+    ).to.equal(750);
+
+    expect(
+      (await paymentSplitter.shares(_platformBeneficiary.address)).toNumber()
+    ).to.equal(750);
+
+    const nft = await mintTestnetNFT(partnerNft, _user);
+
+    await styleNFT.toggleSaleIsActive(styleId, true);
+
+    await mintSplice(splice.connect(_user), partnerNft.address, nft, styleId);
 
     //since this is a nonexclusive partnership, other origins are allowed can mint
     const someCollection = await deployTestnetNFT();
     const someNft = await mintTestnetNFT(someCollection, _user);
+
     await mintSplice(
       splice.connect(_user),
       someCollection.address,
       someNft,
-      partnerStyleId
-    );
-    const balStyleOwner2 = ethers.utils.formatEther(
-      await splice.escrowedBalanceOf(await _styleMinter.getAddress())
-    );
-    const balPlatform2 = ethers.utils.formatEther(
-      await splice.escrowedBalanceOf(await _platformBeneficiary.getAddress())
-    );
-    const balPartner2 = ethers.utils.formatEther(
-      await splice.escrowedBalanceOf(partnerBeneficiary.address)
+      styleId
     );
 
-    expect(balStyleOwner2).to.be.equal('1.7');
-    expect(balPlatform2).to.be.equal('0.225');
-    expect(balPartner2).to.be.equal('0.075');
+    await paymentSplitter['release(address)'](artist.address);
+    await paymentSplitter['release(address)'](partnerBeneficiary.address);
+    await paymentSplitter['release(address)'](_platformBeneficiary.address);
+
+    expect(ethers.utils.formatEther(await artist.getBalance())).to.be.equal(
+      '1.7'
+    );
+    expect(
+      ethers.utils.formatEther(await partnerBeneficiary.getBalance())
+    ).to.be.equal('0.15');
+    expect(
+      ethers.utils.formatEther(await _platformBeneficiary.getBalance())
+    ).to.be.equal('0.15');
   });
 
   it('can be constrained to exclusive, unlimited partnerships', async function () {
     const collection1 = await deployTestnetNFT();
     const collection2 = await deployTestnetNFT();
-    const partnerBeneficiary = ethers.Wallet.createRandom();
+    const collection3 = await deployTestnetNFT();
+    const partnerBeneficiary = ethers.Wallet.createRandom().connect(
+      ethers.provider
+    );
 
     const styleTokenId = await mintStyle(styleNFT, priceStrategy.address, {
       maxInputs: 2,
       priceInEth: '1',
-      saleIsActive: true
+      saleIsActive: true,
+      partner: partnerBeneficiary.address
     });
 
     await (
-      await styleNFT.addCollectionPartnership(
+      await styleNFT.enablePartnership(
         [collection1.address, collection2.address],
         styleTokenId,
-        partnerBeneficiary.address,
         FOREVER,
         true
       )
@@ -143,6 +146,7 @@ describe('Partnerships', function () {
 
     const token1 = await mintTestnetNFT(collection1, _user);
     const token2 = await mintTestnetNFT(collection2, _user);
+    const token3 = await mintTestnetNFT(collection3, _user);
 
     await mintSplice(
       splice.connect(_user),
@@ -157,6 +161,20 @@ describe('Partnerships', function () {
       [token1, token2],
       styleTokenId
     );
+
+    try {
+      await mintSplice(
+        splice.connect(_user),
+        [collection1.address, collection3.address],
+        [token1, token3],
+        styleTokenId
+      );
+      expect.fail(
+        'users mustnt be able to use another collection on an exclusive partnership'
+      );
+    } catch (e: any) {
+      expect(e.message).to.contain('OriginNotAllowed("exclusive partnership")');
+    }
   });
 
   it('cannot mint from other origins on an exclusive collection', async () => {
@@ -165,29 +183,30 @@ describe('Partnerships', function () {
     const collection2 = await deployTestnetNFT();
     const anotherNft = await deployTestnetNFT();
 
+    const partnerBeneficiary = ethers.Wallet.createRandom().connect(
+      ethers.provider
+    );
+
     const goodToken = await mintTestnetNFT(collection1, _user);
     const badToken = await mintTestnetNFT(anotherNft, _user);
 
     const styleTokenId = await mintStyle(styleNFT, priceStrategy.address, {
       maxInputs: 2,
       priceInEth: '1',
-      saleIsActive: true
+      saleIsActive: true,
+      partner: partnerBeneficiary.address
     });
-    const partnerBeneficiary = ethers.Wallet.createRandom();
+
     const block = await ethers.provider.getBlock(
       await ethers.provider.getBlockNumber()
     );
-    const expires = block.timestamp + ONE_DAY_AND_A_BIT;
 
-    await (
-      await styleNFT.addCollectionPartnership(
-        [collection1.address, collection2.address],
-        styleTokenId,
-        partnerBeneficiary.address,
-        expires,
-        true
-      )
-    ).wait();
+    await styleNFT.enablePartnership(
+      [collection1.address, collection2.address],
+      styleTokenId,
+      block.timestamp + ONE_DAY_AND_A_BIT,
+      true
+    );
 
     try {
       await mintSplice(
@@ -199,9 +218,7 @@ describe('Partnerships', function () {
 
       expect.fail('should throw on constrained collection');
     } catch (e: any) {
-      expect(e.message).to.contain(
-        'collections not part of exclusive partnership'
-      );
+      expect(e.message).to.contain('OriginNotAllowed("exclusive partnership")');
     }
 
     try {
@@ -214,9 +231,7 @@ describe('Partnerships', function () {
 
       expect.fail('should not allow exclusive partnerships to mix with others');
     } catch (e: any) {
-      expect(e.message).to.contain(
-        'collections not part of exclusive partnership'
-      );
+      expect(e.message).to.contain('OriginNotAllowed("exclusive partnership")');
     }
 
     //partnership expires...
@@ -235,14 +250,14 @@ describe('Partnerships', function () {
   it('cannot start a partnership once minting has started', async () => {
     const collection = await deployTestnetNFT();
     const nft = await mintTestnetNFT(collection, _user);
+    const partnerBeneficiary = ethers.Wallet.createRandom();
 
     const styleTokenId = await mintStyle(styleNFT, priceStrategy.address, {
       maxInputs: 1,
       priceInEth: '1',
-      saleIsActive: true
+      saleIsActive: true,
+      partner: partnerBeneficiary.address
     });
-
-    const partnerBeneficiary = ethers.Wallet.createRandom();
 
     await mintSplice(
       splice.connect(_user),
@@ -252,15 +267,13 @@ describe('Partnerships', function () {
     );
 
     try {
-      await (
-        await styleNFT.addCollectionPartnership(
-          [collection.address],
-          styleTokenId,
-          partnerBeneficiary.address,
-          FOREVER,
-          true
-        )
-      ).wait();
+      await styleNFT.enablePartnership(
+        [collection.address],
+        styleTokenId,
+        FOREVER,
+        true
+      );
+
       expect.fail(
         'a partnership mustnt be established after minting has started'
       );
