@@ -93,7 +93,7 @@ After you've written and tested your code, we'll get it onto Splice once you sen
   } 
 }
 ```
-Please send an email to us at [gm@getsplice.io](gm@getsplice.io) with all of that information seperated into three files, zipped together and attached. The three files should be: 
+Please send an email to us at [gm@getsplice.io](mailto://gm@getsplice.io) with all of that information seperated into three files, zipped together and attached. The three files should be: 
 1. a textfile with pricing, cap and your wallet address 
 2. a json file of metadata in the format above  
 3. a .js file with your style code
