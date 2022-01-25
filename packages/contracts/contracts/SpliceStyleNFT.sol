@@ -96,19 +96,17 @@ contract SpliceStyleNFT is
 
   /// @notice how many pieces has an (allowed) address already minted on a style
   mapping(uint32 => mapping(address => uint8)) mintsAlreadyAllowed;
-  // @dev unused
-  mapping(uint32 => mapping(address => bool)) collectionAllowed;
-
-  Splice public spliceNFT;
 
   /**
    * @dev style_token_id => Partnership
    */
   mapping(uint32 => Partnership) private _partnerships;
 
-  PaymentSplitterController public paymentSplitterController;
-
   uint16 public ARTIST_SHARE;
+
+  Splice public spliceNFT;
+
+  PaymentSplitterController public paymentSplitterController;
 
   function initialize() public initializer {
     __ERC721_init('Splice Style NFT', 'SPLYLE');
