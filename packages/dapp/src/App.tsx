@@ -12,6 +12,7 @@ import Header from './components/molecules/Header';
 import { SubFooter } from './components/molecules/SubFooter';
 import { AboutPage } from './components/pages/About';
 import { CreatePage } from './components/pages/Create';
+import { CreatorsPage } from './components/pages/CreatorsPage';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
@@ -44,6 +45,9 @@ function App() {
               </Route>
               <Route path="/create">
                 <CreatePage />
+              </Route>
+              <Route path="/creator">
+                <CreatorsPage />
               </Route>
               <Route path="/roadmap">
                 <RoadmapPage />

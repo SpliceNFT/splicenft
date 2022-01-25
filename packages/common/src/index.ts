@@ -1,5 +1,5 @@
 export * from './Splice';
-export { Style } from './Style';
+export * from './Style';
 export * from './types/NFT';
 export * from './types/SpliceNFT';
 

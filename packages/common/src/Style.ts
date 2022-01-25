@@ -21,6 +21,12 @@ export type StyleStats = {
   reserved: number;
 };
 
+export type Partnership = {
+  collections: string[];
+  exclusive: boolean;
+  until: Date;
+};
+
 export class Style {
   private contract: StyleNFTContract;
   protected _tokenId: number;
@@ -105,6 +111,16 @@ export class Style {
     }
   }
 
+  async partnership(): Promise<Partnership | null> {
+    const partnership = await this.contract.getPartnership(this.tokenId);
+    if (partnership.collections.length === 0) return null;
+
+    return {
+      collections: partnership.collections,
+      exclusive: partnership.exclusive,
+      until: new Date(partnership.until.toNumber())
+    };
+  }
   async stats(): Promise<StyleStats> {
     const settings = await this.contract.getSettings(this.tokenId);
     const active = await this.contract.isSaleActive(this.tokenId);

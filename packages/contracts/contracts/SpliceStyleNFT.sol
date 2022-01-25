@@ -104,7 +104,7 @@ contract SpliceStyleNFT is
   /**
    * @dev style_token_id => Partnership
    */
-  mapping(uint32 => Partnership) public _partnerships;
+  mapping(uint32 => Partnership) private _partnerships;
 
   PaymentSplitterController public paymentSplitterController;
 
@@ -166,6 +166,19 @@ contract SpliceStyleNFT is
 
   function toggleStyleMinter(address minter, bool newValue) external onlyOwner {
     isStyleMinter[minter] = newValue;
+  }
+
+  function getPartnership(uint32 style_token_id)
+    public
+    view
+    returns (
+      address[] memory collections,
+      uint256 until,
+      bool exclusive
+    )
+  {
+    Partnership memory p = _partnerships[style_token_id];
+    return (p.collections, p.until, p.exclusive);
   }
 
   /**
