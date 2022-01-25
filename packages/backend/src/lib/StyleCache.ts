@@ -56,8 +56,11 @@ export class StyleMetadataCache {
           }
         );
 
-        const style = new Style(parseInt(tokenId), metadataUrl, metadata).bind(
-          styleNFTContract
+        const style = new Style(
+          styleNFTContract,
+          parseInt(tokenId),
+          metadataUrl,
+          metadata
         );
 
         //preload code

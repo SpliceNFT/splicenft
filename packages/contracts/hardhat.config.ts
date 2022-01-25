@@ -17,6 +17,7 @@ import './tasks/activateSale';
 import './tasks/upgrades';
 import './tasks/mintStyle';
 import './tasks/mint';
+import './tasks/enablePartnership';
 
 import { config as dotenv } from 'dotenv-flow';
 dotenv();

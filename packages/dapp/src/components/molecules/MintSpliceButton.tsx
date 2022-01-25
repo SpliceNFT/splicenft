@@ -6,12 +6,16 @@ import React, { useEffect, useState } from 'react';
 import { FaBirthdayCake } from 'react-icons/fa';
 import { useSplice } from '../../context/SpliceContext';
 
+type MintState = {
+  mintable: boolean;
+  quote: ethers.BigNumber | undefined;
+  message: string | undefined;
+};
 export const MintSpliceButton = ({
   collection,
   originTokenId,
   selectedStyle,
   onMinted,
-  ownsOrigin,
   buzy,
   setBuzy
 }: {
@@ -19,30 +23,47 @@ export const MintSpliceButton = ({
   originTokenId: string;
   selectedStyle: Style;
   onMinted: (provenance: TokenProvenance) => unknown;
-  ownsOrigin: boolean;
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
   const { account } = useWeb3React();
   const { splice } = useSplice();
 
-  const [quote, setQuote] = useState<ethers.BigNumber>();
+  const [mintState, setMintState] = useState<MintState>({
+    mintable: false,
+    quote: undefined,
+    message: undefined
+  });
+
   const toast = useToast();
 
   useEffect(() => {
+    if (!account) return;
     (async () => {
-      const _active = await selectedStyle.isActive();
-      if (_active) {
-        const _quoteWei = await selectedStyle.quote(collection, originTokenId);
-        setQuote(_quoteWei);
+      const mintable = await selectedStyle.isMintable(
+        [collection],
+        [originTokenId],
+        account
+      );
+      if (mintable === true) {
+        const quote = await selectedStyle.quote(collection, originTokenId);
+        setMintState({
+          mintable,
+          quote,
+          message: undefined
+        });
       } else {
-        setQuote(undefined);
+        setMintState({
+          mintable: false,
+          quote: undefined,
+          message: mintable as string
+        });
       }
     })();
-  }, [selectedStyle]);
+  }, [splice, selectedStyle, account]);
 
   const mint = async () => {
-    if (!splice || !account || !quote) return;
+    if (!splice || !account || !mintState.mintable || !mintState.quote) return;
     setBuzy(true);
     try {
       const mintingResult = await splice.mint({
@@ -50,7 +71,7 @@ export const MintSpliceButton = ({
         origin_token_id: originTokenId,
         style_token_id: selectedStyle.tokenId,
         additionalData: Uint8Array.from([]),
-        mintingFee: quote
+        mintingFee: mintState.quote
       });
 
       onMinted(mintingResult.provenance);
@@ -69,7 +90,7 @@ export const MintSpliceButton = ({
   return (
     <Flex direction="column" align="center">
       <Button
-        disabled={!quote || !splice || !ownsOrigin || buzy}
+        disabled={!mintState.mintable || buzy}
         onClick={mint}
         leftIcon={<FaBirthdayCake />}
         variant="white"
@@ -77,14 +98,15 @@ export const MintSpliceButton = ({
         boxShadow="md"
         isLoading={buzy}
         loadingText="Minting"
+        title={mintState.message}
       >
         <Flex direction="column">
           <Text fontWeight="strong" fontSize="lg">
             Mint this Splice
           </Text>
-          {quote && (
+          {mintState.quote && (
             <Text fontWeight="normal" fontSize="md">
-              for {ethers.utils.formatUnits(quote, 'ether')}Eth
+              for {ethers.utils.formatEther(mintState.quote)}Eth
             </Text>
           )}
         </Flex>

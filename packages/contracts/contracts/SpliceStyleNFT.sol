@@ -104,7 +104,7 @@ contract SpliceStyleNFT is
   /**
    * @dev style_token_id => Partnership
    */
-  mapping(uint32 => Partnership) private _partnerships;
+  mapping(uint32 => Partnership) public _partnerships;
 
   PaymentSplitterController public paymentSplitterController;
 

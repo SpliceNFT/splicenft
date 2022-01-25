@@ -112,10 +112,10 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [library, chainId]);
 
   useEffect(() => {
-    if (!chainId) return;
+    if (!chainId || !splice) return;
 
     (async () => {
-      const styleNFTContract = splice ? await splice.getStyleNFT() : null;
+      const styleNFTContract = await splice.getStyleNFT();
 
       const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${
         chainId === 1 ? 4 : chainId
@@ -123,8 +123,8 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
 
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
-        const _styles = styleRes.map((r) =>
-          new Style(r.style_token_id, url, r.metadata).bind(styleNFTContract)
+        const _styles = styleRes.map(
+          (r) => new Style(styleNFTContract, r.style_token_id, url, r.metadata)
         );
         setStyles(_styles);
       } catch (e: any) {

@@ -379,7 +379,6 @@ export const NFTPage = () => {
                 collection={collection}
                 originTokenId={tokenId}
                 selectedStyle={state.selectedStyle}
-                ownsOrigin={_ownsOrigin}
                 onMinted={onMinted}
               />
             )}

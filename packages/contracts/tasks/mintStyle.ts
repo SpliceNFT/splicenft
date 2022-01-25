@@ -4,12 +4,15 @@ import fs from 'fs';
 import { task } from 'hardhat/config';
 import { File, NFTStorage } from 'nft.storage';
 
-//pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200 false 1
+//pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x9A676e781A523b5d0C0e43731313A708CB607508 --price-strategy-address 0x68B1D87F95878fE05B998F19b66F4baba5De1aed  ../../renderers/ConfidenceInTheMission 0.05 200 false 1
+//pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x9A676e781A523b5d0C0e43731313A708CB607508 --price-strategy-address 0x68B1D87F95878fE05B998F19b66F4baba5De1aed --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC --partner 0x90F79bf6EB2c4f870365E785982E1f101E93b906 ../../renderers/TheGardenOfEarthlyDelights/ 0.1 50 false 1
 
 task('style:mint', 'mints a style')
   .addParam('styleNftAddress')
   .addParam('priceStrategyAddress')
   .addOptionalParam('accountIdx', '', '0')
+  .addOptionalParam('artist', 'the first owner')
+  .addOptionalParam('partner', 'a potential partner')
   .addPositionalParam('directory')
   .addPositionalParam('mintPriceEth')
   .addPositionalParam('cap')
@@ -25,7 +28,9 @@ task('style:mint', 'mints a style')
       mintPriceEth,
       cap,
       sale,
-      maxInputs
+      maxInputs,
+      artist,
+      partner
     } = taskArgs;
 
     const signers = await hre.ethers.getSigners();
@@ -62,22 +67,14 @@ task('style:mint', 'mints a style')
     const cid = metadata.ipnft;
     console.log('uploaded metadata, cid: ', cid);
 
-    const mintArgs = {
-      _cap: cap,
-      _metadataCID: cid,
-      _priceStrategy: priceStrategyAddress,
-      _sale: sale
-    };
-    console.log('minting style NFT with:', mintArgs);
-
     const receipt = await styleNFT.mint(
       cap,
       cid,
       priceStrategyAddress,
       sale === 'true' ? true : false,
       maxInputs,
-      styleMinter.address,
-      constants.AddressZero
+      artist ?? constants.AddressZero,
+      partner ?? constants.AddressZero
     );
 
     const confirmation = await receipt.wait();
