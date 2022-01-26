@@ -144,13 +144,13 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
       released(account)
     );
 
-    if (payment > 0) {
-      _released[account] += payment;
-      _totalReleased += payment;
+    require(payment != 0, 'PaymentSplitter: account is not due payment');
 
-      Address.sendValue(account, payment);
-      emit PaymentReleased(account, payment);
-    }
+    _released[account] += payment;
+    _totalReleased += payment;
+
+    Address.sendValue(account, payment);
+    emit PaymentReleased(account, payment);
   }
 
   /**
@@ -169,14 +169,13 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
       released(token, account)
     );
 
-    //require(payment != 0, 'PaymentSplitter: account is not due payment');
-    if (payment > 0) {
-      _erc20Released[token][account] += payment;
-      _erc20TotalReleased[token] += payment;
+    require(payment != 0, 'PaymentSplitter: account is not due payment');
 
-      SafeERC20.safeTransfer(token, account, payment);
-      emit ERC20PaymentReleased(token, account, payment);
-    }
+    _erc20Released[token][account] += payment;
+    _erc20TotalReleased[token] += payment;
+
+    SafeERC20.safeTransfer(token, account, payment);
+    emit ERC20PaymentReleased(token, account, payment);
   }
 
   /**

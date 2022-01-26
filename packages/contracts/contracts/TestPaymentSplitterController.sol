@@ -26,27 +26,33 @@ contract TestPaymentSplitterController is
 
   address private _owner;
 
-  function withdrawAll(address payable payee) external {
-    withdrawAll(payee, splittersOfAccount[payee]);
-  }
-
   function withdrawAll(address payable payee, address[] memory splitters_)
-    public
+    external
+    nonReentrant
   {
+    if (splitters_.length == 0) {
+      splitters_ = splittersOfAccount[payee];
+    }
+
     for (uint256 i = 0; i < splitters_.length; i++) {
-      ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
-        payable(splitters_[i])
-      );
-      releaseAll(ps, payee);
+      releaseAll(ReplaceablePaymentSplitter(payable(splitters_[i])), payee);
     }
   }
 
   function releaseAll(ReplaceablePaymentSplitter ps, address payable account)
-    public
+    internal
   {
-    ps.release(account);
+    try ps.release(account) {
+      /*empty*/
+    } catch {
+      /*empty*/
+    }
     for (uint256 i = 0; i < PAYMENT_TOKENS.length; i++) {
-      ps.release(IERC20(PAYMENT_TOKENS[i]), account);
+      try ps.release(IERC20(PAYMENT_TOKENS[i]), account) {
+        /*empty*/
+      } catch {
+        /*empty*/
+      }
     }
   }
 
@@ -54,7 +60,7 @@ contract TestPaymentSplitterController is
     uint256 style_token_id,
     address payable from,
     address to
-  ) public {
+  ) public nonReentrant {
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);

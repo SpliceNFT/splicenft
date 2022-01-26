@@ -90,14 +90,15 @@ describe('Fee Splitting', function () {
 
     expect((await _artist.getBalance()).toNumber()).to.equal(0);
 
-    await paymentSplitterController['withdrawAll(address)'](_artist.address);
+    await paymentSplitterController.withdrawAll(_artist.address, []);
     expect(ethers.utils.formatEther(await _artist.getBalance())).to.equal(
       '0.085'
     );
 
     expect((await _platformBeneficiary.getBalance()).toNumber()).to.equal(0);
-    await paymentSplitterController['withdrawAll(address)'](
-      _platformBeneficiary.address
+    await paymentSplitterController.withdrawAll(
+      _platformBeneficiary.address,
+      []
     );
     expect(
       ethers.utils.formatEther(await _platformBeneficiary.getBalance())
@@ -207,7 +208,7 @@ describe('Fee Splitting', function () {
     );
     await paymentSplitterController
       .connect(_styleMinter)
-      ['withdrawAll(address)'](artist.address);
+      .withdrawAll(artist.address, []);
     expect(ethers.utils.formatEther(await artist.getBalance())).to.be.equal(
       '0.9'
     );
@@ -251,7 +252,7 @@ describe('Fee Splitting', function () {
     const nft = await mintTestnetNFT(testNft, _user);
     await mintSplice(splice.connect(_user), testNft.address, nft, styleId);
 
-    await paymentSplitterController['withdrawAll(address)'](wallet.address);
+    await paymentSplitterController.withdrawAll(wallet.address, []);
     const walletBalance = await ethers.provider.getBalance(wallet.address);
     expect(ethers.utils.formatEther(walletBalance)).to.be.equal('0.9');
   });

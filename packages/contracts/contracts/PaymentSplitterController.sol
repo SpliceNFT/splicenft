@@ -93,26 +93,24 @@ contract PaymentSplitterController is
   }
 
   /**
-   * @notice this can run out of gas if you've got a lot of splits. Wouldn't recommend using this with more than 10.
+   * @notice when splitters_ is [], we try to get *all* of your funds out
+   * to withdraw individual tokens, use the methods on the payment splitter directly.
    */
-  function withdrawAll(address payable payee) external {
-    withdrawAll(payee, splittersOfAccount[payee]);
-  }
-
   function withdrawAll(address payable payee, address[] memory splitters_)
-    public
+    external
+    nonReentrant
   {
+    if (splitters_.length == 0) {
+      splitters_ = splittersOfAccount[payee];
+    }
+
     for (uint256 i = 0; i < splitters_.length; i++) {
-      ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
-        payable(splitters_[i])
-      );
-      releaseAll(ps, payee);
+      releaseAll(ReplaceablePaymentSplitter(payable(splitters_[i])), payee);
     }
   }
 
   function releaseAll(ReplaceablePaymentSplitter ps, address payable account)
-    public
-    nonReentrant
+    internal
   {
     try ps.release(account) {
       /*empty*/
@@ -132,7 +130,7 @@ contract PaymentSplitterController is
     uint256 style_token_id,
     address payable from,
     address to
-  ) public onlyOwner {
+  ) public onlyOwner nonReentrant {
     ReplaceablePaymentSplitter ps = splitters[style_token_id];
     releaseAll(ps, from);
     ps.replacePayee(from, to);

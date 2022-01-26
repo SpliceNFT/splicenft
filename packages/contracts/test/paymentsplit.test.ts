@@ -113,8 +113,6 @@ describe('Payment Splitters', function () {
 
     await instance['release(address)'](benef.address);
     expect(ethers.utils.formatEther(await benef.getBalance())).to.equal('0.6');
-    await instance['release(address)'](benef.address);
-    expect(ethers.utils.formatEther(await benef.getBalance())).to.equal('0.6');
 
     expect(ethers.utils.formatEther(await platf.getBalance())).to.equal('0.0');
     await instance['release(address)'](platf.address);
@@ -172,7 +170,7 @@ describe('Payment Splitters', function () {
 
     expect(ethers.utils.formatEther(await platf.getBalance())).to.equal('0.0');
 
-    await controller['withdrawAll(address,address[])'](platf.address, [
+    await controller.withdrawAll(platf.address, [
       split0.address,
       split1.address,
       split2.address
@@ -285,7 +283,7 @@ describe('Payment Splitters', function () {
     );
     expect((await erc20.balanceOf(benef.address)).isZero()).to.be.true;
 
-    await controller.releaseAll(splitter.address, benef.address);
+    await controller.withdrawAll(benef.address, [splitter.address]);
     expect((await erc20.balanceOf(benef.address)).toNumber()).to.equal(8_000);
     expect(ethers.utils.formatEther(await benef.getBalance())).to.equal('0.8');
   });
@@ -310,10 +308,26 @@ describe('Payment Splitters', function () {
     expect(
       (await splitter.provider.getBalance(splitter.address)).toNumber()
     ).to.eq(1);
-    await splitter['release(address)'](benef.address);
-    expect((await benef.getBalance()).toNumber()).to.eq(0);
-    await splitter['release(address)'](platf.address);
-    expect((await platf.getBalance()).toNumber()).to.eq(0);
+
+    try {
+      await splitter['release(address)'](benef.address);
+      expect.fail(
+        'payment splitter should throw by default when nothing is to release'
+      );
+    } catch (e: any) {
+      expect((await benef.getBalance()).toNumber()).to.eq(0);
+      expect(e.message).to.contain('account is not due payment');
+    }
+
+    try {
+      await splitter['release(address)'](platf.address);
+      expect.fail(
+        'payment splitter should throw by default when nothing is to release'
+      );
+    } catch (e: any) {
+      expect((await platf.getBalance()).toNumber()).to.eq(0);
+      expect(e.message).to.contain('account is not due payment');
+    }
 
     //lets add more.
     await _user.sendTransaction({
@@ -371,7 +385,7 @@ describe('Payment Splitters', function () {
       })
     ]);
 
-    await controller['withdrawAll(address)'](benef.address);
+    await controller.withdrawAll(benef.address, []);
     expect(await ethers.utils.formatEther(await benef.getBalance())).to.equal(
       '4.675'
     );
@@ -415,7 +429,7 @@ describe('Payment Splitters', function () {
     );
 
     //benef1 shares on ps1 are 0. This should still work:
-    await controller['withdrawAll(address)'](benef1.address);
+    await controller.withdrawAll(benef1.address, []);
 
     //received funds of ps2
     expect(await ethers.utils.formatEther(await benef1.getBalance())).to.equal(
@@ -459,7 +473,8 @@ describe('Payment Splitters', function () {
     expect(ethers.utils.formatEther(await benef1.getBalance())).to.equal('0.7');
 
     expect(ethers.utils.formatEther(await benef2.getBalance())).to.equal('0.0');
-    await newInstance['withdrawAll(address)'](benef2.address);
+
+    await newInstance.withdrawAll(benef2.address, []);
     expect(ethers.utils.formatEther(await benef2.getBalance())).to.equal('0.0');
   });
 });
