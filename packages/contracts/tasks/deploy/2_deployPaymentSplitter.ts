@@ -32,7 +32,8 @@ task('deploy:payments', 'deploys paymentsplitters')
     const receipt = paymentSplitterController.deployTransaction;
 
     console.log(
-      '[%s] payment splitter controller: [%s]',
+      '[%s][%s] payment splitter controller: [%s]',
+      deployer.address,
       receipt.hash,
       paymentSplitterController.address
     );

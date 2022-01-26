@@ -33,9 +33,11 @@ export default async function Artwork(
     },
     (err: any | null, stream: Readable) => {
       if (!err) {
-        Cache.store(key, stream);
+        Cache.store(key, stream).then(() => callback(err, stream));
+      } else {
+        console.error('RENDERING ERROR', err);
+        callback(err, stream);
       }
-      callback(err, stream);
     }
   );
 }

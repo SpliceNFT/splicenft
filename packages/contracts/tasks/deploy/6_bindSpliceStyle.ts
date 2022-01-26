@@ -22,7 +22,8 @@ task('deploy:bindsplice', 'binds paymentsplitter to style')
     const receipt = await styleNft.setSplice(splice);
 
     console.log(
-      '[%s] bound splice [%s] to style contract [%s]',
+      '[%s][%s] bound splice [%s] to style contract [%s]',
+      deployer.address,
       receipt.hash,
       splice,
       style

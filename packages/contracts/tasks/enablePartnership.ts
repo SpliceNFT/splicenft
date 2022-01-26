@@ -1,9 +1,9 @@
 import '@nomiclabs/hardhat-ethers';
 import { task, types } from 'hardhat/config';
 
-//pnpx hardhat --network localhost style:partnership --account-idx 18 --style-nft-address 0x9A676e781A523b5d0C0e43731313A708CB607508 --collections 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 1 2022-01-26 true
+//pnpx hardhat --network localhost style:partnership --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --collections 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 1 2022-01-26 true
 task('style:partnership', 'enables partnership')
-  .addParam('styleNftAddress')
+  .addParam('style')
   .addOptionalParam('accountIdx', "the style minter's account index", '0')
   .addParam<string>('collections', 'comma separated', undefined)
   .addPositionalParam<string>('styleTokenId')
@@ -12,7 +12,7 @@ task('style:partnership', 'enables partnership')
 
   .setAction(async (taskArgs, hre) => {
     const {
-      styleNftAddress,
+      style: styleNftAddress,
       accountIdx,
       collections: collections_,
       styleTokenId,

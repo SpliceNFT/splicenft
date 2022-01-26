@@ -10,8 +10,6 @@ task('deploy:style', 'deploys style')
     const signers = await hre.ethers.getSigners();
     const deployer = signers[accountIdx];
 
-    console.log(deployer.address);
-
     const SpliceStyleNFTFactory = await hre.ethers.getContractFactory(
       'SpliceStyleNFT',
       deployer
@@ -26,7 +24,8 @@ task('deploy:style', 'deploys style')
     const receipt = spliceStyleNFT.deployTransaction;
 
     console.log(
-      '[%s] splice style nft: [%s]',
+      '[%s][%s] splice style nft: [%s]',
+      deployer.address,
       receipt.hash,
       spliceStyleNFT.address
     );

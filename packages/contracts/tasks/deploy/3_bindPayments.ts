@@ -22,7 +22,8 @@ task('deploy:bindpayments', 'binds paymentsplitter to style')
     const receipt = await styleNft.setPaymentSplitter(payment);
 
     console.log(
-      '[%s] bound paymentsplitter [%s] to style contract [%s]',
+      '[%s][%s] bound paymentsplitter [%s] to style contract [%s]',
+      deployer.address,
       receipt.hash,
       payment,
       style

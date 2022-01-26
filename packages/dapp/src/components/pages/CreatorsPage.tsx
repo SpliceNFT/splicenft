@@ -7,7 +7,9 @@ import {
   Text,
   Th,
   Thead,
-  Tr
+  toast,
+  Tr,
+  useToast
 } from '@chakra-ui/react';
 import { Partnership, Style, StyleStats } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
@@ -17,11 +19,16 @@ import { useSplice } from '../../context/SpliceContext';
 const ActivateButton = (props: { style: Style; stats: StyleStats }) => {
   const { style, stats } = props;
   const [active, setActive] = useState<boolean>(stats.active);
+  const toast = useToast();
 
   const toggle = async () => {
     const newVal = !stats.active;
-    await style.toggleActive(newVal);
-    setActive(newVal);
+    try {
+      await style.toggleActive(newVal);
+      setActive(newVal);
+    } catch (e: any) {
+      toast({ title: 'tx failed', description: e.message });
+    }
   };
   return (
     <Button onClick={toggle}>{active ? 'Stop sales' : 'Start Sales'}</Button>

@@ -23,7 +23,8 @@ task('deploy:price', 'deploys price strategy')
     const receipt = staticPriceStrategy.deployTransaction;
 
     console.log(
-      '[%s] price strategy: [%s]',
+      '[%s][%s] price strategy: [%s]',
+      deployer.address,
       receipt.hash,
       staticPriceStrategy.address
     );

@@ -108,8 +108,8 @@ const deployTestnetNFT = async (
   //   'District1618'
   // ]) {
   //   await run('style:mint', {
-  //     styleNftAddress: spliceStyleNFT.address,
-  //     priceStrategyAddress: staticPriceStrategy.address,
+  //     style: spliceStyleNFT.address,
+  //     price: staticPriceStrategy.address,
   //     accountIdx: '18',
   //     directory: `../../renderers/${style}`,
   //     mintPriceEth: '0.02',

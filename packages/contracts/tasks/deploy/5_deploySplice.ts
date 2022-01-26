@@ -27,7 +27,12 @@ task('deploy:splice', 'deploys splice main contract')
     ]);
     const receipt = splice.deployTransaction;
 
-    console.log('[%s] splice contract: [%s]', receipt.hash, splice.address);
+    console.log(
+      '[%s][%s] splice contract: [%s]',
+      deployer.address,
+      receipt.hash,
+      splice.address
+    );
 
     const tx = await receipt.wait();
     console.log('gas used: [%s]', tx.gasUsed);
