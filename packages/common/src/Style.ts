@@ -1,4 +1,8 @@
-import { SpliceStyleNFT as StyleNFTContract } from '@splicenft/contracts';
+import {
+  ReplaceablePaymentSplitter,
+  ReplaceablePaymentSplitter__factory,
+  SpliceStyleNFT as StyleNFTContract
+} from '@splicenft/contracts';
 import axios from 'axios';
 import { BigNumber, ethers } from 'ethers';
 import { ipfsGW } from './img';
@@ -111,9 +115,9 @@ export class Style {
     }
   }
 
-  async partnership(): Promise<Partnership | null> {
+  async partnership(): Promise<Partnership | undefined> {
     const partnership = await this.contract.getPartnership(this.tokenId);
-    if (partnership.collections.length === 0) return null;
+    if (partnership.collections.length === 0) return undefined;
 
     return {
       collections: partnership.collections,
@@ -133,6 +137,14 @@ export class Style {
       owner,
       reserved
     };
+  }
+
+  async paymentSplitter(): Promise<ReplaceablePaymentSplitter> {
+    const settings = await this.contract.getSettings(this.tokenId);
+    return ReplaceablePaymentSplitter__factory.connect(
+      settings.paymentSplitter,
+      this.contract.provider
+    );
   }
 
   async quote(

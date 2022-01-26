@@ -237,4 +237,19 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
       idx++;
     }
   }
+
+  function due(address account) external view returns (uint256 pending) {
+    uint256 totalReceived = address(this).balance + totalReleased();
+    return _pendingPayment(account, totalReceived, released(account));
+  }
+
+  function due(IERC20 token, address account)
+    external
+    view
+    returns (uint256 pending)
+  {
+    uint256 totalReceived = token.balanceOf(address(this)) +
+      totalReleased(token);
+    return _pendingPayment(account, totalReceived, released(token, account));
+  }
 }

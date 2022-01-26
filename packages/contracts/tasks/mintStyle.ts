@@ -6,7 +6,7 @@ import { File, NFTStorage } from 'nft.storage';
 
 //pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed  ../../renderers/ConfidenceInTheMission 0.05 200 1 false
 //pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC --partner 0x90F79bf6EB2c4f870365E785982E1f101E93b906 ../../renderers/TheGardenOfEarthlyDelights/ 0.1 50 1 false
-// pnpx hardhat --network localhost style:mint --account-idx 18 --style 0xae3F29b8782DB1132aD8D4505075830f96E584b2 --price 0x54f569A3D4e9B68EA1fd9A226954093AC76B2475 --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC ../../renderers/TheGardenOfEarthlyDelights/ 0.2 50 1 true
+// pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC ../../renderers/TheGardenOfEarthlyDelights/ 0.2 50 1 true
 
 task('style:mint', 'mints a style')
   .addParam('style', 'the style contract')

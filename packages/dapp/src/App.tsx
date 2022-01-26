@@ -12,13 +12,14 @@ import Header from './components/molecules/Header';
 import { SubFooter } from './components/molecules/SubFooter';
 import { AboutPage } from './components/pages/About';
 import { CreatePage } from './components/pages/Create';
-import { CreatorsPage } from './components/pages/CreatorsPage';
+import { StylesOverviewPage } from './components/pages/StylesOverview';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
 import { NFTPage } from './components/pages/NFTPage';
 import { RoadmapPage } from './components/pages/Roadmap';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
+import { StyleDetailPage } from './components/pages/StyleDetailPage';
 
 function getLibrary(provider: any) {
   return new providers.Web3Provider(provider);
@@ -46,8 +47,11 @@ function App() {
               <Route path="/create">
                 <CreatePage />
               </Route>
-              <Route path="/creator">
-                <CreatorsPage />
+              <Route path="/style/:style_id">
+                <StyleDetailPage />
+              </Route>
+              <Route path="/styles">
+                <StylesOverviewPage />
               </Route>
               <Route path="/roadmap">
                 <RoadmapPage />

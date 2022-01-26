@@ -19,11 +19,12 @@ import {
   ERC721,
   ERC721Enumerable,
   ERC721Enumerable__factory,
-  ERC721__factory
+  ERC721__factory,
+  ReplaceablePaymentSplitter
 } from '@splicenft/contracts';
 import { providers, Signer } from 'ethers';
 
-export { ERC721 };
+export { ERC721, ReplaceablePaymentSplitter };
 export function erc721(
   provider: providers.Provider | Signer,
   address: string
