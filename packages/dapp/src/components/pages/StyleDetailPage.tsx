@@ -6,8 +6,12 @@ import {
   Flex,
   Heading,
   Image,
+  Input,
+  InputGroup,
+  InputRightElement,
   SystemProps,
   Text,
+  toast,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -23,6 +27,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { useSplice } from '../../context/SpliceContext';
+type PaymentInfo = {
+  total: ethers.BigNumber;
+  totalReleased: ethers.BigNumber;
+  shares: number;
+  due: ethers.BigNumber;
+};
 
 const ActivateButton = (props: { style: Style; stats: StyleStats }) => {
   const { style, stats } = props;
@@ -39,17 +49,120 @@ const ActivateButton = (props: { style: Style; stats: StyleStats }) => {
     }
   };
   return (
-    <Button onClick={toggle} px={12}>
+    <Button onClick={toggle} px={12} size="sm">
       {active ? 'Stop sales' : 'Start Sales'}
     </Button>
   );
 };
 
-type PaymentInfo = {
-  total: ethers.BigNumber;
-  totalReleased: ethers.BigNumber;
-  shares: number;
-  due: ethers.BigNumber;
+const TransferForm = (props: { onRecipient: (r: string) => unknown }) => {
+  const { onRecipient } = props;
+  const [recipient, setRecipient] = useState<string>('');
+
+  const validate = () => {
+    //console.log(recipient);
+    onRecipient(recipient);
+  };
+
+  return (
+    <InputGroup size="md" width="50%">
+      <Input
+        pr="4.5rem"
+        type="text"
+        placeholder="0xrecipient"
+        value={recipient}
+        bg="white"
+        onChange={(e) => {
+          e.preventDefault();
+          setRecipient(e.target.value);
+        }}
+      />
+      <InputRightElement width="5rem">
+        <Button
+          size="xs"
+          px={10}
+          mr={2}
+          variant="black"
+          onClick={() => {
+            validate();
+          }}
+        >
+          Transfer
+        </Button>
+      </InputRightElement>
+    </InputGroup>
+  );
+};
+const TransferButton = (props: { account: string; tokenId: number }) => {
+  const { splice } = useSplice();
+  const { account, tokenId } = props;
+  const toast = useToast();
+
+  const [inTransfer, setInTransfer] = useState<boolean>(false);
+  const [buzy, setBuzy] = useState<boolean>(false);
+
+  const doTransfer = async (from: string, to: string) => {
+    if (!splice) return;
+    setInTransfer(false);
+    setBuzy(true);
+    try {
+      const styleNFT = await splice.getStyleNFT();
+      const tx = await styleNFT.transferFrom(from, to, tokenId);
+      await tx.wait();
+
+      toast({
+        status: 'success',
+        title: 'style transferred',
+        description: 'reload the page'
+      });
+    } catch (e: any) {
+      toast({ status: 'error', title: 'claim failed', description: e.message });
+    } finally {
+      setBuzy(false);
+    }
+  };
+
+  return inTransfer ? (
+    <TransferForm onRecipient={(r) => doTransfer(account, r)} />
+  ) : (
+    <Button
+      isLoading={buzy}
+      variant="white"
+      size="sm"
+      px={12}
+      my={2}
+      onClick={() => setInTransfer(true)}
+    >
+      Transfer
+    </Button>
+  );
+};
+
+const ClaimButton = (props: {
+  splitter: ReplaceablePaymentSplitter;
+  onClaimed: () => unknown;
+}) => {
+  const { library: web3, account } = useWeb3React<providers.Web3Provider>();
+  const { splitter, onClaimed } = props;
+  const toast = useToast();
+
+  const claim = async () => {
+    if (!web3 || !account) return;
+    try {
+      const _splitter = splitter.connect(await web3.getSigner());
+      const tx = await _splitter['release(address)'](account);
+      await tx.wait();
+      onClaimed();
+    } catch (e: any) {
+      toast({ status: 'error', title: 'claim failed', description: e.message });
+    }
+  };
+
+  return (
+    <Button variant="black" size="sm" px={12} my={2} onClick={claim}>
+      Claim
+    </Button>
+  );
 };
 
 const NumBox = (
@@ -63,6 +176,7 @@ const NumBox = (
   return (
     <Flex
       align="center"
+      justify="center"
       background="white"
       p={5}
       direction="column"
@@ -88,6 +202,7 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
       setSplitter(_splitter.connect(web3));
     })();
   }, [web3]);
+
   useEffect(() => {
     if (!web3 || !splitter || !account) return;
     (async () => {
@@ -103,6 +218,20 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
       });
     })();
   }, [web3, splitter, account]);
+
+  const onClaimed = async () => {
+    if (!web3 || !account || !splitter || !paymentInfo) return;
+    const total = await web3.getBalance(splitter.address);
+    const totalReleased = await splitter['totalReleased()']();
+    const due = await splitter['due(address)'](account);
+    setPaymentInfo({
+      ...paymentInfo,
+      total,
+      totalReleased,
+      due
+    });
+  };
+
   return (
     <Flex direction="column" my={5}>
       <Heading size="md">Payments</Heading>
@@ -120,12 +249,10 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
           <NumBox head="Your share" val={`${paymentInfo.shares / 100}%`} />
           <NumBox
             head="Your claim"
-            val={ethers.utils.formatEther(paymentInfo.due)}
+            val={`${ethers.utils.formatEther(paymentInfo.due)} Eth`}
           >
-            {!paymentInfo.due.isZero() && (
-              <Button variant="black" size="sm" px={12}>
-                Claim
-              </Button>
+            {account && splitter && !paymentInfo.due.isZero() && (
+              <ClaimButton splitter={splitter} onClaimed={onClaimed} />
             )}
           </NumBox>
         </Flex>
@@ -159,14 +286,16 @@ const StyleActions = (props: {
         color="white"
       ></NumBox>
 
-      <Flex justify="flex-end" gridGap={3}>
+      <Flex justify="flex-end" gridGap={3} align="center">
         {isStyleMinter || stats.owner === account ? (
           <ActivateButton style={style} stats={stats} />
         ) : (
           <Text>Active: {stats.active ? 'Yes' : 'No'}</Text>
         )}
 
-        {stats.owner === account && <Button px={12}>Transfer Style</Button>}
+        {stats.owner === account && (
+          <TransferButton account={account} tokenId={style.tokenId} />
+        )}
       </Flex>
 
       {partnership && (
