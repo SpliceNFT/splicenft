@@ -1,6 +1,5 @@
 import {
   AspectRatio,
-  Box,
   Button,
   Container,
   Flex,
@@ -11,7 +10,6 @@ import {
   InputRightElement,
   SystemProps,
   Text,
-  toast,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -19,10 +17,11 @@ import {
   Style,
   StyleStats,
   ReplaceablePaymentSplitter,
+  ISplicePriceStrategy,
   ipfsGW
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { ethers, providers } from 'ethers';
+import { BigNumber, ethers, providers } from 'ethers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
@@ -194,12 +193,17 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
   const { library: web3, account } = useWeb3React<providers.Web3Provider>();
   const [splitter, setSplitter] = useState<ReplaceablePaymentSplitter>();
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>();
-
+  const [priceStrategy, setPriceStrategy] = useState<ISplicePriceStrategy>();
+  const [price, setPrice] = useState<BigNumber>();
   useEffect(() => {
     if (!web3) return;
     (async () => {
       const _splitter = await style.paymentSplitter();
       setSplitter(_splitter.connect(web3));
+
+      const _priceStrategy = await style.priceStrategy();
+      setPriceStrategy(_priceStrategy.connect(web3));
+      setPrice(await _priceStrategy.quote(style.tokenId, [], []));
     })();
   }, [web3]);
 
@@ -255,6 +259,17 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
               <ClaimButton splitter={splitter} onClaimed={onClaimed} />
             )}
           </NumBox>
+        </Flex>
+      )}
+      {priceStrategy && (
+        <Flex direction="column">
+          <Heading size="md">Pricing</Heading>
+          <Text>Price Strategy {priceStrategy.address}</Text>
+          {price && (
+            <Flex my={5}>
+              Current mint price: {ethers.utils.formatEther(price)} Eth
+            </Flex>
+          )}
         </Flex>
       )}
     </Flex>
@@ -334,6 +349,7 @@ export const StyleDetailPage = () => {
     if (!style) return;
     (async () => {
       setStats(await style.stats());
+
       //setPartnership(await style.partnership());
     })();
   }, [style]);

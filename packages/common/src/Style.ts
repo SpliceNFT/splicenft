@@ -1,4 +1,6 @@
 import {
+  ISplicePriceStrategy,
+  ISplicePriceStrategy__factory,
   ReplaceablePaymentSplitter,
   ReplaceablePaymentSplitter__factory,
   SpliceStyleNFT as StyleNFTContract
@@ -143,6 +145,14 @@ export class Style {
     const settings = await this.contract.getSettings(this.tokenId);
     return ReplaceablePaymentSplitter__factory.connect(
       settings.paymentSplitter,
+      this.contract.provider
+    );
+  }
+
+  async priceStrategy(): Promise<ISplicePriceStrategy> {
+    const settings = await this.contract.getSettings(this.tokenId);
+    return ISplicePriceStrategy__factory.connect(
+      settings.priceStrategy,
       this.contract.provider
     );
   }
