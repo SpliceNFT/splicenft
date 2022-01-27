@@ -385,7 +385,10 @@ describe('Payment Splitters', function () {
       })
     ]);
 
-    await controller.withdrawAll(benef.address, []);
+    await controller.withdrawAll(
+      benef.address,
+      splitters.map((s) => s.address)
+    );
     expect(await ethers.utils.formatEther(await benef.getBalance())).to.equal(
       '4.675'
     );
@@ -429,7 +432,10 @@ describe('Payment Splitters', function () {
     );
 
     //benef1 shares on ps1 are 0. This should still work:
-    await controller.withdrawAll(benef1.address, []);
+    await controller.withdrawAll(benef1.address, [
+      splitter1.address,
+      splitter2.address
+    ]);
 
     //received funds of ps2
     expect(await ethers.utils.formatEther(await benef1.getBalance())).to.equal(

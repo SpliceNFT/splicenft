@@ -37,11 +37,6 @@ contract PaymentSplitterController is
    */
   mapping(uint256 => ReplaceablePaymentSplitter) public splitters;
 
-  /**
-   * @dev a list of all beneficiaries (artists, partners, platform) we know
-   */
-  mapping(address => address[]) public splittersOfAccount;
-
   address[] private PAYMENT_TOKENS;
 
   /**
@@ -83,9 +78,6 @@ contract PaymentSplitterController is
       payable(ps_address)
     );
     splitters[tokenId] = ps;
-    for (uint256 i = 0; i < payees_.length; i++) {
-      splittersOfAccount[payees_[i]].push(ps_address);
-    }
     ps.initialize(address(this), payees_, shares_);
   }
 
@@ -98,10 +90,6 @@ contract PaymentSplitterController is
     external
     nonReentrant
   {
-    if (splitters_.length == 0) {
-      splitters_ = splittersOfAccount[payee];
-    }
-
     for (uint256 i = 0; i < splitters_.length; i++) {
       releaseAll(ReplaceablePaymentSplitter(payable(splitters_[i])), payee);
     }
@@ -130,7 +118,6 @@ contract PaymentSplitterController is
     address to
   ) external onlyOwner nonReentrant {
     ReplaceablePaymentSplitter ps = splitters[styleTokenId];
-    splittersOfAccount[to].push(payable(ps));
     releaseAll(ps, from);
     ps.replacePayee(from, to);
   }

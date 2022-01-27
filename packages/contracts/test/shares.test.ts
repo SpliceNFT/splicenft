@@ -17,7 +17,7 @@ import {
 } from './lib/deployContracts';
 import { mintSplice, mintStyle, mintTestnetNFT } from './lib/helpers';
 
-describe('Fee Splitting', function () {
+describe('Shares', function () {
   let testNft: TestnetNFT;
   let splice: Splice;
   let priceStrategy: SplicePriceStrategyStatic;
@@ -90,16 +90,19 @@ describe('Fee Splitting', function () {
 
     expect((await _artist.getBalance()).toNumber()).to.equal(0);
 
-    await paymentSplitterController.withdrawAll(_artist.address, []);
+    const settings = await styleNFT.getSettings(1);
+
+    await paymentSplitterController.withdrawAll(_artist.address, [
+      settings.paymentSplitter
+    ]);
     expect(ethers.utils.formatEther(await _artist.getBalance())).to.equal(
       '0.085'
     );
 
     expect((await _platformBeneficiary.getBalance()).toNumber()).to.equal(0);
-    await paymentSplitterController.withdrawAll(
-      _platformBeneficiary.address,
-      []
-    );
+    await paymentSplitterController.withdrawAll(_platformBeneficiary.address, [
+      settings.paymentSplitter
+    ]);
     expect(
       ethers.utils.formatEther(await _platformBeneficiary.getBalance())
     ).to.equal('0.015');
@@ -206,9 +209,11 @@ describe('Fee Splitting', function () {
       nftTokenId,
       styleId
     );
+    const settings = await styleNFT.getSettings(styleId);
+
     await paymentSplitterController
       .connect(_styleMinter)
-      .withdrawAll(artist.address, []);
+      .withdrawAll(artist.address, [settings.paymentSplitter]);
     expect(ethers.utils.formatEther(await artist.getBalance())).to.be.equal(
       '0.9'
     );
@@ -248,11 +253,14 @@ describe('Fee Splitting', function () {
       wallet.address,
       styleId
     );
-
     const nft = await mintTestnetNFT(testNft, _user);
     await mintSplice(splice.connect(_user), testNft.address, nft, styleId);
 
-    await paymentSplitterController.withdrawAll(wallet.address, []);
+    const settings = await styleNFT.getSettings(styleId);
+
+    await paymentSplitterController.withdrawAll(wallet.address, [
+      settings.paymentSplitter
+    ]);
     const walletBalance = await ethers.provider.getBalance(wallet.address);
     expect(ethers.utils.formatEther(walletBalance)).to.be.equal('0.9');
   });
