@@ -21,7 +21,7 @@ LSI  LSI           LCL           LSS       ISL       LSI  ISL       LSS  ISL
 pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
@@ -48,7 +48,6 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
   mapping(IERC20 => uint256) private _erc20TotalReleased;
   mapping(IERC20 => mapping(address => uint256)) private _erc20Released;
 
-  uint256 private _style_token_id;
   address private _controller;
 
   modifier onlyController() {
@@ -57,18 +56,20 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
   }
 
   function initialize(
-    address controller_,
-    uint256 style_token_id_,
+    address controller,
     address[] memory payees_,
     uint256[] memory shares_
-  ) public payable initializer {
-    _controller = controller_;
-    _style_token_id = style_token_id_;
+  ) external payable initializer {
+    require(controller != address(0), 'controller mustnt be 0');
+    _controller = controller;
 
     uint256 len = payees_.length;
+    uint256 __totalShares = _totalShares;
     for (uint256 i = 0; i < len; i++) {
       _addPayee(payees_[i], shares_[i]);
+      __totalShares += shares_[i];
     }
+    _totalShares = __totalShares;
   }
 
   receive() external payable virtual {
@@ -134,7 +135,7 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
    * @dev Triggers a transfer to `account` of the amount of Ether they are owed, according to their percentage of the
    * total shares and their previous withdrawals.
    */
-  function release(address payable account) public virtual {
+  function release(address payable account) external virtual {
     require(_shares[account] > 0, 'PaymentSplitter: account has no shares');
 
     uint256 totalReceived = address(this).balance + totalReleased();
@@ -149,7 +150,7 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
     _released[account] += payment;
     _totalReleased += payment;
 
-    Address.sendValue(account, payment);
+    AddressUpgradeable.sendValue(account, payment);
     emit PaymentReleased(account, payment);
   }
 
@@ -158,7 +159,7 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
    * percentage of the total shares and their previous withdrawals. `token` must be the address of an IERC20
    * contract.
    */
-  function release(IERC20 token, address account) public virtual {
+  function release(IERC20 token, address account) external virtual {
     require(_shares[account] > 0, 'PaymentSplitter: account has no shares');
 
     uint256 totalReceived = token.balanceOf(address(this)) +
@@ -208,7 +209,6 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
 
     _payees.push(account);
     _shares[account] = shares_;
-    _totalShares = _totalShares + shares_;
     emit PayeeAdded(account, shares_);
   }
 
@@ -217,19 +217,19 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
    *      all pending payouts of _old can be withdrawn by _new.
    * @notice this pays out all Eth funds before replacing the old share holder
    */
-  function replacePayee(address _old, address _new) public onlyController {
-    uint256 oldShares = _shares[_old];
+  function replacePayee(address old, address _new) external onlyController {
+    uint256 oldShares = _shares[old];
     require(oldShares > 0, 'PaymentSplitter: old account has no shares');
     require(_new != address(0), 'PaymentSplitter: account is the zero address');
     require(_shares[_new] == 0, 'PaymentSplitter: account already has shares');
 
     uint256 idx = 0;
     while (idx < _payees.length) {
-      if (_payees[idx] == _old) {
+      if (_payees[idx] == old) {
         _payees[idx] = _new;
-        _shares[_old] = 0;
+        _shares[old] = 0;
         _shares[_new] = oldShares;
-        _released[_new] = _released[_old];
+        _released[_new] = _released[old];
         emit PayeeAdded(_new, oldShares);
         return;
       }

@@ -52,10 +52,11 @@ contract PaymentSplitterController is
   address private _owner;
 
   function initialize(address owner_, address[] memory paymentTokens_)
-    public
+    external
     initializer
   {
     __ReentrancyGuard_init();
+    require(owner_ != address(0), 'initial owner mustnt be 0');
     _owner = owner_;
     PAYMENT_TOKENS = paymentTokens_;
 
@@ -71,30 +72,27 @@ contract PaymentSplitterController is
     uint256 tokenId,
     address[] memory payees_,
     uint256[] memory shares_
-  ) public payable onlyOwner returns (address ps_address) {
+  ) external onlyOwner returns (address ps_address) {
     require(payees_.length == shares_.length, 'p and s len mismatch');
     require(payees_.length > 0, 'no payees');
     require(address(splitters[tokenId]) == address(0), 'ps exists');
 
+    // ReplaceablePaymentSplitter ps = new ReplaceablePaymentSplitter();
     ps_address = Clones.clone(_splitterTemplate);
     ReplaceablePaymentSplitter ps = ReplaceablePaymentSplitter(
       payable(ps_address)
     );
-    ps.initialize(address(this), tokenId, payees_, shares_);
-
-    // ReplaceablePaymentSplitter ps = new ReplaceablePaymentSplitter();
-    // ps.initialize(address(this), tokenId, payees_, shares_);
-
     splitters[tokenId] = ps;
-
     for (uint256 i = 0; i < payees_.length; i++) {
       splittersOfAccount[payees_[i]].push(ps_address);
     }
+    ps.initialize(address(this), payees_, shares_);
   }
 
   /**
    * @notice when splitters_ is [], we try to get *all* of your funds out
-   * to withdraw individual tokens, use the methods on the payment splitter directly.
+   * to withdraw individual tokens or in case some external call fails,
+   * one can still call the payment splitter's release methods directly.
    */
   function withdrawAll(address payable payee, address[] memory splitters_)
     external
@@ -127,13 +125,13 @@ contract PaymentSplitterController is
   }
 
   function replaceShareholder(
-    uint256 style_token_id,
+    uint256 styleTokenId,
     address payable from,
     address to
-  ) public onlyOwner nonReentrant {
-    ReplaceablePaymentSplitter ps = splitters[style_token_id];
+  ) external onlyOwner nonReentrant {
+    ReplaceablePaymentSplitter ps = splitters[styleTokenId];
+    splittersOfAccount[to].push(payable(ps));
     releaseAll(ps, from);
     ps.replacePayee(from, to);
-    splittersOfAccount[to].push(payable(ps));
   }
 }

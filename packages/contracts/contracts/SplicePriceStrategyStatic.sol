@@ -27,12 +27,12 @@ contract SplicePriceStrategyStatic is ISplicePriceStrategy {
   }
 
   function quote(
-    uint256 style_token_id,
+    uint256 styleTokenId,
     IERC721[] memory collections,
     uint256[] memory token_ids
   ) external view override returns (uint256) {
-    return mintPrice[style_token_id];
+    return mintPrice[styleTokenId];
   }
 
-  function onMinted(uint256 style_token_id) external {}
+  function onMinted(uint256 styleTokenId) external {}
 }

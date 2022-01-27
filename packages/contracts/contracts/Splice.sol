@@ -31,7 +31,7 @@ import '@openzeppelin/contracts-upgradeable/interfaces/IERC165Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import 'hardhat/console.sol';
+import '@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol';
 
 import './BytesLib.sol';
 import './ArrayLib.sol';
@@ -51,6 +51,7 @@ contract Splice is
 {
   using SafeMathUpgradeable for uint256;
   using AddressUpgradeable for address payable;
+  using StringsUpgradeable for uint32;
 
   /// @notice you didn't send sufficient fees along
   error InsufficientFees();
@@ -69,7 +70,7 @@ contract Splice is
   string private baseUri;
 
   //lookup table
-  //keccak(0xcollection + origin_token_id + style_token_id)  => token_id
+  //keccak(0xcollection + origin_tokenId + styleTokenId)  => tokenId
   mapping(bytes32 => uint64) public provenanceToTokenId;
 
   /**
@@ -87,9 +88,10 @@ contract Splice is
   event Withdrawn(address indexed user, uint256 amount);
   event Minted(
     bytes32 indexed origin_hash,
-    uint64 indexed token_id,
-    uint32 indexed style_token_id
+    uint64 indexed tokenId,
+    uint32 indexed styleTokenId
   );
+  event RoyaltiesUpdated(uint8 royalties);
 
   function initialize(
     string memory baseUri_,
@@ -154,7 +156,11 @@ contract Splice is
   }
 
   function withdrawERC20(IERC20 token) external onlyOwner {
-    token.transfer(platformBeneficiary, token.balanceOf(address(this)));
+    bool result = token.transfer(
+      platformBeneficiary,
+      token.balanceOf(address(this))
+    );
+    if (!result) revert('the transfer failed');
   }
 
   function withdrawERC721(IERC721 nftContract, uint256 tokenId)
@@ -167,12 +173,12 @@ contract Splice is
   function styleAndTokenByTokenId(uint256 tokenId)
     public
     pure
-    returns (uint32 style_token_id, uint32 token_token_id)
+    returns (uint32 styleTokenId, uint32 token_tokenId)
   {
     bytes memory tokenIdBytes = abi.encode(tokenId);
 
-    style_token_id = BytesLib.toUint32(tokenIdBytes, 24);
-    token_token_id = BytesLib.toUint32(tokenIdBytes, 28);
+    styleTokenId = BytesLib.toUint32(tokenIdBytes, 24);
+    token_tokenId = BytesLib.toUint32(tokenIdBytes, 28);
   }
 
   // for OpenSea
@@ -191,19 +197,19 @@ contract Splice is
       'ERC721Metadata: URI query for nonexistent token'
     );
 
-    (uint32 style_token_id, uint32 token_token_id) = styleAndTokenByTokenId(
+    (uint32 styleTokenId, uint32 token_tokenId) = styleAndTokenByTokenId(
       tokenId
     );
     //todo: our custom int -> string can be replaced with ozs String.sol
-    if (styleNFT.isFrozen(style_token_id)) {
-      StyleSettings memory settings = styleNFT.getSettings(style_token_id);
+    if (styleNFT.isFrozen(styleTokenId)) {
+      StyleSettings memory settings = styleNFT.getSettings(styleTokenId);
       return
         string(
           abi.encodePacked(
             'ipfs://',
             settings.styleCID,
             '/',
-            BytesLib.uintToString(token_token_id)
+            token_tokenId.toString()
           )
         );
     } else {
@@ -212,11 +218,11 @@ contract Splice is
   }
 
   function quote(
-    uint32 style_token_id,
+    uint32 styleTokenId,
     IERC721[] memory nfts,
-    uint256[] memory origin_token_ids
+    uint256[] memory originTokenIds
   ) external view returns (uint256 fee) {
-    return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
+    return styleNFT.quoteFee(styleTokenId, nfts, originTokenIds);
   }
 
   /**
@@ -225,6 +231,7 @@ contract Splice is
   function updateRoyalties(uint8 royaltyPercentage) external onlyOwner {
     require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
     ROYALTY_PERCENT = royaltyPercentage;
+    emit RoyaltiesUpdated(royaltyPercentage);
   }
 
   // https://eips.ethereum.org/EIPS/eip-2981
@@ -239,52 +246,52 @@ contract Splice is
     view
     returns (address receiver, uint256 royaltyAmount)
   {
-    (uint32 style_token_id, ) = styleAndTokenByTokenId(tokenId);
-    receiver = styleNFT.getSettings(style_token_id).paymentSplitter;
-    royaltyAmount = ROYALTY_PERCENT * salePrice.div(100);
+    (uint32 styleTokenId, ) = styleAndTokenByTokenId(tokenId);
+    receiver = styleNFT.getSettings(styleTokenId).paymentSplitter;
+    royaltyAmount = (ROYALTY_PERCENT * salePrice).div(100);
   }
 
   function mint(
-    IERC721[] memory origin_collections,
-    uint256[] memory origin_token_ids,
-    uint32 style_token_id,
+    IERC721[] memory originCollections,
+    uint256[] memory originTokenIds,
+    uint32 styleTokenId,
     bytes32[] memory allowlistProof,
-    bytes calldata input_params
-  ) external payable whenNotPaused nonReentrant returns (uint64 token_id) {
+    bytes calldata inputParams
+  ) external payable whenNotPaused nonReentrant returns (uint64 tokenId) {
     //CHECKS
     require(
       styleNFT.isMintable(
-        style_token_id,
-        origin_collections,
-        origin_token_ids,
+        styleTokenId,
+        originCollections,
+        originTokenIds,
         msg.sender
       )
     );
 
-    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
+    if (styleNFT.availableForPublicMinting(styleTokenId) == 0) {
       if (
         allowlistProof.length == 0 ||
         !styleNFT.verifyAllowlistEntryProof(
-          style_token_id,
+          styleTokenId,
           allowlistProof,
           msg.sender
         )
       ) {
         revert NotAllowedToMint('no reservations left or proof failed');
       } else {
-        styleNFT.decreaseAllowance(style_token_id, msg.sender);
+        styleNFT.decreaseAllowance(styleTokenId, msg.sender);
       }
     }
 
     uint256 fee = styleNFT.quoteFee(
-      style_token_id,
-      origin_collections,
-      origin_token_ids
+      styleTokenId,
+      originCollections,
+      originTokenIds
     );
     if (msg.value < fee) revert InsufficientFees();
 
     bytes32 _provenanceHash = keccak256(
-      abi.encodePacked(origin_collections, origin_token_ids, style_token_id)
+      abi.encodePacked(originCollections, originTokenIds, styleTokenId)
     );
 
     if (provenanceToTokenId[_provenanceHash] != 0x0) {
@@ -293,19 +300,19 @@ contract Splice is
 
     //EFFECTS
     AddressUpgradeable.sendValue(
-      payable(styleNFT.getSettings(style_token_id).paymentSplitter),
+      payable(styleNFT.getSettings(styleTokenId).paymentSplitter),
       fee
     );
 
-    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(style_token_id);
-    token_id = BytesLib.toUint64(
-      abi.encodePacked(style_token_id, nextStyleMintId),
+    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(styleTokenId);
+    tokenId = BytesLib.toUint64(
+      abi.encodePacked(styleTokenId, nextStyleMintId),
       0
     );
-    provenanceToTokenId[_provenanceHash] = token_id;
+    provenanceToTokenId[_provenanceHash] = tokenId;
 
     //INTERACTIONS
-    _safeMint(msg.sender, token_id);
+    _safeMint(msg.sender, tokenId);
 
     //if someone sent too much, we're sending it back to them
     uint256 surplus = msg.value.sub(fee);
@@ -315,10 +322,10 @@ contract Splice is
     }
 
     emit Minted(
-      keccak256(abi.encode(origin_collections, origin_token_ids)),
-      token_id,
-      style_token_id
+      keccak256(abi.encode(originCollections, originTokenIds)),
+      tokenId,
+      styleTokenId
     );
-    return token_id;
+    return tokenId;
   }
 }

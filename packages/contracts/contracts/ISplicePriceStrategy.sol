@@ -14,10 +14,10 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
  */
 interface ISplicePriceStrategy {
   function quote(
-    uint256 style_token_id,
+    uint256 styleTokenId,
     IERC721[] memory collections,
-    uint256[] memory token_ids
+    uint256[] memory tokenIds
   ) external view returns (uint256);
 
-  function onMinted(uint256 style_token_id) external;
+  function onMinted(uint256 styleTokenId) external;
 }

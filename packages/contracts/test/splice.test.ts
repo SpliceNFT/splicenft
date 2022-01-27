@@ -129,7 +129,7 @@ describe('Splice', function () {
     );
 
     expect(mintedEvent).to.not.be.undefined;
-    const combinedTokenId = (mintedEvent as MintedEvent).args.token_id;
+    const combinedTokenId = (mintedEvent as MintedEvent).args.tokenId;
 
     const { token_id, style_token_id } =
       tokenIdToStyleAndToken(combinedTokenId);
@@ -238,13 +238,13 @@ describe('Splice', function () {
     expect(mintedEvents).lengthOf(2);
 
     const firstEvent = mintedEvents[0];
-    const firstSpliceId = firstEvent.args.token_id;
+    const firstSpliceId = firstEvent.args.tokenId;
     const first = tokenIdToStyleAndToken(firstSpliceId);
     expect(first.style_token_id).to.equal(1);
     expect(first.token_id).to.equal(1);
 
     const secondEvent = mintedEvents[1];
-    const secondSpliceId = secondEvent.args.token_id;
+    const secondSpliceId = secondEvent.args.tokenId;
     const second = tokenIdToStyleAndToken(secondSpliceId);
     expect(second.style_token_id).to.equal(2);
     expect(second.token_id).to.equal(1);
@@ -269,8 +269,8 @@ describe('Splice', function () {
       tx.data
     );
 
-    expect(inputData.origin_collections[0]).to.equal(testNft.address);
-    expect(inputData.origin_token_ids[0]).to.equal(1);
+    expect(inputData.originCollections[0]).to.equal(testNft.address);
+    expect(inputData.originTokenIds[0]).to.equal(1);
   });
 
   it('disallows writing on or replacing the style nft', async function () {
