@@ -50,7 +50,6 @@ contract Splice is
   IERC2981Upgradeable
 {
   using SafeMathUpgradeable for uint256;
-  using AddressUpgradeable for address payable;
   using StringsUpgradeable for uint32;
 
   /// @notice you didn't send sufficient fees along
@@ -59,11 +58,10 @@ contract Splice is
   /// @notice The combination of origin and style already has been minted
   error ProvenanceAlreadyUsed();
 
-  /// @notice That token hasn't been minted (yet)
-  error SpliceNotFound();
-
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
+
+  error NotOwningOrigin();
 
   uint8 public ROYALTY_PERCENT;
 
@@ -148,14 +146,14 @@ contract Splice is
    * in case anything drops ETH/ERC20/ERC721 on us accidentally,
    * this will help us withdraw it.
    */
-  function withdrawEth() external onlyOwner {
+  function withdrawEth() external nonReentrant onlyOwner {
     AddressUpgradeable.sendValue(
       payable(platformBeneficiary),
       address(this).balance
     );
   }
 
-  function withdrawERC20(IERC20 token) external onlyOwner {
+  function withdrawERC20(IERC20 token) external nonReentrant onlyOwner {
     bool result = token.transfer(
       platformBeneficiary,
       token.balanceOf(address(this))
@@ -165,6 +163,7 @@ contract Splice is
 
   function withdrawERC721(IERC721 nftContract, uint256 tokenId)
     external
+    nonReentrant
     onlyOwner
   {
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
@@ -299,11 +298,6 @@ contract Splice is
     }
 
     //EFFECTS
-    AddressUpgradeable.sendValue(
-      payable(styleNFT.getSettings(styleTokenId).paymentSplitter),
-      fee
-    );
-
     uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(styleTokenId);
     tokenId = BytesLib.toUint64(
       abi.encodePacked(styleTokenId, nextStyleMintId),
@@ -312,20 +306,34 @@ contract Splice is
     provenanceToTokenId[_provenanceHash] = tokenId;
 
     //INTERACTIONS
-    _safeMint(msg.sender, tokenId);
-
-    //if someone sent too much, we're sending it back to them
-    uint256 surplus = msg.value.sub(fee);
-
-    if (surplus > 0) {
-      payable(msg.sender).sendValue(surplus);
+    for (uint256 i = 0; i < originCollections.length; i++) {
+      //https://github.com/crytic/building-secure-contracts/blob/master/development-guidelines/token_integration.md
+      address _owner = originCollections[i].ownerOf(originTokenIds[i]);
+      if (_owner != msg.sender || _owner == address(0)) {
+        revert NotOwningOrigin();
+      }
     }
+
+    AddressUpgradeable.sendValue(
+      payable(styleNFT.getSettings(styleTokenId).paymentSplitter),
+      fee
+    );
+
+    _safeMint(msg.sender, tokenId);
 
     emit Minted(
       keccak256(abi.encode(originCollections, originTokenIds)),
       tokenId,
       styleTokenId
     );
+
+    //if someone sent slightly too much, we're sending it back to them
+    uint256 surplus = msg.value.sub(fee);
+
+    if (surplus > 0 && surplus < 100_000_000 gwei) {
+      AddressUpgradeable.sendValue(payable(msg.sender), surplus);
+    }
+
     return tokenId;
   }
 }

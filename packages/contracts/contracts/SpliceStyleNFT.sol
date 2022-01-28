@@ -67,8 +67,6 @@ contract SpliceStyleNFT is
   /// @notice
   error StyleIsFrozen();
 
-  error NotOwningOrigin();
-
   error OriginNotAllowed(string reason);
 
   error BadMintInput(string reason);
@@ -151,12 +149,6 @@ contract SpliceStyleNFT is
       revert('can only be called once.');
     }
     spliceNFT = _spliceNFT;
-  }
-
-  function setRoyaltySplitterController(
-    PaymentSplitterController paymentSplitterController_
-  ) external onlyOwner {
-    paymentSplitterController = paymentSplitterController_;
   }
 
   function toggleStyleMinter(address minter, bool newValue) external onlyOwner {
@@ -396,8 +388,12 @@ contract SpliceStyleNFT is
       partnership.until > block.timestamp);
     uint8 partner_count = 0;
     for (uint256 i = 0; i < originCollections.length; i++) {
-      if (originCollections[i].ownerOf(originTokenIds[i]) != minter) {
-        revert NotOwningOrigin();
+      if (i > 0) {
+        if (
+          address(originCollections[i]) <= address(originCollections[i - 1])
+        ) {
+          revert BadMintInput('duplicate or unordered origin input');
+        }
       }
       if (partnershipIsActive) {
         if (

@@ -53,6 +53,8 @@ const config: HardhatUserConfig = {
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [process.env.DEPLOYER_PRIVATEKEY as string]
+      //https://hardhat.org/config/
+      //gasPrice: 100000000000
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
