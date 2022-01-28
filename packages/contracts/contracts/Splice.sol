@@ -196,7 +196,7 @@ contract Splice is
       'ERC721Metadata: URI query for nonexistent token'
     );
 
-    (uint32 styleTokenId, uint32 token_tokenId) = styleAndTokenByTokenId(
+    (uint32 styleTokenId, uint32 spliceTokenId) = styleAndTokenByTokenId(
       tokenId
     );
     //todo: our custom int -> string can be replaced with ozs String.sol
@@ -208,7 +208,7 @@ contract Splice is
             'ipfs://',
             settings.styleCID,
             '/',
-            token_tokenId.toString()
+            spliceTokenId.toString()
           )
         );
     } else {

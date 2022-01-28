@@ -193,7 +193,7 @@ export class Splice {
       throw new Error('no Mint event captured in minting transaction');
     }
     const { style_token_id: _style_token_id, token_id: style_token_token_id } =
-      Splice.tokenIdToStyleAndToken(mintedEvent.args.token_id);
+      Splice.tokenIdToStyleAndToken(mintedEvent.args.tokenId);
     return {
       transactionHash: result.transactionHash,
       provenance: {
@@ -204,7 +204,7 @@ export class Splice {
           }
         ],
 
-        splice_token_id: mintedEvent.args.token_id,
+        splice_token_id: mintedEvent.args.tokenId,
         style_token_id: _style_token_id,
         style_token_token_id
       }
@@ -229,7 +229,7 @@ export class Splice {
     if (mintedEvents.length === 0) return [];
     return mintedEvents.map((ev) => {
       const { style_token_id, token_id: style_token_token_id } =
-        Splice.tokenIdToStyleAndToken(ev.args.token_id);
+        Splice.tokenIdToStyleAndToken(ev.args.tokenId);
 
       return {
         origins: [
@@ -238,7 +238,7 @@ export class Splice {
             token_id: ethers.BigNumber.from(tokenId)
           }
         ],
-        splice_token_id: ev.args.token_id,
+        splice_token_id: ev.args.tokenId,
         style_token_id,
         style_token_token_id
       };
