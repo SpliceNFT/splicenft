@@ -31,7 +31,13 @@ if (process.env.NODE_ENV === 'development') {
 // Handle security and origin in production
 if (process.env.NODE_ENV === 'production') {
   app.use(morgan('combined'));
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: {
+        policy: 'cross-origin'
+      }
+    })
+  );
 }
 app.use(cors());
 
