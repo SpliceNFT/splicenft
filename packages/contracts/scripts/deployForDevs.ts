@@ -1,4 +1,5 @@
-import { ethers, upgrades, run } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
+import { SpliceStyleNFT } from '../typechain';
 
 const deployTestnetNFT = async (
   name: string,
@@ -57,19 +58,35 @@ const deployTestnetNFT = async (
   );
 
   // deploy splice infra
+  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
+  const spliceStyleNFT = (await upgrades.deployProxy(
+    SpliceStyleNFT,
+    []
+  )) as SpliceStyleNFT;
+  console.log('splice style nft:', spliceStyleNFT.address);
+
+  const PaymentSplitterFactory = await ethers.getContractFactory(
+    'PaymentSplitterController'
+  );
+
+  const paymentSplitterController = await upgrades.deployProxy(
+    PaymentSplitterFactory,
+    [spliceStyleNFT.address, []]
+  );
+
+  console.log(
+    'payment splitter controller:',
+    paymentSplitterController.address
+  );
+  await spliceStyleNFT.setPaymentSplitter(paymentSplitterController.address);
+
   const PriceStrategy = await ethers.getContractFactory(
     'SplicePriceStrategyStatic'
   );
-
-  const SpliceStyleNFT = await ethers.getContractFactory('SpliceStyleNFT');
-  const spliceStyleNFT = await upgrades.deployProxy(SpliceStyleNFT, []);
-
-  console.log('splice style nft:', spliceStyleNFT.address);
-
   const staticPriceStrategy = await PriceStrategy.deploy(
     spliceStyleNFT.address
   );
-  console.log('static price strategy instance:', staticPriceStrategy.address);
+  console.log('static price strategy:', staticPriceStrategy.address);
 
   const Splice = await ethers.getContractFactory('Splice');
   const splice = await upgrades.deployProxy(Splice, [
@@ -85,21 +102,21 @@ const deployTestnetNFT = async (
   await spliceStyleNFT.toggleStyleMinter(artistAccount.address, true);
   console.log('allowed style minter: ', artistAccount.address);
 
-  for await (const style of [
-    'ConfidenceInTheMission',
-    'ABeginningIsAVeryDelicateTime',
-    'District1618'
-  ]) {
-    await run('style:mint', {
-      styleNftAddress: spliceStyleNFT.address,
-      priceStrategyAddress: staticPriceStrategy.address,
-      accountIdx: '18',
-      directory: `../../renderers/${style}`,
-      mintPriceEth: '0.02',
-      cap: '200',
-      sale: 'true',
-      maxInputs: '1'
-    });
-    console.log(`deployed style ${style}`);
-  }
+  // for await (const style of [
+  //   'ConfidenceInTheMission',
+  //   'ABeginningIsAVeryDelicateTime',
+  //   'District1618'
+  // ]) {
+  //   await run('style:mint', {
+  //     style: spliceStyleNFT.address,
+  //     price: staticPriceStrategy.address,
+  //     accountIdx: '18',
+  //     directory: `../../renderers/${style}`,
+  //     mintPriceEth: '0.02',
+  //     cap: '200',
+  //     sale: 'true',
+  //     maxInputs: '1'
+  //   });
+  //   console.log(`deployed style ${style}`);
+  // }
 })();

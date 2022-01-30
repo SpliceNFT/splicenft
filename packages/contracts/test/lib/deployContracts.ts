@@ -1,6 +1,6 @@
 import { ethers, upgrades } from 'hardhat';
-
 import {
+  PaymentSplitterController,
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
@@ -9,7 +9,11 @@ import {
   TestnetNFT__factory
 } from '../../typechain';
 
-export async function deploySplice(): Promise<Splice> {
+export async function deploySplice(): Promise<{
+  splice: Splice;
+  styleNft: SpliceStyleNFT;
+  paymentSplitterController: PaymentSplitterController;
+}> {
   const SpliceFactory = (await ethers.getContractFactory(
     'Splice'
   )) as Splice__factory;
@@ -18,19 +22,29 @@ export async function deploySplice(): Promise<Splice> {
     'SpliceStyleNFT'
   );
 
-  const spliceStyleNFT = (await upgrades.deployProxy(
+  const styleNft = (await upgrades.deployProxy(
     SpliceStyleNFTFactory,
     []
   )) as SpliceStyleNFT;
+  const PaymentSplitterFactory = await ethers.getContractFactory(
+    'PaymentSplitterController'
+  );
+
+  const paymentSplitterController = (await upgrades.deployProxy(
+    PaymentSplitterFactory,
+    [styleNft.address, []]
+  )) as PaymentSplitterController;
+
+  await styleNft.setPaymentSplitter(paymentSplitterController.address);
 
   const splice = (await upgrades.deployProxy(SpliceFactory, [
     'http://localhost:5999/metadata/31337/',
-    spliceStyleNFT.address
+    styleNft.address
   ])) as Splice;
 
-  await spliceStyleNFT.setSplice(splice.address);
+  await styleNft.setSplice(splice.address);
 
-  return splice;
+  return { splice, styleNft, paymentSplitterController };
 }
 
 export async function deployStaticPriceStrategy(

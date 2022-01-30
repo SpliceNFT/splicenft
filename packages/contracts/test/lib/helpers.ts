@@ -28,6 +28,8 @@ interface MintStyleOptions {
   saleIsActive?: boolean;
   cid?: string;
   maxInputs?: number;
+  partner?: string;
+  artist?: string;
 }
 
 export async function mintTestnetNFT(
@@ -52,11 +54,21 @@ export async function mintStyle(
   priceStrategyAddress: string,
   options?: MintStyleOptions
 ): Promise<number> {
-  const { cap, priceInEth, saleIsActive, cid, maxInputs }: MintStyleOptions = {
+  const {
+    cap,
+    priceInEth,
+    saleIsActive,
+    cid,
+    maxInputs,
+    artist,
+    partner
+  }: MintStyleOptions = {
     cap: 100,
     priceInEth: '0.1',
     saleIsActive: true,
     maxInputs: 1,
+    artist: constants.AddressZero,
+    partner: constants.AddressZero,
     ...options
   };
 
@@ -68,7 +80,9 @@ export async function mintStyle(
       fakeCid,
       priceStrategyAddress,
       saleIsActive,
-      maxInputs
+      maxInputs,
+      artist,
+      partner
     )
   ).wait();
 

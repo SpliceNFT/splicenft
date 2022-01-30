@@ -12,8 +12,7 @@ import { ERC721 as ERC721Contract } from '../generated/Splice/ERC721';
 import {
   Minted,
   Splice as SpliceContract,
-  Transfer,
-  Withdrawn
+  Transfer
 } from '../generated/Splice/Splice';
 import {
   Minted as StyleMinted,
@@ -22,11 +21,11 @@ import {
 } from '../generated/SpliceStyleNFT/SpliceStyleNFT';
 
 export function handleMinted(event: Minted): void {
-  const tokenId = event.params.token_id.toString();
+  const tokenId = event.params.tokenId.toString();
   const splice = new Splice(tokenId);
 
   const spliceContract = SpliceContract.bind(event.address);
-  splice.metadata_url = spliceContract.tokenURI(event.params.token_id);
+  splice.metadata_url = spliceContract.tokenURI(event.params.tokenId);
 
   splice.owner = event.transaction.from;
   splice.origin_hash = event.params.origin_hash;
@@ -66,7 +65,7 @@ export function handleMinted(event: Minted): void {
       const ba = new ByteArray(96);
       ba.set(originAddresses[i], 0);
       ba.set(originTokenIds[i], 32);
-      ba.set(event.params.style_token_id, 64);
+      ba.set(event.params.styleTokenId, 64);
       const oHash = crypto.keccak256(ba).toHexString();
       const origin = new Origin(oHash);
       origin.collection = originAddresses[i];
@@ -79,7 +78,7 @@ export function handleMinted(event: Minted): void {
     splice.origins = origins;
   }
 
-  const style_id = event.params.style_token_id.toString();
+  const style_id = event.params.styleTokenId.toString();
   splice.style = style_id;
   const style = Style.load(style_id);
   if (style) {
@@ -101,10 +100,10 @@ export function handleTransfer(event: Transfer): void {
   splice.save();
 }
 
-export function handleWithdrawn(event: Withdrawn): void {}
+//export function handleWithdrawn(event: Withdrawn): void {}
 
 export function handleStyleMinted(event: StyleMinted): void {
-  const style_id = event.params.style_token_id.toString();
+  const style_id = event.params.styleTokenId.toString();
   let style = Style.load(style_id);
   if (!style) {
     style = new Style(style_id);
@@ -113,7 +112,7 @@ export function handleStyleMinted(event: StyleMinted): void {
   style.cap = event.params.cap.toU32();
   style.minted = 0;
   const styleContract = StyleNFTContract.bind(event.address);
-  style.metadata_url = styleContract.tokenURI(event.params.style_token_id);
+  style.metadata_url = styleContract.tokenURI(event.params.styleTokenId);
   //const settings = styleContract.getSettings(event.params.style_token_id);
   style.save();
 }

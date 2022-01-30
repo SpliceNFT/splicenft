@@ -25,7 +25,7 @@ export function renderSplice(styleCache: StyleCache) {
     if (!cache)
       return res.status(500).send(`network ${networkId} not supported`);
     try {
-      await Artwork(cache, tokenId, ImageCallback(res));
+      Artwork(cache, tokenId, ImageCallback(res));
     } catch (e: any) {
       console.error(`couldnt create image :( ${e.message}`);
       res.status(500).send(`couldnt create image :( ${e.message}`);

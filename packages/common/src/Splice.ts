@@ -28,8 +28,8 @@ export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
   4: {
     subgraph:
       'https://api.thegraph.com/subgraphs/name/elmariachi111/splicemultirinkeby',
-    address: '0xa456fDAE364892a1C389afA8FAA84AEa3E559221',
-    deployedAt: 9842904
+    address: '0x25A1c61A2501A82bf24C31F5CdE375F56B72C397',
+    deployedAt: 10082549
   }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   //1: '0x0'
@@ -193,7 +193,7 @@ export class Splice {
       throw new Error('no Mint event captured in minting transaction');
     }
     const { style_token_id: _style_token_id, token_id: style_token_token_id } =
-      Splice.tokenIdToStyleAndToken(mintedEvent.args.token_id);
+      Splice.tokenIdToStyleAndToken(mintedEvent.args.tokenId);
     return {
       transactionHash: result.transactionHash,
       provenance: {
@@ -204,7 +204,7 @@ export class Splice {
           }
         ],
 
-        splice_token_id: mintedEvent.args.token_id,
+        splice_token_id: mintedEvent.args.tokenId,
         style_token_id: _style_token_id,
         style_token_token_id
       }
@@ -229,7 +229,7 @@ export class Splice {
     if (mintedEvents.length === 0) return [];
     return mintedEvents.map((ev) => {
       const { style_token_id, token_id: style_token_token_id } =
-        Splice.tokenIdToStyleAndToken(ev.args.token_id);
+        Splice.tokenIdToStyleAndToken(ev.args.tokenId);
 
       return {
         origins: [
@@ -238,7 +238,7 @@ export class Splice {
             token_id: ethers.BigNumber.from(tokenId)
           }
         ],
-        splice_token_id: ev.args.token_id,
+        splice_token_id: ev.args.tokenId,
         style_token_id,
         style_token_token_id
       };
@@ -275,10 +275,10 @@ export class Splice {
     const { style_token_id, token_id: style_token_token_id } =
       Splice.tokenIdToStyleAndToken(spliceTokenId);
 
-    const origins = inputData.origin_collections.map(
+    const origins = inputData.originCollections.map(
       (oCol: string, i: number) => ({
         collection: oCol,
-        token_id: inputData.origin_token_ids[i]
+        token_id: inputData.originTokenIds[i]
       })
     );
     return {

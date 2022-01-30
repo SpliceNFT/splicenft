@@ -1,5 +1,5 @@
 export * from './Splice';
-export { Style } from './Style';
+export * from './Style';
 export * from './types/NFT';
 export * from './types/SpliceNFT';
 
@@ -19,11 +19,13 @@ import {
   ERC721,
   ERC721Enumerable,
   ERC721Enumerable__factory,
-  ERC721__factory
+  ERC721__factory,
+  ReplaceablePaymentSplitter,
+  ISplicePriceStrategy
 } from '@splicenft/contracts';
 import { providers, Signer } from 'ethers';
 
-export { ERC721 };
+export { ERC721, ReplaceablePaymentSplitter, ISplicePriceStrategy };
 export function erc721(
   provider: providers.Provider | Signer,
   address: string

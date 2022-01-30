@@ -8,7 +8,6 @@ import {
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
-  SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
 import { MintedEvent } from '../typechain/Splice';
@@ -44,18 +43,19 @@ describe('Splice', function () {
   });
 
   it('deploys nft, splice & creates a style', async function () {
-    splice = await deploySplice();
+    const { splice: _splice, styleNft: _styleNft } = await deploySplice();
+    splice = _splice;
     testNft = await deployTestnetNFT();
-    const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, signers[0]);
+    styleNFT = _styleNft.connect(signers[0]);
 
-    priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
+    priceStrategy = await deployStaticPriceStrategy(_styleNft.address);
 
     const styleMinterAddress = await _styleMinter.getAddress();
     await (await styleNFT.toggleStyleMinter(styleMinterAddress, true)).wait();
 
-    const _styleNft = styleNFT.connect(_styleMinter);
-    await mintStyle(_styleNft, priceStrategy.address, { saleIsActive: true });
+    await mintStyle(styleNFT.connect(_styleMinter), priceStrategy.address, {
+      saleIsActive: true
+    });
 
     await splice.setPlatformBeneficiary(
       await _platformBeneficiary.getAddress()
@@ -72,17 +72,18 @@ describe('Splice', function () {
   });
 
   it('reverts when youre not sending sufficient fees along', async function () {
-    const _splice = splice.connect(_user);
-
+    const nftTokenId = await mintTestnetNFT(testNft, _user);
     try {
       await (
-        await _splice.mint(
-          [testNft.address],
-          [1],
-          1,
-          [],
-          ethers.constants.HashZero
-        )
+        await splice
+          .connect(_user)
+          .mint(
+            [testNft.address],
+            [nftTokenId],
+            1,
+            [],
+            ethers.constants.HashZero
+          )
       ).wait();
       expect.fail('shouldnt work because no fees have been sent along');
     } catch (e: any) {
@@ -128,7 +129,7 @@ describe('Splice', function () {
     );
 
     expect(mintedEvent).to.not.be.undefined;
-    const combinedTokenId = (mintedEvent as MintedEvent).args.token_id;
+    const combinedTokenId = (mintedEvent as MintedEvent).args.tokenId;
 
     const { token_id, style_token_id } =
       tokenIdToStyleAndToken(combinedTokenId);
@@ -162,6 +163,17 @@ describe('Splice', function () {
     [style, token] = await splice.styleAndTokenByTokenId(somethingInBetween);
     expect(style).to.equal(0x2088);
     expect(token).to.equal(0x0915);
+  });
+
+  it('cannot mint when not owning the origin', async function () {
+    const token = await mintTestnetNFT(testNft, _user);
+
+    try {
+      await mintSplice(splice.connect(_styleMinter), testNft.address, token, 1);
+      expect.fail('mustnt be able to mint from origins that youre not owning');
+    } catch (e: any) {
+      expect(e.message).to.contain('NotOwningOrigin');
+    }
   });
 
   it('cannot mint another splice from the same origin and style', async function () {
@@ -237,13 +249,13 @@ describe('Splice', function () {
     expect(mintedEvents).lengthOf(2);
 
     const firstEvent = mintedEvents[0];
-    const firstSpliceId = firstEvent.args.token_id;
+    const firstSpliceId = firstEvent.args.tokenId;
     const first = tokenIdToStyleAndToken(firstSpliceId);
     expect(first.style_token_id).to.equal(1);
     expect(first.token_id).to.equal(1);
 
     const secondEvent = mintedEvents[1];
-    const secondSpliceId = secondEvent.args.token_id;
+    const secondSpliceId = secondEvent.args.tokenId;
     const second = tokenIdToStyleAndToken(secondSpliceId);
     expect(second.style_token_id).to.equal(2);
     expect(second.token_id).to.equal(1);
@@ -268,8 +280,8 @@ describe('Splice', function () {
       tx.data
     );
 
-    expect(inputData.origin_collections[0]).to.equal(testNft.address);
-    expect(inputData.origin_token_ids[0]).to.equal(1);
+    expect(inputData.originCollections[0]).to.equal(testNft.address);
+    expect(inputData.originTokenIds[0]).to.equal(1);
   });
 
   it('disallows writing on or replacing the style nft', async function () {
@@ -305,13 +317,8 @@ describe('Splice', function () {
     }
   });
 
-  it('reverts when trying to mint with too many inputs', async function () {
+  it('reverts when trying to mint with too many, equal or wrongly ordered inputs', async function () {
     const _userAddress = await _user.getAddress();
-
-    const anotherNFT1 = await deployTestnetNFT();
-    const anotherNFT2 = await deployTestnetNFT();
-    const testnetToken1 = await mintTestnetNFT(anotherNFT1, _user);
-    const testnetToken2 = await mintTestnetNFT(anotherNFT2, _user);
 
     const _styleNFT = styleNFT.connect(_styleMinter);
     const styleTokenId = await mintStyle(_styleNFT, priceStrategy.address, {
@@ -319,11 +326,28 @@ describe('Splice', function () {
       maxInputs: 2
     });
 
+    const anotherNFT1 = await deployTestnetNFT();
+    const anotherNFT2 = await deployTestnetNFT();
+
+    const _origins = [
+      {
+        nft: anotherNFT1,
+        token: await mintTestnetNFT(anotherNFT1, _user)
+      },
+      {
+        nft: anotherNFT2,
+        token: await mintTestnetNFT(anotherNFT2, _user)
+      }
+    ];
+    const origins = _origins.sort((o1, o2) =>
+      o1.nft.address < o2.nft.address ? -1 : 1
+    );
+
     expect(
       await _styleNFT.isMintable(
         styleTokenId,
-        [anotherNFT1.address, anotherNFT2.address],
-        [testnetToken1, testnetToken2],
+        origins.map((o) => o.nft.address),
+        origins.map((o) => o.token),
         _userAddress
       )
     ).to.be.true;
@@ -331,8 +355,8 @@ describe('Splice', function () {
     try {
       await _styleNFT.isMintable(
         styleTokenId,
-        [anotherNFT1.address, anotherNFT2.address, testNft.address],
-        [testnetToken1, testnetToken2, 1],
+        [origins[0].nft.address, origins[1].nft.address, testNft.address],
+        [origins[0].token, origins[1].token, 1],
         _userAddress
       );
       expect.fail('could mint with too many inputs');
@@ -345,6 +369,22 @@ describe('Splice', function () {
       expect.fail('could mint without any inputs');
     } catch (e: any) {
       expect(e.message).to.contain('inconsistent input lengths');
+    }
+
+    const badOrigins = _origins.sort((o1, o2) =>
+      o1.nft.address < o2.nft.address ? 1 : -1
+    );
+
+    try {
+      await _styleNFT.isMintable(
+        styleTokenId,
+        badOrigins.map((o) => o.nft.address),
+        badOrigins.map((o) => o.token),
+        _userAddress
+      );
+      expect.fail('must enforce that origins are ordered ascending');
+    } catch (e: any) {
+      expect(e.message).to.contain('duplicate or unordered origin input');
     }
   });
 
@@ -449,11 +489,20 @@ describe('Splice', function () {
   });
 
   it('lets the owner change the base url', async function () {
-    await splice.setBaseUri('http://foo.bar/');
+    await splice.setBaseUri('http://pum.uckl/');
     const oneAndOne =
       '0x0000000000000000000000000000000000000000000000000000000100000001';
     const mdUrl = await splice.tokenURI(oneAndOne);
-    expect(mdUrl).contains('foo.bar');
+    expect(mdUrl).contains('pum.uckl');
+  });
+
+  it('tokenURI requires a token to exist', async function () {
+    try {
+      const piUrl = await splice.tokenURI(31415296);
+      expect.fail('tokenURI must revert when queried with a non existent id');
+    } catch (e: any) {
+      expect(e.message).to.contain('URI query for nonexistent token');
+    }
   });
 
   it('withdraws ERC20 tokens that have been transferred to it', async function () {
@@ -557,20 +606,18 @@ describe('Splice', function () {
     const fee = await splice.quote(2, [testNft.address], [nftTokenId]);
 
     //sending 5 Eth along instead of required 0.2
-    const surplusFee = fee.add(ethers.utils.parseEther('5'));
+    const surplusFee = fee.add(ethers.utils.parseEther('0.099'));
 
-    await (
-      await _splice.mint(
-        [testNft.address],
-        [nftTokenId],
-        2,
-        [],
-        ethers.constants.HashZero,
-        {
-          value: surplusFee
-        }
-      )
-    ).wait();
+    await _splice.mint(
+      [testNft.address],
+      [nftTokenId],
+      2,
+      [],
+      ethers.constants.HashZero,
+      {
+        value: surplusFee
+      }
+    );
 
     const newBalance = await _user.getBalance();
     const diff = oldBalance.sub(newBalance);
@@ -578,4 +625,31 @@ describe('Splice', function () {
 
     expect(flEth).to.be.lt(0.2005);
   });
+
+  it('you cannot burn a splice or send it to address(0)', async function () {
+    //implicitly assuming that the _burn method is not callable
+    const token = await mintTestnetNFT(testNft, _user);
+    const spliceToken = await mintSplice(
+      splice.connect(_user),
+      testNft.address,
+      token,
+      1
+    );
+    try {
+      await splice
+        .connect(_user)
+        ['safeTransferFrom(address,address,uint256)'](
+          await _user.getAddress(),
+          ethers.constants.AddressZero,
+          spliceToken
+        );
+      expect.fail('mustnt be possible to transfer a splice to 0x0');
+    } catch (e: any) {
+      expect(e.message).to.contain('transfer to the zero address');
+    }
+  });
+
+  it.skip(
+    'doesnt allow minting on an ERC721 who responds with address(0) as owner'
+  );
 });

@@ -31,13 +31,13 @@ import '@openzeppelin/contracts-upgradeable/interfaces/IERC165Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/escrow/EscrowUpgradeable.sol';
-import 'hardhat/console.sol';
+import '@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol';
 
 import './BytesLib.sol';
 import './ArrayLib.sol';
 import './Structs.sol';
 import './SpliceStyleNFT.sol';
+import './ReplaceablePaymentSplitter.sol';
 
 /// @title Splice is a protocol to mint NFTs out of origin NFTs
 /// @author Stefan Adolf @elmariachi111
@@ -50,7 +50,7 @@ contract Splice is
   IERC2981Upgradeable
 {
   using SafeMathUpgradeable for uint256;
-  using AddressUpgradeable for address payable;
+  using StringsUpgradeable for uint32;
 
   /// @notice you didn't send sufficient fees along
   error InsufficientFees();
@@ -58,19 +58,17 @@ contract Splice is
   /// @notice The combination of origin and style already has been minted
   error ProvenanceAlreadyUsed();
 
-  /// @notice That token hasn't been minted (yet)
-  error SpliceNotFound();
-
   /// @notice only reserved mints are left or not on allowlist
   error NotAllowedToMint(string reason);
 
-  uint8 public ARTIST_SHARE;
+  error NotOwningOrigin();
+
   uint8 public ROYALTY_PERCENT;
 
   string private baseUri;
 
   //lookup table
-  //keccak(0xcollection + origin_token_id + style_token_id)  => token_id
+  //keccak(0xcollection + origin_tokenId + styleTokenId)  => tokenId
   mapping(bytes32 => uint64) public provenanceToTokenId;
 
   /**
@@ -83,21 +81,16 @@ contract Splice is
   /**
    * @notice the splice platform account, i.e. a Gnosis Safe / DAO Treasury etc.
    */
-  address payable public platformBeneficiary;
+  address public platformBeneficiary;
 
-  /**
-   * @dev an Escrow that keeps funds safe
-   * @dev check: https://medium.com/[at]ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
-   */
-  EscrowUpgradeable private feesEscrow;
-
-  event SharesChanged(uint8 percentage);
   event Withdrawn(address indexed user, uint256 amount);
   event Minted(
     bytes32 indexed origin_hash,
-    uint64 indexed token_id,
-    uint32 indexed style_token_id
+    uint64 indexed tokenId,
+    uint32 indexed styleTokenId
   );
+  event RoyaltiesUpdated(uint8 royalties);
+  event BeneficiaryChanged(address newBeneficiary);
 
   function initialize(
     string memory baseUri_,
@@ -107,16 +100,21 @@ contract Splice is
     __Ownable_init();
     __Pausable_init();
     __ReentrancyGuard_init();
-    ARTIST_SHARE = 85;
     ROYALTY_PERCENT = 10;
-    platformBeneficiary = payable(msg.sender);
-    feesEscrow = new EscrowUpgradeable();
-    feesEscrow.initialize();
+    platformBeneficiary = msg.sender;
     baseUri = baseUri_;
     styleNFT = initializedStyleNFT_;
   }
 
-  function setBaseUri(string memory newBaseUri) public onlyOwner {
+  function pause() external onlyOwner {
+    _pause();
+  }
+
+  function unpause() external onlyOwner {
+    _unpause();
+  }
+
+  function setBaseUri(string memory newBaseUri) external onlyOwner {
     baseUri = newBaseUri;
   }
 
@@ -125,9 +123,13 @@ contract Splice is
   }
 
   //todo: the platform benef. should be the only one to name a new beneficiary, not the owner.
-  function setPlatformBeneficiary(address payable newAddress) public onlyOwner {
+  function setPlatformBeneficiary(address payable newAddress)
+    external
+    onlyOwner
+  {
     require(address(0) != newAddress, 'must be a real address');
     platformBeneficiary = newAddress;
+    emit BeneficiaryChanged(newAddress);
   }
 
   function supportsInterface(bytes4 interfaceId)
@@ -146,42 +148,38 @@ contract Splice is
    * in case anything drops ETH/ERC20/ERC721 on us accidentally,
    * this will help us withdraw it.
    */
-  function withdrawEth() public onlyOwner {
-    platformBeneficiary.transfer(address(this).balance);
+  function withdrawEth() external nonReentrant onlyOwner {
+    AddressUpgradeable.sendValue(
+      payable(platformBeneficiary),
+      address(this).balance
+    );
   }
 
-  function withdrawERC20(IERC20 token) public onlyOwner {
-    token.transfer(platformBeneficiary, token.balanceOf(address(this)));
+  function withdrawERC20(IERC20 token) external nonReentrant onlyOwner {
+    bool result = token.transfer(
+      platformBeneficiary,
+      token.balanceOf(address(this))
+    );
+    if (!result) revert('the transfer failed');
   }
 
   function withdrawERC721(IERC721 nftContract, uint256 tokenId)
-    public
+    external
+    nonReentrant
     onlyOwner
   {
     nftContract.transferFrom(address(this), platformBeneficiary, tokenId);
   }
 
-  //todo: add more interfaces for royalties here.
-  //https://eips.ethereum.org/EIPS/eip-2981
-  // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
-
-  function pause() public onlyOwner {
-    _pause();
-  }
-
-  function unpause() public onlyOwner {
-    _unpause();
-  }
-
   function styleAndTokenByTokenId(uint256 tokenId)
     public
     pure
-    returns (uint32 style_token_id, uint32 token_token_id)
+    returns (uint32 styleTokenId, uint32 token_tokenId)
   {
     bytes memory tokenIdBytes = abi.encode(tokenId);
 
-    style_token_id = BytesLib.toUint32(tokenIdBytes, 24);
-    token_token_id = BytesLib.toUint32(tokenIdBytes, 28);
+    styleTokenId = BytesLib.toUint32(tokenIdBytes, 24);
+    token_tokenId = BytesLib.toUint32(tokenIdBytes, 28);
   }
 
   // for OpenSea
@@ -200,19 +198,18 @@ contract Splice is
       'ERC721Metadata: URI query for nonexistent token'
     );
 
-    (uint32 style_token_id, uint32 token_token_id) = styleAndTokenByTokenId(
+    (uint32 styleTokenId, uint32 spliceTokenId) = styleAndTokenByTokenId(
       tokenId
     );
-    //todo: our custom int -> string can be replaced with ozs String.sol
-    if (styleNFT.isFrozen(style_token_id)) {
-      StyleSettings memory settings = styleNFT.getSettings(style_token_id);
+    if (styleNFT.isFrozen(styleTokenId)) {
+      StyleSettings memory settings = styleNFT.getSettings(styleTokenId);
       return
         string(
           abi.encodePacked(
             'ipfs://',
             settings.styleCID,
             '/',
-            BytesLib.uintToString(token_token_id)
+            spliceTokenId.toString()
           )
         );
     } else {
@@ -220,137 +217,81 @@ contract Splice is
     }
   }
 
-  function updateArtistShare(uint8 share) public onlyOwner {
-    require(share > 75, 'we will never take more than 25%');
-    ARTIST_SHARE = share;
-    emit SharesChanged(share);
+  function quote(
+    uint32 styleTokenId,
+    IERC721[] memory nfts,
+    uint256[] memory originTokenIds
+  ) external view returns (uint256 fee) {
+    return styleNFT.quoteFee(styleTokenId, nfts, originTokenIds);
   }
 
-  function updateRoyalties(uint8 royaltyPercentage) public onlyOwner {
+  /**
+   * @notice this will only have an effect for new styles
+   */
+  function updateRoyalties(uint8 royaltyPercentage) external onlyOwner {
     require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
     ROYALTY_PERCENT = royaltyPercentage;
+    emit RoyaltiesUpdated(royaltyPercentage);
   }
 
   // https://eips.ethereum.org/EIPS/eip-2981
   // https://docs.openzeppelin.com/contracts/4.x/api/interfaces#IERC2981
   // https://forum.openzeppelin.com/t/how-do-eip-2891-royalties-work/17177
+  /**
+   * potentially (hopefully) called by marketplaces to find a target address where to send royalties
+   * @notice the returned address will be a payment splitting instance
+   */
   function royaltyInfo(uint256 tokenId, uint256 salePrice)
-    external
+    public
     view
     returns (address receiver, uint256 royaltyAmount)
   {
-    (uint32 style_token_id, ) = styleAndTokenByTokenId(tokenId);
-    receiver = styleNFT.ownerOf(style_token_id);
-    royaltyAmount = ROYALTY_PERCENT * salePrice.div(100);
-  }
-
-  function quote(
-    uint32 style_token_id,
-    IERC721[] memory nfts,
-    uint256[] memory origin_token_ids
-  ) public view returns (uint256 fee) {
-    return styleNFT.quoteFee(style_token_id, nfts, origin_token_ids);
-  }
-
-  function splitWithPartners(
-    address[] memory partnership_collections,
-    IERC721[] memory origin_collections
-  ) internal pure returns (bool) {
-    for (uint256 i = 0; i < origin_collections.length; i++) {
-      if (
-        ArrayLib.contains(
-          partnership_collections,
-          address(origin_collections[i])
-        )
-      ) {
-        return true;
-      }
-    }
-  }
-
-  //https://medium.com/@ethdapp/using-the-openzeppelin-escrow-library-6384f22caa99
-  function splitMintFee(
-    uint256 amount,
-    uint32 styleTokenId,
-    IERC721[] memory origin_collections
-  ) internal {
-    uint256 feeForArtist = ARTIST_SHARE * amount.div(100);
-    uint256 feeForPlatform = amount.sub(feeForArtist);
-
-    Partnership memory partnership = styleNFT.getPartnership(styleTokenId);
-    if (
-      partnership.collections.length > 0 && partnership.until > block.timestamp
-    ) {
-      if (splitWithPartners(partnership.collections, origin_collections)) {
-        uint256 feeForPartners = feeForPlatform.div(2);
-        feeForPlatform = feeForPartners;
-        feesEscrow.deposit{ value: feeForPartners }(partnership.beneficiary);
-      }
-    }
-
-    feesEscrow.deposit{ value: feeForArtist }(styleNFT.ownerOf(styleTokenId));
-    feesEscrow.deposit{ value: feeForPlatform }(platformBeneficiary);
-  }
-
-  function claimShares(address payable beneficiary)
-    external
-    nonReentrant
-    whenNotPaused
-  {
-    uint256 balance = escrowedBalanceOf(beneficiary);
-    feesEscrow.withdraw(beneficiary);
-    emit Withdrawn(msg.sender, balance);
-  }
-
-  function escrowedBalanceOf(address payee) public view returns (uint256) {
-    return feesEscrow.depositsOf(payee);
+    (uint32 styleTokenId, ) = styleAndTokenByTokenId(tokenId);
+    receiver = styleNFT.getSettings(styleTokenId).paymentSplitter;
+    royaltyAmount = (ROYALTY_PERCENT * salePrice).div(100);
   }
 
   function mint(
-    IERC721[] memory origin_collections,
-    uint256[] memory origin_token_ids,
-    uint32 style_token_id,
+    IERC721[] memory originCollections,
+    uint256[] memory originTokenIds,
+    uint32 styleTokenId,
     bytes32[] memory allowlistProof,
-    //stays in calldata and can be used to later prove aspects of the user facing inputs
-    bytes calldata input_params
-  ) public payable whenNotPaused nonReentrant returns (uint64 token_id) {
+    bytes calldata inputParams
+  ) external payable whenNotPaused nonReentrant returns (uint64 tokenId) {
     //CHECKS
-
     require(
       styleNFT.isMintable(
-        style_token_id,
-        origin_collections,
-        origin_token_ids,
+        styleTokenId,
+        originCollections,
+        originTokenIds,
         msg.sender
       )
     );
 
-    //todo if there's more than one mint request in one block the quoted fee might be lower
-    //than what the artist expects, (when using a bonded price strategy)
-    uint256 fee = quote(style_token_id, origin_collections, origin_token_ids);
-    if (msg.value < fee) revert InsufficientFees();
-
-    //if someone sent too much, we're sending it back to them
-    uint256 surplus = msg.value.sub(fee);
-
-    //CHECKS & EFFECTS
-    if (styleNFT.availableForPublicMinting(style_token_id) == 0) {
+    if (styleNFT.availableForPublicMinting(styleTokenId) == 0) {
       if (
         allowlistProof.length == 0 ||
         !styleNFT.verifyAllowlistEntryProof(
-          style_token_id,
+          styleTokenId,
           allowlistProof,
           msg.sender
         )
       ) {
         revert NotAllowedToMint('no reservations left or proof failed');
       } else {
-        styleNFT.decreaseAllowance(style_token_id, msg.sender);
+        styleNFT.decreaseAllowance(styleTokenId, msg.sender);
       }
     }
 
+    uint256 fee = styleNFT.quoteFee(
+      styleTokenId,
+      originCollections,
+      originTokenIds
+    );
+    if (msg.value < fee) revert InsufficientFees();
+
     bytes32 _provenanceHash = keccak256(
-      abi.encodePacked(origin_collections, origin_token_ids, style_token_id)
+      abi.encodePacked(originCollections, originTokenIds, styleTokenId)
     );
 
     if (provenanceToTokenId[_provenanceHash] != 0x0) {
@@ -358,28 +299,42 @@ contract Splice is
     }
 
     //EFFECTS
-    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(style_token_id);
-
-    token_id = BytesLib.toUint64(
-      abi.encodePacked(style_token_id, nextStyleMintId),
+    uint32 nextStyleMintId = styleNFT.incrementMintedPerStyle(styleTokenId);
+    tokenId = BytesLib.toUint64(
+      abi.encodePacked(styleTokenId, nextStyleMintId),
       0
     );
+    provenanceToTokenId[_provenanceHash] = tokenId;
 
-    provenanceToTokenId[_provenanceHash] = token_id;
-
-    //INTERACTIONS
-    splitMintFee(fee, style_token_id, origin_collections);
-    _safeMint(msg.sender, token_id);
-
-    if (surplus > 0) {
-      payable(msg.sender).sendValue(surplus);
+    //INTERACTIONS with external contracts
+    for (uint256 i = 0; i < originCollections.length; i++) {
+      //https://github.com/crytic/building-secure-contracts/blob/master/development-guidelines/token_integration.md
+      address _owner = originCollections[i].ownerOf(originTokenIds[i]);
+      if (_owner != msg.sender || _owner == address(0)) {
+        revert NotOwningOrigin();
+      }
     }
 
-    emit Minted(
-      keccak256(abi.encode(origin_collections, origin_token_ids)),
-      token_id,
-      style_token_id
+    AddressUpgradeable.sendValue(
+      payable(styleNFT.getSettings(styleTokenId).paymentSplitter),
+      fee
     );
-    return token_id;
+
+    _safeMint(msg.sender, tokenId);
+
+    emit Minted(
+      keccak256(abi.encode(originCollections, originTokenIds)),
+      tokenId,
+      styleTokenId
+    );
+
+    //if someone sent slightly too much, we're sending it back to them
+    uint256 surplus = msg.value.sub(fee);
+
+    if (surplus > 0 && surplus < 100_000_000 gwei) {
+      AddressUpgradeable.sendValue(payable(msg.sender), surplus);
+    }
+
+    return tokenId;
   }
 }

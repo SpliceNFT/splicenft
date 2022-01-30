@@ -1,31 +1,42 @@
 import '@nomiclabs/hardhat-ethers';
-import { Event } from 'ethers';
+import { Event, constants } from 'ethers';
 import fs from 'fs';
-import { task } from 'hardhat/config';
+import { task, types } from 'hardhat/config';
 import { File, NFTStorage } from 'nft.storage';
 
-//pnpx hardhat --network localhost style:mint --account-idx 18 --style-nft-address 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 --price-strategy-address 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0  ../../renderers/ConfidenceInTheMission 0.05 200 false 1
+//pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed  ../../renderers/ConfidenceInTheMission 0.05 200 1 false
+//pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC --partner 0x90F79bf6EB2c4f870365E785982E1f101E93b906 ../../renderers/TheGardenOfEarthlyDelights/ 0.1 50 1 false
+// pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC ../../renderers/TheGardenOfEarthlyDelights/ 0.2 50 1 true
 
 task('style:mint', 'mints a style')
-  .addParam('styleNftAddress')
-  .addParam('priceStrategyAddress')
+  .addParam('style', 'the style contract')
+  .addParam('price', 'the price contract')
   .addOptionalParam('accountIdx', '', '0')
+  .addOptionalParam('artist', 'the first owner')
+  .addOptionalParam('partner', 'a potential partner')
   .addPositionalParam('directory')
   .addPositionalParam('mintPriceEth')
   .addPositionalParam('cap')
-  .addPositionalParam('sale', 'is sale immediately active')
   .addPositionalParam('maxInputs', 'max collections allowed as input')
+  .addPositionalParam(
+    'sale',
+    'is sale immediately active',
+    false,
+    types.boolean
+  )
 
   .setAction(async (taskArgs, hre) => {
     const {
-      styleNftAddress,
-      priceStrategyAddress,
+      style: styleNftAddress,
+      price: priceStrategyAddress,
       accountIdx,
       directory,
       mintPriceEth,
       cap,
       sale,
-      maxInputs
+      maxInputs,
+      artist,
+      partner
     } = taskArgs;
 
     const signers = await hre.ethers.getSigners();
@@ -62,20 +73,14 @@ task('style:mint', 'mints a style')
     const cid = metadata.ipnft;
     console.log('uploaded metadata, cid: ', cid);
 
-    const mintArgs = {
-      _cap: cap,
-      _metadataCID: cid,
-      _priceStrategy: priceStrategyAddress,
-      _sale: sale
-    };
-    console.log('minting style NFT with:', mintArgs);
-
     const receipt = await styleNFT.mint(
       cap,
       cid,
       priceStrategyAddress,
-      sale === 'true' ? true : false,
-      maxInputs
+      sale,
+      maxInputs,
+      artist ?? constants.AddressZero,
+      partner ?? constants.AddressZero
     );
 
     const confirmation = await receipt.wait();

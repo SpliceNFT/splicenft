@@ -1,12 +1,11 @@
 import { expect } from 'chai';
-import { Signer, Event } from 'ethers';
+import { constants, Event, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { of as ipfsHashOf } from 'ipfs-only-hash';
 import {
   Splice,
   SplicePriceStrategyStatic,
   SpliceStyleNFT,
-  SpliceStyleNFT__factory,
   TestnetNFT
 } from '../typechain';
 import { TransferEvent } from '../typechain/ERC721';
@@ -36,10 +35,12 @@ describe('Style NFTs', function () {
   });
 
   it('deploys nft and splice', async function () {
-    splice = await deploySplice();
+    const { splice: _splice, styleNft: _styleNft } = await deploySplice();
+    splice = _splice;
+
     testNft = await deployTestnetNFT();
     const styleNftAddress = await splice.styleNFT();
-    styleNFT = SpliceStyleNFT__factory.connect(styleNftAddress, _owner);
+    styleNFT = _styleNft.connect(_owner);
     const _priceStrategy = await deployStaticPriceStrategy(styleNftAddress);
     priceStrategy = _priceStrategy.connect(_styleMinter);
   });
@@ -103,7 +104,9 @@ describe('Style NFTs', function () {
       fakeCid,
       priceStrategy.address,
       false,
-      1
+      1,
+      constants.AddressZero,
+      constants.AddressZero
     );
     const receipt = await tx.wait();
 
@@ -132,7 +135,9 @@ describe('Style NFTs', function () {
         fakeCid,
         priceStrategy.address,
         true,
-        1
+        1,
+        constants.AddressZero,
+        constants.AddressZero
       );
       expect.fail('only style minters should be allowed to mint');
     } catch (e: any) {
@@ -179,14 +184,7 @@ describe('Style NFTs', function () {
 
   it('signals to be ready for minting', async function () {
     const _styleNft = styleNFT.connect(_styleMinter);
-    try {
-      expect(await _styleNft.availableForPublicMinting(1)).to.equal(100);
-      expect.fail(
-        'availability shouldnt be signalled when sales is not active'
-      );
-    } catch (e: any) {
-      expect(e.message).to.contain('SaleNotActive');
-    }
+
     await _styleNft.toggleSaleIsActive(1, true);
     const isSaleActive = await _styleNft.isSaleActive(1);
     expect(isSaleActive).to.be.true;
@@ -248,26 +246,24 @@ describe('Style NFTs', function () {
     expect(ethers.utils.formatUnits(newFee, 'ether')).to.equal('0.3');
     const newOwner = signers[10];
     const newOwnerAddress = await newOwner.getAddress();
+    try {
+      await priceStrategy
+        .connect(newOwner)
+        .setPrice(styleTokenId, ethers.utils.parseEther('0.05'));
+      expect.fail('only the current owner must be able to set the minting fee');
+    } catch (e: any) {
+      expect(e.message).to.contain('not controlling the style');
+    }
+
     await _styleNft.transferFrom(
       styleMinterAddress,
       newOwnerAddress,
       styleTokenId
     );
-    try {
-      await priceStrategy.setPrice(
-        styleTokenId,
-        ethers.utils.parseEther('0.05')
-      );
-      expect.fail('only the current owner must be able to set the minting fee');
-    } catch (e: any) {
-      expect(e.message).to.contain('must own the style');
-    }
 
-    const _priceStrategy = priceStrategy.connect(newOwner);
-    await _priceStrategy.setPrice(
-      styleTokenId,
-      ethers.utils.parseEther('0.77')
-    );
+    await priceStrategy
+      .connect(newOwner)
+      .setPrice(styleTokenId, ethers.utils.parseEther('0.77'));
 
     const newFee2 = await _styleNft.quoteFee(
       styleTokenId,

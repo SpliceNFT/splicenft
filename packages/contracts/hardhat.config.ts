@@ -16,7 +16,15 @@ import 'solidity-coverage';
 import './tasks/activateSale';
 import './tasks/upgrades';
 import './tasks/mintStyle';
-import './tasks/mint';
+import './tasks/enablePartnership';
+import './tasks/toggleStyleMinter';
+
+import './tasks/deploy/1_deployStyle';
+import './tasks/deploy/2_deployPaymentSplitter';
+import './tasks/deploy/3_bindPayments';
+import './tasks/deploy/4_deployPriceStrategy';
+import './tasks/deploy/5_deploySplice';
+import './tasks/deploy/6_bindSpliceStyle';
 
 import { config as dotenv } from 'dotenv-flow';
 dotenv();
@@ -45,6 +53,8 @@ const config: HardhatUserConfig = {
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [process.env.DEPLOYER_PRIVATEKEY as string]
+      //https://hardhat.org/config/
+      //gasPrice: 100000000000
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,

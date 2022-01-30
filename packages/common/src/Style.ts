@@ -1,12 +1,40 @@
-import { SpliceStyleNFT as StyleNFTContract } from '@splicenft/contracts';
+import {
+  ISplicePriceStrategy,
+  ISplicePriceStrategy__factory,
+  ReplaceablePaymentSplitter,
+  ReplaceablePaymentSplitter__factory,
+  SpliceStyleNFT as StyleNFTContract
+} from '@splicenft/contracts';
 import axios from 'axios';
 import { BigNumber, ethers } from 'ethers';
 import { ipfsGW } from './img';
 import { Renderer } from './types/Renderers';
 import { StyleNFT } from './types/SpliceNFT';
 
+export type StyleStats = {
+  settings: {
+    mintedOfStyle: number;
+    cap: number;
+    priceStrategy: string;
+    salesIsActive: boolean;
+    isFrozen: boolean;
+    styleCID: string;
+    maxInputs: number;
+    paymentSplitter: string;
+  };
+  owner: string;
+  active: boolean;
+  reserved: number;
+};
+
+export type Partnership = {
+  collections: string[];
+  exclusive: boolean;
+  until: Date;
+};
+
 export class Style {
-  private contract: StyleNFTContract | null = null;
+  private contract: StyleNFTContract;
   protected _tokenId: number;
   protected metadataUrl: string;
   protected metadata: StyleNFT;
@@ -18,17 +46,18 @@ export class Style {
     return this._tokenId;
   }
 
-  constructor(tokenId: number, metadataUrl: string, metadata: StyleNFT) {
+  constructor(
+    contract: StyleNFTContract,
+    tokenId: number,
+    metadataUrl: string,
+    metadata: StyleNFT
+  ) {
+    this.contract = contract;
     this._tokenId = tokenId;
     this.metadata = metadata;
     this.metadataUrl = metadataUrl;
     this.code = null;
     this.renderer = null;
-  }
-
-  bind(contract: StyleNFTContract | null) {
-    this.contract = contract;
-    return this;
   }
 
   getMetadata() {
@@ -53,20 +82,86 @@ export class Style {
   }
 
   async isActive(): Promise<boolean> {
-    return this.contract
-      ? this.contract.isSaleActive(this.tokenId)
-      : Promise.resolve(false);
+    return this.contract.isSaleActive(this.tokenId);
+  }
+
+  async toggleActive(newVal: boolean): Promise<unknown> {
+    return this.contract.toggleSaleIsActive(this.tokenId, newVal);
+  }
+
+  async ownerOf(): Promise<string> {
+    return this.contract.ownerOf(this.tokenId);
+  }
+
+  async isMintable(
+    collections: string[],
+    tokenIds: ethers.BigNumberish[],
+    minter: string
+  ): Promise<boolean | string> {
+    try {
+      const result = await this.contract.isMintable(
+        this.tokenId,
+        collections,
+        tokenIds,
+        minter
+      );
+      return result;
+    } catch (e: any) {
+      console.log(e);
+      if (!e.data?.message) return e.message;
+
+      const xRegx = /^.*'(.*)'$/gi;
+      const res = xRegx.exec(e.data.message);
+      console.log(res);
+      return res ? res[1] : 'foo';
+    }
+  }
+
+  async partnership(): Promise<Partnership | undefined> {
+    const partnership = await this.contract.getPartnership(this.tokenId);
+    if (partnership.collections.length === 0) return undefined;
+
+    return {
+      collections: partnership.collections,
+      exclusive: partnership.exclusive,
+      until: new Date(partnership.until.toNumber())
+    };
+  }
+  async stats(): Promise<StyleStats> {
+    const settings = await this.contract.getSettings(this.tokenId);
+    const active = await this.contract.isSaleActive(this.tokenId);
+    const owner = await this.contract.ownerOf(this.tokenId);
+    const reserved = await this.contract.reservedTokens(this.tokenId);
+
+    return {
+      settings,
+      active,
+      owner,
+      reserved
+    };
+  }
+
+  async paymentSplitter(): Promise<ReplaceablePaymentSplitter> {
+    const settings = await this.contract.getSettings(this.tokenId);
+    return ReplaceablePaymentSplitter__factory.connect(
+      settings.paymentSplitter,
+      this.contract.provider
+    );
+  }
+
+  async priceStrategy(): Promise<ISplicePriceStrategy> {
+    const settings = await this.contract.getSettings(this.tokenId);
+    return ISplicePriceStrategy__factory.connect(
+      settings.priceStrategy,
+      this.contract.provider
+    );
   }
 
   async quote(
     collection: string,
     tokenId: ethers.BigNumberish
   ): Promise<BigNumber> {
-    const _quote = this.contract
-      ? this.contract.quoteFee(this.tokenId, [collection], [tokenId])
-      : Promise.resolve(ethers.BigNumber.from(0));
-
-    return _quote;
+    return this.contract.quoteFee(this.tokenId, [collection], [tokenId]);
   }
 
   async getCodeFromBackend(
