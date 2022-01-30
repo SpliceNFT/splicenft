@@ -275,10 +275,10 @@ export class Splice {
     const { style_token_id, token_id: style_token_token_id } =
       Splice.tokenIdToStyleAndToken(spliceTokenId);
 
-    const origins = inputData.origin_collections.map(
+    const origins = inputData.originCollections.map(
       (oCol: string, i: number) => ({
         collection: oCol,
-        token_id: inputData.origin_token_ids[i]
+        token_id: inputData.originTokenIds[i]
       })
     );
     return {

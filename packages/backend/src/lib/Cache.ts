@@ -2,8 +2,8 @@ import {
   promises as fs,
   existsSync,
   createReadStream,
-  createWriteStream,
-  ReadStream
+  ReadStream,
+  createWriteStream
 } from 'fs';
 import { dirname } from 'path';
 import { Readable } from 'stream';
@@ -45,9 +45,11 @@ export async function store(key: string, payload: any): Promise<void> {
   }
 
   if (payload instanceof Readable) {
+    console.debug(`cache: writing stream ${key}`);
     const writeable = createWriteStream(location);
     payload.pipe(writeable);
   } else if (payload instanceof Buffer) {
+    console.debug(`cache: writing buffer ${key} (${payload.length})`);
     return fs.writeFile(location, payload);
   } else if (typeof payload === 'string') {
     return fs.writeFile(location, payload as string, { encoding: 'utf-8' });

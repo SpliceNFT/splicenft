@@ -22,7 +22,6 @@ export default function (
         p5.randomSeed(drawProps.randomness);
       }
     };
-
     p5.draw = function () {
       try {
         renderer({
@@ -31,9 +30,8 @@ export default function (
           colors: drawProps.colors
         });
 
-        //setTimeout(() => {
+        //https://github.com/tmpvar/node-canvas/blob/master/Readme.md
         callback(null, p5.canvas.createPNGStream());
-        //}, 250);
       } catch (e) {
         callback(e, null);
       }
