@@ -197,12 +197,12 @@ contract SpliceStyleNFT is
    */
   function quoteFee(
     uint32 styleTokenId,
-    IERC721[] memory nfts,
+    IERC721[] memory originCollections,
     uint256[] memory originTokenIds
   ) public view returns (uint256 fee) {
     fee = styleSettings[styleTokenId].priceStrategy.quote(
       styleTokenId,
-      nfts,
+      originCollections,
       originTokenIds
     );
   }
@@ -257,9 +257,6 @@ contract SpliceStyleNFT is
     view
     returns (uint32)
   {
-    if (!isSaleActive(styleTokenId)) {
-      revert SaleNotActive(styleTokenId);
-    }
     return
       styleSettings[styleTokenId].cap -
       styleSettings[styleTokenId].mintedOfStyle -
@@ -276,7 +273,7 @@ contract SpliceStyleNFT is
     uint32 styleTokenId,
     bytes32[] memory allowlistProof,
     address requestor
-  ) public view returns (bool) {
+  ) external view returns (bool) {
     return
       MerkleProofUpgradeable.verify(
         allowlistProof,
@@ -290,7 +287,7 @@ contract SpliceStyleNFT is
    * @dev called by Splice to decrement the allowance for requestor
    */
   function decreaseAllowance(uint32 styleTokenId, address requestor)
-    public
+    external
     nonReentrant
     onlySplice
   {
@@ -307,9 +304,7 @@ contract SpliceStyleNFT is
     }
     // EFFECTS
     allowlists[styleTokenId].numReserved -= 1;
-    mintsAlreadyAllowed[styleTokenId][requestor] =
-      mintsAlreadyAllowed[styleTokenId][requestor] +
-      1;
+    mintsAlreadyAllowed[styleTokenId][requestor] += 1;
   }
 
   /**
@@ -406,6 +401,7 @@ contract SpliceStyleNFT is
         }
       }
     }
+
     if (partnershipIsActive) {
       //this saves a very slight amount of gas compared to &&
       if (partnership.exclusive) {

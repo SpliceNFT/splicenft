@@ -33,7 +33,12 @@ import './SpliceStyleNFT.sol';
  * changed. Cannot extend PaymentSplitter because its members are private.
  */
 contract ReplaceablePaymentSplitter is Context, Initializable {
-  event PayeeAdded(address account, uint256 shares);
+  event PayeeAdded(address indexed account, uint256 shares);
+  event PayeeReplaced(
+    address indexed old,
+    address indexed new_,
+    uint256 shares
+  );
   event PaymentReleased(address to, uint256 amount);
   event ERC20PaymentReleased(IERC20 indexed token, address to, uint256 amount);
   event PaymentReceived(address from, uint256 amount);
@@ -213,24 +218,30 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
   }
 
   /**
-   * @dev the _new payee will receive splits at the same rate as _old did before
+   * @dev the new_ payee will receive splits at the same rate as _old did before
    *      all pending payouts of _old can be withdrawn by _new.
    * @notice this pays out all Eth funds before replacing the old share holder
    */
-  function replacePayee(address old, address _new) external onlyController {
+  function replacePayee(address old, address new_) external onlyController {
     uint256 oldShares = _shares[old];
     require(oldShares > 0, 'PaymentSplitter: old account has no shares');
-    require(_new != address(0), 'PaymentSplitter: account is the zero address');
-    require(_shares[_new] == 0, 'PaymentSplitter: account already has shares');
+    require(
+      new_ != address(0),
+      'PaymentSplitter: new account is the zero address'
+    );
+    require(
+      _shares[new_] == 0,
+      'PaymentSplitter: new account already has shares'
+    );
 
     uint256 idx = 0;
     while (idx < _payees.length) {
       if (_payees[idx] == old) {
-        _payees[idx] = _new;
+        _payees[idx] = new_;
         _shares[old] = 0;
-        _shares[_new] = oldShares;
-        _released[_new] = _released[old];
-        emit PayeeAdded(_new, oldShares);
+        _shares[new_] = oldShares;
+        _released[new_] = _released[old];
+        emit PayeeReplaced(old, new_, oldShares);
         return;
       }
       idx++;

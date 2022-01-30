@@ -90,6 +90,7 @@ contract Splice is
     uint32 indexed styleTokenId
   );
   event RoyaltiesUpdated(uint8 royalties);
+  event BeneficiaryChanged(address newBeneficiary);
 
   function initialize(
     string memory baseUri_,
@@ -128,6 +129,7 @@ contract Splice is
   {
     require(address(0) != newAddress, 'must be a real address');
     platformBeneficiary = newAddress;
+    emit BeneficiaryChanged(newAddress);
   }
 
   function supportsInterface(bytes4 interfaceId)
@@ -199,7 +201,6 @@ contract Splice is
     (uint32 styleTokenId, uint32 spliceTokenId) = styleAndTokenByTokenId(
       tokenId
     );
-    //todo: our custom int -> string can be replaced with ozs String.sol
     if (styleNFT.isFrozen(styleTokenId)) {
       StyleSettings memory settings = styleNFT.getSettings(styleTokenId);
       return
@@ -225,7 +226,7 @@ contract Splice is
   }
 
   /**
-   * @notice this won't change royalties for everyone. It will only have effect for new styles
+   * @notice this will only have an effect for new styles
    */
   function updateRoyalties(uint8 royaltyPercentage) external onlyOwner {
     require(royaltyPercentage <= 10, 'royalties must never exceed 10%');
@@ -305,7 +306,7 @@ contract Splice is
     );
     provenanceToTokenId[_provenanceHash] = tokenId;
 
-    //INTERACTIONS
+    //INTERACTIONS with external contracts
     for (uint256 i = 0; i < originCollections.length; i++) {
       //https://github.com/crytic/building-secure-contracts/blob/master/development-guidelines/token_integration.md
       address _owner = originCollections[i].ownerOf(originTokenIds[i]);

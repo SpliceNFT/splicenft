@@ -184,14 +184,7 @@ describe('Style NFTs', function () {
 
   it('signals to be ready for minting', async function () {
     const _styleNft = styleNFT.connect(_styleMinter);
-    try {
-      expect(await _styleNft.availableForPublicMinting(1)).to.equal(100);
-      expect.fail(
-        'availability shouldnt be signalled when sales is not active'
-      );
-    } catch (e: any) {
-      expect(e.message).to.contain('SaleNotActive');
-    }
+
     await _styleNft.toggleSaleIsActive(1, true);
     const isSaleActive = await _styleNft.isSaleActive(1);
     expect(isSaleActive).to.be.true;
