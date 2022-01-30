@@ -30,8 +30,8 @@ export const Footer = () => {
       explorerRoot = 'etherscan.io';
       break;
     default:
-      explorerRoot = `${CHAINS[chainId]}.etherscan.io`;
-      openseaLink = 'https://testnets.opensea.io/collection/splice-v4';
+      explorerRoot = `//${CHAINS[chainId]}.etherscan.io`;
+      openseaLink = 'https://testnets.opensea.io/collection/splice-v5';
       break;
   }
 
@@ -119,7 +119,7 @@ export const Footer = () => {
                 <Text isTruncated>
                   Splice contract:
                   <Link
-                    href={`https://${explorerRoot}/address/${splice.address}`}
+                    href={`${explorerRoot}/address/${splice.address}`}
                     isExternal
                   >
                     {splice.address}
@@ -129,7 +129,7 @@ export const Footer = () => {
 
               {openseaLink && (
                 <Link href={openseaLink} isExternal>
-                  OpenSea: Splice V4
+                  OpenSea: Splice V5
                 </Link>
               )}
             </>

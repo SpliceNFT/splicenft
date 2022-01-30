@@ -34,8 +34,8 @@ export async function fetchMetadataFromUrl(
         responseType: 'json'
       });
       return res.data;
+    } else {
+      throw new Error(`couldnt load metadata from url ${tokenUrl}`);
     }
-
-    throw new Error('couldnt load metadata from url ');
   }
 }
