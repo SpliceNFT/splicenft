@@ -1,5 +1,31 @@
 [
   {
+    "inputs": [],
+    "name": "InsufficientFees",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "name": "NotAllowedToMint",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotOwningOrigin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ProvenanceAlreadyUsed",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -53,6 +79,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newBeneficiary",
+        "type": "address"
+      }
+    ],
+    "name": "BeneficiaryChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "bytes32",
         "name": "origin_hash",
@@ -61,13 +100,13 @@
       {
         "indexed": true,
         "internalType": "uint64",
-        "name": "token_id",
+        "name": "tokenId",
         "type": "uint64"
       },
       {
         "indexed": true,
         "internalType": "uint32",
-        "name": "style_token_id",
+        "name": "styleTokenId",
         "type": "uint32"
       }
     ],
@@ -112,11 +151,11 @@
       {
         "indexed": false,
         "internalType": "uint8",
-        "name": "percentage",
+        "name": "royalties",
         "type": "uint8"
       }
     ],
-    "name": "SharesChanged",
+    "name": "RoyaltiesUpdated",
     "type": "event"
   },
   {
@@ -178,7 +217,7 @@
   },
   {
     "inputs": [],
-    "name": "ARTIST_SHARE",
+    "name": "ROYALTY_PERCENT",
     "outputs": [
       {
         "internalType": "uint8",
@@ -262,18 +301,13 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "name_",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "symbol_",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
         "name": "baseUri_",
         "type": "string"
+      },
+      {
+        "internalType": "contract SpliceStyleNFT",
+        "name": "initializedStyleNFT_",
+        "type": "address"
       }
     ],
     "name": "initialize",
@@ -308,18 +342,18 @@
   {
     "inputs": [
       {
-        "internalType": "contract IERC721",
-        "name": "origin_collection",
-        "type": "address"
+        "internalType": "contract IERC721[]",
+        "name": "originCollections",
+        "type": "address[]"
       },
       {
-        "internalType": "uint256",
-        "name": "origin_token_id",
-        "type": "uint256"
+        "internalType": "uint256[]",
+        "name": "originTokenIds",
+        "type": "uint256[]"
       },
       {
         "internalType": "uint32",
-        "name": "style_token_id",
+        "name": "styleTokenId",
         "type": "uint32"
       },
       {
@@ -329,7 +363,7 @@
       },
       {
         "internalType": "bytes",
-        "name": "input_params",
+        "name": "inputParams",
         "type": "bytes"
       }
     ],
@@ -337,7 +371,7 @@
     "outputs": [
       {
         "internalType": "uint64",
-        "name": "token_id",
+        "name": "tokenId",
         "type": "uint64"
       }
     ],
@@ -414,41 +448,12 @@
     "name": "platformBeneficiary",
     "outputs": [
       {
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "nft",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "origin_token_id",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "style_token_id",
-        "type": "uint32"
-      }
-    ],
-    "name": "provenanceHash",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -473,14 +478,19 @@
   {
     "inputs": [
       {
-        "internalType": "contract IERC721",
-        "name": "nft",
-        "type": "address"
+        "internalType": "uint32",
+        "name": "styleTokenId",
+        "type": "uint32"
       },
       {
-        "internalType": "uint32",
-        "name": "style_token_id",
-        "type": "uint32"
+        "internalType": "contract IERC721[]",
+        "name": "nfts",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "originTokenIds",
+        "type": "uint256[]"
       }
     ],
     "name": "quote",
@@ -499,6 +509,35 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "salePrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "royaltyInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "royaltyAmount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -599,38 +638,6 @@
   {
     "inputs": [
       {
-        "internalType": "contract SpliceStyleNFT",
-        "name": "_styleNFT",
-        "type": "address"
-      }
-    ],
-    "name": "setStyleNFT",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "payee",
-        "type": "address"
-      }
-    ],
-    "name": "shareBalanceOf",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -640,12 +647,12 @@
     "outputs": [
       {
         "internalType": "uint32",
-        "name": "style_token_id",
+        "name": "styleTokenId",
         "type": "uint32"
       },
       {
         "internalType": "uint32",
-        "name": "token_token_id",
+        "name": "token_tokenId",
         "type": "uint32"
       }
     ],
@@ -763,11 +770,11 @@
     "inputs": [
       {
         "internalType": "uint8",
-        "name": "share",
+        "name": "royaltyPercentage",
         "type": "uint8"
       }
     ],
-    "name": "updateArtistShare",
+    "name": "updateRoyalties",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -805,7 +812,7 @@
   },
   {
     "inputs": [],
-    "name": "withdrawShares",
+    "name": "withdrawEth",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

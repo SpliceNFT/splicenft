@@ -10,9 +10,9 @@ dataSources:
     name: SpliceStyleNFT
     network: rinkeby
     source:
-      address: "0x1Fd8FAF8E5449d4ACf5a8D6c248934E5e18dc39E"
+      address: "0x8f80d1183CD983B01B0C9AC6777cC732Ec9800de"
       abi: SpliceStyleNFT
-      startBlock: 9842904
+      startBlock: 10083155
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -35,9 +35,9 @@ dataSources:
     name: Splice
     network: rinkeby
     source:
-      address: "0xa456fDAE364892a1C389afA8FAA84AEa3E559221"
+      address: "0x25A1c61A2501A82bf24C31F5CdE375F56B72C397"
       abi: Splice
-      startBlock: 9842904
+      startBlock: 10083209
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -45,7 +45,7 @@ dataSources:
       entities:
         - Minted
         - Transfer
-        - Withdrawn
+        #- Withdrawn
         # - Approval
         # - ApprovalForAll
         # - OwnershipTransferred
@@ -65,8 +65,8 @@ dataSources:
           handler: handleMinted
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-        - event: Withdrawn(indexed address,uint256)
-          handler: handleWithdrawn
+        # - event: Withdrawn(indexed address,uint256)
+        #   handler: handleWithdrawn
         # - event: Approval(indexed address,indexed address,indexed uint256)
         #   handler: handleApproval
         # - event: ApprovalForAll(indexed address,indexed address,bool)

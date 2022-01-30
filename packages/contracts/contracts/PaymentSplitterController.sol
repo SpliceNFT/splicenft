@@ -47,7 +47,7 @@ contract PaymentSplitterController is
   address private _owner;
 
   function initialize(address owner_, address[] memory paymentTokens_)
-    external
+    public
     initializer
   {
     __ReentrancyGuard_init();
