@@ -5,6 +5,7 @@ import {
   NormalizedCacheObject
 } from '@apollo/client';
 import {
+  ActiveStyle,
   CHAINS,
   FallbackIndexer,
   NFTIndexer,
@@ -112,20 +113,26 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [library, chainId]);
 
   useEffect(() => {
-    if (!chainId || !splice) return;
+    if (!chainId) return;
 
     (async () => {
-      const styleNFTContract = await splice.getStyleNFT();
-
       const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${
         chainId === 1 ? 4 : chainId
       }`;
 
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
-        const _styles = styleRes.map(
-          (r) => new Style(styleNFTContract, r.style_token_id, url, r.metadata)
-        );
+        const styleNFTContract = splice ? await splice.getStyleNFT() : null;
+        const _styles = styleRes.map((r) => {
+          if (styleNFTContract)
+            return new ActiveStyle(
+              styleNFTContract,
+              r.style_token_id,
+              url,
+              r.metadata
+            );
+          else return new Style(r.style_token_id, url, r.metadata);
+        });
         setStyles(_styles);
       } catch (e: any) {
         console.error("couldn't load styles", e.message);

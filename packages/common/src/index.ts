@@ -14,6 +14,8 @@ export { Backend } from './indexers/Backend';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
 export * as Transfer from './types/TransferObjects';
+export * from './types/Styles';
+
 export { RGB, Histogram, rgbToHex } from '@splicenft/colors';
 import {
   ERC721,

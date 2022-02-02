@@ -8,33 +8,11 @@ import {
 import axios from 'axios';
 import { BigNumber, ethers } from 'ethers';
 import { ipfsGW } from './img';
-import { Renderer } from './types/Renderers';
 import { StyleNFT } from './types/SpliceNFT';
-
-export type StyleStats = {
-  settings: {
-    mintedOfStyle: number;
-    cap: number;
-    priceStrategy: string;
-    salesIsActive: boolean;
-    isFrozen: boolean;
-    styleCID: string;
-    maxInputs: number;
-    paymentSplitter: string;
-  };
-  owner: string;
-  active: boolean;
-  reserved: number;
-};
-
-export type Partnership = {
-  collections: string[];
-  exclusive: boolean;
-  until: Date;
-};
+import { Partnership, StyleStats } from './types/Styles';
+import { Renderer } from './types/Renderers';
 
 export class Style {
-  private contract: StyleNFTContract;
   protected _tokenId: number;
   protected metadataUrl: string;
   protected metadata: StyleNFT;
@@ -46,13 +24,7 @@ export class Style {
     return this._tokenId;
   }
 
-  constructor(
-    contract: StyleNFTContract,
-    tokenId: number,
-    metadataUrl: string,
-    metadata: StyleNFT
-  ) {
-    this.contract = contract;
+  constructor(tokenId: number, metadataUrl: string, metadata: StyleNFT) {
     this._tokenId = tokenId;
     this.metadata = metadata;
     this.metadataUrl = metadataUrl;
@@ -69,7 +41,7 @@ export class Style {
   }
 
   getCollectionAddress() {
-    return this.contract ? this.contract.address : ethers.constants.AddressZero;
+    return ethers.constants.AddressZero;
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -82,15 +54,89 @@ export class Style {
   }
 
   async isActive(): Promise<boolean> {
-    return this.contract.isSaleActive(this.tokenId);
+    return false;
   }
 
   async toggleActive(newVal: boolean): Promise<unknown> {
-    return this.contract.toggleSaleIsActive(this.tokenId, newVal);
+    return;
   }
 
   async ownerOf(): Promise<string> {
-    return this.contract.ownerOf(this.tokenId);
+    return ethers.constants.AddressZero;
+  }
+
+  async isMintable(
+    collections: string[],
+    tokenIds: ethers.BigNumberish[],
+    minter: string
+  ): Promise<boolean | string> {
+    return false;
+  }
+
+  async partnership(): Promise<Partnership | undefined> {
+    return undefined;
+  }
+  async stats(): Promise<StyleStats> {
+    throw 'unmanaged style';
+  }
+
+  async paymentSplitter(): Promise<ReplaceablePaymentSplitter> {
+    throw 'unmanaged style';
+  }
+
+  async priceStrategy(): Promise<ISplicePriceStrategy> {
+    throw 'unmanaged style';
+  }
+
+  async quote(
+    collection: string,
+    tokenId: ethers.BigNumberish
+  ): Promise<BigNumber> {
+    throw 'unmanaged style';
+  }
+
+  async getCodeFromBackend(
+    baseUrl: string,
+    networkId: string | number
+  ): Promise<string> {
+    if (this.code) return this.code;
+    const url = `${baseUrl}/styles/${networkId}/${this._tokenId}`;
+
+    const styleMetadata = await (await axios.get(url)).data;
+    //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
+    this.code = styleMetadata.code;
+    return styleMetadata.code;
+  }
+
+  async getCode(): Promise<string> {
+    if (this.code) return this.code;
+    //todo: deprecated
+    const codeLocation = this.metadata.code || this.metadata.properties.code;
+    const gwUrl = ipfsGW(codeLocation);
+    console.debug(`fetching code for ${this.tokenId} at ${gwUrl}`);
+
+    const code = await (await axios.get(gwUrl)).data;
+    console.debug(`code for ${this.tokenId} fetched`);
+    this.code = code;
+    return code;
+  }
+}
+
+export class ActiveStyle extends Style {
+  private contract: StyleNFTContract;
+
+  constructor(
+    contract: StyleNFTContract,
+    tokenId: number,
+    metadataUrl: string,
+    metadata: StyleNFT
+  ) {
+    super(tokenId, metadataUrl, metadata);
+    this.contract = contract;
+  }
+
+  getCollectionAddress() {
+    return this.contract.address;
   }
 
   async isMintable(
@@ -162,31 +208,5 @@ export class Style {
     tokenId: ethers.BigNumberish
   ): Promise<BigNumber> {
     return this.contract.quoteFee(this.tokenId, [collection], [tokenId]);
-  }
-
-  async getCodeFromBackend(
-    baseUrl: string,
-    networkId: string | number
-  ): Promise<string> {
-    if (this.code) return this.code;
-    const url = `${baseUrl}/styles/${networkId}/${this._tokenId}`;
-
-    const styleMetadata = await (await axios.get(url)).data;
-    //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
-    this.code = styleMetadata.code;
-    return styleMetadata.code;
-  }
-
-  async getCode(): Promise<string> {
-    if (this.code) return this.code;
-    //todo: deprecated
-    const codeLocation = this.metadata.code || this.metadata.properties.code;
-    const gwUrl = ipfsGW(codeLocation);
-    console.debug(`fetching code for ${this.tokenId} at ${gwUrl}`);
-
-    const code = await (await axios.get(gwUrl)).data;
-    console.debug(`code for ${this.tokenId} fetched`);
-    this.code = code;
-    return code;
   }
 }

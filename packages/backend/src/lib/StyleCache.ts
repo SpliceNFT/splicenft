@@ -1,4 +1,4 @@
-import { ipfsGW, Style, StyleNFT } from '@splicenft/common';
+import { ActiveStyle, ipfsGW, Style, StyleNFT } from '@splicenft/common';
 import axios from 'axios';
 import { getSplice } from './SpliceContracts';
 import * as Cache from './Cache';
@@ -56,7 +56,7 @@ export class StyleMetadataCache {
           }
         );
 
-        const style = new Style(
+        const style = new ActiveStyle(
           styleNFTContract,
           parseInt(tokenId),
           metadataUrl,
