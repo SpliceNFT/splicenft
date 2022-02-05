@@ -322,7 +322,7 @@ const StyleActions = (props: {
   );
 };
 
-export const StyleDetailPage = () => {
+const StyleDetailPage = () => {
   const { style_id: styleId } = useParams<{ style_id: string }>();
 
   const { account } = useWeb3React();
@@ -391,3 +391,5 @@ export const StyleDetailPage = () => {
     </Container>
   );
 };
+
+export default StyleDetailPage;

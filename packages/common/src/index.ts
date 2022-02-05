@@ -4,7 +4,13 @@ export * from './types/NFT';
 export * from './types/SpliceNFT';
 
 export { default as getProvider } from './provider';
-export { resolveImage, ipfsGW, isIpfsLocation, getIpfsPath } from './img';
+export {
+  resolveImage,
+  ipfsGW,
+  isIpfsLocation,
+  getIpfsPath,
+  dataUriToBlob
+} from './img';
 export { CHAINS, ChainOpt } from './types/Chains';
 export * from './types/Renderers';
 export { NFTIndexer } from './indexers/NFTIndexer';

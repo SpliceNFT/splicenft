@@ -220,7 +220,6 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
   /**
    * @dev the new_ payee will receive splits at the same rate as _old did before
    *      all pending payouts of _old can be withdrawn by _new.
-   * @notice this pays out all Eth funds before replacing the old share holder
    */
   function replacePayee(address old, address new_) external onlyController {
     uint256 oldShares = _shares[old];

@@ -11,7 +11,6 @@ import { Footer } from './components/molecules/Footer';
 import Header from './components/molecules/Header';
 import { SubFooter } from './components/molecules/SubFooter';
 import { AboutPage } from './components/pages/About';
-import { CreatePage } from './components/pages/Create';
 import { StylesOverviewPage } from './components/pages/StylesOverview';
 import { MyAssetsPage } from './components/pages/MyAssets';
 import { MySplicesPage } from './components/pages/MySplices';
@@ -19,11 +18,15 @@ import { NFTPage } from './components/pages/NFTPage';
 import { RoadmapPage } from './components/pages/Roadmap';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
-import { StyleDetailPage } from './components/pages/StyleDetailPage';
 
 function getLibrary(provider: any) {
   return new providers.Web3Provider(provider);
 }
+
+const CreatePage = React.lazy(() => import('./components/pages/Create'));
+const StyleDetailPage = React.lazy(
+  () => import('./components/pages/StyleDetailPage')
+);
 
 function App() {
   return (
@@ -45,10 +48,14 @@ function App() {
                 <MyAssetsPage />
               </Route>
               <Route path="/create">
-                <CreatePage />
+                <React.Suspense fallback={<></>}>
+                  <CreatePage />
+                </React.Suspense>
               </Route>
               <Route path="/style/:style_id">
-                <StyleDetailPage />
+                <React.Suspense fallback={<></>}>
+                  <StyleDetailPage />
+                </React.Suspense>
               </Route>
               <Route path="/styles">
                 <StylesOverviewPage />

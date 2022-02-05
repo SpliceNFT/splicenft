@@ -43,3 +43,13 @@ export const getIpfsPath = (url: string): string => {
   const matches = url.matchAll(IPFS_LOCATION_REGEX);
   return matches.next().value[1];
 };
+
+export const dataUriToBlob = (dataUri: string): Blob => {
+  const mime = dataUri.split(',')[0].split(':')[1].split(';')[0];
+  const binary = atob(dataUri.split(',')[1]);
+  const arr = [];
+  for (let i = 0; i < binary.length; i++) {
+    arr.push(binary.charCodeAt(i));
+  }
+  return new Blob([new Uint8Array(arr)], { type: mime });
+};

@@ -6,14 +6,16 @@ import Render from '../lib/render';
 import { StyleCache } from '../lib/StyleCache';
 
 const GRAYSCALE_COLORS: RGB[] = [
-  [20, 30, 40],
-  [80, 80, 80],
-  [100, 100, 100],
-  [150, 150, 150],
-  [175, 175, 175],
-  [200, 200, 200],
+  [20, 20, 20],
+  [125, 125, 125],
+  [250, 250, 250],
   [220, 220, 220],
-  [250, 250, 250]
+  [200, 200, 200],
+  [170, 170, 170],
+  [80, 80, 80],
+  [150, 150, 150],
+  [40, 40, 40],
+  [100, 100, 100]
 ];
 
 export function renderSplice(styleCache: StyleCache) {
