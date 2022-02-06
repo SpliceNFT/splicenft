@@ -24,7 +24,6 @@ export type SpliceNFT = NFTMetaData & {
  * metadata structure of Splice Style NFTs
  */
 export type StyleNFT = NFTMetaData & {
-  properties: Record<string, never>;
   code: string;
   splice: {
     creator_name?: string;

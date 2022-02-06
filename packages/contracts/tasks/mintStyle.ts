@@ -3,6 +3,7 @@ import { Event, constants } from 'ethers';
 import fs from 'fs';
 import { task, types } from 'hardhat/config';
 import { File, NFTStorage } from 'nft.storage';
+import inquirer from 'inquirer';
 
 //pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed  ../../renderers/ConfidenceInTheMission 0.05 200 1 false
 //pnpx hardhat --network localhost style:mint --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 --price 0x68B1D87F95878fE05B998F19b66F4baba5De1aed --artist 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC --partner 0x90F79bf6EB2c4f870365E785982E1f101E93b906 ../../renderers/TheGardenOfEarthlyDelights/ 0.1 50 1 false
@@ -51,18 +52,30 @@ task('style:mint', 'mints a style')
     const styleMetadata = JSON.parse(
       await fs.promises.readFile(`${directory}/metadata.json`, 'utf-8')
     );
-    const code = await fs.promises.readFile(`${directory}/code.js`);
+    const codefile = fs.existsSync(`${directory}/code.min.js`)
+      ? 'code.min.js'
+      : 'code.js';
+
+    const code = await fs.promises.readFile(`${directory}/${codefile}`);
     const previewImg = await fs.promises.readFile(`${directory}/preview.png`);
 
-    const _metadata = { ...styleMetadata };
+    const _metadata = {
+      ...styleMetadata,
+      image: new File([previewImg], 'preview.png', {
+        type: 'image/png'
+      }),
+      code: new File([code], 'code.js', {
+        type: 'application/javascript'
+      })
+    };
+    console.log(_metadata);
 
-    _metadata.image = new File([previewImg], 'preview.png', {
-      type: 'image/png'
+    const confirmUpload = await inquirer.prompt({
+      type: 'confirm',
+      name: 'confirmed',
+      message: 'upload this to nft.storage?'
     });
-
-    _metadata.code = new File([code], 'code.js', {
-      type: 'application/javascript'
-    });
+    if (!confirmUpload.confirmed) return;
 
     const nftStorageClient = new NFTStorage({
       token: process.env.NFTSTORAGE_APIKEY as string
@@ -72,6 +85,26 @@ task('style:mint', 'mints a style')
 
     const cid = metadata.ipnft;
     console.log('uploaded metadata, cid: ', cid);
+
+    const mintOptions = {
+      cap,
+      cid,
+      priceStrategyAddress,
+      sale,
+      maxInputs,
+      artist: artist ?? constants.AddressZero,
+      partner: partner ?? constants.AddressZero
+    };
+
+    console.log(JSON.stringify(mintOptions, null, 2));
+
+    const confirmMint = await inquirer.prompt({
+      type: 'confirm',
+      name: 'confirmed',
+      message: `mint this on ${styleNftAddress}?`
+    });
+    if (!confirmMint.confirmed) return;
+    console.log('start minting');
 
     const receipt = await styleNFT.mint(
       cap,

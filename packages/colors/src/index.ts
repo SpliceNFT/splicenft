@@ -94,5 +94,6 @@ export {
   readImage
 } from './node/LoadImage';
 export { Histogram, HistogramEntry } from './types/Histogram';
+export { GRAYSCALE_HISTOGRAM } from './grayscale';
 export { RGB, RGBA } from './types/RGB';
 export { palette };

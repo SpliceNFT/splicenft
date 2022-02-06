@@ -110,9 +110,7 @@ export class Style {
 
   async getCode(): Promise<string> {
     if (this.code) return this.code;
-    //todo: deprecated
-    const codeLocation = this.metadata.code || this.metadata.properties.code;
-    const gwUrl = ipfsGW(codeLocation);
+    const gwUrl = ipfsGW(this.metadata.code);
     console.debug(`fetching code for ${this.tokenId} at ${gwUrl}`);
 
     const code = await (await axios.get(gwUrl)).data;
@@ -153,13 +151,11 @@ export class ActiveStyle extends Style {
       );
       return result;
     } catch (e: any) {
-      console.log(e);
       if (!e.data?.message) return e.message;
 
       const xRegx = /^.*'(.*)'$/gi;
       const res = xRegx.exec(e.data.message);
-      console.log(res);
-      return res ? res[1] : 'foo';
+      return res ? res[1] : 'Unknown error occurred during isMintable query';
     }
   }
 
@@ -173,6 +169,7 @@ export class ActiveStyle extends Style {
       until: new Date(partnership.until.toNumber())
     };
   }
+
   async stats(): Promise<StyleStats> {
     const settings = await this.contract.getSettings(this.tokenId);
     const active = await this.contract.isSaleActive(this.tokenId);

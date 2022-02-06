@@ -4,19 +4,7 @@ import Artwork from '../lib/Artwork';
 import ImageCallback from '../lib/ImageCallback';
 import Render from '../lib/render';
 import { StyleCache } from '../lib/StyleCache';
-
-const GRAYSCALE_COLORS: RGB[] = [
-  [20, 20, 20],
-  [125, 125, 125],
-  [250, 250, 250],
-  [220, 220, 220],
-  [200, 200, 200],
-  [170, 170, 170],
-  [80, 80, 80],
-  [150, 150, 150],
-  [40, 40, 40],
-  [100, 100, 100]
-];
+import { GRAYSCALE_HISTOGRAM } from '@splicenft/colors';
 
 export function renderSplice(styleCache: StyleCache) {
   return async (req: Request, res: Response) => {
@@ -54,12 +42,12 @@ export function generic(styleCache: StyleCache) {
 
     try {
       Render(
-        renderer,
         {
-          colors: GRAYSCALE_COLORS,
           dim: { w: 1500, h: 500 },
+          colors: GRAYSCALE_HISTOGRAM,
           randomness: 1
         },
+        renderer,
         ImageCallback(res)
       );
     } catch (e) {

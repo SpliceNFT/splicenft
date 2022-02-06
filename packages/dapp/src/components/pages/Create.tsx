@@ -6,38 +6,20 @@ import {
   Link,
   Spacer,
   Text,
-  Textarea
+  Textarea,
+  useToast
 } from '@chakra-ui/react';
-import { Histogram, RGB, rgbToHex } from '@splicenft/colors';
+import { GRAYSCALE_HISTOGRAM, Histogram } from '@splicenft/colors';
 import { dataUriToBlob } from '@splicenft/common';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
+import { minify } from 'terser';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 import { NFTChooser } from '../organisms/NFTChooser';
-import { minify } from 'terser';
-
-const GRAYSCALE_COLORS: RGB[] = [
-  [20, 20, 20],
-  [125, 125, 125],
-  [250, 250, 250],
-  [220, 220, 220],
-  [200, 200, 200],
-  [170, 170, 170],
-  [80, 80, 80],
-  [150, 150, 150],
-  [40, 40, 40],
-  [100, 100, 100]
-];
-
-const GRAYSCALE_HISTOGRAM: Histogram = GRAYSCALE_COLORS.map((rgb: RGB) => ({
-  rgb,
-  hex: `#${rgbToHex(rgb)}`,
-  freq: 0.1
-}));
 
 const CreatePage = () => {
   const [code, setCode] = useState<string>();
@@ -48,6 +30,7 @@ const CreatePage = () => {
   const [preview, setPreview] = useState<string>();
 
   const codeRef = useRef<HTMLTextAreaElement>(null);
+  const toast = useToast();
 
   const updateCode = () => {
     const $el: HTMLTextAreaElement = document.getElementById(
@@ -70,18 +53,25 @@ const CreatePage = () => {
   };
 
   const terse = async (_code: string) => {
-    const tersed = await minify(_code, {
-      compress: {
-        dead_code: true,
-        evaluate: false,
-        unused: false
+    try {
+      const tersed = await minify(_code, {
+        compress: {
+          dead_code: true,
+          evaluate: false,
+          unused: false
+        }
+      });
+      if (codeRef.current) {
+        codeRef.current.value = tersed.code || _code;
       }
-    });
-    console.log(tersed.code);
-    if (codeRef.current) {
-      codeRef.current.value = tersed.code || _code;
+      setCode(tersed.code);
+    } catch (e: any) {
+      toast({
+        status: 'warning',
+        title: 'error when tersing',
+        description: e.message
+      });
     }
-    setCode(tersed.code);
   };
 
   return (
@@ -131,16 +121,26 @@ const CreatePage = () => {
       <Flex my={4} justify="space-between">
         <Button
           disabled={!!origin}
-          onClick={() => setRandomness(Math.floor(1_000_000 * Math.random()))}
+          onClick={(e) => {
+            e.preventDefault();
+            setRandomness(Math.floor(1_000_000 * Math.random()));
+          }}
+          title={`${randomness}`}
         >
-          Randomize {randomness}
+          randomize
         </Button>
 
         <Button disabled={!preview} onClick={download}>
-          Download
+          download
         </Button>
-        <Button onClick={() => terse(code as string)} disabled={!code}>
-          terse
+        <Button
+          onClick={(e) => {
+            e.preventDefault();
+            terse(code as string);
+          }}
+          disabled={!code}
+        >
+          terse code
         </Button>
         <Button
           onClick={updateCode}

@@ -25,12 +25,12 @@ export default async function Artwork(
   const renderer = await style.getRenderer();
 
   Render(
-    renderer,
     {
-      colors: spliceMetadata.splice.colors.map((c) => c.rgb),
       dim: { w: 1500, h: 500 },
+      colors: spliceMetadata.splice.colors,
       randomness: spliceMetadata.splice.randomness
     },
+    renderer,
     (err: any | null, stream: Readable) => {
       if (!err) {
         //https://stackoverflow.com/questions/19553837/node-js-piping-the-same-readable-stream-into-multiple-writable-targets
