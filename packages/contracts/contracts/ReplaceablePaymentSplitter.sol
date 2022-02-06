@@ -28,7 +28,7 @@ import '@openzeppelin/contracts/proxy/Clones.sol';
 import './SpliceStyleNFT.sol';
 
 /**
- * this is an initializeable PaymentSplitter with an additional replace function to
+ * @notice this is an initializeable OZ PaymentSplitter with an additional replace function to
  * update the payees when the owner of the underlying royalty bearing asset has
  * changed. Cannot extend PaymentSplitter because its members are private.
  */
@@ -218,7 +218,7 @@ contract ReplaceablePaymentSplitter is Context, Initializable {
   }
 
   /**
-   * @dev the new_ payee will receive splits at the same rate as _old did before
+   * @dev the new_ payee will receive splits at the same rate as _old did before.
    *      all pending payouts of _old can be withdrawn by _new.
    */
   function replacePayee(address old, address new_) external onlyController {
