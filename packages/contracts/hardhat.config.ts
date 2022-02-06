@@ -44,13 +44,13 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: {
-        initialIndex: 0,
-        mnemonic: process.env.DEPLOYER_MNEMONIC as string
-      }
-    },
+    // mainnet: {
+    //   url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+    //   accounts: {
+    //     initialIndex: 0,
+    //     mnemonic: process.env.DEPLOYER_MNEMONIC as string
+    //   }
+    // },
     // hardhat: {
     //   gas: 12000000,
     //   blockGasLimit: 0x1fffffffffffff,
