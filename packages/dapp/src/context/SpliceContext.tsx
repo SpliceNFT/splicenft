@@ -123,15 +123,18 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
         const styleNFTContract = splice ? await splice.getStyleNFT() : null;
+
         const _styles = styleRes.map((r) => {
-          if (styleNFTContract)
+          if (styleNFTContract) {
             return new ActiveStyle(
               styleNFTContract,
               r.style_token_id,
               url,
               r.metadata
             );
-          else return new Style(r.style_token_id, url, r.metadata);
+          } else {
+            return new Style(r.style_token_id, url, r.metadata);
+          }
         });
         setStyles(_styles);
       } catch (e: any) {

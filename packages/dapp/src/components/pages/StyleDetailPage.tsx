@@ -198,12 +198,16 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
   useEffect(() => {
     if (!web3) return;
     (async () => {
-      const _splitter = await style.paymentSplitter();
-      setSplitter(_splitter.connect(web3));
+      try {
+        const _splitter = await style.paymentSplitter();
+        setSplitter(_splitter.connect(web3));
 
-      const _priceStrategy = await style.priceStrategy();
-      setPriceStrategy(_priceStrategy.connect(web3));
-      setPrice(await _priceStrategy.quote(style.tokenId, [], []));
+        const _priceStrategy = await style.priceStrategy();
+        setPriceStrategy(_priceStrategy.connect(web3));
+        setPrice(await _priceStrategy.quote(style.tokenId, [], []));
+      } catch (e: any) {
+        console.warn(e.message);
+      }
     })();
   }, [web3]);
 
@@ -286,13 +290,19 @@ const StyleActions = (props: {
   const { style, stats, isStyleMinter, partnership } = props;
 
   return (
-    <Flex direction="column" h="100%">
-      <Heading size="lg" color="white">
-        {style.getMetadata().name}
-      </Heading>
-      <Text color="white" fontSize="sm">
-        Owner: {stats.owner} {stats.owner === account && <span> (You)</span>}
-      </Text>
+    <Flex direction="column" p={3} h="100%">
+      <Flex direction="column">
+        <Heading size="lg" color="white">
+          {style.getMetadata().name}
+        </Heading>
+
+        <Text color="white" fontSize="sm">
+          Owner: {stats.owner} {stats.owner === account && <span> (You)</span>}
+        </Text>
+        <Text color="white" fontSize="sm">
+          Style ID: {style.tokenId}
+        </Text>
+      </Flex>
       <NumBox
         head="Minted"
         val={`${stats.settings.mintedOfStyle} /  ${stats.settings.cap}`}
@@ -312,12 +322,6 @@ const StyleActions = (props: {
           <TransferButton account={account} tokenId={style.tokenId} />
         )}
       </Flex>
-
-      {partnership && (
-        <Flex title={partnership.collections.join('|')}>
-          {partnership.collections.length}
-        </Flex>
-      )}
     </Flex>
   );
 };
@@ -328,7 +332,7 @@ const StyleDetailPage = () => {
   const { account } = useWeb3React();
   const { splice, spliceStyles } = useSplice();
   const [stats, setStats] = useState<StyleStats>();
-  //const [partnership, setPartnership] = useState<Partnership | undefined>();
+  const [partnership, setPartnership] = useState<Partnership | undefined>();
   const [isStyleMinter, setIsStyleMinter] = useState<boolean>(false);
   const [style, setStyle] = useState<Style>();
 
@@ -340,7 +344,6 @@ const StyleDetailPage = () => {
         (s) => s.tokenId === Number.parseInt(styleId)
       );
       setStyle(_style);
-
       setIsStyleMinter(await styleNft.isStyleMinter(account));
     })();
   }, [spliceStyles, splice, account]);
@@ -348,9 +351,14 @@ const StyleDetailPage = () => {
   useEffect(() => {
     if (!style) return;
     (async () => {
-      setStats(await style.stats());
-
-      //setPartnership(await style.partnership());
+      try {
+        setStats(await style.stats());
+        const _partnership = await style.partnership();
+        console.log(_partnership);
+        setPartnership(_partnership);
+      } catch (e: any) {
+        console.warn('style: ', e.message);
+      }
     })();
   }, [style]);
 
@@ -373,19 +381,17 @@ const StyleDetailPage = () => {
                 fit="cover"
                 zIndex={1}
               />
-              <Flex zIndex={2} direction="column" p={3} flex="1" h="100%">
+              <Flex zIndex={2} direction="column" flex="1" h="100%">
                 <StyleActions
                   style={style}
                   isStyleMinter={isStyleMinter}
                   stats={stats}
-                  partnership={undefined}
+                  partnership={partnership}
                 />
               </Flex>
             </Flex>
           </AspectRatio>
-          {(isStyleMinter || stats.owner == account) && (
-            <Payments style={style} stats={stats} />
-          )}
+          <Payments style={style} stats={stats} />
         </>
       )}
     </Container>

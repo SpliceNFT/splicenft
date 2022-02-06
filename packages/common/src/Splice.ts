@@ -103,6 +103,10 @@ export class Splice {
     return this.contract.ownerOf(tokenId);
   }
 
+  public async getPlatformBeneficiary(): Promise<string> {
+    return this.contract.platformBeneficiary();
+  }
+
   public static tokenIdToStyleAndToken(tokenId: BigNumber): {
     style_token_id: number;
     token_id: number;

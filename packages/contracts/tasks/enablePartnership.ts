@@ -5,8 +5,8 @@ import { task, types } from 'hardhat/config';
 task('style:partnership', 'enables partnership')
   .addParam('style')
   .addOptionalParam('accountIdx', "the style minter's account index", '0')
-  .addParam<string>('collections', 'comma separated', undefined)
-  .addPositionalParam<string>('styleTokenId')
+  .addParam<string>('collections', 'comma separated', undefined, types.string)
+  .addPositionalParam<number>('styleTokenId', '', undefined, types.int)
   .addPositionalParam<string>('until', '2022-05-01')
   .addPositionalParam('exclusive', 'a bool', false, types.boolean)
 
@@ -27,12 +27,12 @@ task('style:partnership', 'enables partnership')
     const styleNFT = await StyleNFT.attach(styleNftAddress).connect(
       styleMinter
     );
-
     const untilTS = Date.parse(until_);
     if (Number.isNaN(untilTS)) {
       throw `couldnt parse date ${until_}`;
     }
     const until = new Date(untilTS);
+    const unixTimestamp = untilTS / 1000;
 
     const collections = collections_.split(',');
     for (const c of collections) {
@@ -45,14 +45,14 @@ task('style:partnership', 'enables partnership')
       collections,
       styleTokenId,
       until,
-      ts: untilTS / 1000,
+      unixTimestamp,
       exclusive
     });
 
     const receipt = await styleNFT.enablePartnership(
       collections,
       styleTokenId,
-      untilTS / 1000,
+      unixTimestamp,
       exclusive
     );
 
