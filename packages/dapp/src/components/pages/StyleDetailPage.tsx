@@ -230,16 +230,20 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
   useEffect(() => {
     if (!web3 || !splitter || !account) return;
     (async () => {
-      const total = await web3.getBalance(splitter.address);
-      const totalReleased = await splitter['totalReleased()']();
-      const shares = await splitter.shares(account);
-      const due = await splitter['due(address)'](account);
-      setPaymentInfo({
-        total,
-        totalReleased,
-        shares: shares.toNumber(),
-        due
-      });
+      try {
+        const total = await web3.getBalance(splitter.address);
+        const totalReleased = await splitter['totalReleased()']();
+        const shares = await splitter.shares(account);
+        const due = await splitter['due(address)'](account);
+        setPaymentInfo({
+          total,
+          totalReleased,
+          shares: shares.toNumber(),
+          due
+        });
+      } catch (e: any) {
+        console.error(e);
+      }
     })();
   }, [web3, splitter, account]);
 
@@ -371,7 +375,7 @@ const StyleDetailPage = () => {
         setStats(await style.stats());
         setPartnership(await style.partnership());
       } catch (e: any) {
-        console.warn('style: ', e.message);
+        console.warn('style: ', e.message || e);
       }
     })();
   }, [style]);

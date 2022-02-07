@@ -1,4 +1,5 @@
 import {
+  Box,
   Flex,
   IconButton,
   Skeleton,
@@ -25,10 +26,11 @@ export const DominantColorsDisplay = ({
 
   return (
     <Skeleton isLoaded={colors.length > 0} w="70%" size="lg">
-      <Flex direction="row" align="center" height="1.5em" gridGap={0}>
+      <Flex direction="row" align="center" height="1.5em" gridGap="0.5">
         {colors.map((entry) => {
           return (
             <Flex
+              rounded="sm"
               key={entry.hex}
               flex="1"
               background={entry.hex}
@@ -37,7 +39,7 @@ export const DominantColorsDisplay = ({
               {showDetails ? (
                 <SwatchDetails entry={entry} />
               ) : (
-                <Text>&nbsp;</Text>
+                <Box w="5" h="5"></Box>
               )}
             </Flex>
           );
