@@ -53,3 +53,8 @@ GET http://localhost:5999/nft/31337/0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512/1
 ### 
 
 GET http://localhost:5999/proxy?url=https:%2F%2Fapi.deadfellaz.io%2Ftraits%2F2
+
+###
+
+POST  http://localhost:5999/render
+Content-Type: text/plain

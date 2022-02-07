@@ -23,6 +23,26 @@ export function renderSplice(styleCache: StyleCache) {
   };
 }
 
+export async function renderCode(req: Request, res: Response) {
+  const code = req.body;
+
+  try {
+    const renderer = Function(`"use strict";return (${code})`)();
+    Render(
+      {
+        dim: { w: 1500, h: 500 },
+        colors: GRAYSCALE_HISTOGRAM,
+        randomness: 1
+      },
+      renderer,
+      ImageCallback(res)
+    );
+  } catch (e) {
+    console.error(e);
+    res.status(500).end();
+  }
+}
+
 export function generic(styleCache: StyleCache) {
   return async (req: Request, res: Response) => {
     const networkId = parseInt(req.params.network);
