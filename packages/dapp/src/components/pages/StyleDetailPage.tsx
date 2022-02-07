@@ -41,10 +41,9 @@ const ActivateButton = (props: { style: Style; stats: StyleStats }) => {
   const toggle = async () => {
     const newVal = !stats.active;
     try {
-      await style.toggleActive(newVal);
-      setActive(newVal);
+      setActive(await style.toggleActive(newVal));
     } catch (e: any) {
-      toast({ title: 'tx failed', description: e.message });
+      toast({ title: 'tx failed', description: e.message || e });
     }
   };
   return (
@@ -188,6 +187,23 @@ const NumBox = (
     </Flex>
   );
 };
+
+const Partnerships = (props: {
+  style: Style;
+  stats: StyleStats;
+  partnership: Partnership;
+}) => {
+  const { partnership } = props;
+  return (
+    <Flex direction="column">
+      <Heading size="md">Partnership</Heading>
+      <Text>Collections: {partnership.collections.join(',')}</Text>
+      <Text>Exclusive: {partnership.exclusive ? 'Yes' : 'No'}</Text>
+      <Text>Runs until: {partnership.until.toISOString()}</Text>
+    </Flex>
+  );
+};
+
 const Payments = (props: { style: Style; stats: StyleStats }) => {
   const { style, stats } = props;
   const { library: web3, account } = useWeb3React<providers.Web3Provider>();
@@ -353,9 +369,7 @@ const StyleDetailPage = () => {
     (async () => {
       try {
         setStats(await style.stats());
-        const _partnership = await style.partnership();
-        console.log(_partnership);
-        setPartnership(_partnership);
+        setPartnership(await style.partnership());
       } catch (e: any) {
         console.warn('style: ', e.message);
       }
@@ -392,6 +406,13 @@ const StyleDetailPage = () => {
             </Flex>
           </AspectRatio>
           <Payments style={style} stats={stats} />
+          {partnership && (
+            <Partnerships
+              style={style}
+              stats={stats}
+              partnership={partnership}
+            />
+          )}
         </>
       )}
     </Container>

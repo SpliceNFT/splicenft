@@ -57,8 +57,8 @@ export class Style {
     return false;
   }
 
-  async toggleActive(newVal: boolean): Promise<unknown> {
-    return;
+  async toggleActive(newVal: boolean): Promise<boolean> {
+    throw 'unmanaged style';
   }
 
   async ownerOf(): Promise<string> {
@@ -166,7 +166,7 @@ export class ActiveStyle extends Style {
     return {
       collections: partnership.collections,
       exclusive: partnership.exclusive,
-      until: new Date(partnership.until.toNumber())
+      until: new Date(partnership.until.toNumber() * 1000)
     };
   }
 
@@ -198,6 +198,11 @@ export class ActiveStyle extends Style {
       settings.priceStrategy,
       this.contract.provider
     );
+  }
+
+  async toggleActive(newVal: boolean): Promise<boolean> {
+    await this.contract.toggleSaleIsActive(this.tokenId, newVal);
+    return newVal;
   }
 
   async quote(
