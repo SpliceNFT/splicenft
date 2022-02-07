@@ -1,5 +1,5 @@
 import { Button, Flex, Text, useToast } from '@chakra-ui/react';
-import { Style, TokenProvenance } from '@splicenft/common';
+import { erc721, Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -26,7 +26,7 @@ export const MintSpliceButton = ({
   buzy: boolean;
   setBuzy: (buzy: boolean) => void;
 }) => {
-  const { account } = useWeb3React();
+  const { account, library: web3 } = useWeb3React();
   const { splice } = useSplice();
 
   const [mintState, setMintState] = useState<MintState>({
@@ -38,25 +38,39 @@ export const MintSpliceButton = ({
   const toast = useToast();
 
   useEffect(() => {
-    if (!account) return;
+    if (!account || !web3) return;
     (async () => {
-      const mintable = await selectedStyle.isMintable(
-        [collection],
-        [originTokenId],
-        account
-      );
-      if (mintable === true) {
-        const quote = await selectedStyle.quote(collection, originTokenId);
-        setMintState({
-          mintable,
-          quote,
-          message: undefined
-        });
-      } else {
+      try {
+        let mintable = await selectedStyle.isMintable(
+          [collection],
+          [originTokenId],
+          account
+        );
+        const originOwner = await erc721(web3, collection).ownerOf(
+          originTokenId
+        );
+        if (originOwner !== account) {
+          mintable = 'Not owning the origin';
+        }
+        if (mintable === true) {
+          const quote = await selectedStyle.quote(collection, originTokenId);
+          setMintState({
+            mintable,
+            quote,
+            message: undefined
+          });
+        } else {
+          setMintState({
+            mintable: false,
+            quote: undefined,
+            message: mintable as string
+          });
+        }
+      } catch (e: any) {
         setMintState({
           mintable: false,
           quote: undefined,
-          message: mintable as string
+          message: e.message || e
         });
       }
     })();
