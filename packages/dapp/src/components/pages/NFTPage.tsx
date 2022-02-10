@@ -7,24 +7,24 @@ import {
   Flex,
   Heading,
   IconButton,
-  Link,
   SimpleGrid,
   Spacer,
   Spinner,
   Tooltip,
   useToast
 } from '@chakra-ui/react';
+import { Histogram } from '@splicenft/colors';
 import {
+  dataUriToBlob,
   erc721,
   NFTItem,
+  NFTTrait,
   OnChain,
-  resolveImage,
   Splice,
   SpliceNFT,
   Style,
   TokenProvenance
 } from '@splicenft/common';
-import { Histogram } from '@splicenft/colors';
 import { useWeb3React } from '@web3-react/core';
 import React, {
   SyntheticEvent,
@@ -32,14 +32,15 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
-  useRef,
   useState
 } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { IoReload } from 'react-icons/io5';
 import { NavLink, useParams } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
+import { default as getDominantColors, loadColors } from '../../modules/colors';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
+import { FallbackImage } from '../atoms/FallbackImage';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { AddToAllowlistButton } from '../molecules/AddToAllowlistButton';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
@@ -50,9 +51,6 @@ import {
   MetaDataItem,
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
-
-import { default as getDominantColors, loadColors } from '../../modules/colors';
-import { FallbackImage } from '../atoms/FallbackImage';
 
 type StateAction = {
   type: string;
@@ -74,6 +72,7 @@ type State = {
   splice?: SpliceNFT;
   selectedStyle?: Style;
   sketch?: string;
+  traits: NFTTrait[];
   ownership?: {
     splice: string | undefined;
     origin: string | undefined;
@@ -85,8 +84,7 @@ function reducer(state: State, action: StateAction): State {
   const { payload } = action;
   switch (action.type) {
     case 'sketched':
-      return { ...state, sketch: payload.sketch };
-
+      return { ...state, sketch: payload.sketch, traits: payload.traits };
     case 'setBasics':
       return {
         ...state,
@@ -112,7 +110,6 @@ function reducer(state: State, action: StateAction): State {
       return {
         ...state,
         splice: payload.metadata,
-        sketch: resolveImage(payload.metadata),
         ownership: {
           splice: payload.owner,
           origin: state.ownership?.origin
@@ -127,7 +124,7 @@ function reducer(state: State, action: StateAction): State {
       return {
         ...state,
         selectedStyle: payload.style,
-        sketch: undefined,
+
         splice: undefined,
         provenance: state.allProvenances.find((p) => {
           const origin = p.origins[0];
@@ -179,6 +176,7 @@ export const NFTPage = () => {
       collection,
       tokenId
     },
+    traits: [],
     features: {
       randomness: Splice.computeRandomness(collection, tokenId),
       dominantColors: []
@@ -239,9 +237,16 @@ export const NFTPage = () => {
     });
   }, [splice, state.provenance]);
 
-  const onSketched = useCallback((sketch: string) => {
-    dispatch({ type: 'sketched', payload: { sketch } });
-  }, []);
+  const onSketched = useCallback(
+    (dataUrl: string, traits: NFTTrait[]) => {
+      if (state.sketch === dataUrl) return;
+      dispatch({
+        type: 'sketched',
+        payload: { sketch: dataUrl, traits: traits }
+      });
+    },
+    [state.sketch]
+  );
 
   const onMinted = useCallback(
     async (provenance: TokenProvenance) => {
@@ -320,6 +325,15 @@ export const NFTPage = () => {
     [state.origin.nftItem, state.features.dominantColors, chainId]
   );
 
+  const download = () => {
+    if (!state.sketch) return;
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(dataUriToBlob(state.sketch));
+    link.download = `${state.provenance?.splice_token_id}.png`;
+    link.click();
+  };
+
   return (
     <Container maxW="container.xl">
       <Breadcrumb>
@@ -339,7 +353,6 @@ export const NFTPage = () => {
       {state.origin.nftItem && (
         <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
-            spliceDataUrl={state.sketch}
             nftFeatures={state.features}
             style={state.selectedStyle}
             onSketched={onSketched}
@@ -385,13 +398,11 @@ export const NFTPage = () => {
 
             {_isDownloadable && (
               <Button
-                as={Link}
-                href={state.sketch}
+                onClick={download}
                 disabled={!state.sketch}
                 leftIcon={<FaCloudDownloadAlt />}
                 boxShadow="md"
                 size="lg"
-                isExternal
                 variant="white"
               >
                 download
@@ -415,22 +426,16 @@ export const NFTPage = () => {
           styleNFT={state.selectedStyle?.getMetadata()}
         />
         <Flex direction="column" gridGap={6} pt={3}>
-          {state.splice && (
-            <Flex
-              boxShadow="xl"
-              direction="column"
-              p={6}
-              gridGap={3}
-              background="white"
-            >
-              <Heading size="md"> Splice attributes</Heading>
-              <SpliceMetadataDisplay
-                provenance={state.provenance}
-                spliceMetadata={state.splice}
-                owner={state.ownership?.splice}
-              />
-            </Flex>
-          )}
+          <SpliceMetadataDisplay
+            provenance={state.provenance}
+            spliceMetadata={state.splice}
+            traits={state.traits}
+            owner={state.ownership?.splice}
+            boxShadow="xl"
+            p={6}
+            background="white"
+          />
+
           {state.origin.nftItem && (
             <Flex
               boxShadow="xl"

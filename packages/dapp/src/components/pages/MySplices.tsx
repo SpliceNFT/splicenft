@@ -4,6 +4,7 @@ import {
   Container,
   Flex,
   Heading,
+  Image,
   LinkBox,
   LinkOverlay,
   Text,
@@ -29,7 +30,8 @@ import {
   USER_SPLICES
 } from '../../modules/Queries';
 import { FallbackImage } from '../atoms/FallbackImage';
-import { DataSketch } from '../organisms/CreativePanel';
+import { PreviewBase } from '../molecules/PreviewBase';
+
 import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
 const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
@@ -84,10 +86,11 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
               as={NavLink}
               to={`/nft/${metadata.splice.origins[0].collection}/${metadata.splice.origins[0].token_id}`}
             >
-              <DataSketch
+              <PreviewBase
                 nftImage={<FallbackImage imgUrl={resolveImage(origin)} />}
-                spliceDataUrl={resolveImage(metadata)}
-              />
+              >
+                <Image src={resolveImage(metadata)} />
+              </PreviewBase>
             </LinkOverlay>
           )}
         </LinkBox>
@@ -103,7 +106,10 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           {metadata && (
             <>
               <Text>{metadata.description}</Text>
-              <SpliceMetadataDisplay spliceMetadata={metadata} />
+              <SpliceMetadataDisplay
+                spliceMetadata={metadata}
+                traits={metadata.attributes || []}
+              />
             </>
           )}
         </Flex>

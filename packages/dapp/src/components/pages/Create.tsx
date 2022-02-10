@@ -17,7 +17,7 @@ import { minify } from 'terser';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
-import { P5Sketch } from '../molecules/P5Sketch';
+import { BANNER_DIMS, P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 import { NFTChooser } from '../organisms/NFTChooser';
 
@@ -116,6 +116,11 @@ const CreatePage = () => {
     y = y - color.freq * dim.h;
     p5.rect(0,y,dim.w, color.freq * dim.h);
   }
+  const trait1 = {trait_type: "Favorite_Pet", value: p5.random() > 0.5 ? 'Cat' : 'Dog'};
+  const trait2 = {trait_type: "Favorite_Food", value: p5.random() > 0.8 ? 'Broccoli' : 'Marshmallow'};
+  return [
+    trait1, trait2
+  ];
 }`}
       ></Textarea>
       <Flex my={4} justify="space-between">
@@ -159,10 +164,13 @@ const CreatePage = () => {
         >
           <P5Sketch
             randomness={randomness}
-            dim={{ w: 1500, h: 500 }}
+            dim={BANNER_DIMS}
             colors={histogram}
             code={code}
-            onSketched={setPreview}
+            onSketched={(dataUrl, traits) => {
+              setPreview(dataUrl);
+              console.log(traits);
+            }}
           />
         </PreviewBase>
       )}

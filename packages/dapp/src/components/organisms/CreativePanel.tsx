@@ -1,9 +1,9 @@
-import { Container, Image } from '@chakra-ui/react';
+import { Container } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
-import { Style } from '@splicenft/common';
+import { NFTTrait, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect, useState } from 'react';
-import { P5Sketch } from '../molecules/P5Sketch';
+import { BANNER_DIMS, P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 
 export const Preview = ({
@@ -18,7 +18,7 @@ export const Preview = ({
     dominantColors: Histogram;
   };
   style: Style;
-  onSketched: (dataUrl: string) => void;
+  onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
 }) => {
   const { dominantColors, randomness } = nftExtractedProps;
   const [code, setCode] = useState<string>();
@@ -41,49 +41,30 @@ export const Preview = ({
 
   return (
     <PreviewBase nftImage={nftImage}>
-      <P5Sketch
-        randomness={randomness}
-        dim={{ w: 1500, h: 500 }}
-        colors={dominantColors}
-        onSketched={onSketched}
-        code={code}
-      />
+      {code && (
+        <P5Sketch
+          randomness={randomness}
+          dim={BANNER_DIMS}
+          colors={dominantColors}
+          onSketched={onSketched}
+          code={code}
+        />
+      )}
     </PreviewBase>
   );
 };
 
-export const DataSketch = ({
-  nftImage,
-  spliceDataUrl
-}: {
-  nftImage: React.ReactNode;
-  spliceDataUrl: string;
-}) => {
-  return (
-    <PreviewBase nftImage={nftImage}>
-      <Image src={spliceDataUrl} />
-    </PreviewBase>
-  );
-};
-
-export const CreativePanel = ({
-  spliceDataUrl,
-  nftFeatures,
-  style,
-  onSketched,
-  children
-}: {
-  spliceDataUrl?: string;
+export const CreativePanel = (props: {
   nftFeatures?: {
     randomness: number;
     dominantColors: Histogram;
   };
-
-  style: Style | undefined;
-  onSketched: (dataUrl: string) => void;
+  style?: Style;
+  onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
   children: React.ReactNode;
 }) => {
-  if (style && !spliceDataUrl && nftFeatures) {
+  const { nftFeatures, style, onSketched, children } = props;
+  if (style && nftFeatures) {
     return (
       <Preview
         nftImage={children}
@@ -92,8 +73,6 @@ export const CreativePanel = ({
         style={style}
       />
     );
-  } else if (spliceDataUrl) {
-    return <DataSketch nftImage={children} spliceDataUrl={spliceDataUrl} />;
   } else {
     return <Container py={[null, 5, 20]}>{children}</Container>;
   }
