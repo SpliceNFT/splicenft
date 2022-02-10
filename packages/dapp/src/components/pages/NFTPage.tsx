@@ -66,7 +66,7 @@ type State = {
   };
   features: {
     randomness: number;
-    dominantColors: Histogram;
+    colors: Histogram;
   };
   allProvenances: TokenProvenance[];
   provenance?: TokenProvenance;
@@ -104,7 +104,7 @@ function reducer(state: State, action: StateAction): State {
         },
         features: {
           ...state.features,
-          dominantColors: payload.colors
+          colors: payload.colors
         }
       };
     case 'setSpliceMetadata':
@@ -118,7 +118,7 @@ function reducer(state: State, action: StateAction): State {
         },
         features: {
           randomness: state.features.randomness,
-          dominantColors: payload.metadata.splice.colors
+          colors: payload.metadata.splice.colors
         },
         selectedStyle: payload.style
       };
@@ -156,7 +156,7 @@ function reducer(state: State, action: StateAction): State {
         ...state,
         features: {
           randomness: state.features.randomness,
-          dominantColors: payload.colors
+          colors: payload.colors
         }
       };
     default:
@@ -182,7 +182,7 @@ export const NFTPage = () => {
     traits: [],
     features: {
       randomness: Splice.computeRandomness(collection, tokenId),
-      dominantColors: []
+      colors: []
     },
     allProvenances: []
   });
@@ -310,7 +310,7 @@ export const NFTPage = () => {
       if (
         chainId === undefined ||
         state.origin.nftItem === undefined ||
-        state.features.dominantColors.length > 0
+        state.features.colors.length > 0
       ) {
         return;
       } else {
@@ -325,7 +325,7 @@ export const NFTPage = () => {
         dispatch({ type: 'setColors', payload: { colors: histogram } });
       }
     },
-    [state.origin.nftItem, state.features.dominantColors, chainId]
+    [state.origin.nftItem, state.features.colors, chainId]
   );
 
   const download = () => {
@@ -377,7 +377,7 @@ export const NFTPage = () => {
             align="center"
           >
             <ArtworkStyleChooser
-              disabled={state.features.dominantColors.length == 0 || buzy}
+              disabled={state.features.colors.length == 0 || buzy}
               selectedStyle={state.selectedStyle}
               onStyleChanged={(style: Style) =>
                 dispatch({ type: 'styleSelected', payload: { style } })
@@ -467,9 +467,7 @@ export const NFTPage = () => {
                 <MetaDataItem
                   label="colors"
                   value={
-                    <DominantColorsDisplay
-                      colors={state.features.dominantColors}
-                    />
+                    <DominantColorsDisplay colors={state.features.colors} />
                   }
                 />
               )}

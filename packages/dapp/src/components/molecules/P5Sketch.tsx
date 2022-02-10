@@ -1,23 +1,19 @@
 import { Flex, useToast } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
-import { NFTTrait } from '@splicenft/common';
+import { DrawArgs, DrawProps, NFTTrait } from '@splicenft/common';
 import React, { useMemo } from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
-export const BANNER_DIMS = { w: 1500, h: 500 };
-
 const P5SketchDrawer = (props: {
-  dim: { w: number; h: number };
-  randomness: number;
-  colors: Histogram;
+  drawArgs: DrawArgs;
   code: string;
   onSketched?: (dataUrl: string, traits: NFTTrait[]) => void;
 }) => {
-  const { dim, colors, onSketched, randomness, code } = props;
+  const { drawArgs, onSketched, code } = props;
+
   const toast = useToast();
 
   const renderer = useMemo(() => {
-    console.log('new renderer');
     try {
       const _renderer = Function(`"use strict";return (${props.code})`)();
       return _renderer;
@@ -32,29 +28,32 @@ const P5SketchDrawer = (props: {
 
   const sketch = (p5: P5Instance) => {
     p5.setup = () => {
-      p5.randomSeed(randomness);
+      p5.randomSeed(drawArgs.params.randomness);
       p5.pixelDensity(1);
-      p5.createCanvas(dim.w, dim.h, p5.P2D);
+      p5.createCanvas(drawArgs.dim.w, drawArgs.dim.h, p5.P2D);
     };
 
     p5.draw = () => {
       if (!renderer) return;
-      const params = {
-        randomness,
-        colors: colors.map((c) => ({
-          color: p5.color(c.hex),
-          ...c
-        }))
+      const drawProps: DrawProps = {
+        ...drawArgs,
+        p5,
+        colors: drawArgs.params.colors.map((c) => c.rgb),
+        params: {
+          ...drawArgs.params,
+          colors: drawArgs.params.colors.map((c) => ({
+            color: p5.color(c.hex),
+            ...c
+          }))
+        }
       };
+
       try {
         p5.noLoop();
+
         //the most important line in Splice:
-        const _traits = renderer({
-          p5,
-          colors: colors.map((c) => c.rgb),
-          dim,
-          params
-        });
+        const _traits = renderer(drawProps);
+
         if (onSketched) {
           const canvas = (p5 as any).canvas as HTMLCanvasElement;
           const dataUrl = canvas.toDataURL('image/png');

@@ -1,9 +1,9 @@
 import { Container, Image } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
-import { NFTTrait, Style } from '@splicenft/common';
+import { BANNER_DIMS, NFTTrait, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect, useState } from 'react';
-import { BANNER_DIMS, P5Sketch } from '../molecules/P5Sketch';
+import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 
 export const Preview = ({
@@ -14,13 +14,12 @@ export const Preview = ({
 }: {
   nftImage: React.ReactNode;
   nftExtractedProps: {
+    colors: Histogram;
     randomness: number;
-    dominantColors: Histogram;
   };
   style: Style;
   onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
 }) => {
-  const { dominantColors, randomness } = nftExtractedProps;
   const [code, setCode] = useState<string>();
   const { chainId } = useWeb3React();
 
@@ -43,9 +42,10 @@ export const Preview = ({
     <PreviewBase nftImage={nftImage}>
       {code && (
         <P5Sketch
-          randomness={randomness}
-          dim={BANNER_DIMS}
-          colors={dominantColors}
+          drawArgs={{
+            dim: BANNER_DIMS,
+            params: nftExtractedProps
+          }}
           onSketched={onSketched}
           code={code}
         />
@@ -72,7 +72,7 @@ export const CreativePanel = (props: {
   spliceDataUrl?: string;
   nftFeatures?: {
     randomness: number;
-    dominantColors: Histogram;
+    colors: Histogram;
   };
   style?: Style;
   onSketched: (dataUrl: string, traits: NFTTrait[]) => void;

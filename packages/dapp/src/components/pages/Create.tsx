@@ -10,14 +10,14 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { GRAYSCALE_HISTOGRAM, Histogram } from '@splicenft/colors';
-import { dataUriToBlob } from '@splicenft/common';
+import { BANNER_DIMS, dataUriToBlob } from '@splicenft/common';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
 import { minify } from 'terser';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
-import { BANNER_DIMS, P5Sketch } from '../molecules/P5Sketch';
+import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
 import { NFTChooser } from '../organisms/NFTChooser';
 
@@ -163,9 +163,13 @@ const CreatePage = () => {
           }
         >
           <P5Sketch
-            randomness={randomness}
-            dim={BANNER_DIMS}
-            colors={histogram}
+            drawArgs={{
+              dim: BANNER_DIMS,
+              params: {
+                randomness,
+                colors: histogram
+              }
+            }}
             code={code}
             onSketched={(dataUrl, traits) => {
               setPreview(dataUrl);
