@@ -20,6 +20,7 @@ import {
   NFTItem,
   NFTTrait,
   OnChain,
+  resolveImage,
   Splice,
   SpliceNFT,
   Style,
@@ -110,6 +111,7 @@ function reducer(state: State, action: StateAction): State {
       return {
         ...state,
         splice: payload.metadata,
+        sketch: resolveImage(payload.metadata),
         ownership: {
           splice: payload.owner,
           origin: state.ownership?.origin
@@ -124,6 +126,7 @@ function reducer(state: State, action: StateAction): State {
       return {
         ...state,
         selectedStyle: payload.style,
+        sketch: undefined,
 
         splice: undefined,
         provenance: state.allProvenances.find((p) => {
@@ -353,6 +356,7 @@ export const NFTPage = () => {
       {state.origin.nftItem && (
         <Flex position="relative" justify="center" mt={6} direction="column">
           <CreativePanel
+            spliceDataUrl={state.sketch}
             nftFeatures={state.features}
             style={state.selectedStyle}
             onSketched={onSketched}

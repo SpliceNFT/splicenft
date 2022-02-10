@@ -1,4 +1,4 @@
-import { Container } from '@chakra-ui/react';
+import { Container, Image } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
 import { NFTTrait, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
@@ -54,7 +54,22 @@ export const Preview = ({
   );
 };
 
+export const DataSketch = ({
+  nftImage,
+  spliceDataUrl
+}: {
+  nftImage: React.ReactNode;
+  spliceDataUrl: string;
+}) => {
+  return (
+    <PreviewBase nftImage={nftImage}>
+      <Image src={spliceDataUrl} />
+    </PreviewBase>
+  );
+};
+
 export const CreativePanel = (props: {
+  spliceDataUrl?: string;
   nftFeatures?: {
     randomness: number;
     dominantColors: Histogram;
@@ -63,8 +78,8 @@ export const CreativePanel = (props: {
   onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
   children: React.ReactNode;
 }) => {
-  const { nftFeatures, style, onSketched, children } = props;
-  if (style && nftFeatures) {
+  const { spliceDataUrl, nftFeatures, style, onSketched, children } = props;
+  if (!spliceDataUrl && style && nftFeatures) {
     return (
       <Preview
         nftImage={children}
@@ -73,6 +88,8 @@ export const CreativePanel = (props: {
         style={style}
       />
     );
+  } else if (spliceDataUrl) {
+    return <DataSketch nftImage={children} spliceDataUrl={spliceDataUrl} />;
   } else {
     return <Container py={[null, 5, 20]}>{children}</Container>;
   }
