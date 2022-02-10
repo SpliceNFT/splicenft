@@ -1,6 +1,6 @@
 import { Flex, useToast } from '@chakra-ui/react';
-import { Histogram } from '@splicenft/colors';
 import { DrawArgs, DrawProps, NFTTrait } from '@splicenft/common';
+import deepEqual from 'deep-equal';
 import React, { useMemo } from 'react';
 import { P5Instance, ReactP5Wrapper } from 'react-p5-wrapper';
 
@@ -75,12 +75,7 @@ const P5SketchDrawer = (props: {
 };
 
 export const P5Sketch = React.memo(P5SketchDrawer, (oldP, nextP) => {
-  const propsToCheck = ['code', 'dim', 'randomness', 'colors'];
-  for (const check of propsToCheck) {
-    //@ts-ignore
-    if (oldP[check] !== nextP[check]) {
-      return false;
-    }
-  }
-  return true;
+  if (oldP.code !== nextP.code) return false;
+  //return false if we need to rerender
+  return deepEqual(oldP.drawArgs, nextP.drawArgs);
 });

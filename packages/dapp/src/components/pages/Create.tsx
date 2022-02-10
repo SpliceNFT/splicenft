@@ -10,7 +10,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { GRAYSCALE_HISTOGRAM, Histogram } from '@splicenft/colors';
-import { BANNER_DIMS, dataUriToBlob } from '@splicenft/common';
+import { BANNER_DIMS, dataUriToBlob, NFTTrait } from '@splicenft/common';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
 import { minify } from 'terser';
@@ -19,6 +19,7 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
+import { MetaDataItem } from '../organisms/MetaDataDisplay';
 import { NFTChooser } from '../organisms/NFTChooser';
 
 const CreatePage = () => {
@@ -28,6 +29,7 @@ const CreatePage = () => {
   const [histogram, setHistogram] = useState<Histogram>();
   const [randomness, setRandomness] = useState<number>(0);
   const [preview, setPreview] = useState<string>();
+  const [traits, setTraits] = useState<NFTTrait[]>([]);
 
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
@@ -132,7 +134,10 @@ const CreatePage = () => {
           }}
           title={`${randomness}`}
         >
-          randomize
+          <Flex direction="column">
+            <Text>randomize</Text>
+            <Text>{randomness}</Text>
+          </Flex>
         </Button>
 
         <Button disabled={!preview} onClick={download}>
@@ -171,13 +176,20 @@ const CreatePage = () => {
               }
             }}
             code={code}
-            onSketched={(dataUrl, traits) => {
+            onSketched={(dataUrl, _traits) => {
               setPreview(dataUrl);
-              console.log(traits);
+              setTraits(_traits);
             }}
           />
         </PreviewBase>
       )}
+      {traits.map((t) => (
+        <MetaDataItem
+          key={`t-${t.trait_type}`}
+          label={t.trait_type}
+          value={t.value}
+        />
+      ))}
     </Container>
   );
 };
