@@ -27,6 +27,7 @@ import {
   TokenProvenance
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
+import axios from 'axios';
 import React, {
   SyntheticEvent,
   useCallback,
@@ -328,11 +329,14 @@ export const NFTPage = () => {
     [state.origin.nftItem, state.features.colors, chainId]
   );
 
-  const download = () => {
+  const download = async () => {
     if (!state.sketch) return;
-
+    const bin = await (
+      await axios.get(state.sketch, { responseType: 'arraybuffer' })
+    ).data;
+    const blob = new Blob([bin]);
     const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(dataUriToBlob(state.sketch));
+    link.href = window.URL.createObjectURL(blob);
     link.download = `${state.provenance?.splice_token_id}.png`;
     link.click();
   };
