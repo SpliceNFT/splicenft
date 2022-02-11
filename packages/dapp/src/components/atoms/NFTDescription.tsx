@@ -33,7 +33,7 @@ export const NFTDescription = ({
           <Flex my={4} py={2}>
             {props && (
               <Flex direction="column" gridGap={2}>
-                <Flex gridGap={3} align="center">
+                <Flex gridGap={3} direction="row" align="flex-end">
                   <Text>Artist: </Text>
                   {props.creator_url ? (
                     <Link fontWeight="bold" href={props.creator_url} isExternal>
@@ -43,7 +43,7 @@ export const NFTDescription = ({
                     <Text>{props.creator_name}</Text>
                   )}
                   {props.creator_twitter && (
-                    <Link href={props.creator_twitter} isExternal>
+                    <Link href={props.creator_twitter} isExternal d="flex">
                       <Icon
                         as={FaTwitter}
                         boxSize="5"

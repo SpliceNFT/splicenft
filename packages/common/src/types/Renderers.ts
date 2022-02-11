@@ -1,20 +1,25 @@
-import { RGB } from '@splicenft/colors';
-import p5 from 'p5';
-import p5Types from 'p5';
-import { HistogramEntry } from '@splicenft/colors';
+import { HistogramEntry, RGB } from '@splicenft/colors';
+import { default as p5, default as p5Types } from 'p5';
+import { NFTTrait } from '..';
+import { OriginFeatures } from './TransferObjects';
+
+export const BANNER_DIMS = { w: 1500, h: 500 };
 
 type P5HistogramEntry = HistogramEntry & {
   color: p5.Color;
 };
 
-export interface DrawProps {
+export interface DrawArgs {
+  dim: { w: number; h: number };
+  params: OriginFeatures;
+}
+
+export interface DrawProps extends DrawArgs {
   p5: p5Types;
   colors: RGB[];
-  dim: { w: number; h: number };
-  params?: {
-    randomness: number;
+  params: OriginFeatures & {
     colors: Array<P5HistogramEntry>;
   };
 }
 
-export type Renderer = (props: DrawProps) => void;
+export type Renderer = (props: DrawProps) => NFTTrait[] | void;

@@ -1,9 +1,20 @@
+import { NFTTrait } from '@splicenft/common';
 import { Response } from 'express';
 import { Readable } from 'stream';
 
-const ImageCallback = (res: Response) => {
-  return (err: any | null, readable: Readable): void => {
-    if (err) {
+export type IImageCallback = (
+  err: any | null,
+  readable: Readable | null,
+  traits: NFTTrait[]
+) => void;
+
+const ImageCallback = (res: Response): IImageCallback => {
+  return (
+    err: any | null,
+    readable: Readable | null,
+    traits: NFTTrait[]
+  ): void => {
+    if (!readable || err) {
       console.error(err);
       return res.status(500).end();
     }

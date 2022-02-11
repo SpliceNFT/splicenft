@@ -1,7 +1,8 @@
-import { Flex, Link, Text } from '@chakra-ui/react';
+import { Flex, Heading, Link, SystemProps, Text } from '@chakra-ui/react';
 import {
   ipfsGW,
   NFTMetaData,
+  NFTTrait,
   SpliceNFT,
   TokenProvenance
 } from '@splicenft/common';
@@ -52,38 +53,68 @@ export const MetaDataItem = ({
 export const SpliceMetadataDisplay = ({
   owner,
   spliceMetadata,
-  provenance
+  provenance,
+  traits,
+  ...rest
 }: {
   owner?: string;
-  spliceMetadata: SpliceNFT;
+  spliceMetadata?: SpliceNFT;
   provenance?: TokenProvenance | null;
-}) => {
+  traits: NFTTrait[];
+} & SystemProps) => {
   const { account } = useWeb3React();
+  if (spliceMetadata === undefined && traits.length === 0) return <></>;
   return (
-    <>
-      {owner && (
-        <MetaDataItem label="Owner" value={owner === account ? 'You' : owner} />
+    <Flex direction="column" {...rest}>
+      {spliceMetadata && (
+        <Flex direction="column" gridGap={3}>
+          {owner && (
+            <MetaDataItem
+              label="Owner"
+              value={owner === account ? 'You' : owner}
+            />
+          )}
+          <MetaDataItem
+            label="Style"
+            value={spliceMetadata.properties.style_name}
+          />
+          {provenance && (
+            <MetaDataItem
+              label="Splice ID"
+              value={provenance.splice_token_id.toString()}
+            />
+          )}
+          <MetaDataItem
+            label="Randomness"
+            value={spliceMetadata.splice.randomness}
+          />
+          <MetaDataItem
+            label="Colors"
+            value={
+              <DominantColorsDisplay colors={spliceMetadata.splice.colors} />
+            }
+          />
+        </Flex>
       )}
 
-      <MetaDataItem
-        label="Style"
-        value={spliceMetadata.properties.style_name}
-      />
-      {provenance && (
-        <MetaDataItem
-          label="Splice ID"
-          value={provenance.splice_token_id.toString()}
-        />
+      {traits.length > 0 && (
+        <>
+          <Heading size="md" mb={3}>
+            Splice attributes
+          </Heading>
+          <Flex direction="column" gridGap={3}>
+            {traits.map((attr, i) => (
+              <MetaDataItem
+                fontSize="sm"
+                key={`attr-${attr.trait_type || `unk-${i}`}`}
+                label={attr.trait_type || `unknown trait`}
+                value={attr.value}
+              />
+            ))}
+          </Flex>
+        </>
       )}
-      <MetaDataItem
-        label="Randomness"
-        value={spliceMetadata.splice.randomness}
-      />
-      <MetaDataItem
-        label="Colors"
-        value={<DominantColorsDisplay colors={spliceMetadata.splice.colors} />}
-      />
-    </>
+    </Flex>
   );
 };
 

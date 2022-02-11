@@ -3,22 +3,25 @@ import {
   Container,
   Flex,
   Heading,
+  IconButton,
   Link,
   Spacer,
   Text,
   Textarea,
+  useClipboard,
   useToast
 } from '@chakra-ui/react';
 import { GRAYSCALE_HISTOGRAM, Histogram } from '@splicenft/colors';
-import { dataUriToBlob } from '@splicenft/common';
+import { BANNER_DIMS, dataUriToBlob, NFTTrait } from '@splicenft/common';
 import React, { useEffect, useRef, useState } from 'react';
-import { FaPlay } from 'react-icons/fa';
+import { FaPlay, FaRegCopy } from 'react-icons/fa';
 import { minify } from 'terser';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
+import { MetaDataItem } from '../organisms/MetaDataDisplay';
 import { NFTChooser } from '../organisms/NFTChooser';
 
 const CreatePage = () => {
@@ -28,9 +31,12 @@ const CreatePage = () => {
   const [histogram, setHistogram] = useState<Histogram>();
   const [randomness, setRandomness] = useState<number>(0);
   const [preview, setPreview] = useState<string>();
+  const [traits, setTraits] = useState<NFTTrait[]>([]);
 
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
+
+  const { hasCopied, onCopy } = useClipboard(JSON.stringify(histogram));
 
   const updateCode = () => {
     const $el: HTMLTextAreaElement = document.getElementById(
@@ -84,8 +90,19 @@ const CreatePage = () => {
         <NFTChooser nftChosen={setOrigin} />
       </Flex>
       {histogram && (
-        <Flex my={4} align="center" gridGap={3}>
-          <DominantColorsDisplay colors={histogram} showDetails />
+        <Flex my={4} align="center" gridGap={3} direction="row">
+          <Flex>
+            <DominantColorsDisplay colors={histogram} showDetails />
+          </Flex>
+          <IconButton
+            icon={
+              <FaRegCopy
+                onClick={onCopy}
+                color={hasCopied ? 'green' : 'black'}
+              />
+            }
+            aria-label="copy palette"
+          />
         </Flex>
       )}
       <Flex direction="row" align="center" mt={12} mb={3}>
@@ -116,6 +133,11 @@ const CreatePage = () => {
     y = y - color.freq * dim.h;
     p5.rect(0,y,dim.w, color.freq * dim.h);
   }
+  const trait1 = {trait_type: "Favorite_Pet", value: p5.random() > 0.5 ? 'Cat' : 'Dog'};
+  const trait2 = {trait_type: "Favorite_Food", value: p5.random() > 0.8 ? 'Broccoli' : 'Marshmallow'};
+  return [
+    trait1, trait2
+  ];
 }`}
       ></Textarea>
       <Flex my={4} justify="space-between">
@@ -127,7 +149,10 @@ const CreatePage = () => {
           }}
           title={`${randomness}`}
         >
-          randomize
+          <Flex direction="column">
+            <Text>randomize</Text>
+            <Text>{randomness}</Text>
+          </Flex>
         </Button>
 
         <Button disabled={!preview} onClick={download}>
@@ -158,14 +183,28 @@ const CreatePage = () => {
           }
         >
           <P5Sketch
-            randomness={randomness}
-            dim={{ w: 1500, h: 500 }}
-            colors={histogram}
+            drawArgs={{
+              dim: BANNER_DIMS,
+              params: {
+                randomness,
+                colors: histogram
+              }
+            }}
             code={code}
-            onSketched={setPreview}
+            onSketched={(dataUrl, _traits) => {
+              setPreview(dataUrl);
+              setTraits(_traits);
+            }}
           />
         </PreviewBase>
       )}
+      {traits.map((t) => (
+        <MetaDataItem
+          key={`t-${t.trait_type}`}
+          label={t.trait_type}
+          value={t.value}
+        />
+      ))}
     </Container>
   );
 };

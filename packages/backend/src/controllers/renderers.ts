@@ -2,7 +2,7 @@ import { RGB } from '@splicenft/colors';
 import { Request, Response } from 'express';
 import Artwork from '../lib/Artwork';
 import ImageCallback from '../lib/ImageCallback';
-import Render from '../lib/render';
+import { Render } from '../lib/render';
 import { StyleCache } from '../lib/StyleCache';
 import { GRAYSCALE_HISTOGRAM } from '@splicenft/colors';
 
@@ -31,8 +31,10 @@ export async function renderCode(req: Request, res: Response) {
     Render(
       {
         dim: { w: 1500, h: 500 },
-        colors: GRAYSCALE_HISTOGRAM,
-        randomness: 1
+        params: {
+          colors: GRAYSCALE_HISTOGRAM,
+          randomness: 1
+        }
       },
       renderer,
       ImageCallback(res)
@@ -64,8 +66,10 @@ export function generic(styleCache: StyleCache) {
       Render(
         {
           dim: { w: 1500, h: 500 },
-          colors: GRAYSCALE_HISTOGRAM,
-          randomness: 1
+          params: {
+            colors: GRAYSCALE_HISTOGRAM,
+            randomness: 1
+          }
         },
         renderer,
         ImageCallback(res)

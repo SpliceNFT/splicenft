@@ -279,6 +279,7 @@ importers:
       '@testing-library/jest-dom': ^5.11.4
       '@testing-library/react': ^11.1.0
       '@testing-library/user-event': ^12.1.10
+      '@types/deep-equal': ^1.0.1
       '@types/jest': ^26.0.15
       '@types/node': ^17.0.0
       '@types/p5': 0.9.1
@@ -293,6 +294,7 @@ importers:
       '@web3-react/injected-connector': ^6.0.7
       '@web3-react/walletconnect-connector': ^6.2.4
       axios: ^0.24.0
+      deep-equal: ^2.0.5
       ethers: ^5.5.2
       framer-motion: ^4
       get-rgba-palette: ^2.0.1
@@ -328,6 +330,7 @@ importers:
       '@web3-react/injected-connector': 6.0.7
       '@web3-react/walletconnect-connector': 6.2.8
       axios: 0.24.0
+      deep-equal: 2.0.5
       ethers: 5.5.2
       framer-motion: 4.1.17_react-dom@17.0.2+react@17.0.2
       get-rgba-palette: 2.0.1
@@ -349,6 +352,7 @@ importers:
       '@testing-library/jest-dom': 5.16.1
       '@testing-library/react': 11.2.7_react-dom@17.0.2+react@17.0.2
       '@testing-library/user-event': 12.8.3
+      '@types/deep-equal': 1.0.1
       '@types/jest': 26.0.24
       '@types/node': 17.0.5
       '@types/react': 17.0.38
@@ -5559,6 +5563,10 @@ packages:
     dependencies:
       '@types/ms': 0.7.31
     dev: false
+
+  /@types/deep-equal/1.0.1:
+    resolution: {integrity: sha512-mMUu4nWHLBlHtxXY17Fg6+ucS/MnndyOWyOe7MmwkoMYxvfQU2ajtRaEvqSUv+aVkMqH/C0NCI8UoVfRNQ10yg==}
+    dev: true
 
   /@types/dotenv-flow/3.2.0:
     resolution: {integrity: sha512-A79hbPwocbYkcTwGcDOFbKDuqyVo5mLAz/6Iq465YZ7R7Go5bT1PIM8I2jlPQkaD9u9fbotGVLkUPhX+9XUHfw==}
@@ -12282,7 +12290,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.3
+      debug: 4.3.3_supports-color@6.1.0
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}

@@ -1,6 +1,6 @@
 import { Container, Image } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
-import { Style } from '@splicenft/common';
+import { BANNER_DIMS, NFTTrait, Style } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
@@ -14,13 +14,12 @@ export const Preview = ({
 }: {
   nftImage: React.ReactNode;
   nftExtractedProps: {
+    colors: Histogram;
     randomness: number;
-    dominantColors: Histogram;
   };
   style: Style;
-  onSketched: (dataUrl: string) => void;
+  onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
 }) => {
-  const { dominantColors, randomness } = nftExtractedProps;
   const [code, setCode] = useState<string>();
   const { chainId } = useWeb3React();
 
@@ -41,13 +40,16 @@ export const Preview = ({
 
   return (
     <PreviewBase nftImage={nftImage}>
-      <P5Sketch
-        randomness={randomness}
-        dim={{ w: 1500, h: 500 }}
-        colors={dominantColors}
-        onSketched={onSketched}
-        code={code}
-      />
+      {code && (
+        <P5Sketch
+          drawArgs={{
+            dim: BANNER_DIMS,
+            params: nftExtractedProps
+          }}
+          onSketched={onSketched}
+          code={code}
+        />
+      )}
     </PreviewBase>
   );
 };
@@ -66,24 +68,18 @@ export const DataSketch = ({
   );
 };
 
-export const CreativePanel = ({
-  spliceDataUrl,
-  nftFeatures,
-  style,
-  onSketched,
-  children
-}: {
+export const CreativePanel = (props: {
   spliceDataUrl?: string;
   nftFeatures?: {
     randomness: number;
-    dominantColors: Histogram;
+    colors: Histogram;
   };
-
-  style: Style | undefined;
-  onSketched: (dataUrl: string) => void;
+  style?: Style;
+  onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
   children: React.ReactNode;
 }) => {
-  if (style && !spliceDataUrl && nftFeatures) {
+  const { spliceDataUrl, nftFeatures, style, onSketched, children } = props;
+  if (!spliceDataUrl && style && nftFeatures) {
     return (
       <Preview
         nftImage={children}
