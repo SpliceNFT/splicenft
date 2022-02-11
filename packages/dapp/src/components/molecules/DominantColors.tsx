@@ -1,15 +1,7 @@
-import {
-  Box,
-  Flex,
-  IconButton,
-  Skeleton,
-  Text,
-  useClipboard
-} from '@chakra-ui/react';
+import { Box, Flex, Skeleton, Text } from '@chakra-ui/react';
 import { HistogramEntry } from '@splicenft/colors';
 import { Histogram } from '@splicenft/common';
 import React from 'react';
-import { FaRegCopy } from 'react-icons/fa';
 
 const SwatchDetails = ({ entry }: { entry: HistogramEntry }) => {
   return <Text p={3}>{entry.hex}</Text>;
@@ -22,8 +14,6 @@ export const DominantColorsDisplay = ({
   colors: Histogram;
   showDetails?: boolean;
 }) => {
-  const { hasCopied, onCopy } = useClipboard(JSON.stringify(colors));
-
   return (
     <Skeleton isLoaded={colors.length > 0} w="70%" size="lg">
       <Flex direction="row" align="center" height="1.5em" gridGap="0.5">
@@ -44,15 +34,6 @@ export const DominantColorsDisplay = ({
             </Flex>
           );
         })}
-
-        <IconButton
-          ml={2}
-          size="sm"
-          icon={
-            <FaRegCopy onClick={onCopy} color={hasCopied ? 'green' : 'black'} />
-          }
-          aria-label="copy palette"
-        />
       </Flex>
     </Skeleton>
   );

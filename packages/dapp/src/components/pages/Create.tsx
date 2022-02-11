@@ -3,16 +3,18 @@ import {
   Container,
   Flex,
   Heading,
+  IconButton,
   Link,
   Spacer,
   Text,
   Textarea,
+  useClipboard,
   useToast
 } from '@chakra-ui/react';
 import { GRAYSCALE_HISTOGRAM, Histogram } from '@splicenft/colors';
 import { BANNER_DIMS, dataUriToBlob, NFTTrait } from '@splicenft/common';
 import React, { useEffect, useRef, useState } from 'react';
-import { FaPlay } from 'react-icons/fa';
+import { FaPlay, FaRegCopy } from 'react-icons/fa';
 import { minify } from 'terser';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
@@ -33,6 +35,8 @@ const CreatePage = () => {
 
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
+
+  const { hasCopied, onCopy } = useClipboard(JSON.stringify(histogram));
 
   const updateCode = () => {
     const $el: HTMLTextAreaElement = document.getElementById(
@@ -86,8 +90,19 @@ const CreatePage = () => {
         <NFTChooser nftChosen={setOrigin} />
       </Flex>
       {histogram && (
-        <Flex my={4} align="center" gridGap={3}>
-          <DominantColorsDisplay colors={histogram} showDetails />
+        <Flex my={4} align="center" gridGap={3} direction="row">
+          <Flex>
+            <DominantColorsDisplay colors={histogram} showDetails />
+          </Flex>
+          <IconButton
+            icon={
+              <FaRegCopy
+                onClick={onCopy}
+                color={hasCopied ? 'green' : 'black'}
+              />
+            }
+            aria-label="copy palette"
+          />
         </Flex>
       )}
       <Flex direction="row" align="center" mt={12} mb={3}>

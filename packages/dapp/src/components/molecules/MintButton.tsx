@@ -82,16 +82,22 @@ export const MintButton = ({
     (async () => {
       setMintableNFTs(
         await Promise.all(
-          indexer.getCollections().map((erc721) => {
-            return new Promise<MintableCollection>((resolve) => {
-              erc721.name().then((name) =>
-                resolve({
-                  name,
-                  address: erc721.address
-                })
-              );
-            });
-          })
+          indexer
+            .getCollections()
+            .filter(
+              (erc) =>
+                erc.address !== '0xF5aa8981E44a0F218B260C99F9C89Ff7C833D36e'
+            )
+            .map((erc721) => {
+              return new Promise<MintableCollection>((resolve, rej) => {
+                erc721.name().then((name) =>
+                  resolve({
+                    name,
+                    address: erc721.address
+                  })
+                );
+              });
+            })
         )
       );
     })();

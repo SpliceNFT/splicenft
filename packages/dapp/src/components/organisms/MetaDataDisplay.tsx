@@ -68,7 +68,6 @@ export const SpliceMetadataDisplay = ({
     <Flex direction="column" {...rest}>
       {spliceMetadata && (
         <Flex direction="column" gridGap={3}>
-          <Heading size="md"> Splice details</Heading>
           {owner && (
             <MetaDataItem
               label="Owner"
