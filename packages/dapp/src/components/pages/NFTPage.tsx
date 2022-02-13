@@ -112,7 +112,7 @@ function reducer(state: State, action: StateAction): State {
       return {
         ...state,
         splice: payload.metadata,
-        sketch: resolveImage(payload.metadata),
+        //sketch: resolveImage(payload.metadata),
         ownership: {
           splice: payload.owner,
           origin: state.ownership?.origin

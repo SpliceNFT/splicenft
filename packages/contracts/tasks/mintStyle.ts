@@ -49,6 +49,11 @@ task('style:mint', 'mints a style')
       styleMinter
     );
 
+    const Splice = await hre.ethers.getContractFactory('Splice');
+    const splice = Splice.attach(await styleNFT.spliceNFT());
+    const beneficiary = await splice.platformBeneficiary();
+    console.log('Platform Beneficiary: ', beneficiary);
+
     const styleMetadata = JSON.parse(
       await fs.promises.readFile(`${directory}/metadata.json`, 'utf-8')
     );

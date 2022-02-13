@@ -30,7 +30,8 @@ const P5SketchDrawer = (props: {
     p5.setup = () => {
       p5.randomSeed(drawArgs.params.randomness);
       p5.pixelDensity(1);
-      p5.createCanvas(drawArgs.dim.w, drawArgs.dim.h, p5.P2D);
+      p5.setAttributes('antialias', true);
+      p5.createCanvas(drawArgs.dim.w, drawArgs.dim.h);
     };
 
     p5.draw = () => {
