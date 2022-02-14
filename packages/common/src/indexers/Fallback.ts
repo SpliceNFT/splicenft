@@ -19,7 +19,8 @@ export class Fallback implements NFTIndexer {
                 nftportNftItem.contract_address,
                 nftportNftItem.token_id
               )
-              .then((nftItem) => resolve(nftItem?.metadata || null));
+              .then((nftItem) => resolve(nftItem?.metadata || null))
+              .catch((a: any) => resolve(null));
           })
         };
       } else {

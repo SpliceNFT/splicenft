@@ -91,10 +91,14 @@ const AssetProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       (async () => {
         setLoading(true);
-        console.log('loading assets...');
-        const _nfts = await indexer.getAllAssetsOfOwner(accountAddress);
-        setNFTs(_nfts);
-        setLoading(false);
+        try {
+          const _nfts = await indexer.getAllAssetsOfOwner(accountAddress);
+          setNFTs(_nfts);
+        } catch (e: any) {
+          console.warn(e.message || e);
+        } finally {
+          setLoading(false);
+        }
       })();
     } catch (e) {
       toast({
@@ -128,7 +132,6 @@ const AssetProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const contract = erc721(library, address);
       const name = await contract.name();
-      console.debug('[%s] unknown, query resolved to [%s]', address, name);
       setContracts((old) => ({ ...old, [address]: name }));
       return name;
     } catch (e: any) {

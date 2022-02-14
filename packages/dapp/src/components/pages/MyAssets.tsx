@@ -31,6 +31,7 @@ export const MyAssetsPage = () => {
     onNFTAdded,
     setAccountAddress
   } = useAssets();
+
   const [balance, setBalance] = useState<ethers.BigNumber>(
     ethers.BigNumber.from(0)
   );
@@ -130,7 +131,13 @@ export const MyAssetsPage = () => {
             )}
             {indexer?.canBeContinued() && (
               <Flex width="100%" minH="80" align="center" justify="center">
-                <Button onClick={continueLoading}>load more</Button>
+                <Button
+                  onClick={continueLoading}
+                  disabled={nftsLoading}
+                  isLoading={nftsLoading}
+                >
+                  load more
+                </Button>
               </Flex>
             )}
           </SimpleGrid>
