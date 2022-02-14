@@ -2,14 +2,14 @@ const Alert = {
   parts: ['container', 'title'],
   baseStyle: {
     container: {
-      rounded: 'full',
+      rounded: 'lg',
       px: '2em',
       py: '1.5em',
       boxShadow: 'md',
       flexDirection: 'row'
     },
     title: {
-      fontWeight: 'regular',
+      fontWeight: 'bold',
       fontSize: 'lg'
     }
   },

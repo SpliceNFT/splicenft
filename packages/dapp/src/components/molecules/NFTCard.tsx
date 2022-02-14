@@ -15,6 +15,7 @@ import {
 } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAssets } from '../../context/AssetContext';
 import { useSplice } from '../../context/SpliceContext';
 import { truncateAddress } from '../../modules/strings';
 import { FallbackImage } from '../atoms/FallbackImage';
@@ -25,7 +26,9 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [spliceMetadata, setSpliceMetadata] = useState<SpliceNFT>();
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNftImageUrl] = useState<string>();
-  const { splice } = useSplice();
+  const [contractName, setContractName] = useState<string>();
+  const { splice, spliceStyles } = useSplice();
+  const { getContractName } = useAssets();
 
   useEffect(() => {
     (async () => {
@@ -40,6 +43,12 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
       } catch (e: any) {
         console.error('error loading metadata', e);
       }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      setContractName(await getContractName(nft.contract_address));
     })();
   }, []);
 
@@ -66,15 +75,15 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
 
   return (
     <SpliceCard flexDirection="column">
-      <AspectRatio ratio={1}>
+      <AspectRatio ratio={1} flex="3">
         {spliceMetadata ? (
-          <Flex position="relative" overflow="hidden">
+          <Flex position="relative">
             <Image src={spliceMetadata.image} fit="cover" boxSize="100%" />
             <Center position="absolute" width="100%" height="100%">
               <Flex
                 rounded="full"
                 border="4px solid white"
-                w="75%"
+                w="70%"
                 overflow="hidden"
                 boxShadow="md"
               >
@@ -86,45 +95,41 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
           <FallbackImage imgUrl={nftImageUrl} metadata={nftMetadata} />
         )}
       </AspectRatio>
-      <Flex direction="column" flex="1">
+      <Flex direction="column" flex="2">
         <LinkOverlay
           as={Link}
           to={`/nft/${nft.contract_address}/${nft.token_id}`}
           p={4}
           background="white"
-          flex="2"
         >
-          <Heading size="md" flex="1">
+          <Heading size="md">
             {nftMetadata ? nftMetadata.name : nft.name}
           </Heading>
         </LinkOverlay>
 
-        <Flex background="black" direction="row" p={6} flex="2">
-          <Flex
-            direction="row"
-            align="center"
-            justify="space-between"
-            width="100%"
-          >
-            <Flex direction="column">
-              <Text color="gray.200" fontWeight="bold">
-                contract
-              </Text>
-              <Text color="white">{truncateAddress(nft.contract_address)}</Text>
-            </Flex>
+        <Flex
+          background="black"
+          gridGap={1}
+          direction="column"
+          align="flex-start"
+          justify="center"
+          flex="2"
+          p={4}
+        >
+          <Text color="white" fontSize="sm">
+            {contractName || truncateAddress(nft.contract_address)}
+          </Text>
 
-            {provenance && (
-              <Flex direction="column">
-                <Text color="gray.200" fontWeight="bold">
-                  Splice
-                </Text>
-
-                <Text color="white">
-                  {provenance.style_token_id}/{provenance.style_token_token_id}
-                </Text>
-              </Flex>
-            )}
-          </Flex>
+          {provenance && (
+            <Text color="white" fontSize="sm">
+              {
+                spliceStyles
+                  .find((st) => st.tokenId === provenance.style_token_id)
+                  ?.getMetadata().name
+              }{' '}
+              # {provenance.style_token_token_id}
+            </Text>
+          )}
         </Flex>
       </Flex>
     </SpliceCard>

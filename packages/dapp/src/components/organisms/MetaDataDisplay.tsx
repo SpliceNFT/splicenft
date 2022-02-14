@@ -60,10 +60,10 @@ export const SpliceMetadataDisplay = ({
   owner?: string;
   spliceMetadata?: SpliceNFT;
   provenance?: TokenProvenance | null;
-  traits: NFTTrait[];
+  traits?: NFTTrait[];
 } & SystemProps) => {
   const { account } = useWeb3React();
-  if (spliceMetadata === undefined && traits.length === 0) return <></>;
+  if (spliceMetadata === undefined && traits?.length === 0) return <></>;
   return (
     <Flex direction="column" {...rest}>
       {spliceMetadata && (
@@ -97,13 +97,13 @@ export const SpliceMetadataDisplay = ({
         </Flex>
       )}
 
-      {traits.length > 0 && (
+      {traits && traits.length > 0 && (
         <>
-          <Heading size="md" mb={3}>
+          <Heading size="md" mb={3} mt={6}>
             Splice attributes
           </Heading>
           <Flex direction="column" gridGap={3}>
-            {traits.map((attr, i) => (
+            {traits?.map((attr, i) => (
               <MetaDataItem
                 fontSize="sm"
                 key={`attr-${attr.trait_type || `unk-${i}`}`}
