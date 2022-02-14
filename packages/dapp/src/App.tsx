@@ -18,6 +18,7 @@ import { NFTPage } from './components/pages/NFTPage';
 import { RoadmapPage } from './components/pages/Roadmap';
 import { SpliceProvider } from './context/SpliceContext';
 import theme from './theme';
+import { AssetProvider } from './context/AssetContext';
 
 function getLibrary(provider: any) {
   return new providers.Web3Provider(provider);
@@ -34,39 +35,41 @@ function App() {
       <Web3ReactProvider getLibrary={getLibrary}>
         <SpliceProvider>
           <Router>
-            <Header />
+            <AssetProvider>
+              <Header />
 
-            <Switch>
-              <Route path="/nft/:collection/:token_id">
-                <NFTPage />
-              </Route>
-              <Route path="/my-splices">
-                <MySplicesPage />
-              </Route>
+              <Switch>
+                <Route path="/nft/:collection/:token_id">
+                  <NFTPage />
+                </Route>
+                <Route path="/my-splices">
+                  <MySplicesPage />
+                </Route>
 
-              <Route path={['/my-assets/:accountAddress', '/my-assets']}>
-                <MyAssetsPage />
-              </Route>
-              <Route path="/create">
-                <React.Suspense fallback={<></>}>
-                  <CreatePage />
-                </React.Suspense>
-              </Route>
-              <Route path="/style/:style_id">
-                <React.Suspense fallback={<></>}>
-                  <StyleDetailPage />
-                </React.Suspense>
-              </Route>
-              <Route path="/styles">
-                <StylesOverviewPage />
-              </Route>
-              <Route path="/roadmap">
-                <RoadmapPage />
-              </Route>
-              <Route path="/">
-                <AboutPage />
-              </Route>
-            </Switch>
+                <Route path={['/my-assets/:accountAddress', '/my-assets']}>
+                  <MyAssetsPage />
+                </Route>
+                <Route path="/create">
+                  <React.Suspense fallback={<></>}>
+                    <CreatePage />
+                  </React.Suspense>
+                </Route>
+                <Route path="/style/:style_id">
+                  <React.Suspense fallback={<></>}>
+                    <StyleDetailPage />
+                  </React.Suspense>
+                </Route>
+                <Route path="/styles">
+                  <StylesOverviewPage />
+                </Route>
+                <Route path="/roadmap">
+                  <RoadmapPage />
+                </Route>
+                <Route path="/">
+                  <AboutPage />
+                </Route>
+              </Switch>
+            </AssetProvider>
           </Router>
           <Footer />
           <SubFooter />

@@ -1,4 +1,8 @@
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -15,12 +19,10 @@ import {
 } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
 import {
-  dataUriToBlob,
   erc721,
   NFTItem,
   NFTTrait,
   OnChain,
-  resolveImage,
   Splice,
   SpliceNFT,
   Style,
@@ -39,6 +41,7 @@ import React, {
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 import { IoReload } from 'react-icons/io5';
 import { NavLink, useParams } from 'react-router-dom';
+import { useAssets } from '../../context/AssetContext';
 import { useSplice } from '../../context/SpliceContext';
 import { default as getDominantColors, loadColors } from '../../modules/colors';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
@@ -80,6 +83,11 @@ type State = {
     origin: string | undefined;
   };
   originImage?: HTMLImageElement;
+};
+
+type ContractError = {
+  title: string;
+  description: string;
 };
 
 function reducer(state: State, action: StateAction): State {
@@ -171,9 +179,12 @@ export const NFTPage = () => {
 
   const toast = useToast();
 
-  const { splice, indexer, spliceStyles } = useSplice();
+  const { splice, spliceStyles } = useSplice();
+  const { indexer } = useAssets();
+
   const { library: web3, account, chainId } = useWeb3React();
   const [buzy, setBuzy] = useState<boolean>(false);
+  const [error, setError] = useState<ContractError>();
 
   const [state, dispatch] = useReducer(reducer, {
     origin: {
@@ -211,10 +222,12 @@ export const NFTPage = () => {
           }
         });
       } catch (e: any) {
-        console.error(
-          "couldn't load origin collection information (maybe not an erc721 contract)",
-          e.message
-        );
+        console.error(e.message);
+        setError({
+          title:
+            "couldn't load origin collection information (maybe not an erc721 contract)",
+          description: e.message
+        });
       }
     })();
   }, [web3, account, chainId, splice, indexer]);
@@ -419,7 +432,22 @@ export const NFTPage = () => {
           </Flex>
         </Flex>
       )}
-
+      {error && (
+        <Alert
+          status="error"
+          alignItems="center"
+          justifyContent="center"
+          textAlign="center"
+          flexDirection="column"
+          my={6}
+        >
+          <AlertIcon boxSize="40px" mr={0} />
+          <AlertTitle mt={4} mb={1} fontSize="lg">
+            {error.title}
+          </AlertTitle>
+          <AlertDescription maxWidth="md">{error.description}</AlertDescription>
+        </Alert>
+      )}
       <SimpleGrid
         justify="space-between"
         align="flex-start"

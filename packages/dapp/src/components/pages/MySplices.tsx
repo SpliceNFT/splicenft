@@ -23,6 +23,7 @@ import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAssets } from '../../context/AssetContext';
 import { useSplice } from '../../context/SpliceContext';
 import {
   UserSplicesData,
@@ -31,11 +32,12 @@ import {
 } from '../../modules/Queries';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { PreviewBase } from '../molecules/PreviewBase';
-
 import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
 const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
-  const { indexer, splice } = useSplice();
+  const { splice } = useSplice();
+  const { indexer } = useAssets();
+
   const toast = useToast();
 
   const [origin, setOrigin] = useState<NFTMetaData | null>();
@@ -106,10 +108,7 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           {metadata && (
             <>
               <Text>{metadata.description}</Text>
-              <SpliceMetadataDisplay
-                spliceMetadata={metadata}
-                traits={metadata.attributes || []}
-              />
+              <SpliceMetadataDisplay spliceMetadata={metadata} />
             </>
           )}
         </Flex>

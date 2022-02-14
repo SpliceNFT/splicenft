@@ -13,19 +13,19 @@ import {
   useToast
 } from '@chakra-ui/react';
 import {
-  Partnership,
-  Style,
-  StyleStats,
-  ReplaceablePaymentSplitter,
+  ipfsGW,
   ISplicePriceStrategy,
-  ipfsGW
+  Partnership,
+  ReplaceablePaymentSplitter,
+  Style,
+  StyleStats
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { BigNumber, ethers, providers } from 'ethers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
-
 import { useSplice } from '../../context/SpliceContext';
+
 type PaymentInfo = {
   total: ethers.BigNumber;
   totalReleased: ethers.BigNumber;

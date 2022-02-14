@@ -12,7 +12,7 @@ import { OnChain } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { BigNumber, Contract, ethers, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { useSplice } from '../../context/SpliceContext';
+import { useAssets } from '../../context/AssetContext';
 
 const MintingABI = [
   {
@@ -70,7 +70,7 @@ export const MintButton = ({
   onMinted: (collection: string, tokenId: string) => void;
   balance: ethers.BigNumber | undefined;
 }) => {
-  const { indexer } = useSplice();
+  const { indexer } = useAssets();
   const { library, account } = useWeb3React<providers.Web3Provider>();
   const [buzy, setBuzy] = useState<boolean>(false);
 

@@ -7,10 +7,6 @@ import {
 import {
   ActiveStyle,
   CHAINS,
-  FallbackIndexer,
-  NFTIndexer,
-  NFTPort,
-  OnChain,
   Splice,
   SPLICE_ADDRESSES,
   Style,
@@ -20,11 +16,9 @@ import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
 import { providers } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
-import { knownCollections } from '../modules/chains';
 
 interface ISpliceContext {
   splice?: Splice;
-  indexer?: NFTIndexer;
   spliceStyles: Style[];
 }
 
@@ -36,7 +30,6 @@ type ApolloClientType = ApolloClient<NormalizedCacheObject>;
 const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
-  const [indexer, setIndexer] = useState<NFTIndexer>();
   const [spliceStyles, setStyles] = useState<Style[]>([]);
   const [apolloClient, setApolloClient] = useState<ApolloClientType>(
     new ApolloClient({
@@ -52,7 +45,6 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     if (!chain) {
       setSplice(undefined);
       setStyles([]);
-      setIndexer(undefined);
       console.error(`chain ${chainId} unsupported`);
       return;
     }
@@ -88,28 +80,6 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
         setSplice(undefined);
       }
     }
-
-    switch (chain) {
-      case 'ethereum':
-        setIndexer(
-          new FallbackIndexer(
-            new NFTPort(chain, process.env.REACT_APP_NFTPORT_AUTH as string),
-            new OnChain(library, knownCollections['ethereum'], {
-              proxyAddress: process.env.REACT_APP_CORS_PROXY,
-              metadataProxy: process.env.REACT_APP_VALIDATOR_BASEURL
-            })
-          )
-        );
-        break;
-
-      default:
-        setIndexer(
-          new OnChain(library, knownCollections[chain], {
-            proxyAddress: process.env.REACT_APP_CORS_PROXY,
-            metadataProxy: process.env.REACT_APP_VALIDATOR_BASEURL
-          })
-        );
-    }
   }, [library, chainId]);
 
   useEffect(() => {
@@ -144,7 +114,7 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [chainId, splice]);
 
   return (
-    <SpliceContext.Provider value={{ splice, indexer, spliceStyles }}>
+    <SpliceContext.Provider value={{ splice, spliceStyles }}>
       <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
     </SpliceContext.Provider>
   );
