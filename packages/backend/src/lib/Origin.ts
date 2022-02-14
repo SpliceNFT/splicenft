@@ -1,4 +1,9 @@
-import { extractColors, Histogram, LoadImageNode } from '@splicenft/colors';
+import {
+  extractColors,
+  Histogram,
+  isSVG,
+  LoadImageNode
+} from '@splicenft/colors';
 import {
   ERC721,
   getIpfsPath,
@@ -15,6 +20,7 @@ import { BigNumberish } from 'ethers';
 
 const IPFSIO_GATEWAY = 'https://ipfs.io/ipfs/';
 const IPFSDWEB_GATEWAY = 'https://dweb.link/ipfs/';
+const B64_DATA_PREFIX = 'data:application/json;base64,';
 
 function usePublicGateway(ipfsPath: string) {
   [IPFSIO_GATEWAY].map((gw) => {
@@ -30,6 +36,13 @@ export async function getOriginMetadata(
   const originMetadataUrl: string = ipfsGW(
     await erc721.tokenURI(originTokenId)
   );
+
+  if (originMetadataUrl.startsWith(B64_DATA_PREFIX)) {
+    const b64s = originMetadataUrl.replace(B64_DATA_PREFIX, '');
+    const buff = Buffer.from(b64s, 'base64');
+    const text = buff.toString('utf-8');
+    return JSON.parse(text);
+  }
 
   let prefetchTimeout;
   if (isIpfsLocation(originMetadataUrl)) {

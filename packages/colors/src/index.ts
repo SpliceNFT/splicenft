@@ -10,9 +10,13 @@ import type { ImageLoader, ImageLoaderOptions } from './types/ImageLoader';
 const SVG_DATA_PREFIX = 'data:image/svg+xml;';
 
 const SVG_FILL_REGEX = new RegExp(
-  `fill\s*[:=]\s*['"](\#[A-Fa-f0-9]{6})['"]`,
+  `fill\s*[:=]\s*['"](\#[A-Fa-f0-9]{3,6})['"]`,
   'gi'
 );
+
+export const isSVG = (url: string): boolean => {
+  return url.startsWith(SVG_DATA_PREFIX);
+};
 
 export const extractPaletteFromSvg = (svg: string): Histogram => {
   const matches = svg.matchAll(SVG_FILL_REGEX);
@@ -61,8 +65,8 @@ export const extractColors = async (
   options: ImageLoaderOptions
 ): Promise<Histogram> => {
   if (
-    (typeof image === 'string' && image.startsWith(SVG_DATA_PREFIX)) ||
-    (typeof image === 'object' && image.src.startsWith(SVG_DATA_PREFIX))
+    (typeof image === 'string' && isSVG(image)) ||
+    (typeof image === 'object' && isSVG(image.src))
   ) {
     let dataUrl = decodeURIComponent(
       typeof image === 'string' ? image : image.src
