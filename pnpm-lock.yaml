@@ -368,9 +368,14 @@ importers:
     specifiers:
       '@graphprotocol/graph-cli': 0.25.1
       '@graphprotocol/graph-ts': 0.24.1
+      mustache: ^4.2.0
+      typescript: ^4.5.5
     dependencies:
       '@graphprotocol/graph-cli': 0.25.1
       '@graphprotocol/graph-ts': 0.24.1
+      mustache: 4.2.0
+    devDependencies:
+      typescript: 4.5.5
 
 packages:
 
@@ -12290,7 +12295,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.3_supports-color@6.1.0
+      debug: 4.3.3
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -18019,6 +18024,11 @@ packages:
   /murmurhash3js/3.0.1:
     resolution: {integrity: sha1-Ppg+W0fCoG9DpxMXTn5DXKBEuZg=}
     engines: {node: '>=0.10.0'}
+    dev: false
+
+  /mustache/4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
+    hasBin: true
     dev: false
 
   /mutable-proxy/1.0.0:
@@ -24060,6 +24070,12 @@ packages:
 
   /typescript/4.5.4:
     resolution: {integrity: sha512-VgYs2A2QIRuGphtzFV7aQJduJ2gyfTljngLzjpfW9FoYZF6xuw1W0vW9ghCKLfcWrCFxK81CSGRAvS1pn4fIUg==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true
+
+  /typescript/4.5.5:
+    resolution: {integrity: sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
