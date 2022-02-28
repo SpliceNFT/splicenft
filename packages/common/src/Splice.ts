@@ -32,7 +32,12 @@ export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
     deployedAt: 10082549
   }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
-  //1: '0x0'
+  // 1:{
+  //   subgraph:
+  //     'https://api.thegraph.com/subgraphs/name/elmariachi111/splicemultirinkeby',
+  //   address: '0xB6D9BA151BcdD9169c8Ccd07DB63F306AA4a5b8E',
+  //   deployedAt: 14152956
+  // }
 };
 
 export type ProvenanceOrigin = {

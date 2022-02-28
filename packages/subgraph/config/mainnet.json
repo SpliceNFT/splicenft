@@ -1,4 +1,11 @@
 {
   "network": "mainnet",
-  "address": ""
+  "style": {
+    "address": "0xEec709ab1e5687B5ffe414D1DfBF35C85B78D3DE",
+    "startblock": 14152892
+  },
+  "splice": {
+    "address": "0xB6D9BA151BcdD9169c8Ccd07DB63F306AA4a5b8E",
+    "startblock": 14152956
+  }
 }

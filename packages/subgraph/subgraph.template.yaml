@@ -10,7 +10,7 @@ dataSources:
     name: SpliceStyleNFT
     network: {{network}}
     source:
-      address: {{style.address}}
+      address: "{{style.address}}"
       abi: SpliceStyleNFT
       startBlock: {{style.startblock}}
     mapping:
@@ -23,6 +23,8 @@ dataSources:
       abis:
         - name: SpliceStyleNFT
           file: ./abis/SpliceStyleNFT.json
+        - name: ReplaceablePaymentSplitter
+          file: ./abis/ReplaceablePaymentSplitter.json
       eventHandlers:
         - event: Minted(indexed uint32,uint32,string)
           handler: handleStyleMinted
@@ -35,7 +37,7 @@ dataSources:
     name: Splice
     network: {{network}}
     source:
-      address: {{splice.address}}
+      address: "{{splice.address}}"
       abi: Splice
       startBlock: {{splice.startblock}}
     mapping:
@@ -80,3 +82,30 @@ dataSources:
         # - event: Unpaused(address)
         #   handler: handleUnpaused
       file: ./src/mapping.ts
+templates:
+  - name: ReplaceablePaymentSplitter
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: ReplaceablePaymentSplitter
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/payments.ts
+      entities:
+        - PayeeAdded
+        - PaymentReceived
+        - PaymentReleased
+        - ERC20PaymentReleased
+        - PayeeReplaced
+      abis:
+        - name: ReplaceablePaymentSplitter
+          file: ./abis/ReplaceablePaymentSplitter.json
+      eventHandlers:
+        - event: PayeeReplaced(indexed address,indexed address,uint256)
+          handler: handlePayeeReplaced
+        - event: PaymentReceived(address,uint256)
+          handler: handlePaymentReceived
+        - event: PaymentReleased(address,uint256)
+          handler: handlePaymentReleased
