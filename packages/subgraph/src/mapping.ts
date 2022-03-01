@@ -117,17 +117,19 @@ export function handleStyleMinted(event: StyleMinted): void {
   style.minted = 0;
   const styleContract = StyleNFTContract.bind(event.address);
   style.metadata_url = styleContract.tokenURI(event.params.styleTokenId);
+
   const settings = styleContract.getSettings(event.params.styleTokenId);
+  style.priceStrategy = settings.priceStrategy;
 
   const splitContract = PaymentSplitterContract.bind(settings.paymentSplitter);
 
-  const payees: Bytes[] = [
-    splitContract.payee(BigInt.fromU32(0)),
-    splitContract.payee(BigInt.fromU32(1))
+  const payees: string[] = [
+    splitContract.payee(BigInt.fromU32(0)).toHexString(),
+    splitContract.payee(BigInt.fromU32(1)).toHexString()
   ];
   const p3 = splitContract.try_payee(BigInt.fromU32(2));
   if (!p3.reverted && p3.value != Address.zero()) {
-    payees.push(p3.value);
+    payees.push(p3.value.toHexString());
   }
 
   const split = new PaymentSplit(settings.paymentSplitter.toHexString());

@@ -24,11 +24,12 @@ type Style @entity {
   minted: Int
   splices: [Splice!]! @derivedFrom(field: "style")
   split: PaymentSplit
+  priceStrategy: Bytes!
 }
 
 type PaymentSplit @entity {
   id: ID!
-  payees: [Bytes!]!
+  payees: [String!]!
   style: Style!
   balance: BigInt!
   payments: [Payment!]! @derivedFrom(field: "splitter")

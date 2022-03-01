@@ -51,9 +51,9 @@ export function handlePayeeReplaced(event: PayeeReplaced): void {
     return;
   }
 
-  const without: Bytes[] = [];
+  const without: string[] = [];
   for (let i = 0; i < split.payees.length; i++) {
-    if (!split.payees[i].equals(event.params.old)) {
+    if (split.payees[i] !== event.params.old.toHexString()) {
       without.push(split.payees[i]);
     }
   }
@@ -64,7 +64,7 @@ export function handlePayeeReplaced(event: PayeeReplaced): void {
     split.style
   ]);
 
-  without.push(event.params.new_);
+  without.push(event.params.new_.toHexString());
   split.payees = without;
   split.save();
 }
