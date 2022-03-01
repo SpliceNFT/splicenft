@@ -4,16 +4,20 @@ import {
   ByteArray,
   Bytes,
   crypto,
+  DataSourceContext,
   ethereum,
   log as glog
 } from '@graphprotocol/graph-ts';
-import { Origin, Splice, Style } from '../generated/schema';
+import { Origin, PaymentSplit, Splice, Style } from '../generated/schema';
 import { ERC721 as ERC721Contract } from '../generated/Splice/ERC721';
 import {
   Minted,
   Splice as SpliceContract,
   Transfer
 } from '../generated/Splice/Splice';
+import { ReplaceablePaymentSplitter as PaymentSplitterContract } from '../generated/SpliceStyleNFT/ReplaceablePaymentSplitter';
+import { ReplaceablePaymentSplitter } from '../generated/templates';
+
 import {
   Minted as StyleMinted,
   SpliceStyleNFT as StyleNFTContract,
@@ -113,8 +117,36 @@ export function handleStyleMinted(event: StyleMinted): void {
   style.minted = 0;
   const styleContract = StyleNFTContract.bind(event.address);
   style.metadata_url = styleContract.tokenURI(event.params.styleTokenId);
-  //const settings = styleContract.getSettings(event.params.style_token_id);
+
+  const settings = styleContract.getSettings(event.params.styleTokenId);
+  style.priceStrategy = settings.priceStrategy;
+
+  const splitContract = PaymentSplitterContract.bind(settings.paymentSplitter);
+
+  const payees: string[] = [
+    splitContract.payee(BigInt.fromU32(0)).toHexString(),
+    splitContract.payee(BigInt.fromU32(1)).toHexString()
+  ];
+  const p3 = splitContract.try_payee(BigInt.fromU32(2));
+  if (!p3.reverted && p3.value != Address.zero()) {
+    payees.push(p3.value.toHexString());
+  }
+
+  const split = new PaymentSplit(settings.paymentSplitter.toHexString());
+  split.payees = payees;
+  split.balance = BigInt.zero();
+  split.style = style.id;
+  split.save();
+
+  style.split = split.id;
   style.save();
+
+  const context = new DataSourceContext();
+  context.setBytes('address', settings.paymentSplitter);
+  ReplaceablePaymentSplitter.createWithContext(
+    settings.paymentSplitter,
+    context
+  );
 }
 
 export function handleStyleTransferred(event: StyleTransferred): void {

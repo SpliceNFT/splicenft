@@ -1,0 +1,11 @@
+{
+  "network": "rinkeby",
+  "style": {
+    "address": "0x8f80d1183CD983B01B0C9AC6777cC732Ec9800de",
+    "startblock": 10083155
+  },
+  "splice": {
+    "address": "0x25A1c61A2501A82bf24C31F5CdE375F56B72C397",
+    "startblock": 10083209
+  }
+}

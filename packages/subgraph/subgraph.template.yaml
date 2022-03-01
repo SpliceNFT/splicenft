@@ -8,11 +8,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: SpliceStyleNFT
-    network: rinkeby
+    network: {{network}}
     source:
-      address: "0x8f80d1183CD983B01B0C9AC6777cC732Ec9800de"
+      address: "{{style.address}}"
       abi: SpliceStyleNFT
-      startBlock: 10083155
+      startBlock: {{style.startblock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -23,6 +23,8 @@ dataSources:
       abis:
         - name: SpliceStyleNFT
           file: ./abis/SpliceStyleNFT.json
+        - name: ReplaceablePaymentSplitter
+          file: ./abis/ReplaceablePaymentSplitter.json
       eventHandlers:
         - event: Minted(indexed uint32,uint32,string)
           handler: handleStyleMinted
@@ -33,11 +35,11 @@ dataSources:
       file: ./src/mapping.ts
   - kind: ethereum/contract
     name: Splice
-    network: rinkeby
+    network: {{network}}
     source:
-      address: "0x25A1c61A2501A82bf24C31F5CdE375F56B72C397"
+      address: "{{splice.address}}"
       abi: Splice
-      startBlock: 10083209
+      startBlock: {{splice.startblock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -80,3 +82,30 @@ dataSources:
         # - event: Unpaused(address)
         #   handler: handleUnpaused
       file: ./src/mapping.ts
+templates:
+  - name: ReplaceablePaymentSplitter
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: ReplaceablePaymentSplitter
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/payments.ts
+      entities:
+        - PayeeAdded
+        - PaymentReceived
+        - PaymentReleased
+        - ERC20PaymentReleased
+        - PayeeReplaced
+      abis:
+        - name: ReplaceablePaymentSplitter
+          file: ./abis/ReplaceablePaymentSplitter.json
+      eventHandlers:
+        - event: PayeeReplaced(indexed address,indexed address,uint256)
+          handler: handlePayeeReplaced
+        - event: PaymentReceived(address,uint256)
+          handler: handlePaymentReceived
+        - event: PaymentReleased(address,uint256)
+          handler: handlePaymentReleased

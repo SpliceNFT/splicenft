@@ -7,7 +7,7 @@ import {
   Link,
   Icon
 } from '@chakra-ui/react';
-import { CHAINS } from '@splicenft/common';
+import { CHAINS, SPLICE_ADDRESSES } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';
@@ -19,21 +19,7 @@ export const Footer = () => {
   const { chainId, account } = useWeb3React<providers.Web3Provider>();
   const { splice } = useSplice();
 
-  let explorerRoot = '';
-  let openseaLink = null;
-
-  switch (chainId) {
-    case undefined:
-    case 31337:
-      break;
-    case 1:
-      explorerRoot = 'etherscan.io';
-      break;
-    default:
-      explorerRoot = `//${CHAINS[chainId]}.etherscan.io`;
-      openseaLink = 'https://testnets.opensea.io/collection/splice-v5';
-      break;
-  }
+  const deployInfo = chainId ? SPLICE_ADDRESSES[chainId] : null;
 
   return (
     <Flex bg="black" p={12} color="white" direction="column">
@@ -110,25 +96,34 @@ export const Footer = () => {
               <Text>Network: {chainId && CHAINS[chainId]}</Text>
               <Text isTruncated>
                 You:{' '}
-                <Link href={`${explorerRoot}/address/${account}`} isExternal>
-                  {' '}
-                  {account}
-                </Link>
+                {deployInfo ? (
+                  <Link
+                    href={`//${deployInfo.explorerRoot}/address/${account}`}
+                    isExternal
+                  >
+                    {' '}
+                    {account}
+                  </Link>
+                ) : (
+                  account
+                )}
               </Text>
               {splice && (
                 <Text isTruncated>
                   Splice contract:
-                  <Link
-                    href={`${explorerRoot}/address/${splice.address}`}
-                    isExternal
-                  >
-                    {splice.address}
-                  </Link>
+                  {deployInfo && (
+                    <Link
+                      href={`//${deployInfo.explorerRoot}/address/${splice.address}`}
+                      isExternal
+                    >
+                      {splice.address}
+                    </Link>
+                  )}
                 </Text>
               )}
 
-              {openseaLink && (
-                <Link href={openseaLink} isExternal>
+              {deployInfo && (
+                <Link href={`//${deployInfo.openSeaLink}`} isExternal>
                   OpenSea: Splice V5
                 </Link>
               )}

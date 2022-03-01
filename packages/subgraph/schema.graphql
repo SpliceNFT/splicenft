@@ -2,7 +2,7 @@ type Splice @entity {
   id: ID!
   owner: Bytes # address
   origin_hash: Bytes
-  input_params: Bytes 
+  input_params: Bytes
   metadata_url: String
   origins: [Origin!]
   minting_fee: BigInt
@@ -11,16 +11,41 @@ type Splice @entity {
 
 type Origin @entity {
   id: ID!
-  collection: Bytes #address 
+  collection: Bytes #address
   token_id: BigInt
   metadata_url: String
 }
 
 type Style @entity {
   id: ID!
-  owner: Bytes! 
-  cap: Int 
-  metadata_url: String 
-  minted: Int 
-  splices: [Splice!]! @derivedFrom(field:"style")
+  owner: Bytes!
+  cap: Int
+  metadata_url: String
+  minted: Int
+  splices: [Splice!]! @derivedFrom(field: "style")
+  split: PaymentSplit
+  priceStrategy: Bytes!
 }
+
+type PaymentSplit @entity {
+  id: ID!
+  payees: [String!]!
+  style: Style!
+  balance: BigInt!
+  payments: [Payment!]! @derivedFrom(field: "splitter")
+}
+
+type Payment @entity {
+  id: ID!
+  tx: Bytes
+  from: Bytes
+  time: BigInt
+  amount: BigInt
+  splitter: PaymentSplit! 
+}
+
+# type Balance @entity {
+#   id: ID!
+#   address: Bytes
+#   amount: BigInt
+# }

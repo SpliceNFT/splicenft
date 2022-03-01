@@ -1,5 +1,9 @@
+import { useQuery } from '@apollo/client';
 import {
   AspectRatio,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Button,
   Container,
   Flex,
@@ -8,8 +12,15 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Link,
   SystemProps,
+  Table,
+  Tbody,
+  Td,
   Text,
+  Th,
+  Thead,
+  Tr,
   useToast
 } from '@chakra-ui/react';
 import {
@@ -24,7 +35,9 @@ import { useWeb3React } from '@web3-react/core';
 import { BigNumber, ethers, providers } from 'ethers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
+import { StyleStatsData, STYLE_STATS } from '../../modules/Queries';
 
 type PaymentInfo = {
   total: ethers.BigNumber;
@@ -211,6 +224,15 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>();
   const [priceStrategy, setPriceStrategy] = useState<ISplicePriceStrategy>();
   const [price, setPrice] = useState<BigNumber>();
+
+  const {
+    loading: buzy,
+    error: gqlErr,
+    data: paymentStats
+  } = useQuery<{ style: StyleStatsData }, { style_id: string }>(STYLE_STATS, {
+    variables: { style_id: style.tokenId.toString() }
+  });
+
   useEffect(() => {
     if (!web3) return;
     (async () => {
@@ -262,8 +284,14 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
 
   return (
     <Flex direction="column" my={5}>
-      <Heading size="md">Payments</Heading>
-      <Text>Splitter {splitter?.address}</Text>
+      <Heading size="md">
+        Payments{' '}
+        <Text d="inline" fontSize="xs" fontWeight="normal">
+          <Link href="" isExternal>
+            {splitter?.address}
+          </Link>
+        </Text>
+      </Heading>
       {paymentInfo && (
         <Flex direction="row" justify="space-between" my={5} gridGap={2}>
           <NumBox
@@ -285,9 +313,29 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
           </NumBox>
         </Flex>
       )}
+      {paymentStats && (
+        <Table variant="unstyled" size="sm">
+          <Thead>
+            <Tr>
+              <Th>From</Th>
+              <Th>at</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {paymentStats.style.split.payments.map((p) => (
+              <Tr key={p.id}>
+                <Td>{p.from}</Td>
+                <Td>{new Date(parseInt(p.time) * 1000).toISOString()}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      )}
       {priceStrategy && (
         <Flex direction="column">
-          <Heading size="md">Pricing</Heading>
+          <Heading size="md" my={5}>
+            Pricing
+          </Heading>
           <Text>Price Strategy {priceStrategy.address}</Text>
           {price && (
             <Flex my={5}>
@@ -375,6 +423,7 @@ const StyleDetailPage = () => {
         setStats(await style.stats());
         setPartnership(await style.partnership());
       } catch (e: any) {
+        console.debug(style);
         console.warn('style: ', e.message || e);
       }
     })();
@@ -388,6 +437,16 @@ const StyleDetailPage = () => {
 
   return (
     <Container maxW="container.lg">
+      <Breadcrumb my={3}>
+        <BreadcrumbItem fontSize="lg">
+          <BreadcrumbLink as={NavLink} to="/styles">
+            All Styles
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
+          <BreadcrumbLink>{style?.getMetadata().name}</BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
       {style && stats && (
         <>
           <AspectRatio background="black" position="relative" ratio={3 / 1}>
@@ -410,6 +469,7 @@ const StyleDetailPage = () => {
             </Flex>
           </AspectRatio>
           <Payments style={style} stats={stats} />
+
           {partnership && (
             <Partnerships
               style={style}

@@ -59,6 +59,66 @@ export const SPLICES_OF_ORIGIN = gql`
   }
 `;
 
+export const PAYMENT_MEMBER = gql`
+  query PaymentMemberOf($address: [String]) {
+    paymentSplits(where: { payees_contains: $address }) {
+      payees
+      style {
+        id
+      }
+    }
+  }
+`;
+
+export interface StyleStatsData {
+  id: string;
+  owner: string;
+  priceStrategy: string;
+  minted: number;
+  cap: number;
+  split: {
+    payments: [{ from: string; time: string; id: string }];
+  };
+}
+
+export const ALL_STYLE_STATS = gql`
+  query StyleStats {
+    styles {
+      id
+      owner
+      priceStrategy
+      minted
+      cap
+      split {
+        payments(first: 3) {
+          id
+          from
+          time
+        }
+      }
+    }
+  }
+`;
+
+export const STYLE_STATS = gql`
+  query StyleStats($style_id: String) {
+    style(id: $style_id) {
+      id
+      owner
+      priceStrategy
+      minted
+      cap
+      split {
+        payments(first: 3) {
+          id
+          from
+          time
+        }
+      }
+    }
+  }
+`;
+
 // export const SPLICES_OF_COLLECTIONS = gql`
 //   query SplicesOfCollections($collections: String[]) {
 //     spliceice(where: {origin_collection_in: $collections }) {
