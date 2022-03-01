@@ -23,13 +23,17 @@ type SpliceDeployInfo = {
   address: string;
   deployedAt: number;
   subgraph?: string;
+  explorerRoot?: string;
+  openSeaLink?: string;
 };
 export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
   4: {
     subgraph:
       'https://api.thegraph.com/subgraphs/name/elmariachi111/splicemultirinkeby',
     address: '0x25A1c61A2501A82bf24C31F5CdE375F56B72C397',
-    deployedAt: 10082549
+    deployedAt: 10082549,
+    explorerRoot: 'rinkeby.etherscan.io',
+    openSeaLink: 'testnets.opensea.io/collection/splice-v5'
   }
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
   // 1:{
