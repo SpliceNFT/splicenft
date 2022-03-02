@@ -27,6 +27,21 @@ import stefan from '../../img/team/stefan.jpg';
 import timothy from '../../img/team/timothy.jpg';
 import { ContainerHero, Hero } from '../atoms/Hero';
 
+const Tagline = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Flex
+      color="white"
+      position="absolute"
+      right={5}
+      bottom={5}
+      background="black"
+      px={3}
+      py={2}
+    >
+      {children}
+    </Flex>
+  );
+};
 export const AboutPage = () => {
   const buttonGradient =
     'linear(to-r, red.300, yellow.300, green.300, blue.300)';
@@ -49,7 +64,7 @@ export const AboutPage = () => {
             <CarouselProvider
               naturalSlideWidth={1500}
               naturalSlideHeight={500}
-              totalSlides={3}
+              totalSlides={4}
               interval={3500}
               visibleSlides={1}
               infinite={true}
@@ -57,20 +72,74 @@ export const AboutPage = () => {
             >
               <Slider>
                 <Slide index={0}>
+                  <Tagline>
+                    <Text>
+                      <b>Ethscape Metropolis</b> by{' '}
+                      <Link
+                        href="https://twitter.com/emilyaweil"
+                        isExternal
+                        color="twitter.400"
+                      >
+                        Emily Weil
+                      </Link>
+                    </Text>
+                  </Tagline>
                   <SlImage
-                    src="/samples/cat_district.png"
+                    src="/samples/bb_ethscape.png"
                     hasMasterSpinner={false}
                   />
                 </Slide>
                 <Slide index={1}>
+                  <Tagline>
+                    <Text>
+                      <b>Terrain</b> by{' '}
+                      <Link
+                        href="https://twitter.com/LorenBednar"
+                        isExternal
+                        color="twitter.400"
+                      >
+                        Loren Bednar
+                      </Link>
+                    </Text>
+                  </Tagline>
                   <SlImage
-                    src="/samples/beginning_sample.png"
+                    src="/samples/azuki_terrain.jpg"
                     hasMasterSpinner={false}
                   />
                 </Slide>
                 <Slide index={2}>
+                  <Tagline>
+                    <Text>
+                      <b>Amazeing Fields</b> by{' '}
+                      <Link
+                        href="https://twitter.com/ferjerez3d"
+                        isExternal
+                        color="twitter.400"
+                      >
+                        Fernando Jerez
+                      </Link>
+                    </Text>{' '}
+                  </Tagline>
                   <SlImage
-                    src="/samples/frog_6729.png"
+                    src="/samples/rob_amazeing.jpg"
+                    hasMasterSpinner={false}
+                  />
+                </Slide>
+                <Slide index={3}>
+                  <Tagline>
+                    <Text>
+                      <b>District 1618</b> by{' '}
+                      <Link
+                        href="https://twitter.com/splicenft"
+                        isExternal
+                        color="twitter.400"
+                      >
+                        Splice Genesis
+                      </Link>
+                    </Text>
+                  </Tagline>
+                  <SlImage
+                    src="/samples/wow_district.jpg"
                     hasMasterSpinner={false}
                   />
                 </Slide>
@@ -80,7 +149,7 @@ export const AboutPage = () => {
         </Container>
 
         <Button
-          w="75%"
+          w="60%"
           as={NavLink}
           to="/my-assets"
           bgGradient={buttonGradientWhite}
@@ -124,7 +193,7 @@ export const AboutPage = () => {
               for places like Twitter and Discord. But that’s just the
               beginning. This kind of derivative art will enrich a metaverse
               where NFT communities flourish – a world of game spaces,
-              workplaces, tools, weapons, gifts, accessories, etc.
+              workplaces, tools, gifts, accessories, etc.
             </Text>
             <Text>
               Eventually, Splice will generate all sorts of digital assets.{' '}
@@ -144,6 +213,16 @@ export const AboutPage = () => {
                 follow us on Twitter
               </Link>{' '}
               to determine what we Splice next.
+            </Text>
+            <Text>
+              If you're an artist interested in creating a Splice,{' '}
+              <Link
+                href="https://splicenft.github.io/splicenft/artists/"
+                color="twitter.500"
+                isExternal
+              >
+                here's how to do that.
+              </Link>
             </Text>
           </Flex>
           <Flex flex={{ base: 0, md: 1 }} justify="center">
