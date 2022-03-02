@@ -78,26 +78,25 @@ export const AboutPage = () => {
             </CarouselProvider>
           </Box>
         </Container>
-        <Container maxW="container.lg" align="center">
-          <Button
-            w="75%"
-            as={NavLink}
-            to="/my-assets"
-            bgGradient={buttonGradientWhite}
-            transition="all .25s ease"
-            _hover={{
-              color: 'white',
 
-              fontWeight: 'bolder',
-              transform: 'scale(1.05)',
-              bgGradient: buttonGradient
-            }}
-            size="md"
-            fontSize="xl"
-          >
-            Try it!
-          </Button>
-        </Container>
+        <Button
+          w="75%"
+          as={NavLink}
+          to="/my-assets"
+          bgGradient={buttonGradientWhite}
+          transition="all .25s ease"
+          _hover={{
+            color: 'white',
+
+            fontWeight: 'bolder',
+            transform: 'scale(1.05)',
+            bgGradient: buttonGradient
+          }}
+          size="md"
+          fontSize="xl"
+        >
+          Try it!
+        </Button>
       </Hero>
 
       <ContainerHero bg="white">

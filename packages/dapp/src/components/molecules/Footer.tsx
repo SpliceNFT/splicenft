@@ -23,12 +23,7 @@ export const Footer = () => {
 
   return (
     <Flex bg="black" p={12} color="white" direction="column">
-      <SimpleGrid
-        columns={[1, 2, null, 3]}
-        width="100%"
-        spacing={10}
-        justify="space-between"
-      >
+      <SimpleGrid columns={[1, 2, null, 3]} width="100%" spacing={10}>
         <Flex justify="center">
           <Image src={spliceWhite} maxW="80%" />
         </Flex>
