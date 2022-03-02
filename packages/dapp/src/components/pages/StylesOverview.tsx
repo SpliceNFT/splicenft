@@ -1,16 +1,7 @@
-import { useQuery } from '@apollo/client';
 import { Container, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
-import { Style } from '@splicenft/common';
-
-import {
-  ALL_STYLE_STATS,
-  PAYMENT_MEMBER,
-  StyleStatsData,
-  STYLE_STATS
-} from '../../modules/Queries';
 
 export interface PaymentMemberVars {
   address: string[];

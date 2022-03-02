@@ -1,4 +1,4 @@
-import { Box, Flex, LinkOverlay, Text } from '@chakra-ui/react';
+import { Flex, LinkOverlay } from '@chakra-ui/react';
 import { useState } from 'react';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';

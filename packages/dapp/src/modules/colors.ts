@@ -1,6 +1,5 @@
-import { Img } from '@chakra-ui/react';
 import { extractColors, isSVG, LoadImageBrowser } from '@splicenft/colors';
-import { Transfer, Histogram, NFTItem } from '@splicenft/common';
+import { Histogram, NFTItem, Transfer } from '@splicenft/common';
 import { isIpfsGateway } from '@splicenft/common/build/img';
 import axios from 'axios';
 
