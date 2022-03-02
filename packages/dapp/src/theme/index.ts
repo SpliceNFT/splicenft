@@ -14,7 +14,7 @@ export default extendTheme({
     }
   },
   initialColorMode: 'light',
-  useSystemColorMode: true,
+  useSystemColorMode: false,
   styles: {
     global: {
       body: {

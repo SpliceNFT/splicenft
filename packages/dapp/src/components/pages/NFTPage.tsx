@@ -449,8 +449,6 @@ export const NFTPage = () => {
         </Alert>
       )}
       <SimpleGrid
-        justify="space-between"
-        align="flex-start"
         spacing={[2, 5]}
         columns={[1, null, 2]}
         mb={12}

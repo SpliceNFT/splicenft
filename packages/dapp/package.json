@@ -4,7 +4,8 @@
   "dependencies": {
     "@apollo/client": "^3.5.4",
     "@chakra-ui/icons": "^1.0.15",
-    "@chakra-ui/react": "^1.6.7",
+    "@chakra-ui/react": "^1.7.3",
+    "@chakra-ui/system": "^1.11.2",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
     "@ethersproject/providers": "^5.5.1",
@@ -37,6 +38,8 @@
     "web-vitals": "^2.1.2"
   },
   "devDependencies": {
+    "@babel/core": ">=7.0.0 <8.0.0",
+    "@testing-library/dom": "^8.11.3",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",

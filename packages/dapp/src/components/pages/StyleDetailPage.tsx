@@ -28,6 +28,7 @@ import {
   ISplicePriceStrategy,
   Partnership,
   ReplaceablePaymentSplitter,
+  SPLICE_ADDRESSES,
   Style,
   StyleStats
 } from '@splicenft/common';
@@ -218,8 +219,12 @@ const Partnerships = (props: {
 };
 
 const Payments = (props: { style: Style; stats: StyleStats }) => {
-  const { style, stats } = props;
-  const { library: web3, account } = useWeb3React<providers.Web3Provider>();
+  const { style } = props;
+  const {
+    library: web3,
+    account,
+    chainId
+  } = useWeb3React<providers.Web3Provider>();
   const [splitter, setSplitter] = useState<ReplaceablePaymentSplitter>();
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>();
   const [priceStrategy, setPriceStrategy] = useState<ISplicePriceStrategy>();
@@ -287,9 +292,14 @@ const Payments = (props: { style: Style; stats: StyleStats }) => {
       <Heading size="md">
         Payments{' '}
         <Text d="inline" fontSize="xs" fontWeight="normal">
-          <Link href="" isExternal>
-            {splitter?.address}
-          </Link>
+          {chainId && splitter && (
+            <Link
+              href={`//${SPLICE_ADDRESSES[chainId]?.explorerRoot}/address/${splitter.address}`}
+              isExternal
+            >
+              {splitter.address}
+            </Link>
+          )}
         </Text>
       </Heading>
       {paymentInfo && (
