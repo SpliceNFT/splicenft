@@ -1,4 +1,4 @@
-import { Flex, LinkOverlay } from '@chakra-ui/react';
+import { Flex, Heading, LinkOverlay } from '@chakra-ui/react';
 import { useState } from 'react';
 import { CreativeOrigin } from '../../types/CreativeOrigin';
 import { FallbackImage } from '../atoms/FallbackImage';
@@ -23,6 +23,7 @@ export const NFTChooser = ({
 
   return (
     <Flex direction="column" w="full">
+      <Heading size="sm">add an origin NFT URL</Heading>
       <ImportNFT onNFT={addNFT} />
       <Flex direction="row" gridGap={3} my={6}>
         {origins.map((o) => (

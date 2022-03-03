@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { SPLICE_ADDRESSES } from '..';
 import { ChainOpt } from '../types/Chains';
-import { NFTItem, NFTMetaData, NFTPortNFTItem } from '../types/NFT';
+import { NFTItem, NFTPortNFTItem } from '../types/NFT';
 import { NFTIndexer } from './NFTIndexer';
 
 type NftPortAccountResponse = {
@@ -79,10 +80,13 @@ export class NFTPort implements NFTIndexer {
         Authorization: this.nftPortAuth
       }
     });
+
     this.currentContinuation = _resp.data.continuation;
     this.previousAddress = ownerAddress;
 
-    return _resp.data.nfts;
+    return _resp.data.nfts.filter(
+      (i) => SPLICE_ADDRESSES[1].address.toLowerCase() !== i.contract_address
+    );
   }
 
   public async getAsset(collection: string, tokenId: string): Promise<NFTItem> {

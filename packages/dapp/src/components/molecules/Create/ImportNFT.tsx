@@ -27,9 +27,17 @@ const extractNFTLink = (url: string) => {
 };
 
 const ImportNFT = ({
-  onNFT
+  onNFT,
+  onNFTFragment
 }: {
-  onNFT: (origin: CreativeOrigin) => unknown;
+  onNFT?: (origin: CreativeOrigin) => unknown;
+  onNFTFragment?: ({
+    collection,
+    tokenId
+  }: {
+    collection: string;
+    tokenId: string;
+  }) => unknown;
 }) => {
   const [url, setUrl] = useState<string>('');
   const toast = useToast();
@@ -38,15 +46,17 @@ const ImportNFT = ({
     process.env.REACT_APP_VALIDATOR_BASEURL as string
   );
 
-  const loadNft = async (url: string) => {
+  const loadNft = async ({
+    collection,
+    tokenId
+  }: {
+    collection: string;
+    tokenId: string;
+  }) => {
     if (!url) return;
-    const collectionAndTokenId = extractNFTLink(url);
-    if (!collectionAndTokenId) {
-      return false;
-    }
+
     try {
       setBuzy(true);
-      const { collection, tokenId } = collectionAndTokenId;
       const nftItem = await indexer.getAsset(collection, tokenId);
 
       if (nftItem?.metadata) {
@@ -57,7 +67,7 @@ const ImportNFT = ({
         };
         setBuzy(false);
         setUrl('');
-        onNFT(origin);
+        if (onNFT) onNFT(origin);
       }
     } catch (e: any) {
       toast({ title: e.message, status: 'warning' });
@@ -73,20 +83,21 @@ const ImportNFT = ({
       as="form"
       direction="row"
       gridGap={3}
-      align={!!url && !validUrl ? 'center' : 'flex-end'}
+      w="100%"
+      align={!!url && !validUrl ? 'flex-start' : 'flex-end'}
       onSubmit={(e) => {
         e.preventDefault();
-        loadNft(url);
+        const collectionAndTokenId = extractNFTLink(url);
+        if (!collectionAndTokenId) return;
+        if (onNFTFragment) onNFTFragment(collectionAndTokenId);
+        if (onNFT) loadNft(collectionAndTokenId);
       }}
     >
       <FormControl flex="4" isInvalid={!!url && !validUrl}>
-        <FormLabel fontSize="lg" fontWeight="bold">
-          add an origin NFT URL
-        </FormLabel>
         <Input
-          bg="white"
           variant="filled"
           type="text"
+          size="sm"
           placeholder="e.g. https://opensea.io/assets/0x8c5029957bf42c61d19a29075dc4e00b626e5022/4949"
           onChange={(e) => {
             e.preventDefault();
@@ -104,7 +115,7 @@ const ImportNFT = ({
         loadingText="loading..."
         type="submit"
         variant="black"
-        size="sm"
+        size="xs"
         flex="1"
         disabled={!url || buzy || !validUrl}
       >
