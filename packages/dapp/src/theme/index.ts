@@ -28,6 +28,17 @@ export default extendTheme({
     Button,
     Input: {
       variants: {
+        filled: {
+          field: {
+            background: 'white',
+            _focus: {
+              background: 'gray.100'
+            },
+            _hover: {
+              bg: 'white'
+            }
+          }
+        },
         outline: {
           field: {
             border: 'none'

@@ -34,8 +34,8 @@ function App() {
     <ChakraProvider theme={theme}>
       <Web3ReactProvider getLibrary={getLibrary}>
         <SpliceProvider>
-          <Router>
-            <AssetProvider>
+          <AssetProvider>
+            <Router>
               <Header />
 
               <Switch>
@@ -69,10 +69,10 @@ function App() {
                   <AboutPage />
                 </Route>
               </Switch>
-            </AssetProvider>
-          </Router>
-          <Footer />
-          <SubFooter />
+            </Router>
+            <Footer />
+            <SubFooter />
+          </AssetProvider>
         </SpliceProvider>
       </Web3ReactProvider>
     </ChakraProvider>

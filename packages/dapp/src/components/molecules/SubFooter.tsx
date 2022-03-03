@@ -5,7 +5,7 @@ export const SubFooter = () => {
   return (
     <Flex bg="purple.600" p={3} color="white" direction="column">
       <Text fontSize="sm" align="center">
-        Splice is an NFT protocol on Ethereum. Our code uses upgradeable{' '}
+        Splice is an NFT protocol on Ethereum. Our code uses{' '}
         <Link
           href="https://docs.openzeppelin.com/contracts/4.x/upgradeable"
           isExternal
@@ -23,16 +23,12 @@ export const SubFooter = () => {
         .{' '}
       </Text>
       <Text fontSize="sm" align="center">
-        Splice is in beta, right now. If you want to support us,{' '}
+        Splice goes public on March 4th, 2022. If you want to support us,{' '}
         <Link href="https://etherscan.io/address/0x03926e02bFf7f1eD401192B8D825B5bCe12E2b2D">
           send funds to our Gnosis Safe
         </Link>
         ,{' '}
-        <Link
-          href="https://github.com/cod1ng-earth/splicenft"
-          isExternal
-          fontStyle="bold"
-        >
+        <Link href="https://twitter.com/splicenft" isExternal fontStyle="bold">
           follow us on twitter
         </Link>{' '}
         or join{' '}

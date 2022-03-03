@@ -164,7 +164,7 @@ export const AboutPage = () => {
           size="md"
           fontSize="xl"
         >
-          Try it!
+          Get your own Splice
         </Button>
       </Hero>
 
