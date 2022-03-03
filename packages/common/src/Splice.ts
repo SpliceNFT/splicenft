@@ -41,7 +41,7 @@ export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
     address: '0xB6D9BA151BcdD9169c8Ccd07DB63F306AA4a5b8E',
     deployedAt: 14152956,
     explorerRoot: 'etherscan.io',
-    openSeaLink: 'opensea.io/collection/splice'
+    openSeaLink: 'opensea.io/collection/splicenft'
   }
 };
 

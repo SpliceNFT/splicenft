@@ -119,7 +119,7 @@ export const Footer = () => {
 
               {deployInfo && (
                 <Link href={`//${deployInfo.openSeaLink}`} isExternal>
-                  OpenSea: Splice V5
+                  OpenSea: SpliceNFT
                 </Link>
               )}
             </>
