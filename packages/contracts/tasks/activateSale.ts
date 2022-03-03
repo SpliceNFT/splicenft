@@ -1,7 +1,7 @@
 import '@nomiclabs/hardhat-ethers';
 import { task } from 'hardhat/config';
 
-//pnpx hardhat --network localhost style:sales --account-idx 18 --style 0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82 1 false
+//pnpx hardhat --network localhost style:sales --account-idx 18 --style 0x9A676e781A523b5d0C0e43731313A708CB607508 1 false
 
 task('style:sales', 'toggles style sales')
   .addParam('style')

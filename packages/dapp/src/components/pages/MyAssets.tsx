@@ -63,9 +63,7 @@ export const MyAssetsPage = () => {
       {!chainId && (
         <Alert status="warning" variant="subtle">
           <AlertIcon />
-          <AlertTitle>
-            please connect with an Ethereum account (Rinkeby works best atm)
-          </AlertTitle>
+          <AlertTitle>please connect with an Ethereum account.</AlertTitle>
         </Alert>
       )}
       {!nftsLoading && chainId && nfts.length === 0 && (

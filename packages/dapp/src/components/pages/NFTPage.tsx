@@ -400,13 +400,7 @@ export const NFTPage = () => {
                 dispatch({ type: 'styleSelected', payload: { style } })
               }
             />
-            {chainId === 1 && state.selectedStyle && (
-              <AddToAllowlistButton
-                selectedStyle={state.selectedStyle}
-                ownsOrigin={_ownsOrigin}
-              />
-            )}
-            {chainId !== 1 && _canMint && state.selectedStyle && (
+            {_canMint && state.selectedStyle && (
               <MintSpliceButton
                 buzy={buzy}
                 setBuzy={setBuzy}

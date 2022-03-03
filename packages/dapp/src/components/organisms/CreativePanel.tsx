@@ -29,7 +29,7 @@ export const Preview = ({
     (async () => {
       const _code = await style.getCodeFromBackend(
         process.env.REACT_APP_VALIDATOR_BASEURL as string,
-        chainId === 1 ? 4 : chainId
+        chainId
       );
       if (!unmounted) setCode(_code);
     })();

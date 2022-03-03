@@ -43,7 +43,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 app.use(cors());
 
-const styleCache = new StyleCache([4, 31337]);
+const styleCache = new StyleCache([1, 4, 31337]);
 styleCache.init();
 app.get('/proxy', proxy());
 app.get('/nft/:network/:collection/:token_id', nftMetadata());

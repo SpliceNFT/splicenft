@@ -86,9 +86,7 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
     if (!chainId) return;
 
     (async () => {
-      const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${
-        chainId === 1 ? 4 : chainId
-      }`;
+      const url = `${process.env.REACT_APP_VALIDATOR_BASEURL}/styles/${chainId}`;
 
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
