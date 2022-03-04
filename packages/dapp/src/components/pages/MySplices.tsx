@@ -31,6 +31,7 @@ import {
   USER_SPLICES
 } from '../../modules/Queries';
 import { FallbackImage } from '../atoms/FallbackImage';
+import ConnectAlert from '../molecules/ConnectAlert';
 import { PreviewBase } from '../molecules/PreviewBase';
 import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
@@ -169,16 +170,18 @@ export const MySplicesPage = () => {
   const { account, chainId } = useWeb3React<providers.Web3Provider>();
 
   return (
-    <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      {account && chainId ? (
-        [1, 4].includes(chainId) ? (
-          <SubgraphSpliceList account={account} />
+    <ConnectAlert>
+      <Container maxW="container.xl" minHeight="70vh" pb={12}>
+        {account && chainId ? (
+          [1, 4].includes(chainId) ? (
+            <SubgraphSpliceList account={account} />
+          ) : (
+            <ChainSpliceList account={account} />
+          )
         ) : (
-          <ChainSpliceList account={account} />
-        )
-      ) : (
-        <Alert status="info">We're loading your splices, standby.</Alert>
-      )}
-    </Container>
+          <Alert status="info">We're loading your splices, standby.</Alert>
+        )}
+      </Container>
+    </ConnectAlert>
   );
 };

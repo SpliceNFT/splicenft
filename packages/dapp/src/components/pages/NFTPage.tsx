@@ -47,7 +47,7 @@ import { default as getDominantColors, loadColors } from '../../modules/colors';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { NFTDescription } from '../atoms/NFTDescription';
-import { AddToAllowlistButton } from '../molecules/AddToAllowlistButton';
+import ConnectAlert from '../molecules/ConnectAlert';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { CreativePanel } from '../organisms/CreativePanel';
@@ -200,7 +200,7 @@ export const NFTPage = () => {
   });
 
   useEffect(() => {
-    if (!web3 || !account || !chainId || !indexer) return;
+    if (!web3 || !account || !chainId || !indexer || !splice) return;
 
     (async () => {
       try {
@@ -208,6 +208,18 @@ export const NFTPage = () => {
           indexer.getAsset(collection, tokenId),
           erc721(web3, collection).ownerOf(tokenId)
         ]);
+
+        if (
+          nftItem.contract_address.toLowerCase() ===
+          splice.address.toLowerCase()
+        ) {
+          setError({
+            title: 'you shouldnt splice a Splice',
+            description:
+              'please choose a PFP collection or a non-splice NFT as an origin'
+          });
+          return;
+        }
 
         const provenances = splice
           ? await splice.findProvenances(collection, tokenId)
@@ -235,6 +247,7 @@ export const NFTPage = () => {
   useEffect(() => {
     const { provenance } = state;
     if (!splice || !provenance) return;
+
     Promise.all([
       splice.ownerOf(provenance.splice_token_id),
       splice.getMetadata(provenance)
@@ -286,10 +299,6 @@ export const NFTPage = () => {
       state.provenance !== undefined && state.ownership?.splice === account
     );
   }, [state.provenance, state.ownership?.splice, account]);
-
-  const _ownsOrigin = useMemo<boolean>(() => {
-    return state.ownership?.origin == account;
-  }, [state.ownership?.origin, account]);
 
   const _canMint = useMemo<boolean>(() => {
     return (
@@ -354,157 +363,154 @@ export const NFTPage = () => {
     link.click();
   };
 
-  return (
-    <Container maxW="container.xl">
-      <Breadcrumb>
-        <BreadcrumbItem fontSize="lg">
-          <BreadcrumbLink as={NavLink} to="/my-assets">
-            Your NFTs
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
-          <BreadcrumbLink>
-            {state.provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
-            {state.origin.nftItem?.metadata?.name}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
-
-      {state.origin.nftItem && (
-        <Flex position="relative" justify="center" mt={6} direction="column">
-          <CreativePanel
-            spliceDataUrl={state.sketch}
-            nftFeatures={state.features}
-            style={state.selectedStyle}
-            onSketched={onSketched}
-          >
-            <FallbackImage
-              boxShadow="lg"
-              metadata={state.origin.nftItem.metadata}
-              onNFTImageLoaded={imageLoaded}
-            />
-          </CreativePanel>
-
-          <Flex
-            position={['relative', 'absolute']}
-            bottom="-1.5em"
-            gridGap={[2, 6]}
-            right={[null, 2]}
-            direction={['column', 'row']}
-            align="center"
-          >
-            <ArtworkStyleChooser
-              disabled={state.features.colors.length == 0 || buzy}
-              selectedStyle={state.selectedStyle}
-              onStyleChanged={(style: Style) =>
-                dispatch({ type: 'styleSelected', payload: { style } })
-              }
-            />
-            {_canMint && state.selectedStyle && (
-              <MintSpliceButton
-                buzy={buzy}
-                setBuzy={setBuzy}
-                collection={collection}
-                originTokenId={tokenId}
-                selectedStyle={state.selectedStyle}
-                onMinted={onMinted}
-              />
-            )}
-
-            {_isDownloadable && (
-              <Button
-                onClick={download}
-                disabled={!state.sketch}
-                leftIcon={<FaCloudDownloadAlt />}
-                boxShadow="md"
-                size="lg"
-                variant="white"
-              >
-                download
-              </Button>
-            )}
-          </Flex>
-        </Flex>
-      )}
-      {error && (
-        <Alert
-          status="error"
-          alignItems="center"
-          justifyContent="center"
-          textAlign="center"
-          flexDirection="column"
-          my={6}
-        >
-          <AlertIcon boxSize="40px" mr={0} />
-          <AlertTitle mt={4} mb={1} fontSize="lg">
-            {error.title}
-          </AlertTitle>
-          <AlertDescription maxWidth="md">{error.description}</AlertDescription>
+  if (error) {
+    return (
+      <Container maxW="container.xl" minH="70vh">
+        <Alert status="error" my={6}>
+          <AlertIcon />
+          <AlertTitle>{error.title}</AlertTitle>
+          <AlertDescription>{error.description}</AlertDescription>
         </Alert>
-      )}
-      <SimpleGrid
-        spacing={[2, 5]}
-        columns={[1, null, 2]}
-        mb={12}
-        mt={[6, null, 1]}
-      >
-        <NFTDescription
-          nftMetadata={state.origin.nftItem?.metadata}
-          spliceMetadata={state.splice}
-          styleNFT={state.selectedStyle?.getMetadata()}
-        />
-        <Flex direction="column" gridGap={6} pt={3}>
-          <SpliceMetadataDisplay
-            provenance={state.provenance}
-            spliceMetadata={state.splice}
-            traits={state.traits}
-            owner={state.ownership?.splice}
-            boxShadow="xl"
-            p={6}
-            background="white"
-          />
+      </Container>
+    );
+  }
+  return (
+    <ConnectAlert>
+      <Container maxW="container.xl">
+        <Breadcrumb>
+          <BreadcrumbItem fontSize="lg">
+            <BreadcrumbLink as={NavLink} to="/my-assets">
+              Your NFTs
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
+            <BreadcrumbLink>
+              {state.provenance ? '' : 'Choose a style and mint a'} Splice for{' '}
+              {state.origin.nftItem?.metadata?.name}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
 
-          {state.origin.nftItem && (
-            <Flex
-              boxShadow="xl"
-              direction="column"
-              p={6}
-              gridGap={3}
-              background="white"
+        {state.origin.nftItem && (
+          <Flex position="relative" justify="center" mt={6} direction="column">
+            <CreativePanel
+              spliceDataUrl={state.sketch}
+              nftFeatures={state.features}
+              style={state.selectedStyle}
+              onSketched={onSketched}
             >
-              <Flex direction="row">
-                <Heading size="md">Origin attributes</Heading>
-                <Spacer />
-                <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
-                  <IconButton
-                    disabled={buzy}
-                    size="sm"
-                    icon={buzy ? <Spinner size="sm" /> : <IoReload />}
-                    title="reload metadata"
-                    aria-label="reload"
-                    onClick={useOriginalMetadata}
-                  />
-                </Tooltip>
-              </Flex>
+              <FallbackImage
+                boxShadow="lg"
+                metadata={state.origin.nftItem.metadata}
+                onNFTImageLoaded={imageLoaded}
+              />
+            </CreativePanel>
 
-              {!state.provenance && (
-                <MetaDataItem
-                  label="colors"
-                  value={
-                    <DominantColorsDisplay colors={state.features.colors} />
-                  }
+            <Flex
+              position={['relative', 'absolute']}
+              bottom="-1.5em"
+              gridGap={[2, 6]}
+              right={[null, 2]}
+              direction={['column', 'row']}
+              align="center"
+            >
+              <ArtworkStyleChooser
+                disabled={state.features.colors.length == 0 || buzy}
+                selectedStyle={state.selectedStyle}
+                onStyleChanged={(style: Style) =>
+                  dispatch({ type: 'styleSelected', payload: { style } })
+                }
+              />
+              {_canMint && state.selectedStyle && (
+                <MintSpliceButton
+                  buzy={buzy}
+                  setBuzy={setBuzy}
+                  collection={collection}
+                  originTokenId={tokenId}
+                  selectedStyle={state.selectedStyle}
+                  onMinted={onMinted}
                 />
               )}
-              <MetaDataDisplay
-                contractAddress={collection}
-                tokenId={tokenId}
-                nftMetadata={state.origin.nftItem.metadata}
-                randomness={state.features.randomness}
-              />
+
+              {_isDownloadable && (
+                <Button
+                  onClick={download}
+                  disabled={!state.sketch}
+                  leftIcon={<FaCloudDownloadAlt />}
+                  boxShadow="md"
+                  size="lg"
+                  variant="white"
+                >
+                  download
+                </Button>
+              )}
             </Flex>
-          )}
-        </Flex>
-      </SimpleGrid>
-    </Container>
+          </Flex>
+        )}
+        <SimpleGrid
+          spacing={[2, 5]}
+          columns={[1, null, 2]}
+          mb={12}
+          mt={[6, null, 1]}
+        >
+          <NFTDescription
+            nftMetadata={state.origin.nftItem?.metadata}
+            spliceMetadata={state.splice}
+            styleNFT={state.selectedStyle?.getMetadata()}
+          />
+          <Flex direction="column" gridGap={6} pt={3}>
+            <SpliceMetadataDisplay
+              provenance={state.provenance}
+              spliceMetadata={state.splice}
+              traits={state.traits}
+              owner={state.ownership?.splice}
+              boxShadow="xl"
+              p={6}
+              background="white"
+            />
+
+            {state.origin.nftItem && (
+              <Flex
+                boxShadow="xl"
+                direction="column"
+                p={6}
+                gridGap={3}
+                background="white"
+              >
+                <Flex direction="row">
+                  <Heading size="md">Origin attributes</Heading>
+                  <Spacer />
+                  <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
+                    <IconButton
+                      disabled={buzy}
+                      size="sm"
+                      icon={buzy ? <Spinner size="sm" /> : <IoReload />}
+                      title="reload metadata"
+                      aria-label="reload"
+                      onClick={useOriginalMetadata}
+                    />
+                  </Tooltip>
+                </Flex>
+
+                {!state.provenance && (
+                  <MetaDataItem
+                    label="colors"
+                    value={
+                      <DominantColorsDisplay colors={state.features.colors} />
+                    }
+                  />
+                )}
+                <MetaDataDisplay
+                  contractAddress={collection}
+                  tokenId={tokenId}
+                  nftMetadata={state.origin.nftItem.metadata}
+                  randomness={state.features.randomness}
+                />
+              </Flex>
+            )}
+          </Flex>
+        </SimpleGrid>
+      </Container>
+    </ConnectAlert>
   );
 };
