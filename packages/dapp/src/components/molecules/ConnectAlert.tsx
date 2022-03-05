@@ -20,8 +20,8 @@ const CAlert = ({
   status: AlertStatus;
 }) => {
   return (
-    <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      <Alert status={status} variant="subtle" overflow="visible">
+    <Container maxW="container.lg" minHeight="70vh" py={12}>
+      <Alert status={status} variant="black" overflow="visible">
         <Flex align="center" justify="space-between" w="100%">
           <Flex>
             <AlertIcon />

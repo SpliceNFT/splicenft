@@ -99,7 +99,7 @@ export const SpliceMetadataDisplay = ({
 
       {traits && traits.length > 0 && (
         <>
-          <Heading size="md" mb={3} mt={6}>
+          <Heading size="md" mb={3}>
             Splice attributes
           </Heading>
           <Flex direction="column" gridGap={3}>

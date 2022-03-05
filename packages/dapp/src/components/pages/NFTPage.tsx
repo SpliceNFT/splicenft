@@ -366,9 +366,18 @@ export const NFTPage = () => {
   if (error) {
     return (
       <Container maxW="container.xl" minH="70vh">
-        <Alert status="error" my={6}>
-          <AlertIcon />
-          <AlertTitle>{error.title}</AlertTitle>
+        <Alert
+          variant="black"
+          status="error"
+          my={6}
+          flexDirection="column"
+          alignItems="flex-start"
+        >
+          <Flex mb={2}>
+            <AlertIcon />
+            <AlertTitle>{error.title}</AlertTitle>
+          </Flex>
+
           <AlertDescription>{error.description}</AlertDescription>
         </Alert>
       </Container>

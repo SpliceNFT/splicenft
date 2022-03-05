@@ -1,6 +1,8 @@
 import { useQuery } from '@apollo/client';
 import {
   Alert,
+  AlertIcon,
+  AlertTitle,
   Container,
   Flex,
   Heading,
@@ -126,7 +128,10 @@ const GenericSpliceList = ({
   buzy: boolean;
 }) => {
   return splices.length === 0 && !buzy ? (
-    <Alert status="info">You don't have any Splices</Alert>
+    <Alert status="info" variant="black">
+      <AlertIcon />
+      <AlertTitle>You don't have any Splices</AlertTitle>
+    </Alert>
   ) : (
     <VStack gridGap={10}>
       {splices.map((splice: Transfer.UserSplice) => (

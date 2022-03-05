@@ -61,13 +61,13 @@ export const MyAssetsPage = () => {
     <ConnectAlert>
       <Container maxW="container.xl" minHeight="70vh" pb={12}>
         {nftsLoading && (
-          <Alert status="info">
+          <Alert status="info" variant="black">
             <AlertTitle>loading</AlertTitle>
           </Alert>
         )}
 
         {!nftsLoading && chainId && nfts.length === 0 && (
-          <Alert status="info" overflow="visible" mt={6}>
+          <Alert status="info" overflow="visible" variant="black">
             <Flex
               align="center"
               direction="row"

@@ -1,19 +1,43 @@
+import type { PartsStyleFunction } from '@chakra-ui/theme-tools';
+import { anatomy } from '@chakra-ui/theme-tools';
+
+const alertAnatomy = anatomy('alert')
+  .parts('title', 'description', 'container')
+  .extend('icon');
+
+const variantBlack: PartsStyleFunction<typeof alertAnatomy> = (props) => {
+  const { colorScheme: c } = props;
+  return {
+    container: {
+      bg: 'black'
+    },
+    title: {
+      color: `${c}.400`
+    },
+    icon: {
+      color: `${c}.300`
+    },
+    description: {
+      color: `${c}.500`
+    }
+  };
+};
+
 const Alert = {
-  parts: ['container', 'title'],
+  parts: alertAnatomy.keys,
   baseStyle: {
     container: {
-      rounded: 'lg',
-      px: '2em',
-      py: '1.5em',
+      rounded: 'md',
+      px: '1.5em',
+      py: '.75em',
       boxShadow: 'md',
       flexDirection: 'row'
     },
-    title: {
-      fontWeight: 'bold',
-      fontSize: 'lg'
-    }
+    title: {}
   },
-  variants: {},
+  variants: {
+    black: variantBlack
+  },
   // The default size and variant values
   defaultProps: {}
 };
