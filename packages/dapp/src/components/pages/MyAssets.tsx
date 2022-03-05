@@ -16,6 +16,7 @@ import { ethers, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { useAssets } from '../../context/AssetContext';
+import ConnectAlert from '../molecules/ConnectAlert';
 import { ImportNFT } from '../molecules/Create/ImportNFT';
 import { MintButton } from '../molecules/MintButton';
 import { NFTCard } from '../molecules/NFTCard';
@@ -57,21 +58,16 @@ export const MyAssetsPage = () => {
   };
 
   return (
-    <>
+    <ConnectAlert>
       <Container maxW="container.xl" minHeight="70vh" pb={12}>
         {nftsLoading && (
-          <Alert status="info">
+          <Alert status="info" variant="black">
             <AlertTitle>loading</AlertTitle>
           </Alert>
         )}
-        {!chainId && (
-          <Alert status="warning" variant="subtle">
-            <AlertIcon />
-            <AlertTitle>please connect with an Ethereum account.</AlertTitle>
-          </Alert>
-        )}
+
         {!nftsLoading && chainId && nfts.length === 0 && (
-          <Alert status="info" overflow="visible" mt={6}>
+          <Alert status="info" overflow="visible" variant="black">
             <Flex
               align="center"
               direction="row"
@@ -172,6 +168,6 @@ export const MyAssetsPage = () => {
           </Flex>
         </Container>
       </Flex>
-    </>
+    </ConnectAlert>
   );
 };

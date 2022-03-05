@@ -39,6 +39,7 @@ import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import { StyleStatsData, STYLE_STATS } from '../../modules/Queries';
+import ConnectAlert from '../molecules/ConnectAlert';
 
 type PaymentInfo = {
   total: ethers.BigNumber;
@@ -446,50 +447,52 @@ const StyleDetailPage = () => {
   }, [style]);
 
   return (
-    <Container maxW="container.lg">
-      <Breadcrumb my={3}>
-        <BreadcrumbItem fontSize="lg">
-          <BreadcrumbLink as={NavLink} to="/styles">
-            All Styles
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
-          <BreadcrumbLink>{style?.getMetadata().name}</BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
-      {style && stats && (
-        <>
-          <AspectRatio background="black" position="relative" ratio={3 / 1}>
-            <Flex w="100%">
-              <Image
-                src={previewImg}
-                opacity="0.4"
-                position="absolute"
-                fit="cover"
-                zIndex={1}
-              />
-              <Flex zIndex={2} direction="column" flex="1" h="100%">
-                <StyleActions
-                  style={style}
-                  isStyleMinter={isStyleMinter}
-                  stats={stats}
-                  partnership={partnership}
+    <ConnectAlert>
+      <Container maxW="container.lg">
+        <Breadcrumb my={3}>
+          <BreadcrumbItem fontSize="lg">
+            <BreadcrumbLink as={NavLink} to="/styles">
+              All Styles
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
+            <BreadcrumbLink>{style?.getMetadata().name}</BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
+        {style && stats && (
+          <>
+            <AspectRatio background="black" position="relative" ratio={3 / 1}>
+              <Flex w="100%">
+                <Image
+                  src={previewImg}
+                  opacity="0.4"
+                  position="absolute"
+                  fit="cover"
+                  zIndex={1}
                 />
+                <Flex zIndex={2} direction="column" flex="1" h="100%">
+                  <StyleActions
+                    style={style}
+                    isStyleMinter={isStyleMinter}
+                    stats={stats}
+                    partnership={partnership}
+                  />
+                </Flex>
               </Flex>
-            </Flex>
-          </AspectRatio>
-          <Payments style={style} stats={stats} />
+            </AspectRatio>
+            <Payments style={style} stats={stats} />
 
-          {partnership && (
-            <Partnerships
-              style={style}
-              stats={stats}
-              partnership={partnership}
-            />
-          )}
-        </>
-      )}
-    </Container>
+            {partnership && (
+              <Partnerships
+                style={style}
+                stats={stats}
+                partnership={partnership}
+              />
+            )}
+          </>
+        )}
+      </Container>
+    </ConnectAlert>
   );
 };
 

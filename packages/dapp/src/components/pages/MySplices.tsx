@@ -1,6 +1,8 @@
 import { useQuery } from '@apollo/client';
 import {
   Alert,
+  AlertIcon,
+  AlertTitle,
   Container,
   Flex,
   Heading,
@@ -31,6 +33,7 @@ import {
   USER_SPLICES
 } from '../../modules/Queries';
 import { FallbackImage } from '../atoms/FallbackImage';
+import ConnectAlert from '../molecules/ConnectAlert';
 import { PreviewBase } from '../molecules/PreviewBase';
 import { SpliceMetadataDisplay } from '../organisms/MetaDataDisplay';
 
@@ -125,7 +128,10 @@ const GenericSpliceList = ({
   buzy: boolean;
 }) => {
   return splices.length === 0 && !buzy ? (
-    <Alert status="info">You don't have any Splices</Alert>
+    <Alert status="info" variant="black">
+      <AlertIcon />
+      <AlertTitle>You don't have any Splices</AlertTitle>
+    </Alert>
   ) : (
     <VStack gridGap={10}>
       {splices.map((splice: Transfer.UserSplice) => (
@@ -169,16 +175,18 @@ export const MySplicesPage = () => {
   const { account, chainId } = useWeb3React<providers.Web3Provider>();
 
   return (
-    <Container maxW="container.xl" minHeight="70vh" pb={12}>
-      {account && chainId ? (
-        [1, 4].includes(chainId) ? (
-          <SubgraphSpliceList account={account} />
+    <ConnectAlert>
+      <Container maxW="container.xl" minHeight="70vh" pb={12}>
+        {account && chainId ? (
+          [1, 4].includes(chainId) ? (
+            <SubgraphSpliceList account={account} />
+          ) : (
+            <ChainSpliceList account={account} />
+          )
         ) : (
-          <ChainSpliceList account={account} />
-        )
-      ) : (
-        <Alert status="info">We're loading your splices, standby.</Alert>
-      )}
-    </Container>
+          <Alert status="info">We're loading your splices, standby.</Alert>
+        )}
+      </Container>
+    </ConnectAlert>
   );
 };

@@ -279,9 +279,11 @@ importers:
     specifiers:
       '@apollo/client': ^3.5.4
       '@babel/core': '>=7.0.0 <8.0.0'
+      '@chakra-ui/anatomy': ^1.3.0
       '@chakra-ui/icons': ^1.0.15
       '@chakra-ui/react': ^1.7.3
       '@chakra-ui/system': ^1.11.2
+      '@chakra-ui/theme-tools': ^1.3.6
       '@emotion/react': ^11
       '@emotion/styled': ^11
       '@ethersproject/providers': ^5.5.1
@@ -329,9 +331,11 @@ importers:
       web-vitals: ^2.1.2
     dependencies:
       '@apollo/client': 3.5.6_graphql@16.2.0+react@17.0.2
+      '@chakra-ui/anatomy': 1.3.0_@chakra-ui+system@1.11.2
       '@chakra-ui/icons': 1.1.1_cf1afb73b983ccab5207fbc7b13f7809
       '@chakra-ui/react': 1.8.6_b0182ece336d754368545280cf1db6bd
       '@chakra-ui/system': 1.11.2_922a85da57e3646a57465b7970b0de85
+      '@chakra-ui/theme-tools': 1.3.6_@chakra-ui+system@1.11.2
       '@emotion/react': 11.7.1_b0bf9f023f082854c155a9ba9dc17441
       '@emotion/styled': 11.6.0_fa83bf835a5aaccc776a0013ff4e4610
       '@ethersproject/providers': 5.5.1
