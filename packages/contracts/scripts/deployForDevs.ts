@@ -1,4 +1,4 @@
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, run } from 'hardhat';
 import { SpliceStyleNFT } from '../typechain';
 
 const deployTestnetNFT = async (
@@ -102,21 +102,21 @@ const deployTestnetNFT = async (
   await spliceStyleNFT.toggleStyleMinter(artistAccount.address, true);
   console.log('allowed style minter: ', artistAccount.address);
 
-  // for await (const style of [
-  //   'ConfidenceInTheMission',
-  //   'ABeginningIsAVeryDelicateTime',
-  //   'District1618'
-  // ]) {
-  //   await run('style:mint', {
-  //     style: spliceStyleNFT.address,
-  //     price: staticPriceStrategy.address,
-  //     accountIdx: '18',
-  //     directory: `../../renderers/${style}`,
-  //     mintPriceEth: '0.02',
-  //     cap: '200',
-  //     sale: 'true',
-  //     maxInputs: '1'
-  //   });
-  //   console.log(`deployed style ${style}`);
-  // }
+  for await (const style of [
+    'ConfidenceInTheMission',
+    'ABeginningIsAVeryDelicateTime',
+    'District1618'
+  ]) {
+    await run('style:mint', {
+      style: spliceStyleNFT.address,
+      price: staticPriceStrategy.address,
+      accountIdx: '18',
+      directory: `../../renderers/${style}`,
+      mintPriceEth: '0.02',
+      cap: '200',
+      maxInputs: '1',
+      sale: true
+    });
+    console.log(`deployed style ${style}`);
+  }
 })();
