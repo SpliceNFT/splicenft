@@ -43,6 +43,7 @@ import { IoReload } from 'react-icons/io5';
 import { NavLink, useParams } from 'react-router-dom';
 import { useAssets } from '../../context/AssetContext';
 import { useSplice } from '../../context/SpliceContext';
+import { useStyles } from '../../context/StyleContext';
 import { default as getDominantColors, loadColors } from '../../modules/colors';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import { FallbackImage } from '../atoms/FallbackImage';
@@ -179,7 +180,8 @@ export const NFTPage = () => {
 
   const toast = useToast();
 
-  const { splice, spliceStyles } = useSplice();
+  const { styles: spliceStyles } = useStyles();
+  const { splice } = useSplice();
   const { indexer } = useAssets();
 
   const { library: web3, account, chainId } = useWeb3React();

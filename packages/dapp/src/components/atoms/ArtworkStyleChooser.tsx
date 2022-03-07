@@ -11,7 +11,7 @@ import {
 import { FaPaintBrush } from 'react-icons/fa';
 import { Style } from '@splicenft/common';
 import React from 'react';
-import { useSplice } from '../../context/SpliceContext';
+import { useStyles } from '../../context/StyleContext';
 
 export const ArtworkStyleChooser = ({
   selectedStyle,
@@ -22,7 +22,7 @@ export const ArtworkStyleChooser = ({
   onStyleChanged: (style: Style) => void;
   disabled?: boolean;
 }) => {
-  const { spliceStyles } = useSplice();
+  const { styles } = useStyles();
 
   return (
     <Flex direction="row">
@@ -50,7 +50,7 @@ export const ArtworkStyleChooser = ({
           )}
         </MenuButton>
         <MenuList>
-          {spliceStyles.map((style: Style) => (
+          {styles.map((style: Style) => (
             <MenuItem
               key={`style-${style.tokenId}`}
               onClick={() => onStyleChanged(style)}

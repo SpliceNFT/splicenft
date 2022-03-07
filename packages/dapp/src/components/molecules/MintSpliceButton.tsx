@@ -1,5 +1,5 @@
 import { Button, Flex, Text, useToast } from '@chakra-ui/react';
-import { erc721, Style, TokenProvenance } from '@splicenft/common';
+import { ActiveStyle, erc721, Style, TokenProvenance } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
@@ -38,10 +38,14 @@ export const MintSpliceButton = ({
   const toast = useToast();
 
   useEffect(() => {
-    if (!account || !web3) return;
+    if (!account || !web3 || !splice) return;
     (async () => {
       try {
-        let mintable = await selectedStyle.isMintable(
+        const activeStyle = new ActiveStyle(
+          selectedStyle,
+          splice.getStyleNFT()
+        );
+        let mintable = await activeStyle.isMintable(
           [collection],
           [originTokenId],
           account
@@ -53,7 +57,7 @@ export const MintSpliceButton = ({
           mintable = 'Not owning the origin';
         }
         if (mintable === true) {
-          const quote = await selectedStyle.quote(collection, originTokenId);
+          const quote = await activeStyle.quote(collection, originTokenId);
           setMintState({
             mintable,
             quote,

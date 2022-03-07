@@ -70,15 +70,8 @@ export const PAYMENT_MEMBER = gql`
   }
 `;
 
-export interface StyleStatsData {
-  id: string;
-  owner: string;
-  priceStrategy: string;
-  minted: number;
-  cap: number;
-  split: {
-    payments: [{ from: string; time: string; id: string }];
-  };
+export interface StyleStatsVars {
+  style_id: string;
 }
 
 export const ALL_STYLE_STATS = gql`
@@ -90,6 +83,9 @@ export const ALL_STYLE_STATS = gql`
       minted
       cap
       split {
+        id
+        balance
+        payees
         payments(first: 3) {
           id
           from
@@ -109,6 +105,9 @@ export const STYLE_STATS = gql`
       minted
       cap
       split {
+        id
+        balance
+        payees
         payments(first: 3) {
           id
           from
