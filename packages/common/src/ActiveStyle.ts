@@ -9,6 +9,7 @@ import {
 import { Partnership, StyleStatsData } from './types/Styles';
 import { ethers } from 'ethers';
 import { StyleSettingsStructOutput } from '@splicenft/contracts/typechain/SpliceStyleNFT';
+import { Renderer, StyleNFT } from '.';
 
 export class ActiveStyle {
   private style: Style;
@@ -21,8 +22,28 @@ export class ActiveStyle {
     this.contract = contract;
   }
 
-  public get tokenId() {
+  public get tokenId(): number {
     return this.style.tokenId;
+  }
+
+  public async getCode(): Promise<string> {
+    return this.style.getCode();
+  }
+
+  public getMetadata(): StyleNFT {
+    return this.style.getMetadata();
+  }
+
+  public getRenderer(): Promise<Renderer> {
+    return this.style.getRenderer();
+  }
+
+  public getMetadataUrl(): string {
+    return this.style.getMetadataUrl();
+  }
+
+  getCollectionAddress() {
+    return this.contract.address;
   }
 
   async stats(): Promise<StyleStatsData> {
