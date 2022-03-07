@@ -9,7 +9,7 @@ import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
-type ApolloClientType = ApolloClient<NormalizedCacheObject>;
+export type ApolloClientType = ApolloClient<NormalizedCacheObject>;
 interface ISpliceContext {
   splice?: Splice;
 }

@@ -24,7 +24,7 @@ const StyleProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const styleRes: StyleNFTResponse[] = await (await axios.get(url)).data;
         const _styles = styleRes.map((r) => {
-          return new Style(r.style_token_id, url, r.metadata);
+          return new Style(r.style_token_id, url, r.metadata, r.code_url);
         });
 
         setStyles(_styles);

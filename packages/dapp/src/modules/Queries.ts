@@ -118,6 +118,32 @@ export const STYLE_STATS = gql`
   }
 `;
 
+export const ORIGIN_IDS = gql`
+  query Origins($collection: String!, $token_id: String!) {
+    origins(where: { collection: $collection, token_id: $token_id }) {
+      id
+      token_id
+      metadata_url
+    }
+  }
+`;
+
+export const SPLICES_FOR_ORIGINS = gql`
+  query SplicesForOrigin($origin_ids: [String]!) {
+    spliceice(where: { origins_contains: $origin_ids }) {
+      id
+      owner
+      metadata_url
+      style {
+        id
+      }
+      origins {
+        id
+      }
+    }
+  }
+`;
+
 // export const SPLICES_OF_COLLECTIONS = gql`
 //   query SplicesOfCollections($collections: String[]) {
 //     spliceice(where: {origin_collection_in: $collections }) {

@@ -17,6 +17,7 @@ import {
   ipfsGW,
   NFTMetaData,
   resolveImage,
+  Splice,
   SpliceNFT,
   Transfer
 } from '@splicenft/common';
@@ -50,7 +51,7 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
     if (!splice || !indexer) return;
     (async () => {
       try {
-        const spliceMetadata = await splice.fetchMetadata(
+        const spliceMetadata = await Splice.fetchMetadata(
           mySplice.metadata_url
         );
         setMetadata(spliceMetadata);

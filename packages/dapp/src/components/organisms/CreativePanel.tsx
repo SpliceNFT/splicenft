@@ -1,7 +1,6 @@
 import { Container, Image } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
 import { BANNER_DIMS, NFTTrait, Style } from '@splicenft/common';
-import { useWeb3React } from '@web3-react/core';
 import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
@@ -21,15 +20,13 @@ export const Preview = ({
   onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
 }) => {
   const [code, setCode] = useState<string>();
-  const { chainId } = useWeb3React();
 
   useEffect(() => {
-    if (!style || !chainId) return;
+    if (!style) return;
     let unmounted = false;
     (async () => {
       const _code = await style.getCodeFromBackend(
-        process.env.REACT_APP_VALIDATOR_BASEURL as string,
-        chainId
+        process.env.REACT_APP_VALIDATOR_BASEURL as string
       );
       if (!unmounted) setCode(_code);
     })();

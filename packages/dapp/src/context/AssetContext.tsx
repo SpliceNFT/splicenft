@@ -51,15 +51,15 @@ const AssetProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   useEffect(() => {
-    if (!library || !chainId) return;
-
-    const chain = CHAINS[chainId];
-    if (!chain) {
-      setIndexer(undefined);
-      console.error(`chain ${chainId} unsupported`);
+    if (!chainId || !CHAINS[chainId]) {
+      setIndexer(
+        new NFTPort('ethereum', process.env.REACT_APP_NFTPORT_AUTH as string)
+      );
       return;
     }
 
+    if (!library) return;
+    const chain = CHAINS[chainId];
     switch (chain) {
       case 'ethereum':
         setIndexer(
