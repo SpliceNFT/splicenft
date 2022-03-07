@@ -13,6 +13,7 @@ export const StyleInfo = (props: {
   const { style, stats, activeStyle } = props;
   const { account } = useWeb3React();
 
+  const isOwner = stats.style.owner.toLowerCase() === account?.toLowerCase();
   return (
     <Flex direction="column" p={3} h="100%">
       <Flex direction="column">
@@ -21,8 +22,7 @@ export const StyleInfo = (props: {
         </Heading>
 
         <Text color="white" fontSize="sm">
-          Owner: {stats.style.owner}{' '}
-          {stats.style.owner === account?.toLowerCase() && <b> (You)</b>}
+          Owner: {stats.style.owner} {isOwner && <b> (You)</b>}
         </Text>
         <Text color="white" fontSize="sm">
           Style ID: {style.tokenId}

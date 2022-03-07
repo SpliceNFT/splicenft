@@ -26,8 +26,7 @@ const StyleActions = (props: { style: ActiveStyle; stats: StyleStatsData }) => {
     }
   };
 
-  const isOwner = stats.style.owner === account?.toLowerCase();
-
+  const isOwner = stats.style.owner.toLowerCase() === account?.toLowerCase();
   return (
     <Flex justify="flex-end" gridGap={3} align="center">
       {isStyleMinter || isOwner ? (
