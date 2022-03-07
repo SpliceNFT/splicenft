@@ -1,53 +1,46 @@
-import { Flex, Heading, Text } from '@chakra-ui/react';
-import { Partnership, Style, StyleStats } from '@splicenft/common';
+import { Button, Flex, Text, useToast } from '@chakra-ui/react';
+import { ActiveStyle, StyleStatsData } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import React from 'react';
-import { NumBox } from '../../atoms/NumBox';
+import React, { useEffect, useState } from 'react';
 import { TransferButton } from './Transfer';
-import { ActivateButton } from '../../molecules/StyleDetails/ActivateButton';
 
-export const StyleActions = (props: {
-  style: Style;
-  isStyleMinter: boolean;
-  stats: StyleStats;
-  partnership: Partnership | undefined;
-}) => {
+const StyleActions = (props: { style: ActiveStyle; stats: StyleStatsData }) => {
+  const { style, stats } = props;
   const { account } = useWeb3React();
-  const { style, stats, isStyleMinter, partnership } = props;
+  const [isStyleMinter, setIsStyleMinter] = useState<boolean>(false);
+  const [active, setActive] = useState<boolean>(false);
+  const toast = useToast();
+
+  useEffect(() => {
+    style.isStyleActive().then(setActive);
+    if (account) {
+      style.isStyleMinter(account).then(setIsStyleMinter);
+    }
+  }, [account]);
+
+  const toggleActive = async () => {
+    try {
+      setActive(await style.toggleActive(!active));
+    } catch (e: any) {
+      toast({ title: 'tx failed', description: e.message || e });
+    }
+  };
+
+  const isOwner = stats.style.owner === account?.toLowerCase();
 
   return (
-    <Flex direction="column" p={3} h="100%">
-      <Flex direction="column">
-        <Heading size="lg" color="white">
-          {style.getMetadata().name}
-        </Heading>
+    <Flex justify="flex-end" gridGap={3} align="center">
+      {isStyleMinter || isOwner ? (
+        <Button onClick={toggleActive} px={12} size="sm">
+          {active ? 'Stop sales' : 'Start Sales'}
+        </Button>
+      ) : (
+        <Text>Active: {active ? 'Yes' : 'No'}</Text>
+      )}
 
-        <Text color="white" fontSize="sm">
-          Owner: {stats.owner} {stats.owner === account && <span> (You)</span>}
-        </Text>
-        <Text color="white" fontSize="sm">
-          Style ID: {style.tokenId}
-        </Text>
-      </Flex>
-      <NumBox
-        head="Minted"
-        val={`${stats.settings.mintedOfStyle} /  ${stats.settings.cap}`}
-        my={5}
-        bg="transparent"
-        color="white"
-      ></NumBox>
-
-      <Flex justify="flex-end" gridGap={3} align="center">
-        {isStyleMinter || stats.owner === account ? (
-          <ActivateButton style={style} stats={stats} />
-        ) : (
-          <Text>Active: {stats.active ? 'Yes' : 'No'}</Text>
-        )}
-
-        {stats.owner === account && (
-          <TransferButton account={account} tokenId={style.tokenId} />
-        )}
-      </Flex>
+      {isOwner && <TransferButton tokenId={style.tokenId} />}
     </Flex>
   );
 };
+
+export default StyleActions;

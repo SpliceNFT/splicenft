@@ -1,4 +1,3 @@
-import { useQuery } from '@apollo/client';
 import {
   Flex,
   Heading,
@@ -12,55 +11,52 @@ import {
   Tr
 } from '@chakra-ui/react';
 import {
+  ActiveStyle,
   ISplicePriceStrategy,
   ReplaceablePaymentSplitter,
   SPLICE_ADDRESSES,
   Style,
-  StyleStats
+  StyleStatsData
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { BigNumber, ethers, providers } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { StyleStatsData, STYLE_STATS } from '../../../modules/Queries';
 import { PaymentInfo } from '../../../types/PaymentInfo';
 import { NumBox } from '../../atoms/NumBox';
 import { ClaimButton } from '../../molecules/StyleDetails/ClaimButton';
 
-export const Payments = (props: { style: Style; stats: StyleStats }) => {
-  const { style } = props;
+export const Payments = (props: {
+  style: Style;
+  activeStyle?: ActiveStyle;
+  stats: StyleStatsData;
+}) => {
+  const { activeStyle, stats } = props;
   const {
     library: web3,
     account,
     chainId
   } = useWeb3React<providers.Web3Provider>();
+
   const [splitter, setSplitter] = useState<ReplaceablePaymentSplitter>();
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>();
   const [priceStrategy, setPriceStrategy] = useState<ISplicePriceStrategy>();
   const [price, setPrice] = useState<BigNumber>();
 
-  const {
-    loading: buzy,
-    error: gqlErr,
-    data: paymentStats
-  } = useQuery<{ style: StyleStatsData }, { style_id: string }>(STYLE_STATS, {
-    variables: { style_id: style.tokenId.toString() }
-  });
-
   useEffect(() => {
-    if (!web3) return;
+    if (!activeStyle) return;
     (async () => {
       try {
-        const _splitter = await style.paymentSplitter();
-        setSplitter(_splitter.connect(web3));
+        const _splitter = await activeStyle.paymentSplitter();
+        setSplitter(_splitter);
 
-        const _priceStrategy = await style.priceStrategy();
-        setPriceStrategy(_priceStrategy.connect(web3));
-        setPrice(await _priceStrategy.quote(style.tokenId, [], []));
+        const _priceStrategy = await activeStyle.priceStrategy();
+        setPriceStrategy(_priceStrategy);
+        setPrice(await _priceStrategy.quote(activeStyle.tokenId, [], []));
       } catch (e: any) {
         console.warn(e.message);
       }
     })();
-  }, [web3]);
+  }, [activeStyle]);
 
   useEffect(() => {
     if (!web3 || !splitter || !account) return;
@@ -131,7 +127,8 @@ export const Payments = (props: { style: Style; stats: StyleStats }) => {
           </NumBox>
         </Flex>
       )}
-      {paymentStats && (
+
+      {stats.style.split.payments.length > 0 && (
         <Table variant="unstyled" size="sm">
           <Thead>
             <Tr>
@@ -140,7 +137,7 @@ export const Payments = (props: { style: Style; stats: StyleStats }) => {
             </Tr>
           </Thead>
           <Tbody>
-            {paymentStats.style.split.payments.map((p) => (
+            {stats.style.split.payments.map((p) => (
               <Tr key={p.id}>
                 <Td>{p.from}</Td>
                 <Td>{new Date(parseInt(p.time) * 1000).toISOString()}</Td>

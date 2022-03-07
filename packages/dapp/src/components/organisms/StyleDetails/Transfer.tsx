@@ -5,6 +5,7 @@ import {
   InputRightElement,
   useToast
 } from '@chakra-ui/react';
+import { useWeb3React } from '@web3-react/core';
 import React, { useState } from 'react';
 import { useSplice } from '../../../context/SpliceContext';
 
@@ -48,11 +49,11 @@ export const TransferForm = (props: {
     </InputGroup>
   );
 };
-export const TransferButton = (props: { account: string; tokenId: number }) => {
+export const TransferButton = (props: { tokenId: number }) => {
   const { splice } = useSplice();
-  const { account, tokenId } = props;
+  const { tokenId } = props;
   const toast = useToast();
-
+  const { account } = useWeb3React();
   const [inTransfer, setInTransfer] = useState<boolean>(false);
   const [buzy, setBuzy] = useState<boolean>(false);
 
@@ -77,8 +78,8 @@ export const TransferButton = (props: { account: string; tokenId: number }) => {
     }
   };
 
-  return inTransfer ? (
-    <TransferForm onRecipient={(r) => doTransfer(account, r)} />
+  return account && inTransfer ? (
+    <TransferForm onRecipient={(recipient) => doTransfer(account, recipient)} />
   ) : (
     <Button
       isLoading={buzy}
