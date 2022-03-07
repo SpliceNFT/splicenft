@@ -49,15 +49,16 @@ export class StyleMetadataCache {
                 tokenId
               );
               const metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
-              //todo: remove this translation for mainnet
-              if (!metadata.splice) {
-                throw new Error('found old metadata...');
-              }
               return metadata;
             }
           );
 
-          const _style = new Style(parseInt(tokenId), metadataUrl, metadata);
+          const _style = new Style(
+            parseInt(tokenId),
+            metadataUrl,
+            metadata,
+            `/styles/${this.networkId}/${tokenId}`
+          );
 
           const style = new ActiveStyle(_style, styleNFTContract);
 

@@ -57,6 +57,8 @@ export type TokenProvenance = {
   style_token_id: number;
   style_token_token_id: number;
   origins: Array<ProvenanceOrigin>;
+  owner?: string;
+  metadata?: SpliceNFT;
 };
 
 //todo: restrict all filters to start searching from the deployed block number
@@ -319,13 +321,13 @@ export class Splice {
 
   public async getMetadata(provenance: TokenProvenance): Promise<SpliceNFT> {
     const _metadataUrl = await this.getMetadataUrl(provenance.splice_token_id);
-    return this.fetchMetadata(_metadataUrl);
+    return Splice.fetchMetadata(_metadataUrl);
   }
 
   /**
    * adds the metadata url to the metadata result
    */
-  public async fetchMetadata(metadataUrl: string): Promise<SpliceNFT> {
+  public static async fetchMetadata(metadataUrl: string): Promise<SpliceNFT> {
     const metadata = (await (
       await axios.get(ipfsGW(metadataUrl))
     ).data) as SpliceNFT;

@@ -10,15 +10,22 @@ export class Style {
   protected code: string | null;
   // eslint-disable-next-line @typescript-eslint/ban-types
   protected renderer: Renderer | null;
+  protected code_url: string;
 
   public get tokenId() {
     return this._tokenId;
   }
 
-  constructor(tokenId: number, metadataUrl: string, metadata: StyleNFT) {
+  constructor(
+    tokenId: number,
+    metadataUrl: string,
+    metadata: StyleNFT,
+    code_url: string
+  ) {
     this._tokenId = tokenId;
     this.metadata = metadata;
     this.metadataUrl = metadataUrl;
+    this.code_url = code_url;
     this.code = null;
     this.renderer = null;
   }
@@ -40,12 +47,9 @@ export class Style {
     return renderer;
   }
 
-  async getCodeFromBackend(
-    baseUrl: string,
-    networkId: string | number
-  ): Promise<string> {
+  async getCodeFromBackend(baseUrl: string): Promise<string> {
     if (this.code) return this.code;
-    const url = `${baseUrl}/styles/${networkId}/${this._tokenId}`;
+    const url = `${baseUrl}${this.code_url}`;
 
     const styleMetadata = await (await axios.get(url)).data;
     //todo consider cancelling an ongoing IPFS request https://github.com/axios/axios#cancellation
