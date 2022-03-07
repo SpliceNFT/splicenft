@@ -1,16 +1,7 @@
-import {
-  ISplicePriceStrategy,
-  ISplicePriceStrategy__factory,
-  ReplaceablePaymentSplitter,
-  ReplaceablePaymentSplitter__factory,
-  SpliceStyleNFT as StyleNFTContract
-} from '@splicenft/contracts';
 import axios from 'axios';
-import { BigNumber, ethers } from 'ethers';
 import { ipfsGW } from './img';
-import { StyleNFT } from './types/SpliceNFT';
-import { Partnership, StyleStats } from './types/Styles';
 import { Renderer } from './types/Renderers';
+import { StyleNFT } from './types/SpliceNFT';
 
 export class Style {
   protected _tokenId: number;
@@ -32,16 +23,12 @@ export class Style {
     this.renderer = null;
   }
 
-  getMetadata() {
+  getMetadata(): StyleNFT {
     return this.metadata;
   }
 
   getMetadataUrl() {
     return this.metadataUrl;
-  }
-
-  getCollectionAddress() {
-    return ethers.constants.AddressZero;
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -51,48 +38,6 @@ export class Style {
     const renderer = Function(`"use strict";return (${code})`)();
     this.renderer = renderer;
     return renderer;
-  }
-
-  async isActive(): Promise<boolean> {
-    return false;
-  }
-
-  async toggleActive(newVal: boolean): Promise<boolean> {
-    throw 'unmanaged style';
-  }
-
-  async ownerOf(): Promise<string> {
-    return ethers.constants.AddressZero;
-  }
-
-  async isMintable(
-    collections: string[],
-    tokenIds: ethers.BigNumberish[],
-    minter: string
-  ): Promise<boolean | string> {
-    return false;
-  }
-
-  async partnership(): Promise<Partnership | undefined> {
-    return undefined;
-  }
-  async stats(): Promise<StyleStats> {
-    throw 'unmanaged style';
-  }
-
-  async paymentSplitter(): Promise<ReplaceablePaymentSplitter> {
-    throw 'unmanaged style';
-  }
-
-  async priceStrategy(): Promise<ISplicePriceStrategy> {
-    throw 'unmanaged style';
-  }
-
-  async quote(
-    collection: string,
-    tokenId: ethers.BigNumberish
-  ): Promise<BigNumber> {
-    throw 'unmanaged style';
   }
 
   async getCodeFromBackend(
@@ -117,98 +62,5 @@ export class Style {
     console.debug(`code for ${this.tokenId} fetched`);
     this.code = code;
     return code;
-  }
-}
-
-export class ActiveStyle extends Style {
-  private contract: StyleNFTContract;
-
-  constructor(
-    contract: StyleNFTContract,
-    tokenId: number,
-    metadataUrl: string,
-    metadata: StyleNFT
-  ) {
-    super(tokenId, metadataUrl, metadata);
-    this.contract = contract;
-  }
-
-  getCollectionAddress() {
-    return this.contract.address;
-  }
-
-  async isMintable(
-    collections: string[],
-    tokenIds: ethers.BigNumberish[],
-    minter: string
-  ): Promise<boolean | string> {
-    try {
-      const result = await this.contract.isMintable(
-        this.tokenId,
-        collections,
-        tokenIds,
-        minter
-      );
-      return result;
-    } catch (e: any) {
-      if (!e.data?.message) return e.message;
-
-      const xRegx = /^.*'(.*)'$/gi;
-      const res = xRegx.exec(e.data.message);
-      return res ? res[1] : 'Unknown error occurred during isMintable query';
-    }
-  }
-
-  async partnership(): Promise<Partnership | undefined> {
-    const partnership = await this.contract.getPartnership(this.tokenId);
-    if (partnership.collections.length === 0) return undefined;
-
-    return {
-      collections: partnership.collections,
-      exclusive: partnership.exclusive,
-      until: new Date(partnership.until.toNumber() * 1000)
-    };
-  }
-
-  async stats(): Promise<StyleStats> {
-    const settings = await this.contract.getSettings(this.tokenId);
-    const active = await this.contract.isSaleActive(this.tokenId);
-    const owner = await this.contract.ownerOf(this.tokenId);
-    const reserved = await this.contract.reservedTokens(this.tokenId);
-
-    return {
-      settings,
-      active,
-      owner,
-      reserved
-    };
-  }
-
-  async paymentSplitter(): Promise<ReplaceablePaymentSplitter> {
-    const settings = await this.contract.getSettings(this.tokenId);
-    return ReplaceablePaymentSplitter__factory.connect(
-      settings.paymentSplitter,
-      this.contract.provider
-    );
-  }
-
-  async priceStrategy(): Promise<ISplicePriceStrategy> {
-    const settings = await this.contract.getSettings(this.tokenId);
-    return ISplicePriceStrategy__factory.connect(
-      settings.priceStrategy,
-      this.contract.provider
-    );
-  }
-
-  async toggleActive(newVal: boolean): Promise<boolean> {
-    await this.contract.toggleSaleIsActive(this.tokenId, newVal);
-    return newVal;
-  }
-
-  async quote(
-    collection: string,
-    tokenId: ethers.BigNumberish
-  ): Promise<BigNumber> {
-    return this.contract.quoteFee(this.tokenId, [collection], [tokenId]);
   }
 }

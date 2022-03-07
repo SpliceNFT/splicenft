@@ -63,15 +63,19 @@ export type TokenProvenance = {
 export class Splice {
   private contract: SpliceContract;
   private deployedAtBlock: number;
-  private styleNFTContract?: StyleNFTContract;
+  private styleNFTContract: StyleNFTContract;
 
   get address() {
     return this.contract.address;
   }
 
-  constructor(splice: SpliceContract) {
+  private constructor(
+    splice: SpliceContract,
+    styleNFTContract: StyleNFTContract
+  ) {
     this.contract = splice;
     this.deployedAtBlock = 0;
+    this.styleNFTContract = styleNFTContract;
   }
 
   get providerOrSigner(): { provider: providers.Provider; signer: Signer } {
@@ -80,27 +84,24 @@ export class Splice {
       signer: this.contract.signer
     };
   }
-  static from(
+
+  static async from(
     address: string,
     signer: Signer | providers.Provider,
     deployedAt = 0
-  ) {
+  ): Promise<Splice> {
     const spliceFactory = SpliceFactory.connect(address, signer);
     const contract = spliceFactory.attach(address);
-    const spl = new Splice(contract);
+
+    const styleNFTAddress = await contract.styleNFT();
+    const styleNFTContract = StyleNFTFactory.connect(styleNFTAddress, signer);
+    const spl = new Splice(contract, styleNFTContract);
     spl.deployedAtBlock = deployedAt;
+
     return spl;
   }
 
-  public async getStyleNFT(): Promise<StyleNFTContract> {
-    if (this.styleNFTContract) return this.styleNFTContract;
-
-    const styleNFTAddress = await this.contract.styleNFT();
-
-    this.styleNFTContract = StyleNFTFactory.connect(
-      styleNFTAddress,
-      this.contract.signer || this.contract.provider
-    );
+  public getStyleNFT(): StyleNFTContract {
     return this.styleNFTContract;
   }
 

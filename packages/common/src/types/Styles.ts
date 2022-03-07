@@ -1,4 +1,22 @@
-export type StyleStats = {
+interface Payment {
+  from: string;
+  time: string;
+  id: string;
+}
+export interface StyleStatsData {
+  style: {
+    id: string;
+    owner: string;
+    priceStrategy: string;
+    minted: number;
+    cap: number;
+    split: {
+      payments: Payment[];
+    };
+  };
+}
+
+export interface StyleSettings {
   settings: {
     mintedOfStyle: number;
     cap: number;
@@ -12,7 +30,7 @@ export type StyleStats = {
   owner: string;
   active: boolean;
   reserved: number;
-};
+}
 
 export type Partnership = {
   collections: string[];
