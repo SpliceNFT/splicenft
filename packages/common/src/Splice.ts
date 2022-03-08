@@ -19,7 +19,7 @@ import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
 import { StyleMetadataResponse, UserSplice } from './types/TransferObjects';
 
-type SpliceDeployInfo = {
+export type SpliceDeployInfo = {
   address: string;
   deployedAt: number;
   subgraph?: string;
@@ -57,21 +57,27 @@ export type TokenProvenance = {
   style_token_id: number;
   style_token_token_id: number;
   origins: Array<ProvenanceOrigin>;
+  owner?: string;
+  metadata?: SpliceNFT;
 };
 
 //todo: restrict all filters to start searching from the deployed block number
 export class Splice {
   private contract: SpliceContract;
   private deployedAtBlock: number;
-  private styleNFTContract?: StyleNFTContract;
+  private styleNFTContract: StyleNFTContract;
 
   get address() {
     return this.contract.address;
   }
 
-  constructor(splice: SpliceContract) {
+  private constructor(
+    splice: SpliceContract,
+    styleNFTContract: StyleNFTContract
+  ) {
     this.contract = splice;
     this.deployedAtBlock = 0;
+    this.styleNFTContract = styleNFTContract;
   }
 
   get providerOrSigner(): { provider: providers.Provider; signer: Signer } {
@@ -80,27 +86,24 @@ export class Splice {
       signer: this.contract.signer
     };
   }
-  static from(
+
+  static async from(
     address: string,
     signer: Signer | providers.Provider,
     deployedAt = 0
-  ) {
+  ): Promise<Splice> {
     const spliceFactory = SpliceFactory.connect(address, signer);
     const contract = spliceFactory.attach(address);
-    const spl = new Splice(contract);
+
+    const styleNFTAddress = await contract.styleNFT();
+    const styleNFTContract = StyleNFTFactory.connect(styleNFTAddress, signer);
+    const spl = new Splice(contract, styleNFTContract);
     spl.deployedAtBlock = deployedAt;
+
     return spl;
   }
 
-  public async getStyleNFT(): Promise<StyleNFTContract> {
-    if (this.styleNFTContract) return this.styleNFTContract;
-
-    const styleNFTAddress = await this.contract.styleNFT();
-
-    this.styleNFTContract = StyleNFTFactory.connect(
-      styleNFTAddress,
-      this.contract.signer || this.contract.provider
-    );
+  public getStyleNFT(): StyleNFTContract {
     return this.styleNFTContract;
   }
 
@@ -318,13 +321,13 @@ export class Splice {
 
   public async getMetadata(provenance: TokenProvenance): Promise<SpliceNFT> {
     const _metadataUrl = await this.getMetadataUrl(provenance.splice_token_id);
-    return this.fetchMetadata(_metadataUrl);
+    return Splice.fetchMetadata(_metadataUrl);
   }
 
   /**
    * adds the metadata url to the metadata result
    */
-  public async fetchMetadata(metadataUrl: string): Promise<SpliceNFT> {
+  public static async fetchMetadata(metadataUrl: string): Promise<SpliceNFT> {
     const metadata = (await (
       await axios.get(ipfsGW(metadataUrl))
     ).data) as SpliceNFT;
@@ -374,7 +377,9 @@ export class Splice {
         return {
           id: e.args.tokenId.toString(),
           metadata_url: metadataUrl,
-          origins: []
+          origin: {
+            seeds: []
+          }
         };
       })();
     });

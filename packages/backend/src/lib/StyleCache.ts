@@ -4,7 +4,7 @@ import { getSplice } from './SpliceContracts';
 import * as Cache from './Cache';
 
 export class StyleMetadataCache {
-  private styles: Style[];
+  private styles: ActiveStyle[];
   private fetched: boolean | null;
   private networkId: number;
 
@@ -31,51 +31,51 @@ export class StyleMetadataCache {
 
     console.debug('[%s] fetching style metadata', this.networkId);
 
-    const splice = getSplice(this.networkId);
-    const styleNFTContract = await splice.getStyleNFT();
+    const splice = await getSplice(this.networkId);
+    const styleNFTContract = splice.getStyleNFT();
     const allStyles = await splice.getAllStyles();
 
-    const promises = allStyles.map((tokenMetadataResponse) => {
-      const { tokenId, metadataUrl } = tokenMetadataResponse;
-      return (async () => {
-        const metadata = await Cache.withCache<StyleNFT>(
-          `${this.network}/styles/${tokenId}/style.json`,
-          async () => {
-            const gwUrl = ipfsGW(metadataUrl);
-            console.debug(
-              `[%s] fetching style metadata [%s] from ipfs`,
-              this.networkId,
-              tokenId
-            );
-            const metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
-            //todo: remove this translation for mainnet
-            if (!metadata.splice) {
-              throw new Error('found old metadata...');
+    const promises: Array<Promise<ActiveStyle>> = allStyles.map(
+      (tokenMetadataResponse) => {
+        const { tokenId, metadataUrl } = tokenMetadataResponse;
+        return (async () => {
+          const metadata = await Cache.withCache<StyleNFT>(
+            `${this.network}/styles/${tokenId}/style.json`,
+            async () => {
+              const gwUrl = ipfsGW(metadataUrl);
+              console.debug(
+                `[%s] fetching style metadata [%s] from ipfs`,
+                this.networkId,
+                tokenId
+              );
+              const metadata = await (await axios.get<StyleNFT>(gwUrl)).data;
+              return metadata;
             }
-            return metadata;
+          );
+
+          const _style = new Style(
+            parseInt(tokenId),
+            metadataUrl,
+            metadata,
+            `/styles/${this.networkId}/${tokenId}`
+          );
+
+          const style = new ActiveStyle(_style, styleNFTContract);
+
+          //preload code
+          const codeCacheKey = `${this.network}/styles/${tokenId}/code.js`;
+          let code = await Cache.lookupString(codeCacheKey);
+          if (!code) {
+            code = await style.getCode();
+            Cache.store(codeCacheKey, code);
           }
-        );
 
-        const style = new ActiveStyle(
-          styleNFTContract,
-          parseInt(tokenId),
-          metadataUrl,
-          metadata
-        );
+          return style;
+        })();
+      }
+    );
 
-        //preload code
-        const codeCacheKey = `${this.network}/styles/${tokenId}/code.js`;
-        let code = await Cache.lookupString(codeCacheKey);
-        if (!code) {
-          code = await style.getCode();
-          Cache.store(codeCacheKey, code);
-        }
-
-        return style;
-      })();
-    });
-
-    Promise.all(promises).then((styles: Style[]) => {
+    Promise.all(promises).then((styles: ActiveStyle[]) => {
       this.styles = styles;
       styles.map((style) => {
         const { name, splice } = style.getMetadata();

@@ -11,7 +11,7 @@ const Metadata = async (
   styleCache: StyleMetadataCache,
   spliceTokenId: string
 ): Promise<SpliceNFT> => {
-  const splice = getSplice(styleCache.network);
+  const splice = await getSplice(styleCache.network);
   const provenance = await splice.getProvenance(BigNumber.from(spliceTokenId));
   if (!provenance) {
     throw new Error(`no provenance for token ${spliceTokenId}`);

@@ -17,6 +17,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAssets } from '../../context/AssetContext';
 import { useSplice } from '../../context/SpliceContext';
+import { useStyles } from '../../context/StyleContext';
 import { truncateAddress } from '../../modules/strings';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { SpliceCard } from '../atoms/SpliceCard';
@@ -27,7 +28,9 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
   const [nftMetadata, setNftMetadata] = useState<NFTMetaData>();
   const [nftImageUrl, setNftImageUrl] = useState<string>();
   const [contractName, setContractName] = useState<string>();
-  const { splice, spliceStyles } = useSplice();
+  const { splice } = useSplice();
+  const { styles } = useStyles();
+
   const { getContractName } = useAssets();
 
   useEffect(() => {
@@ -123,7 +126,7 @@ export const NFTCard = ({ nft }: { nft: NFTItemInTransit }) => {
           {provenance && (
             <Text color="white" fontSize="sm">
               {
-                spliceStyles
+                styles
                   .find((st) => st.tokenId === provenance.style_token_id)
                   ?.getMetadata().name
               }{' '}

@@ -4,16 +4,29 @@ type Splice @entity {
   origin_hash: Bytes
   input_params: Bytes
   metadata_url: String
-  origins: [Origin!]
+  origin: Origin!
   minting_fee: BigInt
   style: Style!
 }
 
 type Origin @entity {
   id: ID!
+  splices: [Splice!]! @derivedFrom(field: "origin")
+  seeds: [SeedOrigin!] @derivedFrom(field: "origin")
+}
+
+type Seed @entity {
+  id: ID!
   collection: Bytes #address
   token_id: BigInt
   metadata_url: String
+  origins: [SeedOrigin!] @derivedFrom(field: "seed")
+}
+
+type SeedOrigin @entity {
+  id: ID!
+  seed: Seed!
+  origin: Origin!
 }
 
 type Style @entity {

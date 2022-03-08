@@ -25,25 +25,30 @@ export default async function getDominantColors(
 export async function loadColors(
   nftItem: NFTItem,
   image: HTMLImageElement,
-  chainId: number
+  chainId: number | undefined
 ): Promise<Histogram> {
   const dims = { w: image.width, h: image.height };
+
   if (
     dims.w * dims.h > 6_250_000 ||
     (!isSVG(image.src) && !isIpfsGateway(image.src))
   ) {
     console.log('image quite large or not on ipfs -> offloading to backend');
     return getDominantColors(
-      chainId,
+      chainId || 1,
       nftItem.contract_address,
       nftItem.token_id
     );
   }
 
   try {
-    return extractColors(image.src, LoadImageBrowser, { dims });
+    return extractColors(image.src, LoadImageBrowser, {
+      dims,
+      proxy: process.env.REACT_APP_CORS_PROXY
+    });
   } catch (e: any) {
     console.debug('palette extraction on frontend failed, trying the backend');
+    if (!chainId) return [];
     return getDominantColors(
       chainId,
       nftItem.contract_address,

@@ -3,7 +3,7 @@ import { providers } from 'ethers';
 
 import CHAINS from './networks';
 
-export function getSplice(networkId: number): Splice {
+export async function getSplice(networkId: number): Promise<Splice> {
   const provider = providerFor(networkId);
   if (!provider)
     throw new Error(`Splice is not available for network ${networkId}`);

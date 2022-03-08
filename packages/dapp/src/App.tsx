@@ -10,6 +10,7 @@ import { Footer } from './components/molecules/Footer';
 import { SubFooter } from './components/molecules/SubFooter';
 import { AssetProvider } from './context/AssetContext';
 import { SpliceProvider } from './context/SpliceContext';
+import { StyleProvider } from './context/StyleContext';
 import { Routes } from './Routes';
 import theme from './theme';
 
@@ -22,11 +23,13 @@ function App() {
     <ChakraProvider theme={theme}>
       <Web3ReactProvider getLibrary={getLibrary}>
         <SpliceProvider>
-          <AssetProvider>
-            <Routes />
-            <Footer />
-            <SubFooter />
-          </AssetProvider>
+          <StyleProvider>
+            <AssetProvider>
+              <Routes />
+              <Footer />
+              <SubFooter />
+            </AssetProvider>
+          </StyleProvider>
         </SpliceProvider>
       </Web3ReactProvider>
     </ChakraProvider>

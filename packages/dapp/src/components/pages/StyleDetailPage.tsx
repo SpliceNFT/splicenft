@@ -4,441 +4,30 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  Button,
   Container,
   Flex,
-  Heading,
   Image,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Link,
-  SystemProps,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useToast
+  Text
 } from '@chakra-ui/react';
-import {
-  ipfsGW,
-  ISplicePriceStrategy,
-  Partnership,
-  ReplaceablePaymentSplitter,
-  SPLICE_ADDRESSES,
-  Style,
-  StyleStats
-} from '@splicenft/common';
+import { ActiveStyle, ipfsGW, Style, StyleStatsData } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import { BigNumber, ethers, providers } from 'ethers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
-import { StyleStatsData, STYLE_STATS } from '../../modules/Queries';
-import ConnectAlert from '../molecules/ConnectAlert';
+import { useStyles } from '../../context/StyleContext';
+import { StyleStatsVars, STYLE_STATS } from '../../modules/Queries';
 
-type PaymentInfo = {
-  total: ethers.BigNumber;
-  totalReleased: ethers.BigNumber;
-  shares: number;
-  due: ethers.BigNumber;
-};
+import { Partnerships } from '../molecules/StyleDetails/Partnerships';
+import { Payments } from '../organisms/StyleDetails/Payments';
+import { StyleInfo } from '../organisms/StyleDetails/StyleInfo';
 
-const ActivateButton = (props: { style: Style; stats: StyleStats }) => {
-  const { style, stats } = props;
-  const [active, setActive] = useState<boolean>(stats.active);
-  const toast = useToast();
-
-  const toggle = async () => {
-    const newVal = !stats.active;
-    try {
-      setActive(await style.toggleActive(newVal));
-    } catch (e: any) {
-      toast({ title: 'tx failed', description: e.message || e });
-    }
-  };
-  return (
-    <Button onClick={toggle} px={12} size="sm">
-      {active ? 'Stop sales' : 'Start Sales'}
-    </Button>
-  );
-};
-
-const TransferForm = (props: { onRecipient: (r: string) => unknown }) => {
-  const { onRecipient } = props;
-  const [recipient, setRecipient] = useState<string>('');
-
-  const validate = () => {
-    //console.log(recipient);
-    onRecipient(recipient);
-  };
-
-  return (
-    <InputGroup size="md" width="50%">
-      <Input
-        pr="4.5rem"
-        type="text"
-        placeholder="0xrecipient"
-        value={recipient}
-        bg="white"
-        onChange={(e) => {
-          e.preventDefault();
-          setRecipient(e.target.value);
-        }}
-      />
-      <InputRightElement width="5rem">
-        <Button
-          size="xs"
-          px={10}
-          mr={2}
-          variant="black"
-          onClick={() => {
-            validate();
-          }}
-        >
-          Transfer
-        </Button>
-      </InputRightElement>
-    </InputGroup>
-  );
-};
-const TransferButton = (props: { account: string; tokenId: number }) => {
-  const { splice } = useSplice();
-  const { account, tokenId } = props;
-  const toast = useToast();
-
-  const [inTransfer, setInTransfer] = useState<boolean>(false);
-  const [buzy, setBuzy] = useState<boolean>(false);
-
-  const doTransfer = async (from: string, to: string) => {
-    if (!splice) return;
-    setInTransfer(false);
-    setBuzy(true);
-    try {
-      const styleNFT = await splice.getStyleNFT();
-      const tx = await styleNFT.transferFrom(from, to, tokenId);
-      await tx.wait();
-
-      toast({
-        status: 'success',
-        title: 'style transferred',
-        description: 'reload the page'
-      });
-    } catch (e: any) {
-      toast({ status: 'error', title: 'claim failed', description: e.message });
-    } finally {
-      setBuzy(false);
-    }
-  };
-
-  return inTransfer ? (
-    <TransferForm onRecipient={(r) => doTransfer(account, r)} />
-  ) : (
-    <Button
-      isLoading={buzy}
-      variant="white"
-      size="sm"
-      px={12}
-      my={2}
-      onClick={() => setInTransfer(true)}
-    >
-      Transfer
-    </Button>
-  );
-};
-
-const ClaimButton = (props: {
-  splitter: ReplaceablePaymentSplitter;
-  onClaimed: () => unknown;
-}) => {
-  const { library: web3, account } = useWeb3React<providers.Web3Provider>();
-  const { splitter, onClaimed } = props;
-  const toast = useToast();
-
-  const claim = async () => {
-    if (!web3 || !account) return;
-    try {
-      const _splitter = splitter.connect(await web3.getSigner());
-      const tx = await _splitter['release(address)'](account);
-      await tx.wait();
-      onClaimed();
-    } catch (e: any) {
-      toast({ status: 'error', title: 'claim failed', description: e.message });
-    }
-  };
-
-  return (
-    <Button variant="black" size="sm" px={12} my={2} onClick={claim}>
-      Claim
-    </Button>
-  );
-};
-
-const NumBox = (
-  props: {
-    head: string;
-    val: string;
-    children?: React.ReactNode;
-  } & SystemProps
-) => {
-  const { head, val, children, ...rest } = props;
-  return (
-    <Flex
-      align="center"
-      justify="center"
-      background="white"
-      p={5}
-      direction="column"
-      flex="1"
-      {...rest}
-    >
-      <Text>{head}</Text>
-      <Text fontSize="2xl">{val}</Text>
-      {children}
-    </Flex>
-  );
-};
-
-const Partnerships = (props: {
+const BaseStyleDetailPage = (props: {
   style: Style;
-  stats: StyleStats;
-  partnership: Partnership;
+  stats: StyleStatsData;
+  activeStyle?: ActiveStyle;
 }) => {
-  const { partnership } = props;
-  return (
-    <Flex direction="column">
-      <Heading size="md">Partnership</Heading>
-      <Text>Collections: {partnership.collections.join(',')}</Text>
-      <Text>Exclusive: {partnership.exclusive ? 'Yes' : 'No'}</Text>
-      <Text>Runs until: {partnership.until.toISOString()}</Text>
-    </Flex>
-  );
-};
-
-const Payments = (props: { style: Style; stats: StyleStats }) => {
-  const { style } = props;
-  const {
-    library: web3,
-    account,
-    chainId
-  } = useWeb3React<providers.Web3Provider>();
-  const [splitter, setSplitter] = useState<ReplaceablePaymentSplitter>();
-  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>();
-  const [priceStrategy, setPriceStrategy] = useState<ISplicePriceStrategy>();
-  const [price, setPrice] = useState<BigNumber>();
-
-  const {
-    loading: buzy,
-    error: gqlErr,
-    data: paymentStats
-  } = useQuery<{ style: StyleStatsData }, { style_id: string }>(STYLE_STATS, {
-    variables: { style_id: style.tokenId.toString() }
-  });
-
-  useEffect(() => {
-    if (!web3) return;
-    (async () => {
-      try {
-        const _splitter = await style.paymentSplitter();
-        setSplitter(_splitter.connect(web3));
-
-        const _priceStrategy = await style.priceStrategy();
-        setPriceStrategy(_priceStrategy.connect(web3));
-        setPrice(await _priceStrategy.quote(style.tokenId, [], []));
-      } catch (e: any) {
-        console.warn(e.message);
-      }
-    })();
-  }, [web3]);
-
-  useEffect(() => {
-    if (!web3 || !splitter || !account) return;
-    (async () => {
-      try {
-        const total = await web3.getBalance(splitter.address);
-        const totalReleased = await splitter['totalReleased()']();
-        const shares = await splitter.shares(account);
-        const due = await splitter['due(address)'](account);
-        setPaymentInfo({
-          total,
-          totalReleased,
-          shares: shares.toNumber(),
-          due
-        });
-      } catch (e: any) {
-        console.error(e);
-      }
-    })();
-  }, [web3, splitter, account]);
-
-  const onClaimed = async () => {
-    if (!web3 || !account || !splitter || !paymentInfo) return;
-    const total = await web3.getBalance(splitter.address);
-    const totalReleased = await splitter['totalReleased()']();
-    const due = await splitter['due(address)'](account);
-    setPaymentInfo({
-      ...paymentInfo,
-      total,
-      totalReleased,
-      due
-    });
-  };
-
-  return (
-    <Flex direction="column" my={5}>
-      <Heading size="md">
-        Payments{' '}
-        <Text d="inline" fontSize="xs" fontWeight="normal">
-          {chainId && splitter && (
-            <Link
-              href={`//${SPLICE_ADDRESSES[chainId]?.explorerRoot}/address/${splitter.address}`}
-              isExternal
-            >
-              {splitter.address}
-            </Link>
-          )}
-        </Text>
-      </Heading>
-      {paymentInfo && (
-        <Flex direction="row" justify="space-between" my={5} gridGap={2}>
-          <NumBox
-            head="Total"
-            val={ethers.utils.formatEther(paymentInfo.total)}
-          />
-          <NumBox
-            head="Total Released"
-            val={ethers.utils.formatEther(paymentInfo.totalReleased)}
-          />
-          <NumBox head="Your share" val={`${paymentInfo.shares / 100}%`} />
-          <NumBox
-            head="Your claim"
-            val={`${ethers.utils.formatEther(paymentInfo.due)} Eth`}
-          >
-            {account && splitter && !paymentInfo.due.isZero() && (
-              <ClaimButton splitter={splitter} onClaimed={onClaimed} />
-            )}
-          </NumBox>
-        </Flex>
-      )}
-      {paymentStats && (
-        <Table variant="unstyled" size="sm">
-          <Thead>
-            <Tr>
-              <Th>From</Th>
-              <Th>at</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {paymentStats.style.split.payments.map((p) => (
-              <Tr key={p.id}>
-                <Td>{p.from}</Td>
-                <Td>{new Date(parseInt(p.time) * 1000).toISOString()}</Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
-      {priceStrategy && (
-        <Flex direction="column">
-          <Heading size="md" my={5}>
-            Pricing
-          </Heading>
-          <Text>Price Strategy {priceStrategy.address}</Text>
-          {price && (
-            <Flex my={5}>
-              Current mint price: {ethers.utils.formatEther(price)} Eth
-            </Flex>
-          )}
-        </Flex>
-      )}
-    </Flex>
-  );
-};
-
-const StyleActions = (props: {
-  style: Style;
-  isStyleMinter: boolean;
-  stats: StyleStats;
-  partnership: Partnership | undefined;
-}) => {
-  const { account } = useWeb3React();
-  const { style, stats, isStyleMinter, partnership } = props;
-
-  return (
-    <Flex direction="column" p={3} h="100%">
-      <Flex direction="column">
-        <Heading size="lg" color="white">
-          {style.getMetadata().name}
-        </Heading>
-
-        <Text color="white" fontSize="sm">
-          Owner: {stats.owner} {stats.owner === account && <span> (You)</span>}
-        </Text>
-        <Text color="white" fontSize="sm">
-          Style ID: {style.tokenId}
-        </Text>
-      </Flex>
-      <NumBox
-        head="Minted"
-        val={`${stats.settings.mintedOfStyle} /  ${stats.settings.cap}`}
-        my={5}
-        bg="transparent"
-        color="white"
-      ></NumBox>
-
-      <Flex justify="flex-end" gridGap={3} align="center">
-        {isStyleMinter || stats.owner === account ? (
-          <ActivateButton style={style} stats={stats} />
-        ) : (
-          <Text>Active: {stats.active ? 'Yes' : 'No'}</Text>
-        )}
-
-        {stats.owner === account && (
-          <TransferButton account={account} tokenId={style.tokenId} />
-        )}
-      </Flex>
-    </Flex>
-  );
-};
-
-const StyleDetailPage = () => {
-  const { style_id: styleId } = useParams<{ style_id: string }>();
-
-  const { account } = useWeb3React();
-  const { splice, spliceStyles } = useSplice();
-  const [stats, setStats] = useState<StyleStats>();
-  const [partnership, setPartnership] = useState<Partnership | undefined>();
-  const [isStyleMinter, setIsStyleMinter] = useState<boolean>(false);
-  const [style, setStyle] = useState<Style>();
-
-  useEffect(() => {
-    if (!splice || !account) return;
-    (async () => {
-      const styleNft = await splice.getStyleNFT();
-      const _style = spliceStyles.find(
-        (s) => s.tokenId === Number.parseInt(styleId)
-      );
-      setStyle(_style);
-      setIsStyleMinter(await styleNft.isStyleMinter(account));
-    })();
-  }, [spliceStyles, splice, account]);
-
-  useEffect(() => {
-    if (!style) return;
-    (async () => {
-      try {
-        setStats(await style.stats());
-        setPartnership(await style.partnership());
-      } catch (e: any) {
-        console.debug(style);
-        console.warn('style: ', e.message || e);
-      }
-    })();
-  }, [style]);
+  const { style, stats, activeStyle } = props;
 
   const previewImg = useMemo(() => {
     const image = style?.getMetadata().image;
@@ -447,52 +36,111 @@ const StyleDetailPage = () => {
   }, [style]);
 
   return (
-    <ConnectAlert>
-      <Container maxW="container.lg">
-        <Breadcrumb my={3}>
-          <BreadcrumbItem fontSize="lg">
-            <BreadcrumbLink as={NavLink} to="/styles">
-              All Styles
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
-            <BreadcrumbLink>{style?.getMetadata().name}</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-        {style && stats && (
-          <>
-            <AspectRatio background="black" position="relative" ratio={3 / 1}>
-              <Flex w="100%">
-                <Image
-                  src={previewImg}
-                  opacity="0.4"
-                  position="absolute"
-                  fit="cover"
-                  zIndex={1}
-                />
-                <Flex zIndex={2} direction="column" flex="1" h="100%">
-                  <StyleActions
-                    style={style}
-                    isStyleMinter={isStyleMinter}
-                    stats={stats}
-                    partnership={partnership}
-                  />
-                </Flex>
-              </Flex>
-            </AspectRatio>
-            <Payments style={style} stats={stats} />
-
-            {partnership && (
-              <Partnerships
+    <>
+      <AspectRatio background="black" position="relative" ratio={3 / 1}>
+        <Flex w="100%">
+          <Image
+            src={previewImg}
+            opacity="0.4"
+            position="absolute"
+            fit="cover"
+            zIndex={1}
+          />
+          <Flex zIndex={2} direction="column" flex="1" h="100%">
+            {stats && (
+              <StyleInfo
                 style={style}
+                activeStyle={activeStyle}
                 stats={stats}
-                partnership={partnership}
               />
             )}
-          </>
-        )}
-      </Container>
-    </ConnectAlert>
+          </Flex>
+        </Flex>
+      </AspectRatio>
+      <Payments style={style} stats={stats} activeStyle={activeStyle} />
+      {activeStyle && <Partnerships style={activeStyle} />}
+    </>
+  );
+};
+
+const SubgraphStyleDetailPage = (props: {
+  style: Style;
+  activeStyle?: ActiveStyle;
+}) => {
+  const { data: stats } = useQuery<StyleStatsData, StyleStatsVars>(
+    STYLE_STATS,
+    {
+      variables: { style_id: props.style.tokenId.toString() }
+    }
+  );
+  return stats ? (
+    <BaseStyleDetailPage stats={stats} {...props} />
+  ) : (
+    <Text>loading...</Text>
+  );
+};
+
+const ChainStyleDetailPage = (props: {
+  style: Style;
+  activeStyle?: ActiveStyle;
+}) => {
+  const { activeStyle } = props;
+  const [stats, setStats] = useState<StyleStatsData>();
+
+  useEffect(() => {
+    if (!activeStyle) return;
+    (async () => {
+      activeStyle.stats().then(setStats);
+    })();
+  }, [activeStyle]);
+  return stats ? (
+    <BaseStyleDetailPage stats={stats} {...props} />
+  ) : (
+    <Text>loading...</Text>
+  );
+};
+
+const StyleDetailPage = () => {
+  const { style_id: styleId } = useParams<{ style_id: string }>();
+  const { chainId } = useWeb3React();
+  const { styles } = useStyles();
+
+  const [style, setStyle] = useState<Style>();
+  const { splice } = useSplice();
+  const [activeStyle, setActiveStyle] = useState<ActiveStyle>();
+
+  useEffect(() => {
+    (async () => {
+      const _style = styles.find((s) => s.tokenId === Number.parseInt(styleId));
+      setStyle(_style);
+    })();
+  }, [styles]);
+
+  useEffect(() => {
+    if (style && splice) {
+      setActiveStyle(new ActiveStyle(style, splice.getStyleNFT()));
+    }
+  }, [style, splice]);
+
+  return (
+    <Container maxW="container.lg">
+      <Breadcrumb my={3}>
+        <BreadcrumbItem fontSize="lg">
+          <BreadcrumbLink as={NavLink} to="/styles">
+            All Styles
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage fontSize="lg" fontWeight="bold">
+          <BreadcrumbLink>{style?.getMetadata().name}</BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
+      {style &&
+        (chainId === 31337 ? (
+          <ChainStyleDetailPage style={style} activeStyle={activeStyle} />
+        ) : (
+          <SubgraphStyleDetailPage style={style} activeStyle={activeStyle} />
+        ))}
+    </Container>
   );
 };
 

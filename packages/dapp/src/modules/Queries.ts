@@ -33,27 +33,14 @@ export const USER_SPLICES = gql`
         id
         metadata_url
       }
-      origins {
-        collection
-        token_id
-        metadata_url
-      }
-    }
-  }
-`;
-
-export const SPLICES_OF_ORIGIN = gql`
-  query SplicesOfOrigin($origin_hash: String) {
-    spliceice(where: { origin_hash: $origin_hash }) {
-      metadata_url
-      style {
-        id
-        metadata_url
-      }
-      origins {
-        collection
-        token_id
-        metadata_url
+      origin {
+        seeds {
+          seed {
+            collection
+            token_id
+            metadata_url
+          }
+        }
       }
     }
   }
@@ -70,15 +57,8 @@ export const PAYMENT_MEMBER = gql`
   }
 `;
 
-export interface StyleStatsData {
-  id: string;
-  owner: string;
-  priceStrategy: string;
-  minted: number;
-  cap: number;
-  split: {
-    payments: [{ from: string; time: string; id: string }];
-  };
+export interface StyleStatsVars {
+  style_id: string;
 }
 
 export const ALL_STYLE_STATS = gql`
@@ -90,6 +70,9 @@ export const ALL_STYLE_STATS = gql`
       minted
       cap
       split {
+        id
+        balance
+        payees
         payments(first: 3) {
           id
           from
@@ -109,10 +92,35 @@ export const STYLE_STATS = gql`
       minted
       cap
       split {
+        id
+        balance
+        payees
         payments(first: 3) {
           id
           from
           time
+        }
+      }
+    }
+  }
+`;
+
+export const SPLICES_FOR_SEED = gql`
+  query SplicesForSeed($collection: String!, $token_id: String!) {
+    seeds(where: { collection: $collection, token_id: $token_id }) {
+      collection
+      token_id
+      origins {
+        origin {
+          id
+          splices {
+            id
+            owner
+            metadata_url
+            style {
+              id
+            }
+          }
         }
       }
     }

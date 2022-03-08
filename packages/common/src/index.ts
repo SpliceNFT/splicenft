@@ -1,7 +1,9 @@
 export * from './Splice';
 export * from './Style';
+export * from './ActiveStyle';
 export * from './types/NFT';
 export * from './types/SpliceNFT';
+export { Partnership, StyleStatsData } from './types/Styles';
 
 export { default as getProvider } from './provider';
 export {
@@ -20,7 +22,6 @@ export { Backend } from './indexers/Backend';
 export { Fallback as FallbackIndexer } from './indexers/Fallback';
 
 export * as Transfer from './types/TransferObjects';
-export * from './types/Styles';
 
 export { RGB, Histogram, rgbToHex } from '@splicenft/colors';
 import {
