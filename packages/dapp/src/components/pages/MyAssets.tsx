@@ -58,95 +58,96 @@ export const MyAssetsPage = () => {
   };
 
   return (
-    <ConnectAlert>
-      <Container maxW="container.xl" minHeight="70vh" pb={12}>
-        {nftsLoading && (
-          <Alert status="info" variant="black">
-            <AlertTitle>loading</AlertTitle>
-          </Alert>
-        )}
+    <>
+      <ConnectAlert>
+        <Container maxW="container.xl" minHeight="70vh" pb={12}>
+          {nftsLoading && (
+            <Alert status="info" variant="black">
+              <AlertTitle>loading</AlertTitle>
+            </Alert>
+          )}
 
-        {!nftsLoading && chainId && nfts.length === 0 && (
-          <Alert status="info" overflow="visible" variant="black">
-            <Flex
-              align="center"
-              direction="row"
-              justify="space-between"
-              width="100%"
-            >
-              <Flex>
-                <AlertIcon />
-                <AlertTitle>
-                  <Text>
-                    It appears you don't have any NFTs on{' '}
-                    {CHAINS[chainId] || `chain ${chainId}`}.{' '}
-                    {chainId !== 0x4 && (
-                      <>
-                        You can test Splice for free{' '}
-                        <Link onClick={switchToRinkeby} fontWeight="bold">
-                          on Rinkeby
-                        </Link>
-                      </>
-                    )}
-                  </Text>
-                </AlertTitle>
-              </Flex>
-              {chainId !== 1 && (
-                <MintButton onMinted={onNFTAdded} balance={balance} />
-              )}
-            </Flex>
-          </Alert>
-        )}
-
-        {chainId && (
-          <>
-            <Flex direction="row" align="center" justify="space-between">
-              {nfts.length > 0 && (
-                <Heading size="md" flex={3}>
-                  Choose an NFT to splice
-                </Heading>
-              )}
-            </Flex>
-            <SimpleGrid
-              columns={[1, 2, 3, 4]}
-              spacingX={5}
-              spacingY="20px"
-              mt={6}
-            >
-              {nfts.map((nft: NFTItemInTransit) => (
-                <NFTCard
-                  key={`${nft.contract_address}/${nft.token_id}`}
-                  nft={nft}
-                />
-              ))}
-              {chainId !== 1 && (
-                <Flex
-                  background="gray.200"
-                  width="100%"
-                  minH="80"
-                  rounded="lg"
-                  align="center"
-                  justify="center"
-                >
+          {!nftsLoading && chainId && nfts.length === 0 && (
+            <Alert status="info" overflow="visible" variant="black">
+              <Flex
+                align="center"
+                direction="row"
+                justify="space-between"
+                width="100%"
+              >
+                <Flex>
+                  <AlertIcon />
+                  <AlertTitle>
+                    <Text>
+                      It appears you don't have any NFTs on{' '}
+                      {CHAINS[chainId] || `chain ${chainId}`}.{' '}
+                      {chainId !== 0x4 && (
+                        <>
+                          You can test Splice for free{' '}
+                          <Link onClick={switchToRinkeby} fontWeight="bold">
+                            on Rinkeby
+                          </Link>
+                        </>
+                      )}
+                    </Text>
+                  </AlertTitle>
+                </Flex>
+                {chainId !== 1 && (
                   <MintButton onMinted={onNFTAdded} balance={balance} />
-                </Flex>
-              )}
-              {indexer?.canBeContinued() && (
-                <Flex width="100%" minH="80" align="center" justify="center">
-                  <Button
-                    onClick={continueLoading}
-                    disabled={nftsLoading}
-                    isLoading={nftsLoading}
-                  >
-                    load more
-                  </Button>
-                </Flex>
-              )}
-            </SimpleGrid>
-          </>
-        )}
-      </Container>
+                )}
+              </Flex>
+            </Alert>
+          )}
 
+          {chainId && (
+            <>
+              <Flex direction="row" align="center" justify="space-between">
+                {nfts.length > 0 && (
+                  <Heading size="md" flex={3}>
+                    Choose an NFT to splice
+                  </Heading>
+                )}
+              </Flex>
+              <SimpleGrid
+                columns={[1, 2, 3, 4]}
+                spacingX={5}
+                spacingY="20px"
+                mt={6}
+              >
+                {nfts.map((nft: NFTItemInTransit) => (
+                  <NFTCard
+                    key={`${nft.contract_address}/${nft.token_id}`}
+                    nft={nft}
+                  />
+                ))}
+                {chainId !== 1 && (
+                  <Flex
+                    background="gray.200"
+                    width="100%"
+                    minH="80"
+                    rounded="lg"
+                    align="center"
+                    justify="center"
+                  >
+                    <MintButton onMinted={onNFTAdded} balance={balance} />
+                  </Flex>
+                )}
+                {indexer?.canBeContinued() && (
+                  <Flex width="100%" minH="80" align="center" justify="center">
+                    <Button
+                      onClick={continueLoading}
+                      disabled={nftsLoading}
+                      isLoading={nftsLoading}
+                    >
+                      load more
+                    </Button>
+                  </Flex>
+                )}
+              </SimpleGrid>
+            </>
+          )}
+        </Container>
+      </ConnectAlert>
       <Flex background="gray.300" py={6}>
         <Container maxW="container.lg">
           <Heading size="lg" mb={6} color="gray.700">
@@ -168,6 +169,6 @@ export const MyAssetsPage = () => {
           </Flex>
         </Container>
       </Flex>
-    </ConnectAlert>
+    </>
   );
 };

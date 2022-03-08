@@ -47,6 +47,7 @@ import { useStyles } from '../../context/StyleContext';
 import { default as getDominantColors, loadColors } from '../../modules/colors';
 import useProvenance from '../../modules/useProvenance';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
+import ConnectButton from '../atoms/ConnectButton';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
@@ -262,7 +263,7 @@ export const NFTPage = () => {
     if (!splice) return;
     (async () => {
       try {
-        const originOwner = splice
+        const originOwner = await splice
           .getOriginNftContract(collection)
           .ownerOf(tokenId);
 
@@ -312,17 +313,19 @@ export const NFTPage = () => {
 
   const _isDownloadable = useMemo<boolean>(() => {
     return (
-      state.provenance !== undefined && state.ownership?.splice === account
+      state.provenance !== undefined &&
+      state.ownership?.splice?.toLowerCase() === account?.toLowerCase()
     );
   }, [state.provenance, state.ownership?.splice, account]);
 
   const _canMint = useMemo<boolean>(() => {
     return (
+      chainId !== undefined &&
       state.provenance === undefined &&
       state.selectedStyle !== undefined &&
       state.sketch !== undefined
     );
-  }, [state.provenance, state.selectedStyle, state.sketch]);
+  }, [chainId, state.provenance, state.selectedStyle, state.sketch]);
 
   const useOriginalMetadata = useCallback(async () => {
     if (!chainId) return;
@@ -467,6 +470,7 @@ export const NFTPage = () => {
                 download
               </Button>
             )}
+            {!chainId && <ConnectButton variant="black">connect</ConnectButton>}
           </Flex>
         </Flex>
       )}
