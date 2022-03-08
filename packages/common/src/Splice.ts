@@ -19,7 +19,7 @@ import { ipfsGW } from './img';
 import { SpliceNFT } from './types/SpliceNFT';
 import { StyleMetadataResponse, UserSplice } from './types/TransferObjects';
 
-type SpliceDeployInfo = {
+export type SpliceDeployInfo = {
   address: string;
   deployedAt: number;
   subgraph?: string;

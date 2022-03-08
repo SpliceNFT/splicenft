@@ -232,6 +232,7 @@ export const NFTPage = () => {
         });
         return;
       }
+
       dispatch({
         type: 'setAsset',
         payload: {
@@ -498,16 +499,18 @@ export const NFTPage = () => {
               <Flex direction="row">
                 <Heading size="md">Origin attributes</Heading>
                 <Spacer />
-                <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
-                  <IconButton
-                    disabled={buzy}
-                    size="sm"
-                    icon={buzy ? <Spinner size="sm" /> : <IoReload />}
-                    title="reload metadata"
-                    aria-label="reload"
-                    onClick={useOriginalMetadata}
-                  />
-                </Tooltip>
+                {web3 && (
+                  <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
+                    <IconButton
+                      disabled={buzy}
+                      size="sm"
+                      icon={buzy ? <Spinner size="sm" /> : <IoReload />}
+                      title="reload metadata"
+                      aria-label="reload"
+                      onClick={useOriginalMetadata}
+                    />
+                  </Tooltip>
+                )}
               </Flex>
 
               {!state.provenance && (
@@ -518,12 +521,14 @@ export const NFTPage = () => {
                   }
                 />
               )}
-              <MetaDataDisplay
-                contractAddress={collection}
-                tokenId={tokenId}
-                nftMetadata={state.origin.nftItem.metadata}
-                randomness={state.features.randomness}
-              />
+              {state.origin.nftItem.metadata && (
+                <MetaDataDisplay
+                  contractAddress={collection}
+                  tokenId={tokenId}
+                  nftMetadata={state.origin.nftItem.metadata}
+                  randomness={state.features.randomness}
+                />
+              )}
             </Flex>
           )}
         </Flex>

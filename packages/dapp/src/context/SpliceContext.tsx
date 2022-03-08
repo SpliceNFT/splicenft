@@ -4,7 +4,12 @@ import {
   InMemoryCache,
   NormalizedCacheObject
 } from '@apollo/client';
-import { CHAINS, Splice, SPLICE_ADDRESSES } from '@splicenft/common';
+import {
+  CHAINS,
+  Splice,
+  SpliceDeployInfo,
+  SPLICE_ADDRESSES
+} from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
@@ -12,6 +17,7 @@ import React, { useContext, useEffect, useState } from 'react';
 export type ApolloClientType = ApolloClient<NormalizedCacheObject>;
 interface ISpliceContext {
   splice?: Splice;
+  deployInfo?: SpliceDeployInfo;
 }
 
 const SpliceContext = React.createContext<ISpliceContext>({});
@@ -21,6 +27,7 @@ const useSplice = () => useContext(SpliceContext);
 const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   const { library, chainId } = useWeb3React<providers.Web3Provider>();
   const [splice, setSplice] = useState<Splice>();
+  const [deployInfo, setDeployInfo] = useState<SpliceDeployInfo>();
   const [apolloClient, setApolloClient] = useState<ApolloClientType>(
     new ApolloClient({
       uri: '',
@@ -29,12 +36,19 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   useEffect(() => {
-    const deployInfo = SPLICE_ADDRESSES[chainId || 1];
+    let _deployInfo;
+    if (!chainId || !SPLICE_ADDRESSES[chainId]) {
+      setDeployInfo(undefined);
+      _deployInfo = SPLICE_ADDRESSES[1];
+    } else {
+      _deployInfo = SPLICE_ADDRESSES[chainId];
+      setDeployInfo(_deployInfo);
+    }
 
-    if (deployInfo?.subgraph) {
+    if (_deployInfo?.subgraph) {
       setApolloClient(
         new ApolloClient({
-          uri: deployInfo.subgraph,
+          uri: _deployInfo.subgraph,
           cache: new InMemoryCache()
         })
       );
@@ -60,15 +74,15 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
       ).then(setSplice);
     } else {
       Splice.from(
-        deployInfo.address,
+        _deployInfo.address,
         library.getSigner(),
-        deployInfo.deployedAt
+        _deployInfo.deployedAt
       ).then(setSplice);
     }
   }, [library, chainId]);
 
   return (
-    <SpliceContext.Provider value={{ splice }}>
+    <SpliceContext.Provider value={{ splice, deployInfo }}>
       <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
     </SpliceContext.Provider>
   );

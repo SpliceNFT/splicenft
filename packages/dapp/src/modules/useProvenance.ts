@@ -81,11 +81,11 @@ const useProvenance = (collection: string, tokenId: string) => {
   const client = useApolloClient() as ApolloClientType;
 
   const [provenances, setProvenances] = useState<TokenProvenance[]>([]);
-  const { splice } = useSplice();
+  const { splice, deployInfo } = useSplice();
 
   useEffect(() => {
     (async () => {
-      if (client) {
+      if (deployInfo) {
         const _prov = await getProvenancesFromSubgraph(
           client,
           collection,
@@ -101,7 +101,7 @@ const useProvenance = (collection: string, tokenId: string) => {
         setProvenances(_prov);
       }
     })();
-  }, [client, splice]);
+  }, [client, splice, deployInfo]);
 
   return provenances;
 };
