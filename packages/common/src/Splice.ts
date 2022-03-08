@@ -377,7 +377,9 @@ export class Splice {
         return {
           id: e.args.tokenId.toString(),
           metadata_url: metadataUrl,
-          origins: []
+          origin: {
+            seeds: []
+          }
         };
       })();
     });

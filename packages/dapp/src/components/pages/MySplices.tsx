@@ -55,13 +55,11 @@ const SpliceCardDisplay = ({ mySplice }: { mySplice: Transfer.UserSplice }) => {
           mySplice.metadata_url
         );
         setMetadata(spliceMetadata);
-        if (
-          mySplice.origin.seeds &&
-          mySplice.origin.seeds[0].seed.metadata_url
-        ) {
+        const seedMetadataUrl = mySplice.origin.seeds[0]?.seed?.metadata_url;
+        if (seedMetadataUrl) {
           setOrigin(
             await fetchMetadataFromUrl(
-              ipfsGW(mySplice.origin.seeds[0].seed.metadata_url),
+              ipfsGW(seedMetadataUrl),
               process.env.REACT_APP_CORS_PROXY
             )
           );
