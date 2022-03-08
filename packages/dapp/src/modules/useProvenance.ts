@@ -3,42 +3,32 @@ import { Splice, TokenProvenance } from '@splicenft/common';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { ApolloClientType, useSplice } from '../context/SpliceContext';
-import { ORIGIN_IDS, SPLICES_FOR_ORIGINS } from './Queries';
+import { SPLICES_FOR_SEED } from './Queries';
 
 const getProvenancesFromSubgraph = async (
   client: ApolloClientType,
   collection: string,
   tokenId: string
 ): Promise<TokenProvenance[]> => {
-  const originRes = await client.query({
-    query: ORIGIN_IDS,
+  const splicesForSeed = await client.query({
+    query: SPLICES_FOR_SEED,
     variables: {
       collection,
       token_id: tokenId
     }
   });
 
-  if (!originRes) {
+  if (!splicesForSeed) {
     return [];
   }
 
-  console.log('getProvenancesFromSubgraph');
-  const originIds = originRes.data.origins.map((o: any) => o.id);
-  if (originIds.length == 0) {
-    return [];
-  }
+  console.debug('getProvenancesFromSubgraph', splicesForSeed);
+  if (splicesForSeed.data.seeds.length === 0) return [];
 
-  const spliceForOriginRes = await client.query({
-    query: SPLICES_FOR_ORIGINS,
-    variables: {
-      origin_ids: originIds
-    }
-  });
-
-  const promises = spliceForOriginRes.data.spliceice.map(
-    (spliceice: any): Promise<TokenProvenance> => {
+  const promises = splicesForSeed.data.seeds[0].origins[0].origin.splices.map(
+    (splice: any): Promise<TokenProvenance> => {
       const { style_token_id, token_id: style_token_token_id } =
-        Splice.tokenIdToStyleAndToken(ethers.BigNumber.from(spliceice.id));
+        Splice.tokenIdToStyleAndToken(ethers.BigNumber.from(splice.id));
 
       return (async () => ({
         origins: [
@@ -47,9 +37,9 @@ const getProvenancesFromSubgraph = async (
             token_id: tokenId
           }
         ],
-        owner: spliceice.owner,
-        metadata: await Splice.fetchMetadata(spliceice.metadata_url),
-        splice_token_id: spliceice.id,
+        owner: splice.owner,
+        metadata: await Splice.fetchMetadata(splice.metadata_url),
+        splice_token_id: splice.id,
         style_token_id,
         style_token_token_id
       }))();
@@ -64,7 +54,7 @@ const getProvenancesFromChain = async (
   collection: string,
   tokenId: string
 ): Promise<TokenProvenance[]> => {
-  console.log('getProvenancesFromSplice');
+  console.debug('getProvenancesFromSplice');
   const _prov = await splice.findProvenances(collection, tokenId);
 
   const promises = _prov.map((p) => {

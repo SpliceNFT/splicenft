@@ -37,13 +37,12 @@ const SpliceProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let _deployInfo;
-    if (!chainId || !SPLICE_ADDRESSES[chainId]) {
-      setDeployInfo(undefined);
+    if (!chainId) {
       _deployInfo = SPLICE_ADDRESSES[1];
     } else {
-      _deployInfo = SPLICE_ADDRESSES[chainId];
-      setDeployInfo(_deployInfo);
+      _deployInfo = SPLICE_ADDRESSES[chainId] || undefined;
     }
+    setDeployInfo(_deployInfo);
 
     if (_deployInfo?.subgraph) {
       setApolloClient(

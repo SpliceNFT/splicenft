@@ -33,27 +33,14 @@ export const USER_SPLICES = gql`
         id
         metadata_url
       }
-      origins {
-        collection
-        token_id
-        metadata_url
-      }
-    }
-  }
-`;
-
-export const SPLICES_OF_ORIGIN = gql`
-  query SplicesOfOrigin($origin_hash: String) {
-    spliceice(where: { origin_hash: $origin_hash }) {
-      metadata_url
-      style {
-        id
-        metadata_url
-      }
-      origins {
-        collection
-        token_id
-        metadata_url
+      origin {
+        seeds {
+          seed {
+            collection
+            token_id
+            metadata_url
+          }
+        }
       }
     }
   }
@@ -118,27 +105,23 @@ export const STYLE_STATS = gql`
   }
 `;
 
-export const ORIGIN_IDS = gql`
-  query Origins($collection: String!, $token_id: String!) {
-    origins(where: { collection: $collection, token_id: $token_id }) {
-      id
+export const SPLICES_FOR_SEED = gql`
+  query SplicesForSeed($collection: String!, $token_id: String!) {
+    seeds(where: { collection: $collection, token_id: $token_id }) {
+      collection
       token_id
-      metadata_url
-    }
-  }
-`;
-
-export const SPLICES_FOR_ORIGINS = gql`
-  query SplicesForOrigin($origin_ids: [String]!) {
-    spliceice(where: { origins_contains: $origin_ids }) {
-      id
-      owner
-      metadata_url
-      style {
-        id
-      }
       origins {
-        id
+        origin {
+          id
+          splices {
+            id
+            owner
+            metadata_url
+            style {
+              id
+            }
+          }
+        }
       }
     }
   }

@@ -8,7 +8,14 @@ import {
   ethereum,
   log as glog
 } from '@graphprotocol/graph-ts';
-import { Origin, PaymentSplit, Splice, Style } from '../generated/schema';
+import {
+  Origin,
+  PaymentSplit,
+  Splice,
+  Seed,
+  Style,
+  SeedOrigin
+} from '../generated/schema';
 import { ERC721 as ERC721Contract } from '../generated/Splice/ERC721';
 import {
   Minted,
@@ -64,22 +71,41 @@ export function handleMinted(event: Minted): void {
     const t = decoded.toTuple();
     const originAddresses = t[0].toAddressArray();
     const originTokenIds = t[1].toBigIntArray();
-    const origins: string[] = [];
+
+    const originHashBytes = new ByteArray(64 * originAddresses.length);
     for (let i = 0; i < originAddresses.length; i++) {
-      const ba = new ByteArray(96);
-      ba.set(originAddresses[i], 0);
-      ba.set(originTokenIds[i], 32);
-      ba.set(event.params.styleTokenId, 64);
-      const oHash = crypto.keccak256(ba).toHexString();
-      const origin = new Origin(oHash);
-      origin.collection = originAddresses[i];
-      origin.token_id = originTokenIds[i];
-      const originContract = ERC721Contract.bind(originAddresses[i]);
-      origin.metadata_url = originContract.tokenURI(originTokenIds[i]);
-      origin.save();
-      origins.push(oHash);
+      originHashBytes.set(originAddresses[i], i * 64);
+      originHashBytes.set(originTokenIds[i], i * 64 + 32);
     }
-    splice.origins = origins;
+    const originId = crypto.keccak256(originHashBytes).toHexString();
+
+    let origin = Origin.load(originId);
+    if (!origin) {
+      origin = new Origin(originId);
+    }
+    splice.origin = originId;
+
+    for (let i = 0; i < originAddresses.length; i++) {
+      const seedBytes = new ByteArray(64);
+      seedBytes.set(originAddresses[i], 0);
+      seedBytes.set(originTokenIds[i], 32);
+      const seedId = crypto.keccak256(seedBytes).toHexString();
+      let seed = Seed.load(seedId);
+      if (!seed) {
+        seed = new Seed(seedId);
+        seed.collection = originAddresses[i];
+        seed.token_id = originTokenIds[i];
+        const seedContract = ERC721Contract.bind(originAddresses[i]);
+        seed.metadata_url = seedContract.tokenURI(originTokenIds[i]);
+      }
+      seed.save();
+      const so = new SeedOrigin(`${seed.id}-${origin.id}`);
+      so.origin = origin.id;
+      so.seed = seed.id;
+      so.save();
+    }
+
+    origin.save();
   }
 
   const style_id = event.params.styleTokenId.toString();

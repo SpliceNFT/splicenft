@@ -114,7 +114,6 @@ function reducer(state: State, action: StateAction): State {
       // eslint-disable-next-line no-case-declarations
       const initialProvenance: TokenProvenance =
         payload.provenances.length > 0 ? payload.provenances[0] : undefined;
-      console.log(initialProvenance, payload.style);
 
       return {
         ...state,
@@ -218,27 +217,31 @@ export const NFTPage = () => {
   useEffect(() => {
     if (!indexer) return;
     (async () => {
-      const nftItem = await indexer.getAsset(collection, tokenId);
-      if (
-        Object.values(SPLICE_ADDRESSES).find(
-          (di) =>
-            di.address.toLowerCase() === nftItem.contract_address.toLowerCase()
-        )
-      ) {
-        setError({
-          title: 'you shouldnt splice a Splice',
-          description:
-            'please choose a PFP collection or a non-splice NFT as an origin'
-        });
-        return;
-      }
-
-      dispatch({
-        type: 'setAsset',
-        payload: {
-          nftItem
+      try {
+        const nftItem = await indexer.getAsset(collection, tokenId);
+        if (
+          Object.values(SPLICE_ADDRESSES).find(
+            (di) =>
+              di.address.toLowerCase() ===
+              nftItem.contract_address.toLowerCase()
+          )
+        ) {
+          setError({
+            title: 'you shouldnt splice a Splice',
+            description:
+              'please choose a PFP collection or a non-splice NFT as an origin'
+          });
+          return;
         }
-      });
+        dispatch({
+          type: 'setAsset',
+          payload: {
+            nftItem
+          }
+        });
+      } catch (e: any) {
+        console.error(e);
+      }
     })();
   }, [indexer]);
 
@@ -248,6 +251,7 @@ export const NFTPage = () => {
     const style = spliceStyles.find(
       (s) => s.tokenId == allProvenances[0].style_token_id
     );
+
     dispatch({
       type: 'setProvenances',
       payload: { provenances: allProvenances || [], style }
