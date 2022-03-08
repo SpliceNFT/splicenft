@@ -4,6 +4,7 @@ export type ImageLoaderResult = {
     w: number;
     h: number;
   };
+  xml?: string;
 };
 
 export type ImageLoaderOptions = {

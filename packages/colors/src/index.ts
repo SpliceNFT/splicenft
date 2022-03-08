@@ -29,16 +29,17 @@ export const extractPaletteFromSvg = (svg: string): Histogram => {
       ret[match[1]] = 1;
     }
   }
-  return Object.keys(ret)
+  const dominantColors = Object.keys(ret)
     .sort(function (a, b) {
       return ret[b] - ret[a];
     })
-    .slice(0, 10)
-    .map((hx: string) => ({
-      hex: hx,
-      freq: 0,
-      rgb: hexToRgb(hx)
-    }));
+    .slice(0, 10);
+  const total = dominantColors.reduce((prv, cur) => prv + ret[cur], 0);
+  return dominantColors.map((hx: string) => ({
+    hex: hx,
+    freq: ret[hx] / total,
+    rgb: hexToRgb(hx)
+  }));
 };
 
 const scaleDown = async (
@@ -79,7 +80,9 @@ export const extractColors = async (
     return extractPaletteFromSvg(dataUrl);
   } else {
     const img = await LoadImage(image, options);
-
+    if (img.xml) {
+      return extractPaletteFromSvg(img.xml);
+    }
     const scaled = await scaleDown(img.rgb, img.dims);
 
     return palette(Array.from(scaled), {

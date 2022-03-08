@@ -10,12 +10,7 @@ import fs from 'fs';
  * a much simpler version of https://github.com/scijs/get-pixels
  */
 
-type HandlerRetval = {
-  dims: { w: number; h: number };
-  rgb: Buffer;
-};
-
-async function handlePNG(data: Buffer): Promise<HandlerRetval> {
+async function handlePNG(data: Buffer): Promise<ImageLoaderResult> {
   const png = new PNG();
   return new Promise((resolve, reject) => {
     png.parse(data, (err, img_data) => {
@@ -32,7 +27,7 @@ async function handlePNG(data: Buffer): Promise<HandlerRetval> {
   });
 }
 
-async function handleJPEG(data: Buffer): Promise<HandlerRetval> {
+async function handleJPEG(data: Buffer): Promise<ImageLoaderResult> {
   const decoded = JPEG.decode(data, {
     maxMemoryUsageInMB: 2048
   });
@@ -43,7 +38,7 @@ async function handleJPEG(data: Buffer): Promise<HandlerRetval> {
   });
 }
 
-async function handleGIF(data: Buffer): Promise<HandlerRetval> {
+async function handleGIF(data: Buffer): Promise<ImageLoaderResult> {
   const reader = new GifReader(data);
   const ret = new Uint8Array(reader.height * reader.width * 4);
 
@@ -54,10 +49,20 @@ async function handleGIF(data: Buffer): Promise<HandlerRetval> {
   });
 }
 
+async function handleSVG(data: Buffer): Promise<ImageLoaderResult> {
+  const decoder = new TextDecoder();
+
+  return {
+    rgb: new Uint8Array(),
+    dims: { w: 0, h: 0 },
+    xml: decoder.decode(data)
+  };
+}
+
 export async function readImage(
   mimeType: string,
   data: Buffer
-): Promise<HandlerRetval> {
+): Promise<ImageLoaderResult> {
   switch (mimeType) {
     case 'image/png':
       return handlePNG(data);
@@ -69,6 +74,8 @@ export async function readImage(
     case 'image/gif':
       return handleGIF(data);
 
+    case 'application/xml':
+      return handleSVG(data);
     default:
       throw new Error('Unsupported file type: ' + mimeType);
   }
