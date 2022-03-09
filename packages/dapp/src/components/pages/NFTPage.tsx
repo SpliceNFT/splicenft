@@ -111,7 +111,7 @@ function reducer(state: State, action: StateAction): State {
           splice: state.ownership?.splice
         }
       };
-    case 'setProvenances':
+    case 'setInitialProvenances':
       // eslint-disable-next-line no-case-declarations
       const initialProvenance: TokenProvenance =
         payload.provenances.length > 0 ? payload.provenances[0] : undefined;
@@ -147,32 +147,36 @@ function reducer(state: State, action: StateAction): State {
         }
       };
     case 'styleSelected':
+      // eslint-disable-next-line no-case-declarations
+      const provenance = state.allProvenances.find((p) => {
+        const origin = p.origins[0];
+        return origin
+          ? origin.collection == state.origin.collection &&
+              origin.token_id.toString() == state.origin.tokenId &&
+              p.style_token_id == payload.style.tokenId
+          : false;
+      });
       return {
         ...state,
         selectedStyle: payload.style,
         sketch: undefined,
-        splice: undefined,
-        provenance: state.allProvenances.find((p) => {
-          const origin = p.origins[0];
-          if (!origin) return false;
-          return (
-            origin.collection == state.origin.collection &&
-            origin.token_id.toString() == state.origin.tokenId &&
-            p.style_token_id == payload.style.tokenId
-          );
-        })
+        splice: provenance?.metadata,
+        ownership: {
+          origin: state.ownership?.origin,
+          splice: provenance?.owner
+        },
+        provenance
       };
     case 'minted':
       return {
         ...state,
-        ownership: { origin: state.ownership?.origin, splice: payload.account },
+        ownership: {
+          origin: state.ownership?.origin,
+          splice: payload.provenance.owner
+        },
         provenance: payload.provenance,
+        splice: payload.provenance.metadata,
         allProvenances: [payload.provenance, ...state.allProvenances]
-      };
-    case 'saveOriginImage':
-      return {
-        ...state,
-        originImage: payload.image
       };
     case 'setColors':
       return {
@@ -254,7 +258,7 @@ export const NFTPage = () => {
     );
 
     dispatch({
-      type: 'setProvenances',
+      type: 'setInitialProvenances',
       payload: { provenances: allProvenances || [], style }
     });
   }, [allProvenances]);
@@ -297,18 +301,20 @@ export const NFTPage = () => {
 
   const onMinted = useCallback(
     async (provenance: TokenProvenance) => {
-      if (!splice) {
+      if (!splice || !account) {
         console.error('no splice?!');
         return;
       }
+      provenance.metadata = await splice.getMetadata(provenance);
+      provenance.owner = account;
 
+      dispatch({ type: 'minted', payload: { provenance } });
       toast({
         status: 'success',
         title: `Hooray, Splice #${provenance.splice_token_id} is yours now!`
       });
-      dispatch({ type: 'minted', payload: { provenance, account } });
     },
-    [state.allProvenances]
+    [account, splice, state.allProvenances]
   );
 
   const _isDownloadable = useMemo<boolean>(() => {
