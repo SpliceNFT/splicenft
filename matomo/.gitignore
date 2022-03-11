@@ -1,0 +1,5 @@
+matomodb
+db.env
+logs
+config
+!config/config.ini.php
