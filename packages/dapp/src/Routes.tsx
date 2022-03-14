@@ -22,7 +22,6 @@ export function Routes() {
   const { trackPageView } = useMatomo();
   useEffect(() => {
     if (!history) return;
-    console.log(history.location.pathname);
     trackPageView({
       documentTitle: history.location.pathname
     });
