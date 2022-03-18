@@ -3,6 +3,6 @@
   "description": "Splice is a generative art platform that renders deterministic, validated header images for existing PFP NFTs",
   "image": "https://getsplice.io/logo512.png",
   "external_link": "https://getsplice.io",
-  "seller_fee_basis_points": 100,
+  "seller_fee_basis_points": 1000,
   "fee_recipient": "0x03926e02bFf7f1eD401192B8D825B5bCe12E2b2D"
 }
