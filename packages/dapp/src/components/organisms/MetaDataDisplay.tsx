@@ -64,60 +64,64 @@ export const SpliceMetadataDisplay = ({
 } & SystemProps) => {
   const { account } = useWeb3React();
 
-  return (
-    <Flex direction="column" {...rest}>
-      <Flex direction="column" gridGap={3}>
-        {owner && (
-          <MetaDataItem
-            label="Owner"
-            value={owner === account ? 'You' : owner}
-          />
-        )}
-        {spliceMetadata && (
+  if (!owner && !spliceMetadata && (!traits || traits.length === 0))
+    return <></>;
+  else
+    return (
+      <Flex direction="column" {...rest}>
+        <Flex direction="column" gridGap={3}>
+          {owner && (
+            <MetaDataItem
+              label="Owner"
+              value={owner === account ? 'You' : owner}
+            />
+          )}
+          {spliceMetadata && (
+            <>
+              <MetaDataItem
+                label="Style"
+                value={spliceMetadata.properties.style_name}
+              />
+              <MetaDataItem
+                label="Randomness"
+                value={spliceMetadata.splice.randomness}
+              />
+              <MetaDataItem
+                label="Colors"
+                value={
+                  <DominantColorsDisplay
+                    colors={spliceMetadata.splice.colors}
+                  />
+                }
+              />
+            </>
+          )}
+          {provenance && (
+            <MetaDataItem
+              label="Splice ID"
+              value={provenance.splice_token_id.toString()}
+            />
+          )}
+        </Flex>
+        {traits && traits.length > 0 && (
           <>
-            <MetaDataItem
-              label="Style"
-              value={spliceMetadata.properties.style_name}
-            />
-            <MetaDataItem
-              label="Randomness"
-              value={spliceMetadata.splice.randomness}
-            />
-            <MetaDataItem
-              label="Colors"
-              value={
-                <DominantColorsDisplay colors={spliceMetadata.splice.colors} />
-              }
-            />
+            <Heading size="md" mb={3} mt={spliceMetadata ? 3 : 0}>
+              Splice attributes
+            </Heading>
+            <Flex direction="column" gridGap={3}>
+              {traits?.map((attr, i) => (
+                <MetaDataItem
+                  fontSize="sm"
+                  key={`attr-${attr.trait_type || `unk-${i}`}`}
+                  label={attr.trait_type || `unknown trait`}
+                  value={attr.value}
+                />
+              ))}
+            </Flex>
           </>
         )}
-        {provenance && (
-          <MetaDataItem
-            label="Splice ID"
-            value={provenance.splice_token_id.toString()}
-          />
-        )}
       </Flex>
-
-      {traits && traits.length > 0 && (
-        <>
-          <Heading size="md" mb={3}>
-            Splice attributes
-          </Heading>
-          <Flex direction="column" gridGap={3}>
-            {traits?.map((attr, i) => (
-              <MetaDataItem
-                fontSize="sm"
-                key={`attr-${attr.trait_type || `unk-${i}`}`}
-                label={attr.trait_type || `unknown trait`}
-                value={attr.value}
-              />
-            ))}
-          </Flex>
-        </>
-      )}
-    </Flex>
-  );
+    );
 };
 
 export const MetaDataDisplay = ({
