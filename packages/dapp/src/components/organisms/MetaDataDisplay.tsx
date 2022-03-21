@@ -63,39 +63,41 @@ export const SpliceMetadataDisplay = ({
   traits?: NFTTrait[];
 } & SystemProps) => {
   const { account } = useWeb3React();
-  if (spliceMetadata === undefined && traits?.length === 0) return <></>;
+
   return (
     <Flex direction="column" {...rest}>
-      {spliceMetadata && (
-        <Flex direction="column" gridGap={3}>
-          {owner && (
+      <Flex direction="column" gridGap={3}>
+        {owner && (
+          <MetaDataItem
+            label="Owner"
+            value={owner === account ? 'You' : owner}
+          />
+        )}
+        {spliceMetadata && (
+          <>
             <MetaDataItem
-              label="Owner"
-              value={owner === account ? 'You' : owner}
+              label="Style"
+              value={spliceMetadata.properties.style_name}
             />
-          )}
-          <MetaDataItem
-            label="Style"
-            value={spliceMetadata.properties.style_name}
-          />
-          {provenance && (
             <MetaDataItem
-              label="Splice ID"
-              value={provenance.splice_token_id.toString()}
+              label="Randomness"
+              value={spliceMetadata.splice.randomness}
             />
-          )}
+            <MetaDataItem
+              label="Colors"
+              value={
+                <DominantColorsDisplay colors={spliceMetadata.splice.colors} />
+              }
+            />
+          </>
+        )}
+        {provenance && (
           <MetaDataItem
-            label="Randomness"
-            value={spliceMetadata.splice.randomness}
+            label="Splice ID"
+            value={provenance.splice_token_id.toString()}
           />
-          <MetaDataItem
-            label="Colors"
-            value={
-              <DominantColorsDisplay colors={spliceMetadata.splice.colors} />
-            }
-          />
-        </Flex>
-      )}
+        )}
+      </Flex>
 
       {traits && traits.length > 0 && (
         <>

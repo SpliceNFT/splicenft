@@ -1,5 +1,5 @@
 import { useApolloClient } from '@apollo/client';
-import { Splice, TokenProvenance } from '@splicenft/common';
+import { Splice, SpliceNFT, TokenProvenance } from '@splicenft/common';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { ApolloClientType, useSplice } from '../context/SpliceContext';
@@ -30,19 +30,28 @@ const getProvenancesFromSubgraph = async (
       const { style_token_id, token_id: style_token_token_id } =
         Splice.tokenIdToStyleAndToken(ethers.BigNumber.from(splice.id));
 
-      return (async () => ({
-        origins: [
-          {
-            collection,
-            token_id: tokenId
-          }
-        ],
-        owner: splice.owner,
-        metadata: await Splice.fetchMetadata(splice.metadata_url),
-        splice_token_id: splice.id,
-        style_token_id,
-        style_token_token_id
-      }))();
+      return (async () => {
+        let metadata: SpliceNFT | undefined = undefined;
+        try {
+          metadata = await Splice.fetchMetadata(splice.metadata_url);
+        } catch (e: any) {
+          console.warn(e);
+        }
+
+        return {
+          origins: [
+            {
+              collection,
+              token_id: tokenId
+            }
+          ],
+          owner: splice.owner,
+          metadata,
+          splice_token_id: splice.id,
+          style_token_id,
+          style_token_token_id
+        };
+      })();
     }
   );
 
