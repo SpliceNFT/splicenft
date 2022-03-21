@@ -65,6 +65,7 @@ export async function readImage(
 ): Promise<ImageLoaderResult> {
   switch (mimeType) {
     case 'image/png':
+    case 'image/apng':
       return handlePNG(data);
 
     case 'image/jpg':
