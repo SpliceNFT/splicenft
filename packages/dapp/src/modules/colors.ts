@@ -1,4 +1,9 @@
-import { extractColors, isSVG, LoadImageBrowser } from '@splicenft/colors';
+import {
+  extractColors,
+  extractPixels,
+  isSVG,
+  LoadImageBrowser
+} from '@splicenft/colors';
 import { Histogram, NFTItem, Transfer } from '@splicenft/common';
 import { isIpfsGateway } from '@splicenft/common/build/img';
 import axios from 'axios';
@@ -20,6 +25,14 @@ export default async function getDominantColors(
   } catch (e: any) {
     throw new Error(`couldnt get image colors: ${e.message}`);
   }
+}
+
+export async function loadPixels(image: HTMLImageElement): Promise<number[]> {
+  const dims = { w: image.width, h: image.height };
+  return extractPixels(image.src, LoadImageBrowser, {
+    dims,
+    proxy: process.env.REACT_APP_CORS_PROXY
+  });
 }
 
 export async function loadColors(

@@ -60,6 +60,19 @@ const scaleDown = async (
   });
   return res;
 };
+
+export const extractPixels = async (
+  image: string | HTMLImageElement,
+  LoadImage: ImageLoader,
+  options: ImageLoaderOptions
+): Promise<number[]> => {
+  const img = await LoadImage(image, options);
+
+  const scaled = await scaleDown(img.rgb, img.dims);
+  return scaled;
+};
+
+//todo: consider rendering the SVG on a canvas and extract colors the png way.
 export const extractColors = async (
   image: string | HTMLImageElement,
   LoadImage: ImageLoader,
@@ -94,6 +107,7 @@ export const extractColors = async (
 };
 
 export { LoadImage as LoadImageBrowser } from './browser/LoadImage';
+export { GRAYSCALE_HISTOGRAM } from './grayscale';
 export { rgbToHex } from './helpers';
 export {
   getFileType,
@@ -101,6 +115,6 @@ export {
   readImage
 } from './node/LoadImage';
 export { Histogram, HistogramEntry } from './types/Histogram';
-export { GRAYSCALE_HISTOGRAM } from './grayscale';
 export { RGB, RGBA } from './types/RGB';
 export { palette };
+

@@ -3,7 +3,6 @@ import {
   Flex,
   FormControl,
   FormHelperText,
-  FormLabel,
   Input,
   useToast
 } from '@chakra-ui/react';

@@ -1,6 +1,6 @@
+import { Histogram } from '@splicenft/colors';
 import { ProvenanceOrigin } from '..';
 import { NFTMetaData } from './NFT';
-import { Histogram } from '@splicenft/colors';
 
 /**
  * metadata structure of Splice NFTs
