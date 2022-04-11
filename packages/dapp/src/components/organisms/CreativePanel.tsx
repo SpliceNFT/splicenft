@@ -1,6 +1,5 @@
 import { Container, Image } from '@chakra-ui/react';
-import { Histogram } from '@splicenft/colors';
-import { BANNER_DIMS, NFTTrait, Style } from '@splicenft/common';
+import { BANNER_DIMS, NFTTrait, Style, Transfer } from '@splicenft/common';
 import React, { useEffect, useState } from 'react';
 import { P5Sketch } from '../molecules/P5Sketch';
 import { PreviewBase } from '../molecules/PreviewBase';
@@ -12,10 +11,7 @@ export const Preview = ({
   onSketched
 }: {
   nftImage: React.ReactNode;
-  nftExtractedProps: {
-    colors: Histogram;
-    randomness: number;
-  };
+  nftExtractedProps: Transfer.OriginFeatures;
   style: Style;
   onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
 }) => {
@@ -67,10 +63,7 @@ export const DataSketch = ({
 
 export const CreativePanel = (props: {
   spliceDataUrl?: string;
-  nftFeatures?: {
-    randomness: number;
-    colors: Histogram;
-  };
+  nftFeatures?: Transfer.OriginFeatures;
   style?: Style;
   onSketched: (dataUrl: string, traits: NFTTrait[]) => void;
   children: React.ReactNode;
