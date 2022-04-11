@@ -1,4 +1,10 @@
-import { BANNER_DIMS, NFTTrait, SpliceNFT, Transfer } from '@splicenft/common';
+import {
+  BANNER_DIMS,
+  NFTItem,
+  NFTTrait,
+  SpliceNFT,
+  Transfer
+} from '@splicenft/common';
 import { BigNumber } from 'ethers';
 import { Readable } from 'stream';
 import * as Cache from './Cache';
@@ -38,12 +44,19 @@ const Metadata = async (
     async () => extractOriginFeatures(firstOrigin, originMetadata)
   );
 
+  const nftItem: NFTItem = {
+    contract_address: firstOrigin.collection,
+    token_id: firstOrigin.token_id.toString(),
+    metadata: originMetadata
+  };
+
+  //we're invoking the renderer here to get the traits out of the rendered style.
   const renderer = await style.getRenderer();
   return new Promise((resolve, reject) => {
     Render(
       {
         dim: BANNER_DIMS,
-        params: originFeatures
+        params: { ...originFeatures, nftItem }
       },
       renderer,
       (err: any | null, readable: Readable | null, traits: NFTTrait[]) => {

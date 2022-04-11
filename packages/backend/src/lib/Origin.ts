@@ -1,20 +1,15 @@
-import {
-  extractColors,
-  Histogram,
-  isSVG,
-  LoadImageNode
-} from '@splicenft/colors';
+import { extractColors, Histogram, LoadImageNode } from '@splicenft/colors';
 import {
   ERC721,
   getIpfsPath,
   ipfsGW,
+  isIpfsLocation,
   NFTMetaData,
   ProvenanceOrigin,
   resolveImage,
   Splice,
   Transfer
 } from '@splicenft/common';
-import { isIpfsLocation } from '@splicenft/common';
 import axios from 'axios';
 import { BigNumberish } from 'ethers';
 
