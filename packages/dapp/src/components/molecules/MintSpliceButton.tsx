@@ -99,10 +99,10 @@ export const MintSpliceButton = ({
       toast({
         title: `Mint Transaction failed ${message}`,
         status: 'error',
-        isClosable: true
+        isClosable: false
       });
+      setBuzy(false);
     }
-    setBuzy(false);
   };
 
   return (
