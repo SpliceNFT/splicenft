@@ -10,18 +10,14 @@ import {
   Container,
   Flex,
   Heading,
-  IconButton,
   SimpleGrid,
   Spacer,
-  Spinner,
-  Tooltip,
   useToast
 } from '@chakra-ui/react';
 import { Histogram } from '@splicenft/colors';
 import {
   NFTItem,
   NFTTrait,
-  OnChain,
   Splice,
   SpliceNFT,
   SPLICE_ADDRESSES,
@@ -39,12 +35,11 @@ import React, {
   useState
 } from 'react';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
-import { IoReload } from 'react-icons/io5';
 import { NavLink, useParams } from 'react-router-dom';
 import { useAssets } from '../../context/AssetContext';
 import { useSplice } from '../../context/SpliceContext';
 import { useStyles } from '../../context/StyleContext';
-import { default as getDominantColors, loadColors } from '../../modules/colors';
+import { loadColors } from '../../modules/colors';
 import useProvenance from '../../modules/useProvenance';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import ConnectButton from '../atoms/ConnectButton';
@@ -52,6 +47,7 @@ import { FallbackImage } from '../atoms/FallbackImage';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
 import { MintSpliceButton } from '../molecules/MintSpliceButton';
+import { UseOriginalMetadata } from '../molecules/UseOriginalMetadata';
 import { CreativePanel } from '../organisms/CreativePanel';
 import {
   MetaDataDisplay,
@@ -309,6 +305,7 @@ export const NFTPage = () => {
       provenance.owner = account;
 
       dispatch({ type: 'minted', payload: { provenance } });
+      setBuzy(false);
       toast({
         status: 'success',
         title: `Hooray, Splice #${provenance.splice_token_id} is yours now!`
@@ -332,26 +329,6 @@ export const NFTPage = () => {
       state.sketch !== undefined
     );
   }, [chainId, state.provenance, state.selectedStyle, state.sketch]);
-
-  const useOriginalMetadata = useCallback(async () => {
-    if (!chainId) return;
-    const onChain = new OnChain(web3, [], {
-      proxyAddress: process.env.REACT_APP_CORS_PROXY
-    });
-
-    setBuzy(true);
-    try {
-      const [nftItem, colors] = await Promise.all([
-        onChain.getAsset(collection, tokenId),
-        getDominantColors(chainId, collection, tokenId)
-      ]);
-      dispatch({ type: 'setOrigin', payload: { nftItem, colors } });
-    } catch (e: any) {
-      toast({ title: `loading original metadata failed ${e.message}` });
-    } finally {
-      setBuzy(false);
-    }
-  }, [web3, chainId]);
 
   const imageLoaded = useCallback(
     async (event: SyntheticEvent<HTMLImageElement, Event>) => {
@@ -514,16 +491,16 @@ export const NFTPage = () => {
                 <Heading size="md">Origin attributes</Heading>
                 <Spacer />
                 {web3 && (
-                  <Tooltip label="not looking like the right image? Try reloading metadata from chain here.">
-                    <IconButton
-                      disabled={buzy}
-                      size="sm"
-                      icon={buzy ? <Spinner size="sm" /> : <IoReload />}
-                      title="reload metadata"
-                      aria-label="reload"
-                      onClick={useOriginalMetadata}
-                    />
-                  </Tooltip>
+                  <UseOriginalMetadata
+                    collection={collection}
+                    tokenId={tokenId}
+                    onMetadata={(nftItem: NFTItem, colors: Histogram) => {
+                      dispatch({
+                        type: 'setOrigin',
+                        payload: { nftItem, colors }
+                      });
+                    }}
+                  />
                 )}
               </Flex>
 
