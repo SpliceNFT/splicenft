@@ -1,14 +1,24 @@
 import {
-  promises as fs,
-  existsSync,
   createReadStream,
-  ReadStream,
-  createWriteStream
+  createWriteStream,
+  existsSync,
+  promises as fs,
+  ReadStream
 } from 'fs';
 import { dirname } from 'path';
 import { Readable } from 'stream';
 
 export const CACHE_LOCATION = './.splice.cache';
+
+export async function remove(key: string) {
+  const location = `${CACHE_LOCATION}/${key}`;
+
+  if (!existsSync(location)) {
+    return false;
+  }
+  await fs.unlink(location);
+  return true;
+}
 
 export async function lookupString(key: string): Promise<string | null> {
   const location = `${CACHE_LOCATION}/${key}`;
@@ -69,7 +79,7 @@ export async function withCache<T>(
     const cached = await lookupJSON<T>(cacheKey);
     if (cached) return cached;
   } else {
-    console.debug('forced to lookup on chain again');
+    console.debug(`cache ${cacheKey} invalidated`);
   }
 
   const res: T = await logic();

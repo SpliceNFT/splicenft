@@ -67,4 +67,8 @@ export class Style {
     this.code = code;
     return code;
   }
+
+  setCode(code: string) {
+    this.code = code;
+  }
 }

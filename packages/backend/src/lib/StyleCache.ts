@@ -1,7 +1,7 @@
 import { ActiveStyle, ipfsGW, Style, StyleNFT } from '@splicenft/common';
 import axios from 'axios';
-import { getSplice } from './SpliceContracts';
 import * as Cache from './Cache';
+import { getSplice } from './SpliceContracts';
 
 export class StyleMetadataCache {
   private styles: ActiveStyle[];
@@ -29,7 +29,7 @@ export class StyleMetadataCache {
   async fetchAllStyles() {
     if (this.fetched !== null) return;
 
-    console.debug('[%s] fetching style metadata', this.networkId);
+    console.debug('[%s] fetching styles metadata', this.networkId);
 
     const splice = await getSplice(this.networkId);
     const styleNFTContract = splice.getStyleNFT();
@@ -60,15 +60,16 @@ export class StyleMetadataCache {
             `/styles/${this.networkId}/${tokenId}`
           );
 
-          const style = new ActiveStyle(_style, styleNFTContract);
-
           //preload code
           const codeCacheKey = `${this.network}/styles/${tokenId}/code.js`;
           let code = await Cache.lookupString(codeCacheKey);
           if (!code) {
-            code = await style.getCode();
+            code = await _style.getCode();
             Cache.store(codeCacheKey, code);
+          } else {
+            _style.setCode(code);
           }
+          const style = new ActiveStyle(_style, styleNFTContract);
 
           return style;
         })();
@@ -108,10 +109,21 @@ export class StyleCache {
   init() {
     for (const networkId of this.supportedNetworks) {
       const mdCache = new StyleMetadataCache(networkId);
-      mdCache.fetchAllStyles().catch((e: any) => {
-        console.error('cant setup cache on network', networkId, e.message);
-      });
+      mdCache
+        .fetchAllStyles()
+        .then(() =>
+          console.debug('style cache on network %i is ready.', networkId)
+        )
+        .catch((e: any) => {
+          console.error(
+            'cant setup style cache on network %s. Message:',
+            networkId,
+            e.message
+          );
+        });
       this.caches[networkId] = mdCache;
     }
   }
 }
+
+export const styleCache = new StyleCache([1, 4, 31337]);
