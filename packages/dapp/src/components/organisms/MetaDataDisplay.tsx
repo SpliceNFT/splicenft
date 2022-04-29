@@ -99,7 +99,9 @@ export const SpliceMetadataDisplay = ({
           {provenance && (
             <MetaDataItem
               label="Splice ID"
-              value={provenance.splice_token_id.toString()}
+              value={`${provenance.splice_token_id.toString()} (${
+                provenance.style_token_token_id
+              } of ${provenance.style_token_id})`}
             />
           )}
         </Flex>
