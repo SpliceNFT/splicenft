@@ -1,19 +1,19 @@
 import {
   Flex,
-  Text,
   Heading,
+  Icon,
   Image,
-  SimpleGrid,
   Link,
-  Icon
+  SimpleGrid,
+  Text
 } from '@chakra-ui/react';
 import { CHAINS, SPLICE_ADDRESSES } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
 import React from 'react';
+import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa';
 import { useSplice } from '../../context/SpliceContext';
 import spliceWhite from '../../img/splice_plain_white.svg';
-import { FaTwitter, FaGithub, FaDiscord } from 'react-icons/fa';
 
 export const Footer = () => {
   const { chainId, account } = useWeb3React<providers.Web3Provider>();
@@ -22,7 +22,7 @@ export const Footer = () => {
   const deployInfo = chainId ? SPLICE_ADDRESSES[chainId] : null;
 
   return (
-    <Flex bg="black" p={12} color="white" direction="column">
+    <Flex bg="black" p={12} color="white" direction="column" className="footer">
       <SimpleGrid columns={[1, 2, null, 3]} width="100%" spacing={10}>
         <Flex justify="center">
           <Image src={spliceWhite} maxW="80%" />

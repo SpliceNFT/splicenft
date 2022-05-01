@@ -1,8 +1,4 @@
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -42,8 +38,10 @@ import { useSplice } from '../../context/SpliceContext';
 import { useStyles } from '../../context/StyleContext';
 import { loadColors } from '../../modules/colors';
 import useProvenance from '../../modules/useProvenance';
+import { ErrorDescription } from '../../types/ErrorDescription';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import ConnectButton from '../atoms/ConnectButton';
+import { ErrorAlert } from '../atoms/ErrorAlert';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
@@ -51,8 +49,8 @@ import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { UseOriginalMetadata } from '../molecules/UseOriginalMetadata';
 import { CreativePanel } from '../organisms/CreativePanel';
 import {
-  MetaDataDisplay,
   MetaDataItem,
+  OriginMetadataDisplay,
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
 
@@ -127,11 +125,6 @@ type State = {
     origin: string | undefined;
   };
   originImage?: HTMLImageElement;
-};
-
-type ContractError = {
-  title: string;
-  description: string;
 };
 
 const reducer = (state: State, action: StateAction): State => {
@@ -258,7 +251,7 @@ export const NFTPage = () => {
 
   const { library: web3, account, chainId } = useWeb3React();
   const [buzy, setBuzy] = useState<boolean>(false);
-  const [error, setError] = useState<ContractError>();
+  const [error, setError] = useState<ErrorDescription>();
   const allProvenances = useProvenance(collection, tokenId);
 
   const [state, dispatch] = useReducer(reducer, {
@@ -286,12 +279,11 @@ export const NFTPage = () => {
               nftItem.contract_address.toLowerCase()
           )
         ) {
-          setError({
+          return setError({
             title: 'you shouldnt splice a Splice',
             description:
               'please choose a PFP collection or a non-splice NFT as an origin'
           });
-          return;
         }
         dispatch({
           type: 'setAsset',
@@ -428,20 +420,7 @@ export const NFTPage = () => {
   if (error) {
     return (
       <Container maxW="container.xl" minH="70vh">
-        <Alert
-          variant="black"
-          status="error"
-          my={6}
-          flexDirection="column"
-          alignItems="flex-start"
-        >
-          <Flex mb={2}>
-            <AlertIcon />
-            <AlertTitle>{error.title}</AlertTitle>
-          </Flex>
-
-          <AlertDescription>{error.description}</AlertDescription>
-        </Alert>
+        <ErrorAlert error={error} />
       </Container>
     );
   }
@@ -549,7 +528,14 @@ export const NFTPage = () => {
               background="white"
             >
               <Flex direction="row">
-                <Heading size="md">Origin attributes</Heading>
+                <Flex direction="row" align="center" gridGap={3}>
+                  <FallbackImage
+                    rounded="full"
+                    maxH={10}
+                    metadata={state.origin.nftItem.metadata}
+                  />
+                  <Heading size="md">Origin attributes</Heading>
+                </Flex>
                 <Spacer />
                 {web3 && (
                   <UseOriginalMetadata
@@ -574,9 +560,10 @@ export const NFTPage = () => {
                 />
               )}
               {state.origin.nftItem.metadata && (
-                <MetaDataDisplay
+                <OriginMetadataDisplay
                   contractAddress={collection}
                   tokenId={tokenId}
+                  owner={state.ownership?.origin}
                   nftMetadata={state.origin.nftItem.metadata}
                   randomness={state.features.randomness}
                 />

@@ -1,11 +1,11 @@
-import { Flex, Link, Spacer } from '@chakra-ui/react';
+import { Flex, Spacer } from '@chakra-ui/react';
 import { useWeb3React } from '@web3-react/core';
 import React from 'react';
-import { NavLink as ReactLink } from 'react-router-dom';
 import { useSplice } from '../../context/SpliceContext';
 import Account from '../atoms/Account';
 import ConnectButton from '../atoms/ConnectButton';
 import Logo from '../atoms/Logo';
+import { NavLink } from '../atoms/NavLink';
 
 const Header = () => {
   const { active, deactivate, account } = useWeb3React();
@@ -26,32 +26,19 @@ const Header = () => {
         <Flex direction="row" gridGap={[2, 6]}>
           {active && (
             <>
-              <Link
-                as={ReactLink}
-                to="/my-assets"
-                exact
-                activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
-              >
-                My NFTs
-              </Link>
-              {splice && (
-                <Link
-                  as={ReactLink}
-                  to="/my-splices"
-                  activeStyle={{ fontWeight: 800, borderBottom: '2px solid' }}
-                >
-                  My splices
-                </Link>
-              )}
+              <NavLink to="/my-assets" title="My NFTs" exact />
+              {splice && <NavLink to="/my-splices" exact title="My splices" />}
 
               {/*<Link as={ReactLink} to="/create" activeStyle={{ fontWeight: 800 }}>
               Create
         </Link>*/}
             </>
           )}
-          <Link href="https://splicenft.github.io/splicenft/" isExternal>
-            Docs
-          </Link>
+          <NavLink
+            to="https://splicenft.github.io/splicenft/"
+            title="Docs"
+            isExternal
+          />
         </Flex>
 
         {account ? (

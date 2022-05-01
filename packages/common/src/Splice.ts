@@ -24,6 +24,7 @@ export type SpliceDeployInfo = {
   deployedAt: number;
   subgraph?: string;
   explorerRoot?: string;
+  openSeaRoot?: string;
   openSeaLink?: string;
 };
 export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
@@ -33,6 +34,7 @@ export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
     address: '0x25A1c61A2501A82bf24C31F5CdE375F56B72C397',
     deployedAt: 10082549,
     explorerRoot: 'rinkeby.etherscan.io',
+    openSeaRoot: 'testnets.opensea.io',
     openSeaLink: 'testnets.opensea.io/collection/splice-v5'
   },
   //42: '0x231e5BA16e2C9BE8918cf67d477052f3F6C35036'
@@ -41,6 +43,7 @@ export const SPLICE_ADDRESSES: Record<number, SpliceDeployInfo> = {
     address: '0xB6D9BA151BcdD9169c8Ccd07DB63F306AA4a5b8E',
     deployedAt: 14152956,
     explorerRoot: 'etherscan.io',
+    openSeaRoot: 'opensea.io',
     openSeaLink: 'opensea.io/collection/splicenft'
   }
 };

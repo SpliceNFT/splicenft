@@ -4,6 +4,7 @@ import {
   NFTMetaData,
   NFTTrait,
   SpliceNFT,
+  SPLICE_ADDRESSES,
   TokenProvenance
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
@@ -126,17 +127,23 @@ export const SpliceMetadataDisplay = ({
     );
 };
 
-export const MetaDataDisplay = ({
+export const OriginMetadataDisplay = ({
   nftMetadata,
   contractAddress,
+  owner,
   tokenId,
   randomness
 }: {
   nftMetadata: NFTMetaData;
   randomness: number;
+  owner?: string;
   contractAddress: string;
   tokenId: string | number;
 }) => {
+  const { chainId, account } = useWeb3React();
+
+  const deployInfo = chainId ? SPLICE_ADDRESSES[chainId] : null;
+
   //some collections might return attributes as object :roll_eyes:
   //https://opensea.io/assets/0x031920cc2d9f5c10b444fd44009cd64f829e7be2/13318
   //todo: move this to the indexers
@@ -148,7 +155,15 @@ export const MetaDataDisplay = ({
       <MetaDataItem label="collection" value={contractAddress} />
       <MetaDataItem label="token id" value={tokenId} />
       <MetaDataItem label="randomness" value={randomness} />
-
+      <MetaDataItem
+        label="owner"
+        value={owner === account ? 'You' : account}
+        link={
+          deployInfo
+            ? `//${deployInfo.openSeaRoot}/${contractAddress}/${tokenId}}`
+            : undefined
+        }
+      />
       {_attrs.map((attr, i) => {
         return (
           <MetaDataItem
