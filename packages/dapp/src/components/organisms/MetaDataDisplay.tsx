@@ -157,10 +157,10 @@ export const OriginMetadataDisplay = ({
       <MetaDataItem label="randomness" value={randomness} />
       <MetaDataItem
         label="owner"
-        value={owner === account ? 'You' : account}
+        value={owner === account ? 'You' : owner}
         link={
           deployInfo
-            ? `//${deployInfo.openSeaRoot}/${contractAddress}/${tokenId}}`
+            ? `//${deployInfo.openSeaRoot}/assets/${contractAddress}/${tokenId}`
             : undefined
         }
       />
