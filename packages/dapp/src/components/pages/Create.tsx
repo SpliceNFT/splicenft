@@ -186,6 +186,7 @@ const CreatePage = () => {
             drawArgs={{
               dim: BANNER_DIMS,
               params: {
+                nftItem: origin?.nft,
                 randomness,
                 colors: histogram
               }

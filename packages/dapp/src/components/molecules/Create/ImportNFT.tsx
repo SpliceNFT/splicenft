@@ -3,7 +3,6 @@ import {
   Flex,
   FormControl,
   FormHelperText,
-  FormLabel,
   Input,
   useToast
 } from '@chakra-ui/react';
@@ -59,7 +58,7 @@ const ImportNFT = ({
       setBuzy(true);
       const nftItem = await indexer.getAsset(collection, tokenId);
 
-      if (nftItem?.metadata) {
+      if (nftItem.metadata) {
         const origin: CreativeOrigin = {
           nft: nftItem,
           randomness: Splice.computeRandomness(collection, tokenId),

@@ -32,7 +32,7 @@ export const FallbackImage = (
       title={imageUrl}
       fit="cover"
       onLoad={onNFTImageLoaded}
-      fallback={<Image src={SplicePFPLogo} />}
+      fallback={<Image src={SplicePFPLogo} {...rest} />}
       {...rest}
       /*opacity={buzy ? 0.2 : 1}*/
     />

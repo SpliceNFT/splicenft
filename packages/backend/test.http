@@ -1,16 +1,21 @@
-GET http://localhost:5999/styles/31337
+@SERVER = http://localhost:5999
+@NETWORK = 1
+
+GET {{SERVER}}/styles/{{NETWORK}}
 
 ###
 
-GET http://localhost:5999/styles/31337/1
+GET {{SERVER}}/styles/{{NETWORK}}/1
 
 ### 
 
-http://localhost:5999/splice/31337/1
+{{SERVER}}/splice/{{NETWORK}}/12884901889/image.png
+#Cache-Control: must-revalidate
 
 ### 
 
-http://localhost:5999/splice/31337/1/image.png
+{{SERVER}}/splice/{{NETWORK}}/17179869187/image.png
+Cache-Control: must-revalidate
 
 ###
 
@@ -25,7 +30,7 @@ http://validate.getsplice.io/splice/4/1/image.png
 
 ### 
 
-POST http://localhost:5999/allowlist
+POST {{SERVER}}/allowlist
 Content-Type: application/json
 
 {
@@ -37,24 +42,25 @@ Content-Type: application/json
 
 ###
 
-GET  http://localhost:5999/colors/4/0xd56c266c640F406db3B02C7054d2848252beE664/3
-
+GET  {{SERVER}}/colors/1/0x23581767a106ae21c074b2276d25e5c3e136a68b/3171
+Cache-Control: must-revalidate
 ### 
 
-GET http://localhost:5999/colors/1/0xc631164b6cb1340b5123c9162f8558c866de1926/689
+GET {{SERVER}}/colors/1/0xc631164b6cb1340b5123c9162f8558c866de1926/689
 
 ###  
-GET http://localhost:5999/colors/4/0xAF7209354132a3eab58D5CDef6FA28D98A27222E/9
+GET {{SERVER}}/colors/4/0xAF7209354132a3eab58D5CDef6FA28D98A27222E/9
 
 ### 
 
-GET http://localhost:5999/nft/31337/0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512/1
+GET {{SERVER}}/nft/1/0x23581767a106ae21c074b2276d25e5c3e136a68b/3171
+#Cache-Control: must-revalidate
 
 ### 
 
-GET http://localhost:5999/proxy?url=https:%2F%2Fapi.deadfellaz.io%2Ftraits%2F2
+GET {{SERVER}}/proxy?url=https:%2F%2Fapi.deadfellaz.io%2Ftraits%2F2
 
 ###
 
-POST  http://localhost:5999/render
+POST  {{SERVER}}/render
 Content-Type: text/plain

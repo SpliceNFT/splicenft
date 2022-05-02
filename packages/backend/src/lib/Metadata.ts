@@ -1,15 +1,23 @@
-import { BANNER_DIMS, NFTTrait, SpliceNFT, Transfer } from '@splicenft/common';
+import {
+  BANNER_DIMS,
+  NFTItem,
+  NFTTrait,
+  SpliceNFT,
+  Transfer
+} from '@splicenft/common';
 import { BigNumber } from 'ethers';
 import { Readable } from 'stream';
 import * as Cache from './Cache';
-import { extractOriginFeatures, getOriginMetadata } from './Origin';
+import { extractOriginFeatures } from './extractOriginFeatures';
+import { fetchOriginMetadata } from './fetchOriginMetadata';
 import { Render } from './render';
 import { getSplice } from './SpliceContracts';
 import { StyleMetadataCache } from './StyleCache';
 
 const Metadata = async (
   styleCache: StyleMetadataCache,
-  spliceTokenId: string
+  spliceTokenId: string,
+  invalidate = false
 ): Promise<SpliceNFT> => {
   const splice = await getSplice(styleCache.network);
   const provenance = await splice.getProvenance(BigNumber.from(spliceTokenId));
@@ -17,33 +25,41 @@ const Metadata = async (
     throw new Error(`no provenance for token ${spliceTokenId}`);
   }
 
-  const style = styleCache.getStyle(provenance.style_token_id);
-  if (!style) throw new Error(`style token seems corrupt`);
-
   const firstOrigin = provenance.origins[0];
   if (!firstOrigin) throw new Error(`no origin for splice`);
 
-  const originNftContract = splice.getOriginNftContract(firstOrigin.collection);
-  const originNftName = await originNftContract.name();
-
-  const originMetadata = await getOriginMetadata(
-    originNftContract,
+  const originMetadata = await fetchOriginMetadata(
+    styleCache.network,
+    firstOrigin.collection,
     firstOrigin.token_id
   );
 
-  if (!originMetadata) throw new Error(`couldnt get origin metadata`);
-
   const originFeatures = await Cache.withCache<Transfer.OriginFeatures>(
     `${styleCache.network}/nft/${firstOrigin.collection}/${firstOrigin.token_id}/features.json`,
-    async () => extractOriginFeatures(firstOrigin, originMetadata)
+    async () => extractOriginFeatures(firstOrigin, originMetadata),
+    invalidate
   );
 
+  const originNftName = await splice
+    .getOriginNftContract(firstOrigin.collection)
+    .name();
+
+  const nftItem: NFTItem = {
+    contract_address: firstOrigin.collection,
+    token_id: firstOrigin.token_id.toString(),
+    metadata: originMetadata
+  };
+
+  //we're invoking the renderer here to get the traits out of the rendered style.
+  const style = styleCache.getStyle(provenance.style_token_id);
+  if (!style) throw new Error(`style token seems corrupt`);
   const renderer = await style.getRenderer();
+
   return new Promise((resolve, reject) => {
     Render(
       {
         dim: BANNER_DIMS,
-        params: originFeatures
+        params: { ...originFeatures, nftItem }
       },
       renderer,
       (err: any | null, readable: Readable | null, traits: NFTTrait[]) => {

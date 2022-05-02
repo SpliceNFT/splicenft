@@ -1,8 +1,4 @@
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -14,15 +10,16 @@ import {
   Spacer,
   useToast
 } from '@chakra-ui/react';
-import { Histogram } from '@splicenft/colors';
 import {
+  Histogram,
   NFTItem,
   NFTTrait,
   Splice,
   SpliceNFT,
   SPLICE_ADDRESSES,
   Style,
-  TokenProvenance
+  TokenProvenance,
+  Transfer
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
@@ -41,8 +38,10 @@ import { useSplice } from '../../context/SpliceContext';
 import { useStyles } from '../../context/StyleContext';
 import { loadColors } from '../../modules/colors';
 import useProvenance from '../../modules/useProvenance';
+import { ErrorDescription } from '../../types/ErrorDescription';
 import { ArtworkStyleChooser } from '../atoms/ArtworkStyleChooser';
 import ConnectButton from '../atoms/ConnectButton';
+import { ErrorAlert } from '../atoms/ErrorAlert';
 import { FallbackImage } from '../atoms/FallbackImage';
 import { NFTDescription } from '../atoms/NFTDescription';
 import { DominantColorsDisplay } from '../molecules/DominantColors';
@@ -50,15 +49,63 @@ import { MintSpliceButton } from '../molecules/MintSpliceButton';
 import { UseOriginalMetadata } from '../molecules/UseOriginalMetadata';
 import { CreativePanel } from '../organisms/CreativePanel';
 import {
-  MetaDataDisplay,
   MetaDataItem,
+  OriginMetadataDisplay,
   SpliceMetadataDisplay
 } from '../organisms/MetaDataDisplay';
 
-type StateAction = {
-  type: string;
-  payload: any;
-};
+type StateAction =
+  | {
+      type: 'sketched';
+      payload: {
+        sketch: string;
+        traits: NFTTrait[];
+      };
+    }
+  | {
+      type: 'setAsset';
+      payload: {
+        nftItem: NFTItem;
+      };
+    }
+  | {
+      type: 'setOwnership';
+      payload: {
+        originOwner: string;
+      };
+    }
+  | {
+      type: 'setInitialProvenances';
+      payload: {
+        provenances: TokenProvenance[];
+        style?: Style;
+      };
+    }
+  | {
+      type: 'setOrigin';
+      payload: {
+        nftItem: NFTItem;
+        colors: Histogram;
+      };
+    }
+  | {
+      type: 'styleSelected';
+      payload: {
+        style: Style;
+      };
+    }
+  | {
+      type: 'minted';
+      payload: {
+        provenance: TokenProvenance;
+      };
+    }
+  | {
+      type: 'setColors';
+      payload: {
+        colors: Histogram;
+      };
+    };
 
 type State = {
   origin: {
@@ -66,10 +113,7 @@ type State = {
     tokenId: string;
     nftItem?: NFTItem;
   };
-  features: {
-    randomness: number;
-    colors: Histogram;
-  };
+  features: Transfer.OriginFeatures;
   allProvenances: TokenProvenance[];
   provenance?: TokenProvenance;
   splice?: SpliceNFT;
@@ -83,41 +127,46 @@ type State = {
   originImage?: HTMLImageElement;
 };
 
-type ContractError = {
-  title: string;
-  description: string;
-};
-
-function reducer(state: State, action: StateAction): State {
-  const { payload } = action;
+const reducer = (state: State, action: StateAction): State => {
   switch (action.type) {
     case 'sketched':
-      return { ...state, sketch: payload.sketch, traits: payload.traits };
+      return {
+        ...state,
+        sketch: action.payload.sketch,
+        traits: action.payload.traits
+      };
     case 'setAsset': {
       return {
         ...state,
-        origin: { ...state.origin, nftItem: payload.nftItem }
+        origin: { ...state.origin, nftItem: action.payload.nftItem },
+        features: {
+          ...state.features,
+          nftItem: action.payload.nftItem
+        }
       };
     }
     case 'setOwnership':
       return {
         ...state,
         ownership: {
-          origin: payload.originOwner,
+          origin: action.payload.originOwner,
           splice: state.ownership?.splice
         }
       };
     case 'setInitialProvenances':
       // eslint-disable-next-line no-case-declarations
-      const initialProvenance: TokenProvenance =
-        payload.provenances.length > 0 ? payload.provenances[0] : undefined;
+      const initialProvenance =
+        action.payload.provenances.length > 0
+          ? action.payload.provenances[0]
+          : undefined;
 
       return {
         ...state,
-        allProvenances: payload.provenances,
+        allProvenances: action.payload.provenances,
         provenance: initialProvenance,
         splice: initialProvenance?.metadata,
         features: {
+          ...state.features,
           randomness:
             initialProvenance?.metadata?.splice.randomness ||
             state.features.randomness,
@@ -128,18 +177,20 @@ function reducer(state: State, action: StateAction): State {
           origin: state.ownership?.origin,
           splice: initialProvenance?.owner
         },
-        selectedStyle: payload.style
+        selectedStyle: action.payload.style
       };
     case 'setOrigin':
+      console.log('setOrigin nft item', action.payload.nftItem);
       return {
         ...state,
         origin: {
           ...state.origin,
-          nftItem: payload.nftItem
+          nftItem: action.payload.nftItem
         },
         features: {
           ...state.features,
-          colors: payload.colors
+          nftItem: action.payload.nftItem,
+          colors: action.payload.colors
         }
       };
     case 'styleSelected':
@@ -149,12 +200,12 @@ function reducer(state: State, action: StateAction): State {
         return origin
           ? origin.collection == state.origin.collection &&
               origin.token_id.toString() == state.origin.tokenId &&
-              p.style_token_id == payload.style.tokenId
+              p.style_token_id == action.payload.style.tokenId
           : false;
       });
       return {
         ...state,
-        selectedStyle: payload.style,
+        selectedStyle: action.payload.style,
         sketch: undefined,
         splice: provenance?.metadata,
         ownership: {
@@ -168,24 +219,25 @@ function reducer(state: State, action: StateAction): State {
         ...state,
         ownership: {
           origin: state.ownership?.origin,
-          splice: payload.provenance.owner
+          splice: action.payload.provenance.owner
         },
-        provenance: payload.provenance,
-        splice: payload.provenance.metadata,
-        allProvenances: [payload.provenance, ...state.allProvenances]
+        provenance: action.payload.provenance,
+        splice: action.payload.provenance.metadata,
+        allProvenances: [action.payload.provenance, ...state.allProvenances]
       };
     case 'setColors':
       return {
         ...state,
         features: {
+          ...state.features,
           randomness: state.features.randomness,
-          colors: payload.colors
+          colors: action.payload.colors
         }
       };
     default:
       throw new Error();
   }
-}
+};
 
 export const NFTPage = () => {
   const { collection, token_id: tokenId } =
@@ -199,7 +251,7 @@ export const NFTPage = () => {
 
   const { library: web3, account, chainId } = useWeb3React();
   const [buzy, setBuzy] = useState<boolean>(false);
-  const [error, setError] = useState<ContractError>();
+  const [error, setError] = useState<ErrorDescription>();
   const allProvenances = useProvenance(collection, tokenId);
 
   const [state, dispatch] = useReducer(reducer, {
@@ -227,12 +279,11 @@ export const NFTPage = () => {
               nftItem.contract_address.toLowerCase()
           )
         ) {
-          setError({
+          return setError({
             title: 'you shouldnt splice a Splice',
             description:
               'please choose a PFP collection or a non-splice NFT as an origin'
           });
-          return;
         }
         dispatch({
           type: 'setAsset',
@@ -340,7 +391,9 @@ export const NFTPage = () => {
       } else {
         const target: HTMLImageElement = (event.target ||
           event.currentTarget) as HTMLImageElement;
-
+        //todo: turn pixel loading on when style requires it.
+        // const pixels = await loadPixels(target);
+        // console.log('PIXELS', pixels);
         const histogram = await loadColors(
           state.origin.nftItem,
           target,
@@ -367,20 +420,7 @@ export const NFTPage = () => {
   if (error) {
     return (
       <Container maxW="container.xl" minH="70vh">
-        <Alert
-          variant="black"
-          status="error"
-          my={6}
-          flexDirection="column"
-          alignItems="flex-start"
-        >
-          <Flex mb={2}>
-            <AlertIcon />
-            <AlertTitle>{error.title}</AlertTitle>
-          </Flex>
-
-          <AlertDescription>{error.description}</AlertDescription>
-        </Alert>
+        <ErrorAlert error={error} />
       </Container>
     );
   }
@@ -488,7 +528,14 @@ export const NFTPage = () => {
               background="white"
             >
               <Flex direction="row">
-                <Heading size="md">Origin attributes</Heading>
+                <Flex direction="row" align="center" gridGap={3}>
+                  <FallbackImage
+                    rounded="full"
+                    maxH={10}
+                    metadata={state.origin.nftItem.metadata}
+                  />
+                  <Heading size="md">Origin attributes</Heading>
+                </Flex>
                 <Spacer />
                 {web3 && (
                   <UseOriginalMetadata
@@ -513,9 +560,10 @@ export const NFTPage = () => {
                 />
               )}
               {state.origin.nftItem.metadata && (
-                <MetaDataDisplay
+                <OriginMetadataDisplay
                   contractAddress={collection}
                   tokenId={tokenId}
+                  owner={state.ownership?.origin}
                   nftMetadata={state.origin.nftItem.metadata}
                   randomness={state.features.randomness}
                 />

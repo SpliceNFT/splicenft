@@ -1,4 +1,5 @@
 import { Histogram } from '..';
+import { NFTItem } from './NFT';
 
 export interface UserSplice {
   id: string;
@@ -29,4 +30,5 @@ export interface ColorsResponse {
 
 export interface OriginFeatures extends ColorsResponse {
   randomness: number;
+  nftItem?: NFTItem;
 }

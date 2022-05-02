@@ -63,7 +63,7 @@ const getProvenancesFromChain = async (
   collection: string,
   tokenId: string
 ): Promise<TokenProvenance[]> => {
-  console.debug('getProvenancesFromSplice');
+  console.debug('getProvenancesFromChain');
   const _prov = await splice.findProvenances(collection, tokenId);
 
   const promises = _prov.map((p) => {

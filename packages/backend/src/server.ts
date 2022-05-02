@@ -6,16 +6,15 @@ import { createConnection } from 'typeorm';
 import {
   allowlist,
   allStyles,
+  extractColors,
+  nftMetadata,
+  proxy,
   renderGeneric,
   renderSplice,
   spliceMetadata,
   styleDetails
 } from './controllers';
-import { extractColors } from './controllers/colors';
-import { nftMetadata } from './controllers/metadata';
-import { proxy } from './controllers/proxy';
-import { renderCode } from './controllers/renderers';
-import { StyleCache } from './lib/StyleCache';
+import { styleCache } from './lib/StyleCache';
 
 const app: Express = express();
 
@@ -41,20 +40,19 @@ if (process.env.NODE_ENV === 'production') {
     })
   );
 }
+styleCache.init();
 app.use(cors());
 
-const styleCache = new StyleCache([1, 4, 31337]);
-styleCache.init();
-app.get('/proxy', proxy());
-app.get('/nft/:network/:collection/:token_id', nftMetadata());
-app.get('/render/:network/:style_token_id', renderGeneric(styleCache));
-//app.post('/render', renderCode);
 app.get('/colors/:network/:collection/:token_id', extractColors);
-app.get('/styles/:network/:style_token_id', styleDetails(styleCache));
-app.get('/styles/:network', allStyles(styleCache));
-app.get('/splice/:network/:tokenid/image.png', renderSplice(styleCache));
+app.get('/nft/:network/:collection/:token_id', nftMetadata);
+app.get('/proxy', proxy());
+app.get('/render/:network/:style_token_id', renderGeneric);
+//app.post('/render', renderCode);
+app.get('/splice/:network/:tokenid', spliceMetadata);
+app.get('/splice/:network/:tokenid/image.png', renderSplice);
+app.get('/styles/:network', allStyles);
+app.get('/styles/:network/:style_token_id', styleDetails);
 //this is the token metadata URI:  /1/1
-app.get('/splice/:network/:tokenid', spliceMetadata(styleCache));
 
 createConnection({
   type: 'sqlite',

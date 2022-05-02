@@ -75,11 +75,7 @@ export const AboutPage = () => {
                   <Tagline>
                     <Text>
                       <b>Ethscape Metropolis</b> by{' '}
-                      <Link
-                        href="https://twitter.com/emilyaweil"
-                        isExternal
-                        color="twitter.400"
-                      >
+                      <Link href="https://twitter.com/emilyaweil" isExternal>
                         Emily Weil
                       </Link>
                     </Text>
@@ -93,11 +89,7 @@ export const AboutPage = () => {
                   <Tagline>
                     <Text>
                       <b>Terrain</b> by{' '}
-                      <Link
-                        href="https://twitter.com/LorenBednar"
-                        isExternal
-                        color="twitter.400"
-                      >
+                      <Link href="https://twitter.com/LorenBednar" isExternal>
                         Loren Bednar
                       </Link>
                     </Text>
@@ -111,11 +103,7 @@ export const AboutPage = () => {
                   <Tagline>
                     <Text>
                       <b>Amazeing Fields</b> by{' '}
-                      <Link
-                        href="https://twitter.com/ferjerez3d"
-                        isExternal
-                        color="twitter.400"
-                      >
+                      <Link href="https://twitter.com/ferjerez3d" isExternal>
                         Fernando Jerez
                       </Link>
                     </Text>{' '}
@@ -129,11 +117,7 @@ export const AboutPage = () => {
                   <Tagline>
                     <Text>
                       <b>District 1618</b> by{' '}
-                      <Link
-                        href="https://twitter.com/splicenft"
-                        isExternal
-                        color="twitter.400"
-                      >
+                      <Link href="https://twitter.com/splicenft" isExternal>
                         Splice Genesis
                       </Link>
                     </Text>
@@ -197,19 +181,11 @@ export const AboutPage = () => {
             </Text>
             <Text>
               Eventually, Splice will generate all sorts of digital assets.{' '}
-              <Link
-                href="https://discord.gg/JhtT87y2BA"
-                isExternal
-                color="twitter.500"
-              >
+              <Link href="https://discord.gg/JhtT87y2BA" isExternal>
                 Join our Discord
               </Link>{' '}
               and{' '}
-              <Link
-                href="https://twitter.com/splicenft"
-                color="twitter.500"
-                isExternal
-              >
+              <Link href="https://twitter.com/splicenft" isExternal>
                 follow us on Twitter
               </Link>{' '}
               to determine what we Splice next.
@@ -218,7 +194,6 @@ export const AboutPage = () => {
               If you're an artist interested in creating a Splice,{' '}
               <Link
                 href="https://splicenft.github.io/splicenft/artists/"
-                color="twitter.500"
                 isExternal
               >
                 here's how to do that.
