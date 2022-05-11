@@ -116,6 +116,9 @@ export const Footer = () => {
                   )}
                 </Text>
               )}
+              <Text>
+                Interview with Stefan at <Link href="https://blockchainwelt.de/splice-interview-mit-stefan-adolf/" isExternal>Blockchainwelt</Link>
+              </Text>
 
               {deployInfo && (
                 <Link href={`//${deployInfo.openSeaLink}`} isExternal>
