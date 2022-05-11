@@ -93,7 +93,8 @@ export class NFTPort implements NFTIndexer {
     const url = `${BASE_URI}/nfts/${collection}/${tokenId}`;
     const _resp = await axios.get<NftPortNftMetadataResponse>(url, {
       params: {
-        chain: this.chain
+        chain: this.chain,
+        refresh_metadata: true
       },
       headers: {
         Authorization: this.nftPortAuth

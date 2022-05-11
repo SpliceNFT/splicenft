@@ -51,11 +51,22 @@ export const Footer = () => {
               </Link>
             </Flex>
           </Flex>
-          <Flex fontSize="sm">
-            Honorable Mentions:{' '}
-            <Link href="https://twitter.com/BiggyTava" isExternal>
-              @BiggyTava
-            </Link>
+          <Flex fontSize="sm" direction="column" align="center">
+            <Text>
+              Honorable Mentions:{' '}
+              <Link href="https://twitter.com/BiggyTava" isExternal>
+                @BiggyTava
+              </Link>
+            </Text>
+            <Text>
+              Interview with Stefan at{' '}
+              <Link
+                href="https://blockchainwelt.de/splice-interview-mit-stefan-adolf/"
+                isExternal
+              >
+                Blockchainwelt
+              </Link>
+            </Text>
           </Flex>
           <Flex gridGap={4} mt={5} align="flex-start" justify="space-between">
             <Link

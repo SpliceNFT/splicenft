@@ -292,7 +292,12 @@ export const NFTPage = () => {
           }
         });
       } catch (e: any) {
-        console.error(e);
+        setError({
+          title:
+            "couldn't load origin collection information (maybe not an erc721 contract)",
+          description: e.message
+        });
+        console.error('indexer failed', e);
       }
     })();
   }, [indexer]);
@@ -325,7 +330,6 @@ export const NFTPage = () => {
           }
         });
       } catch (e: any) {
-        console.error(e.message);
         setError({
           title:
             "couldn't load origin collection information (maybe not an erc721 contract)",
