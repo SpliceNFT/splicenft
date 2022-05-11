@@ -64,7 +64,7 @@ export const AboutPage = () => {
             <CarouselProvider
               naturalSlideWidth={1500}
               naturalSlideHeight={500}
-              totalSlides={4}
+              totalSlides={6}
               interval={3500}
               visibleSlides={1}
               infinite={true}
@@ -114,6 +114,37 @@ export const AboutPage = () => {
                   />
                 </Slide>
                 <Slide index={3}>
+                  <Tagline>
+                    <Text>
+                      <b>Patchwork</b> by{' '}
+                      <Link
+                        href="https://twitter.com/lisaorthstudio"
+                        isExternal
+                      >
+                        Lisa Orth
+                      </Link>
+                    </Text>
+                  </Tagline>
+                  <SlImage
+                    src="/samples/coolman_patchwork.jpg"
+                    hasMasterSpinner={false}
+                  />
+                </Slide>
+                <Slide index={4}>
+                  <Tagline>
+                    <Text>
+                      <b>Waves</b> by{' '}
+                      <Link href="https://twitter.com/rvig_art" isExternal>
+                        RVig
+                      </Link>
+                    </Text>
+                  </Tagline>
+                  <SlImage
+                    src="/samples/bean_waves.jpg"
+                    hasMasterSpinner={false}
+                  />
+                </Slide>
+                <Slide index={5}>
                   <Tagline>
                     <Text>
                       <b>District 1618</b> by{' '}
