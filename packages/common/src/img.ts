@@ -2,7 +2,7 @@ import { NFTMetaData } from './types/NFT';
 
 //const IPFS_GATEWAY = 'https://ipfs.io';
 //const IPFS_GATEWAY = 'https://dweb.link';
-const IPFS_GATEWAY = 'https://ipfs.getsplice.io';
+const IPFS_GATEWAY = 'https://ipfs2.getsplice.io';
 
 const IPFS_LOCATION_REGEX = new RegExp(`/ipfs/(.+)`, 'gi');
 
