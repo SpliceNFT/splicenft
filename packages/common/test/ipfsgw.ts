@@ -1,22 +1,22 @@
 import { expect } from 'chai';
 import { ipfsGW } from '../src';
-import { isIpfsLocation, getIpfsPath } from '../src/img';
+import { getIpfsPath, isIpfsLocation } from '../src/img';
 
 it('redirects IPFS downloads to a defined ipfs gateway', async function () {
   expect(ipfsGW('ipfs://Qmabcdef')).to.eq(
-    'https://ipfs.getsplice.io/ipfs/Qmabcdef'
+    'https://ipfs2.getsplice.io/ipfs/Qmabcdef'
   );
   expect(ipfsGW('ipfs://ipfs/Qmabcdef')).to.eq(
-    'https://ipfs.getsplice.io/ipfs/Qmabcdef'
+    'https://ipfs2.getsplice.io/ipfs/Qmabcdef'
   );
   expect(ipfsGW('https://gateway.pinata.cloud/ipfs/Qmabcdef')).to.eq(
-    'https://ipfs.getsplice.io/ipfs/Qmabcdef'
+    'https://ipfs2.getsplice.io/ipfs/Qmabcdef'
   );
   expect(ipfsGW('ipfs://Qmabcdef/file.json')).to.eq(
-    'https://ipfs.getsplice.io/ipfs/Qmabcdef/file.json'
+    'https://ipfs2.getsplice.io/ipfs/Qmabcdef/file.json'
   );
   expect(ipfsGW('https://gateway.pinata.cloud/ipfs/Qmabcdef/file.json')).to.eq(
-    'https://ipfs.getsplice.io/ipfs/Qmabcdef/file.json'
+    'https://ipfs2.getsplice.io/ipfs/Qmabcdef/file.json'
   );
 });
 
@@ -43,13 +43,13 @@ it('extracts CIDs & files from gateway URLs', function () {
 
   expect(
     getIpfsPath(
-      'https://ipfs.getsplice.io/ipfs/QmTjja7adWB7gFXPRxAP78pnzwp7nTmoecjUXqZpkzFTks/6643.JPEG'
+      'https://ipfs2.getsplice.io/ipfs/QmTjja7adWB7gFXPRxAP78pnzwp7nTmoecjUXqZpkzFTks/6643.JPEG'
     )
   ).to.equal('QmTjja7adWB7gFXPRxAP78pnzwp7nTmoecjUXqZpkzFTks/6643.JPEG');
 
   expect(
     getIpfsPath(
-      'https://ipfs.io/ipfs/QmTjja7adWB7gFXPRxAP78pnzwp7nTmoecjUXqZpkzFTks/'
+      'https://ipfs2.io/ipfs/QmTjja7adWB7gFXPRxAP78pnzwp7nTmoecjUXqZpkzFTks/'
     )
   ).to.equal('QmTjja7adWB7gFXPRxAP78pnzwp7nTmoecjUXqZpkzFTks/');
 });
