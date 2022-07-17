@@ -37,6 +37,7 @@
       "pm2": "^5.2.0",
       "reflect-metadata": "^0.1.10",
       "sqlite3": "^5.0.2",
-      "typeorm": "0.2.41"
+      "typeorm": "0.2.41",
+      "ts-node": "^10.2.1"
    }
 }

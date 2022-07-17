@@ -38,7 +38,7 @@
     "solidity-coverage": "^0.7.17",
     "tsconfig-paths": "^3.11.0",
     "typechain": "^8.1.0",
-    "typescript": "^4.7.0",
+    "typescript": "^4.4.3",
     "@types/node": "^16.0.0"
   },
   "dependencies": {
@@ -63,6 +63,7 @@
     "merkletreejs": "^0.2.24",
     "multiformats": "^9.7.0",
     "nft.storage": "^6.4.0",
-    "node-fetch": "*"
+    "node-fetch": "*",
+    "ts-node": "^10.2.1"
   }
 }
