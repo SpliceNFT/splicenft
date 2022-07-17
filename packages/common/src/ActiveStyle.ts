@@ -1,4 +1,3 @@
-import { Style } from './Style';
 import {
   ISplicePriceStrategy,
   ISplicePriceStrategy__factory,
@@ -6,10 +5,11 @@ import {
   ReplaceablePaymentSplitter__factory,
   SpliceStyleNFT
 } from '@splicenft/contracts';
-import { Partnership, StyleStatsData } from './types/Styles';
+import { StyleSettingsStructOutput } from '@splicenft/contracts/typechain/contracts/SpliceStyleNFT';
 import { ethers } from 'ethers';
-import { StyleSettingsStructOutput } from '@splicenft/contracts/typechain/SpliceStyleNFT';
 import { Renderer, StyleNFT } from '.';
+import { Style } from './Style';
+import { Partnership, StyleStatsData } from './types/Styles';
 
 export class ActiveStyle {
   private style: Style;

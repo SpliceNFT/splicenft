@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { BigNumber, Event, Signer } from 'ethers';
 import { ethers } from 'hardhat';
+
 import {
   GLDToken__factory,
   IERC165__factory,
@@ -10,7 +11,8 @@ import {
   SpliceStyleNFT,
   TestnetNFT
 } from '../typechain';
-import { MintedEvent } from '../typechain/Splice';
+import { MintedEvent } from '../typechain/contracts/Splice';
+
 import {
   deploySplice,
   deployStaticPriceStrategy,

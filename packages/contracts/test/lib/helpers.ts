@@ -1,15 +1,16 @@
-import { BigNumber, utils, Event, Signer, constants } from 'ethers';
+import { BigNumber, constants, Event, Signer, utils } from 'ethers';
 import keccak256 from 'keccak256';
 
 import { of as ipfsHashOf } from 'ipfs-only-hash';
+import { MerkleTree } from 'merkletreejs';
 import {
   Splice,
   SplicePriceStrategyStatic__factory,
   SpliceStyleNFT,
   TestnetNFT
 } from '../../typechain';
-import { TransferEvent } from '../../typechain/ERC721';
-import { MerkleTree } from 'merkletreejs';
+import { TransferEvent } from '../../typechain/contracts/TestnetNFT';
+
 
 export function tokenIdToStyleAndToken(tokenId: BigNumber): {
   style_token_id: number;
