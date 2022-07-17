@@ -4,7 +4,7 @@ import {
   SpliceStyleNFT__factory as StyleNFTFactory,
   Splice__factory as SpliceFactory
 } from '@splicenft/contracts';
-import { MintedEvent } from '@splicenft/contracts/typechain/Splice';
+import { MintedEvent } from '@splicenft/contracts/typechain/contracts/Splice';
 import axios from 'axios';
 import {
   BigNumber,

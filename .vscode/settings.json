@@ -11,7 +11,7 @@
   },
   "[typescriptreact]": {
     "editor.formatOnSave": false,
-    "editor.defaultFormatter": null
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[javascriptreact]": {
     "editor.formatOnSave": false,

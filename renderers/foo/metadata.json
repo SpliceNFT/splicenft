@@ -1,0 +1,13 @@
+{
+  "name": "A Foo style",
+  "description": "Foo does foo things.",
+  "properties": {},
+  "splice": {
+    "creator_name": "Splice Genesis",
+    "creator_twitter": "https://twitter.com/splicenft",
+    "creator_url": "https://getsplice.io",
+    "code_library": "p5.js",
+    "code_library_version": "1.4.0",
+    "license": "CC BY-NC-ND 4.0"
+  }
+}

@@ -8,7 +8,8 @@ import {
   SpliceStyleNFT,
   TestnetNFT
 } from '../typechain';
-import { TransferEvent } from '../typechain/ERC721';
+import { TransferEvent } from '../typechain/contracts/TestnetNFT';
+
 import {
   deploySplice,
   deployStaticPriceStrategy,

@@ -1,14 +1,20 @@
 {
   "extends": "../../.eslintrc",
-  "plugins": ["react"],
+  "plugins": [
+    "react"
+  ],
   "rules": {
     "no-debugger": "off",
+    "prettier/prettier": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "react/jsx-filename-extension": [
       1,
       {
-        "extensions": [".ts", ".tsx"]
+        "extensions": [
+          ".ts",
+          ".tsx"
+        ]
       }
     ]
   }

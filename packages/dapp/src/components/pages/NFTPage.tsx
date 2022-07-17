@@ -23,7 +23,7 @@ import {
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
 import axios from 'axios';
-import React, {
+import {
   SyntheticEvent,
   useCallback,
   useEffect,
@@ -268,6 +268,7 @@ export const NFTPage = () => {
   });
 
   useEffect(() => {
+    console.log(indexer);
     if (!indexer) return;
     (async () => {
       try {
@@ -291,6 +292,7 @@ export const NFTPage = () => {
             nftItem
           }
         });
+        setError(undefined);
       } catch (e: any) {
         setError({
           title:
