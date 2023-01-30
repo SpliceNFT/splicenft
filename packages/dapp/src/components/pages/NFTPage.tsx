@@ -22,7 +22,8 @@ import {
   Transfer
 } from '@splicenft/common';
 import { useWeb3React } from '@web3-react/core';
-import axios from 'axios';
+import downloadJs from 'downloadjs';
+
 import {
   SyntheticEvent,
   useCallback,
@@ -413,14 +414,7 @@ export const NFTPage = () => {
 
   const download = async () => {
     if (!state.sketch) return;
-    const bin = await (
-      await axios.get(state.sketch, { responseType: 'arraybuffer' })
-    ).data;
-    const blob = new Blob([bin]);
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `${state.provenance?.splice_token_id}.png`;
-    link.click();
+    downloadJs(state.sketch, `splice-${state.provenance?.splice_token_id}.png`, "image/png");
   };
 
   if (error) {
