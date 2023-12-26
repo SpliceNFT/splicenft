@@ -10,6 +10,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["console_error_panic_hook"]
 
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 wasm-bindgen = "0.2.89"
@@ -17,7 +18,9 @@ wasm-bindgen-futures = "0.4"
 serde-wasm-bindgen = "0.5"
 image = "0.24.0"
 js-sys = "0.3.54"
-palette_extract = "0.1.0"
+kmeans_colors = { version = "0.6.0", default-features = false, features=["palette_color"]}
+palette = {version="0.7.3", default-features = false, features=["std"]}
+getrandom = { version = "0.2", features = ["js"] }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
