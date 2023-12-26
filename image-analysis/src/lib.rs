@@ -1,10 +1,11 @@
 //see https://linzichun.com/posts/wasm-rust-image-processing-in-webpages/
 mod utils;
 
-use image::{DynamicImage, ImageFormat, ImageBuffer, Rgba};
+use image::{DynamicImage, ImageFormat, ImageBuffer, Rgba, Rgb};
 use js_sys::{Uint8Array, Reflect, WebAssembly};
 use wasm_bindgen::prelude::*;
 use palette_extract::{get_palette_rgb, Color};
+use serde::{Serialize, Deserialize};
 
 #[wasm_bindgen]
 extern "C" {
@@ -28,28 +29,18 @@ pub fn add(a: i32, b: i32) -> i32 {
   return a + b;
 }
 
-#[wasm_bindgen(getter_with_clone)]
-#[derive(Debug)]
-pub struct ReturnObject {
-    pub rgb_values: Uint8Array,
-    pub width: u32,
-    pub height: u32,
+
+#[wasm_bindgen(js_name = "Color")]
+#[derive(Serialize, Deserialize)]
+pub struct RgbTuple {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
 }
 
-#[wasm_bindgen]
-impl ReturnObject {
-    #[wasm_bindgen(constructor)]
-    pub fn new(rgb_values: Uint8Array, width: u32, height: u32) -> Self {
-        ReturnObject {
-            rgb_values,
-            width,
-            height,
-        }
-    }
-}
 
 #[wasm_bindgen]
-pub fn load_image_from_uint8_array(_array: &[u8]) -> Vec<u8>  {
+pub fn load_image_from_uint8_array(_array: &[u8]) -> JsValue  {
     
 //pub fn load_image_from_uint8_array(data: Uint8Array, width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
     // let mut buffer = Vec::new();
@@ -67,14 +58,23 @@ pub fn load_image_from_uint8_array(_array: &[u8]) -> Vec<u8>  {
     let formatted_number = sum.to_string();
     log(format!("sum {} width {} height {}", formatted_number, dynamic_image.width(), dynamic_image.height()).as_str());
     
+    let colors = get_palette_rgb(&rgb_data);
+
+    let tuples: Vec<RgbTuple> = colors.into_iter().map(|c| RgbTuple {
+        r: c.r,
+        g: c.g,
+        b: c.b
+    }).collect();
+    
+    // colors
+
     // let buffer = wasm_bindgen::memory()
     // .dyn_into::<WebAssembly::Memory>()?
     // .buffer();
     // let uint8_array = Uint8Array::new_with_byte_offset(&buffer, 0);
     
     // Ok(ReturnObject::new(uint8_array,  dynamic_image.width(), dynamic_image.height()))
-
-    rgb_data
+    serde_wasm_bindgen::to_value(&tuples).unwrap()
  
 }
 
