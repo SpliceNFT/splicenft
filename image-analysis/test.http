@@ -1,0 +1,5 @@
+### 
+
+GET http://localhost:3000/api/get_dominant_colors?image_url=https://ipfs.io/ipfs/QmZEj3yoYhhpo32LCsMfYvmnU2UBXU7Db8EX1L4KLsuoYb
+
+

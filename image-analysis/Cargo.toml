@@ -14,7 +14,7 @@ default = ["console_error_panic_hook"]
 serde = { version = "1", features = ["derive"] }
 wasm-bindgen = "0.2.89"
 wasm-bindgen-futures = "0.4"
-serde-wasm-bindgen = "0.5"
+serde-wasm-bindgen = "0.6.3"
 image = {version="0.24.0", default-features = false, features = ["jpeg", "png", "gif", "webp"]}
 js-sys = "0.3.54"
 kmeans_colors = { version = "0.6.0", default-features = false, features=["palette_color"]}
