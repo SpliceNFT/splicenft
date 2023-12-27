@@ -1,8 +1,12 @@
 [package]
 name = "dominant-palette-kmeans"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["stadolf <stadolf@gmail.com>"]
 edition = "2021"
+repository = "https://github.com/SpliceNFT/splicenft/tree/experiment/wasm-palette/dominant-palette-kmeans-wasm"
+keywords = ["palette", "colors", "kmeans", "images", "wasm"]
+license = "MIT"
+description = "A wasm library for finding the dominant colors in an image using kmeans clustering"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
