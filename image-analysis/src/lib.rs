@@ -2,10 +2,11 @@
 mod utils;
 
 use image::DynamicImage;
+use image::imageops::FilterType;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::{future_to_promise, spawn_local, JsFuture};
-use js_sys::{Promise};
+
+
 use kmeans_colors::{get_kmeans, Kmeans, Sort};
 use palette::cast::from_component_slice;
 use palette::{FromColor, IntoColor, Lab, Srgb};
@@ -52,17 +53,17 @@ pub async fn load_image_from_uint8_array(_array: &[u8]) -> JsValue {
         // data.for_each(|byte, _| buffer.push(byte));
         // let dynamic_image = DynamicImage::from_rawbuffer(width, height, buffer)?;
         let dynamic_image: DynamicImage = image::load_from_memory(&_array).unwrap();
-
+        let scaled = dynamic_image.resize(500,500, FilterType::Nearest);
         // let dynamic_image: DynamicImage  = ImageBuffer::<Rgba<u8>, Vec<u8>>::from_raw(width, height, _array.to_vec())
         //     .map(DynamicImage::ImageRgba8)
         //     .expect("Failed to create image from raw data");
 
         // You can now process the image or return the raw RGB data
-        let rgb_data: Vec<u8> = dynamic_image.to_rgb8().into_raw();
+        let rgb_data: Vec<u8> = scaled.to_rgb8().into_raw();
         log(format!(
             "width {} height {}",
-            dynamic_image.width(),
-            dynamic_image.height()
+            scaled.width(),
+            scaled.height()
         )
         .as_str());
 
