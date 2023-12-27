@@ -1,8 +1,8 @@
-# load dominant colors from an image
+# load dominant colors from an encoded image
 
 - built in Rust / wasm-pack
-- JS clients just call it with the plain encoded image as Uint8Array
 - uses Rust's [`image` crate](https://crates.io/crates/image) to load image rgb data (only JPG, GIF, PNG supported here for reduced pkg size)
+- JS clients just call it with the plain encoded image as Uint8Array
 - uses `k-means` color distribution estimation
 - return color frequencies on the image
 - works in browsers & node envs

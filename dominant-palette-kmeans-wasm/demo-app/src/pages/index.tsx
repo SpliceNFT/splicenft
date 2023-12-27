@@ -1,4 +1,4 @@
-import { Color, get_dominant_colors } from '@/ext/pkg/image_analysis';
+import { Color, get_dominant_colors } from 'dominant-palette-kmeans';
 import { ChangeEvent, useCallback, useState } from 'react';
 
 export default function Home() {

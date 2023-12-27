@@ -1,4 +1,4 @@
-import { get_dominant_colors } from '@/ext/pkg/image_analysis';
+import { get_dominant_colors } from 'dominant-palette-kmeans';
 import { NextApiRequest, NextApiResponse } from "next";
 
 const prepUrl = (url: string) => {
