@@ -1,6 +1,23 @@
-packages: 
- # all packages in subdirs of packages/ and components/  
- - 'packages/**'  
- - 'components/**'  
- # exclude packages that are inside test directories  
- - '!**/test/**'
+packages:
+  - packages/**
+  - components/**
+  - '!**/test/**'
+onlyBuiltDependencies:
+  - bufferutil
+  - core-js
+  - core-js-pure
+  - ejs
+  - es5-ext
+  - iso-constants
+  - keccak
+  - leveldown
+  - node-canvas
+  - node-libpng
+  - postinstall-postinstall
+  - protobufjs
+  - secp256k1
+  - sqlite3
+  - utf-8-validate
+  - web3
+  - web3-bzz
+  - web3-shh

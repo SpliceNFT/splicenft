@@ -11,10 +11,10 @@ import {
 import {
   Origin,
   PaymentSplit,
-  Splice,
   Seed,
-  Style,
-  SeedOrigin
+  SeedOrigin,
+  Splice,
+  Style
 } from '../generated/schema';
 import { ERC721 as ERC721Contract } from '../generated/Splice/ERC721';
 import {
@@ -26,6 +26,7 @@ import { ReplaceablePaymentSplitter as PaymentSplitterContract } from '../genera
 import { ReplaceablePaymentSplitter } from '../generated/templates';
 
 import {
+  PermanentURI,
   Minted as StyleMinted,
   SpliceStyleNFT as StyleNFTContract,
   Transfer as StyleTransferred
@@ -183,5 +184,18 @@ export function handleStyleTransferred(event: StyleTransferred): void {
   }
 
   style.owner = event.params.to;
+  style.save();
+}
+
+export function handleStyleFrozen(event: PermanentURI): void {
+  const style_id = event.params._id.toString();
+
+  const style = Style.load(style_id);
+  if (!style) {
+    glog.warning('style not found: {}', [style_id]);
+    return;
+  }
+
+  style.frozen = true;
   style.save();
 }

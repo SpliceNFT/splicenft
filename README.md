@@ -46,7 +46,9 @@ The Splice frontend, built as a CRA using Chakra UI and ethers.js. Depends on co
 
 ### Subgraph
 
-Code for The Graph indexers. Will create a subgraph instance on the hosted service. Is utilized by Dapp to quickly scan for existing Splices, provenances and an user's items.
+Indexes Splice, SpliceStyleNFT and PaymentSplitters on The Graph network. We're deploying on Subgraph Studio. 
+
+https://api.studio.thegraph.com/query/886/splicenft/v0.0.1
 
 
 

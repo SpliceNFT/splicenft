@@ -1,4 +1,4 @@
-type Splice @entity {
+type Splice @entity(immutable: true) {
   id: ID!
   owner: Bytes # address
   origin_hash: Bytes
@@ -9,13 +9,13 @@ type Splice @entity {
   style: Style!
 }
 
-type Origin @entity {
+type Origin @entity(immutable: false) {
   id: ID!
   splices: [Splice!]! @derivedFrom(field: "origin")
   seeds: [SeedOrigin!] @derivedFrom(field: "origin")
 }
 
-type Seed @entity {
+type Seed @entity(immutable: true) {
   id: ID!
   collection: Bytes #address
   token_id: BigInt
@@ -23,13 +23,13 @@ type Seed @entity {
   origins: [SeedOrigin!] @derivedFrom(field: "seed")
 }
 
-type SeedOrigin @entity {
+type SeedOrigin @entity(immutable: true) {
   id: ID!
   seed: Seed!
   origin: Origin!
 }
 
-type Style @entity {
+type Style @entity(immutable: false) {
   id: ID!
   owner: Bytes!
   cap: Int
@@ -38,9 +38,10 @@ type Style @entity {
   splices: [Splice!]! @derivedFrom(field: "style")
   split: PaymentSplit
   priceStrategy: Bytes!
+  frozen: Boolean
 }
 
-type PaymentSplit @entity {
+type PaymentSplit @entity(immutable: false)  {
   id: ID!
   payees: [String!]!
   style: Style!
@@ -48,7 +49,7 @@ type PaymentSplit @entity {
   payments: [Payment!]! @derivedFrom(field: "splitter")
 }
 
-type Payment @entity {
+type Payment @entity(immutable: true) {
   id: ID!
   tx: Bytes
   from: Bytes
