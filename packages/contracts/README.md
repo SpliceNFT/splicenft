@@ -1,6 +1,18 @@
 # Contracts
 
-we're using [hardhat](https://hardhat.org/getting-started/#overview). It's fast.
+## Addresses
+
+### Mainnet
+
+Splice 0xB6D9BA151BcdD9169c8Ccd07DB63F306AA4a5b8E
+SpliceStyle 0xEec709ab1e5687B5ffe414D1DfBF35C85B78D3DE
+
+Deployed the cached splice results on Netlify:
+cache / generated / validator base url: https://validate.getsplice.io/splice/1/ (eg https://validate.getsplice.io/splice/1/21474836481/)
+
+Captured Style code & metadata on local ipfs. 
+
+we're using [hardhat](https://hardhat.org/getting-started/#overview). It was fast back then.
 
 ```bash
 pnpm run build
@@ -33,6 +45,8 @@ pnpx hardhat --network localhost deploy:style
 ```
 
 ### Deploy payment controller
+
+payment token addresses
 
 ```
 //main 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,0x6B175474E89094C44Da98b954EedeAC495271d0F,0xdAC17F958D2ee523a2206206994597C13D831ec7

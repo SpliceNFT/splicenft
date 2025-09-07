@@ -37,7 +37,7 @@ type Style @entity(immutable: false) {
   minted: Int
   splices: [Splice!]! @derivedFrom(field: "style")
   split: PaymentSplit
-  priceStrategy: Bytes!
+  priceStrategy: Bytes
   frozen: Boolean
 }
 
